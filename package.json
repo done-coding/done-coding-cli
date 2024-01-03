@@ -1,0 +1,42 @@
+{
+  "name": "template-monorepo",
+  "version": "0.0.1",
+  "private": true,
+  "description": "monorepo",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "prepare": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/justsosu/template-monorepo"
+  },
+  "author": "JustSoSu",
+  "license": "ISC",
+  "devDependencies": {
+    "@commitlint/cli": "^16.3.0",
+    "@commitlint/config-conventional": "^16.2.4",
+    "@types/node": "^18.19.4",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "eslint": "^8.49.0",
+    "eslint-config-alloy": "^5.1.2",
+    "husky": "^8.0.3",
+    "lerna": "^7.3.0",
+    "lint-staged": "^12.5.0",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2"
+  },
+  "lint-staged": {
+    "*.{ts,js,vue,jsx,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
