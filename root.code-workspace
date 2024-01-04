@@ -6,7 +6,7 @@
     },
     {
       "name": "sub-package-ts",
-      "path": "packages/base"
+      "path": "packages/sub-package-ts"
     }
   ],
   "settings": {
@@ -44,13 +44,7 @@
     "[dotenv]": {
       "editor.defaultFormatter": "foxundermoon.shell-format"
     },
-    "cSpell.words": [
-      "commitlint",
-      "csstype",
-      "preinstall",
-      "unplugin",
-      "VITE",
-    ],
+    "cSpell.words": ["commitlint", "csstype", "preinstall", "unplugin", "VITE"],
     "[ignore]": {
       "editor.defaultFormatter": "foxundermoon.shell-format"
     }

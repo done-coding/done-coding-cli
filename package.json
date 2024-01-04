@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "log": "conventional-changelog -p angular -i CHANGELOG.md -s"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,8 @@
     "@types/node": "^18.19.4",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.7.0",
+    "conventional-changelog": "^5.1.0",
+    "conventional-changelog-cli": "^4.1.0",
     "eslint": "^8.49.0",
     "eslint-config-alloy": "^5.1.2",
     "husky": "^8.0.3",
