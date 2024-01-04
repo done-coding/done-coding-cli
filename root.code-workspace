@@ -4,6 +4,10 @@
       "name": "template-monorepo",
       "path": "."
     },
+    {
+      "name": "sub-package-ts",
+      "path": "packages/base"
+    }
   ],
   "settings": {
     "files.eol": "\n",
