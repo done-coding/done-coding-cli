@@ -1,0 +1,18 @@
+ls:
+  src:
+    .dir: kebab-case | lowercase
+    .js: kebab-case | lowercase
+    .ts: kebab-case | lowercase
+    .tsx: PascalCase
+    .d.ts: kebab-case | lowercase
+    .json: kebab-case | lowercase
+    .vue: PascalCase
+    .html: kebab-case | lowercase
+    .css: kebab-case | lowercase
+    .scss: kebab-case | lowercase
+    .less: kebab-case | lowercase
+    .png: kebab-case | lowercase
+    .jpg: kebab-case | lowercase
+    .jpeg: kebab-case | lowercase
+    .gif: kebab-case | lowercase
+    .svg: kebab-case | lowercase
