@@ -3,6 +3,7 @@
     "packages/*"
   ],
   "version": "independent",
+  "npmClient": "pnpm",
   "command": {
     "version": {
       "message": "chore: publish %s"
