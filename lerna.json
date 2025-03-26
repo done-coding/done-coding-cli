@@ -6,7 +6,7 @@
   "npmClient": "pnpm",
   "command": {
     "version": {
-      "message": "chore: publish %s"
+      "message": "publish: %s"
     }
   }
 }
