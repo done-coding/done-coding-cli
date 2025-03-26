@@ -5,3 +5,4 @@ packages/*/types
 packages/*/release
 packages/*/dist
 packages/*/coverage
+lerna-debug.log
