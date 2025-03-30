@@ -1,6 +1,6 @@
 # create-done-coding
 
-done-coding项目脚手架
+项目创建命令行工具
 
 ## 使用
 
