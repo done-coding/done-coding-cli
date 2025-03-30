@@ -1,0 +1,61 @@
+{
+  "name": "@done-coding/cli-inject",
+  "version": "0.0.0",
+  "description": "done-coding注入信息文件命令行工具",
+  "module": "es/index.mjs",
+  "type": "module",
+  "types": "types/index.d.ts",
+  "bin": {
+    "dc-inject": "es/cli.mjs"
+  },
+  "exports": {
+    ".": {
+      "import": "./es/index.mjs"
+    }
+  },
+  "files": [
+    "es",
+    "lib",
+    "types",
+    "gif"
+  ],
+  "scripts": {
+    "clean": "rimraf es lib types",
+    "inject": "node es/cli.mjs",
+    "reset": "pnpm clean && pnpm build",
+    "predev": "pnpm run reset",
+    "dev": "vite build --watch",
+    "prebuild": "pnpm run reset",
+    "build": "vite build",
+    "prepack": "pnpm build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/justsosu/done-coding-cli.git",
+    "directory": "packages/inject"
+  },
+  "author": "JustSoSu",
+  "license": "MIT",
+  "sideEffects": false,
+  "devDependencies": {
+    "@types/lodash.get": "^4.4.9",
+    "@types/lodash.set": "^4.3.9",
+    "@types/node": "^20.0.0",
+    "@types/prompts": "^2.4.6",
+    "@types/yargs": "^17.0.28",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.2.2",
+    "vite": "^4.4.11",
+    "vite-plugin-dts": "^3.6.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "lodash.get": "^4.4.2",
+    "lodash.set": "^4.3.2",
+    "prompts": "^2.4.2",
+    "yargs": "^17.7.2"
+  }
+}

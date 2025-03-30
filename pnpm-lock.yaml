@@ -125,6 +125,52 @@ importers:
         specifier: ^3.6.0
         version: 3.7.0(@types/node@20.17.28)(rollup@4.9.2)(typescript@5.3.3)(vite@4.5.10(@types/node@20.17.28))
 
+  packages/inject:
+    dependencies:
+      chalk:
+        specifier: ^5.3.0
+        version: 5.4.1
+      lodash.get:
+        specifier: ^4.4.2
+        version: 4.4.2
+      lodash.set:
+        specifier: ^4.3.2
+        version: 4.3.2
+      prompts:
+        specifier: ^2.4.2
+        version: 2.4.2
+      yargs:
+        specifier: ^17.7.2
+        version: 17.7.2
+    devDependencies:
+      '@types/lodash.get':
+        specifier: ^4.4.9
+        version: 4.4.9
+      '@types/lodash.set':
+        specifier: ^4.3.9
+        version: 4.3.9
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.17.28
+      '@types/prompts':
+        specifier: ^2.4.6
+        version: 2.4.9
+      '@types/yargs':
+        specifier: ^17.0.28
+        version: 17.0.33
+      rimraf:
+        specifier: ^6.0.1
+        version: 6.0.1
+      typescript:
+        specifier: ^5.2.2
+        version: 5.3.3
+      vite:
+        specifier: ^4.4.11
+        version: 4.5.10(@types/node@20.17.28)
+      vite-plugin-dts:
+        specifier: ^3.6.0
+        version: 3.7.0(@types/node@20.17.28)(rollup@4.9.2)(typescript@5.3.3)(vite@4.5.10(@types/node@20.17.28))
+
 packages:
 
   '@aashutoshrathi/word-wrap@1.2.6':
@@ -439,6 +485,7 @@ packages:
 
   '@ls-lint/ls-lint@2.2.3':
     resolution: {integrity: sha512-ekM12jNm/7O2I/hsRv9HvYkRdfrHpiV1epVuI2NP+eTIcEgdIdKkKCs9KgQydu/8R5YXTov9aHdOgplmCHLupw==}
+    cpu: [x64, arm64, s390x]
     os: [darwin, linux, win32]
     hasBin: true
 
@@ -780,6 +827,15 @@ packages:
 
   '@types/json-schema@7.0.13':
     resolution: {integrity: sha512-RbSSoHliUbnXj3ny0CNFOoxrIDV6SUGyStHsvDqosw6CkdPV8TtWGlfecuK4ToyMEAql6pzNxgCFKanovUzlgQ==}
+
+  '@types/lodash.get@4.4.9':
+    resolution: {integrity: sha512-J5dvW98sxmGnamqf+/aLP87PYXyrha9xIgc2ZlHl6OHMFR2Ejdxep50QfU0abO1+CH6+ugx+8wEUN1toImAinA==}
+
+  '@types/lodash.set@4.3.9':
+    resolution: {integrity: sha512-KOxyNkZpbaggVmqbpr82N2tDVTx05/3/j0f50Es1prxrWB0XYf9p3QNxqcbWb7P1Q9wlvsUSlCFnwlPCIJ46PQ==}
+
+  '@types/lodash@4.17.16':
+    resolution: {integrity: sha512-HX7Em5NYQAXKW+1T+FiuG27NGwzJfCX3s1GjOa7ujxZa52kjJLOr4FUxT+giF6Tgxv1e+/czV/iTtBw27WTU9g==}
 
   '@types/minimatch@3.0.5':
     resolution: {integrity: sha512-Klz949h02Gz2uZCMGwDUSDS1YBlTdDDgbWHi+81l29tQALUtvz4rAYi5uoVhE5Lagoq6DeqAUlbrHvW/mXDgdQ==}
@@ -2215,6 +2271,9 @@ packages:
 
   lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
+
+  lodash.set@4.3.2:
+    resolution: {integrity: sha512-4hNPN5jlm/N/HLMCO43v8BXKq9Z7QdAGc/VGrRD61w8gN9g/6jF9A4L1pbUgBLCffi0w9VsXfTOij5x8iTyFvg==}
 
   lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
@@ -4252,6 +4311,16 @@ snapshots:
 
   '@types/json-schema@7.0.13': {}
 
+  '@types/lodash.get@4.4.9':
+    dependencies:
+      '@types/lodash': 4.17.16
+
+  '@types/lodash.set@4.3.9':
+    dependencies:
+      '@types/lodash': 4.17.16
+
+  '@types/lodash@4.17.16': {}
+
   '@types/minimatch@3.0.5': {}
 
   '@types/minimist@1.2.3': {}
@@ -5882,6 +5951,8 @@ snapshots:
   lodash.ismatch@4.4.0: {}
 
   lodash.merge@4.6.2: {}
+
+  lodash.set@4.3.2: {}
 
   lodash@4.17.21: {}
 
