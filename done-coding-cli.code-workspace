@@ -9,6 +9,10 @@
       "path": "packages/cli"
     },
     {
+      "name": "inject",
+      "path": "packages/inject"
+    },
+    {
       "name": "create",
       "path": "packages/create"
     }
