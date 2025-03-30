@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-inject",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "注入信息文件命令行工具",
   "private": false,
   "module": "es/index.mjs",
