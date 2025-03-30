@@ -4,6 +4,7 @@ import { hideBin } from "yargs/helpers";
 import chalk from "chalk";
 import { command as injectCommand } from "@done-coding/cli-inject";
 import { command as createCommand } from "create-done-coding/assets";
+import { command as publishCommand } from "@done-coding/cli-publish";
 import injectInfo from "@/injectInfo.json";
 
 const failHandler = (msg: string, err: Error) => {
@@ -29,5 +30,6 @@ export const createCli = () => {
     .alias("v", "version")
     .command(createCommand as CommandModule)
     .command(injectCommand as CommandModule)
+    .command(publishCommand as CommandModule)
     .fail(failHandler).argv;
 };

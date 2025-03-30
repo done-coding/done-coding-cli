@@ -15,6 +15,10 @@
     {
       "name": "create",
       "path": "packages/create"
+    },
+    {
+      "name": "publish",
+      "path": "packages/publish"
     }
   ],
   "settings": {
