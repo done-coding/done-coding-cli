@@ -5,4 +5,6 @@ export interface Options {
   template: string;
   /** 保存git历史记录 */
   saveGitHistory: boolean;
+  /** 是否使用shallow clone */
+  shallowClone: boolean;
 }

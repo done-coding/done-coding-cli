@@ -8,6 +8,7 @@ import {
   getVersion,
   projectNameForm,
   saveGitHistoryForm,
+  shallowCloneForm,
   templateChoices,
   templateForm,
 } from "@/utils";
@@ -31,6 +32,12 @@ const getOptions = (): {
       type: "boolean",
       alias: "s",
       describe: saveGitHistoryForm.message,
+    },
+    shallowClone: {
+      type: "boolean",
+      alias: "c",
+      describe: shallowCloneForm.message,
+      default: true,
     },
   };
 };

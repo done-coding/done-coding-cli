@@ -1,6 +1,7 @@
 import {
   projectNameForm,
   saveGitHistoryForm,
+  shallowCloneForm,
   templateChoices,
   templateForm,
   type Options,
@@ -18,6 +19,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options>) => {
     projectName: projectNameInit,
     template: templateInit,
     saveGitHistory: saveGitHistoryInit,
+    shallowClone: shallowCloneInit,
   } = argv;
   const projectNameNoTrim =
     projectNameInit ?? (await prompts(projectNameForm)).projectName;
@@ -111,6 +113,24 @@ export const handler = async (argv: ArgumentsCamelCase<Options>) => {
   writeFileSync(`${projectNamePath}/README.md`, newReadmeContent);
 
   console.log(chalk.green("项目初始化完成"));
+
+  if (saveGitHistory) {
+    // 保留历史记录 同时又只使用浅克隆 二次确认下是否使用浅克隆
+    const shallowClone = shallowCloneInit
+      ? (await prompts(shallowCloneForm)).shallowClone
+      : false;
+    // 不使用浅克隆
+    if (!shallowClone) {
+      execSync(`cd ${projectNamePath} && git fetch --unshallow`);
+      console.log(
+        chalk.green(`已完整克隆项目，后续可以与模板git仓库有完整的交互`),
+      );
+    } else {
+      console.log(
+        chalk.yellow(`当前使用浅克隆，后续不能与模板git仓库有完整的交互`),
+      );
+    }
+  }
 
   console.log(
     chalk.blue(`
