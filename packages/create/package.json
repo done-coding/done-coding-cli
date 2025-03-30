@@ -1,6 +1,6 @@
 {
   "name": "create-done-coding",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "done-coding项目脚手架",
   "module": "es/cli.mjs",
   "type": "module",
