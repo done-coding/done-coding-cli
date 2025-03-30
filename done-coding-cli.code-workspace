@@ -1,12 +1,12 @@
 {
   "folders": [
     {
-      "name": "template-monorepo",
+      "name": "done-coding-cli",
       "path": "."
     },
     {
-      "name": "sub-package-ts",
-      "path": "packages/sub-package-ts"
+      "name": "create",
+      "path": "packages/create"
     }
   ],
   "settings": {
@@ -28,7 +28,7 @@
       "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": true
+      "source.fixAll.eslint": "explicit"
     },
     "typescript.tsdk": "node_modules/typescript/lib",
     "[xml]": {

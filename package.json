@@ -1,8 +1,8 @@
 {
-  "name": "template-monorepo",
+  "name": "done-coding-cli",
   "version": "0.0.1",
   "private": true,
-  "description": "monorepo",
+  "description": "done-coding命令行工具",
   "workspaces": [
     "packages/*"
   ],
@@ -13,10 +13,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://gitee.com/justsosu/template-monorepo"
+    "url": "https://gitee.com/justsosu/done-coding-cli.git"
   },
   "author": "JustSoSu",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@commitlint/cli": "^16.3.0",
     "@commitlint/config-conventional": "^16.2.4",

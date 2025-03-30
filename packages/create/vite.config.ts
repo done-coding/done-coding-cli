@@ -1,55 +1,41 @@
-/// <reference types="vitest" />
 import type { BuildOptions } from "vite";
 import { defineConfig } from "vite";
 import path from "node:path";
 import dts from "vite-plugin-dts";
 import pkg from "./package.json";
-import lodash from "lodash";
+import { builtinModules } from "node:module";
 
 const isPro = process.env.NODE_ENV === "production";
 
 const build = {
   minify: isPro,
-  emptyOutDir: true,
+  target: "node16",
   rollupOptions: {
     external: [
-      ...Object.keys(lodash).map((key) => `lodash/${key}`),
-      ...Object.keys(pkg.dependencies),
+      ...builtinModules,
+      ...builtinModules.map((m) => `node:${m}`),
+      ...Object.keys(pkg.dependencies || {}),
+      "yargs/helpers",
     ],
-    input: ["src/index.ts"],
+    input: ["src/cli.ts"],
     output: [
       {
         format: "es",
-        entryFileNames: "[name].js",
+        entryFileNames: "[name].mjs",
         preserveModules: true,
         dir: "./es",
         preserveModulesRoot: "src",
-      },
-      {
-        format: "cjs",
-        exports: "named",
-        entryFileNames: "[name].js",
-        preserveModules: true,
-        dir: "./lib",
-        preserveModulesRoot: "src",
+        banner: `#!/usr/bin/env node`,
       },
     ],
   },
   lib: {
-    entry: "./src/index.ts",
+    entry: ["src/cli.ts"],
   },
 } satisfies BuildOptions;
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  test: {
-    globals: true,
-    coverage: {
-      provider: "istanbul", // or 'v8'
-      reporter: ["text", "json", "html"],
-      include: ["src/**/*.ts?(x)"],
-    },
-  },
   plugins: [
     dts({
       include: [

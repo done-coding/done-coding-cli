@@ -1,3 +1,3 @@
-# template-monorepo
+# done-coding-cli
 
-创建monorepo项目
+done-coding命令行工具
