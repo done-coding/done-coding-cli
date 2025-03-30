@@ -11,7 +11,7 @@ const isPro = process.env.NODE_ENV === "production";
 
 const injectInfoOptions: Options = {
   sourceJsonFilePath: "./package.json",
-  injectKeyPath: ["version", "name"],
+  injectKeyPath: ["version", "name", "description"],
   injectInfoFilePath: "./src/injectInfo.json",
 };
 

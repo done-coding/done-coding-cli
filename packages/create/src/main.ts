@@ -5,17 +5,17 @@ import type { Options } from "@/utils";
 import { handler } from "@/handler";
 import chalk from "chalk";
 import {
-  getVersion,
   projectNameForm,
   saveGitHistoryForm,
   shallowCloneForm,
-  templateChoices,
-  templateForm,
+  getTemplateChoices,
+  getTemplateForm,
 } from "@/utils";
+import injectInfo from "@/injectInfo.json";
 
-const getOptions = (): {
+const getOptions = async (): Promise<{
   [key in keyof Options]: YargsOptions;
-} => {
+}> => {
   return {
     projectName: {
       type: "string",
@@ -25,8 +25,8 @@ const getOptions = (): {
     template: {
       type: "string",
       alias: "t",
-      choices: templateChoices.map((item) => item.name),
-      describe: templateForm.message as string,
+      choices: (await getTemplateChoices()).map((item) => item.name),
+      describe: (await getTemplateForm()).message as string,
     },
     saveGitHistory: {
       type: "boolean",
@@ -53,22 +53,22 @@ const failHandler = (msg: string, err: Error) => {
   process.exit(1);
 };
 
-const commandDescription = "项目创建命令行工具";
+const commandDescription = injectInfo.description;
 
 const childCommandUsage = `Usage: $0 ${commandName} [options]`;
 
 const mainCommandUsage = `Usage: $0 [options]`;
 
-const getCli = (
+const getCli = async (
   cli: yargs.Argv<Options>,
   usage: typeof mainCommandUsage | typeof childCommandUsage,
 ) => {
-  const options = getOptions();
+  const options = await getOptions();
   return cli
     .strict()
     .usage(usage)
     .help("help")
-    .version(getVersion())
+    .version(injectInfo.version)
     .alias("v", "version")
     .alias("h", "help")
     .options(options)

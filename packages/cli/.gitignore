@@ -1,5 +1,5 @@
 node_modules
-/src/injectInfo.ts
+/src/injectInfo.json
 
 /dist
 /lib

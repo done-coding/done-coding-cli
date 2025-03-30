@@ -10,9 +10,12 @@
     "noUnusedLocals": true,
     "isolatedModules": true,
     "esModuleInterop": true,
+    "resolveJsonModule":true,
+    "baseUrl": ".",
     "paths": {
+      "@/*": ["src/*"],
       "create-done-coding/assets": ["./node_modules/create-done-coding/types/index.d.ts"]
-    }
+    },
   },
   "include": ["src"]
 }

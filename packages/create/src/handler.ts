@@ -1,9 +1,10 @@
 import {
+  getRemoveDirForm,
   projectNameForm,
   saveGitHistoryForm,
   shallowCloneForm,
-  templateChoices,
-  templateForm,
+  getTemplateChoices,
+  getTemplateForm,
   type Options,
 } from "@/utils";
 import type { ArgumentsCamelCase } from "yargs";
@@ -42,11 +43,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options>) => {
   const projectNamePath = resolve(process.cwd(), projectName);
 
   if (existsSync(projectNamePath)) {
-    const { isRemove } = await prompts({
-      type: "confirm",
-      name: "isRemove",
-      message: "项目已存在，是否删除",
-    });
+    const { isRemove } = await prompts(getRemoveDirForm());
     if (isRemove === true) {
       rmSync(projectNamePath, { recursive: true, force: true });
     } else {
@@ -55,7 +52,8 @@ export const handler = async (argv: ArgumentsCamelCase<Options>) => {
     }
   }
 
-  const template = templateInit ?? (await prompts(templateForm)).template;
+  const template =
+    templateInit ?? (await prompts(await getTemplateForm())).template;
 
   let remoteUrl = "";
 
@@ -67,7 +65,9 @@ export const handler = async (argv: ArgumentsCamelCase<Options>) => {
     });
     remoteUrl = customUrl;
   } else {
-    const target = templateChoices.find((item) => item.name === template);
+    const target = (await getTemplateChoices()).find(
+      (item) => item.name === template,
+    );
     if (!target) {
       console.log(chalk.red(`模板${template}不存在`));
       return process.exit(1);

@@ -20,7 +20,7 @@ const getOptions = (): {
       type: "array",
       alias: "k",
       describe: "需要注入的key路径",
-      default: ["name", "version"],
+      default: ["name", "version", "description"],
     },
     injectInfoFilePath: {
       type: "string",
@@ -31,7 +31,7 @@ const getOptions = (): {
   };
 };
 
-const commandName = "xx";
+const commandName = "inject";
 
 const failHandler = (msg: string, err: Error) => {
   if (msg) {
@@ -42,7 +42,7 @@ const failHandler = (msg: string, err: Error) => {
   process.exit(1);
 };
 
-const commandDescription = "xx";
+const commandDescription = injectInfo.description;
 
 const childCommandUsage = `Usage: $0 ${commandName} [options]`;
 

@@ -5,4 +5,4 @@ export const CONFIG_GIT_REPO = import.meta.env.VITE_CONFIG_GIT_REPO;
 export const CUSTOM_TEMPLATE_NAME = "自定义模版路径";
 
 /** 临时目录 */
-export const READ_CONFIG_TEMPORARY_DIRECTORY = "./config_temp";
+export const READ_CONFIG_TEMPORARY_DIRECTORY = `./.create-done-coding_temp`;

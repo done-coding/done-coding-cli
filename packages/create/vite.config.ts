@@ -4,6 +4,7 @@ import path from "node:path";
 import dts from "vite-plugin-dts";
 import pkg from "./package.json";
 import { builtinModules } from "node:module";
+import { execSync } from "node:child_process";
 
 const isPro = process.env.NODE_ENV === "production";
 
@@ -33,6 +34,8 @@ const build = {
     entry: ["src/index.ts", "src/cli.ts"],
   },
 } satisfies BuildOptions;
+
+execSync(`dc-inject 1>&2`);
 
 // https://vitejs.dev/config/
 export default defineConfig({

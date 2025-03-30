@@ -1,14 +1,10 @@
 import type { CommandModule } from "yargs";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import fs from "node:fs";
-import path from "node:path";
 import chalk from "chalk";
-import { fileURLToPath } from "node:url";
+import { command as injectCommand } from "@done-coding/cli-inject";
 import { command as createCommand } from "create-done-coding/assets";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import injectInfo from "@/injectInfo.json";
 
 const failHandler = (msg: string, err: Error) => {
   if (msg) {
@@ -20,13 +16,6 @@ const failHandler = (msg: string, err: Error) => {
 };
 
 export const createCli = () => {
-  const pkgStr = fs.readFileSync(
-    path.join(__dirname, "../package.json"),
-    "utf-8",
-  );
-
-  const { version } = JSON.parse(pkgStr) as { version: string };
-
   const argv = hideBin(process.argv);
   const cli = yargs(argv);
 
@@ -35,9 +24,10 @@ export const createCli = () => {
     .usage("Usage: $0 <command> [options]")
     .demandCommand(1)
     .help("help")
-    .version(version)
+    .version(injectInfo.version)
     .alias("h", "help")
     .alias("v", "version")
     .command(createCommand as CommandModule)
+    .command(injectCommand as CommandModule)
     .fail(failHandler).argv;
 };
