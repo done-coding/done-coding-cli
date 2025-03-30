@@ -17,7 +17,7 @@ const build = {
       ...Object.keys(pkg.dependencies || {}),
       "yargs/helpers",
     ],
-    input: ["src/assets.ts", "src/cli.ts"],
+    input: ["src/index.ts", "src/cli.ts"],
     output: [
       {
         format: "es",
@@ -30,7 +30,7 @@ const build = {
     ],
   },
   lib: {
-    entry: ["src/assets.ts", "src/cli.ts"],
+    entry: ["src/index.ts", "src/cli.ts"],
   },
 } satisfies BuildOptions;
 

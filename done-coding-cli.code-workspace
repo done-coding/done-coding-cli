@@ -5,6 +5,10 @@
       "path": "."
     },
     {
+      "name": "cli",
+      "path": "packages/cli"
+    },
+    {
       "name": "create",
       "path": "packages/create"
     }
