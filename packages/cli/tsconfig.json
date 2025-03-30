@@ -11,7 +11,7 @@
     "isolatedModules": true,
     "esModuleInterop": true,
     "paths": {
-      "create-done-coding/assets": ["./node_modules/create-done-coding/types/assets.d.ts"]
+      "create-done-coding/assets": ["./node_modules/create-done-coding/types/index.d.ts"]
     }
   },
   "include": ["src"]

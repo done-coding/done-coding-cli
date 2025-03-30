@@ -11,8 +11,8 @@
       "import": "./es/cli.mjs"
     },
     "./assets": {
-      "import": "./es/assets.mjs",
-      "types": "./types/assets.d.ts"
+      "import": "./es/index.mjs",
+      "types": "./types/index.d.ts"
     }
   },
   "files": [
