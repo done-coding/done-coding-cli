@@ -2,6 +2,7 @@
   "name": "@done-coding/cli",
   "version": "0.0.0",
   "description": "done-coding命令行工具",
+  "private": false,
   "module": "es/cli.mjs",
   "type": "module",
   "types": "types/cli.d.ts",
@@ -29,6 +30,9 @@
     "type": "git",
     "url": "https://gitee.com/justsosu/done-coding-cli.git",
     "directory": "packages/cli"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "author": "JustSoSu",
   "license": "MIT",
