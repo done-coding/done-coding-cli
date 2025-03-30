@@ -47,3 +47,9 @@ export const saveGitHistoryForm = {
   name: "saveGitHistory",
   message: "是否保留git历史",
 };
+
+export const shallowCloneForm = {
+  type: "confirm" as const,
+  name: "shallowClone",
+  message: "是否使用浅克隆(后续期望与模板git仓库有完整的交互，请选择'N')",
+};
