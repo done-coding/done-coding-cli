@@ -1,0 +1,53 @@
+{
+  "name": "create-done-coding",
+  "version": "0.3.1",
+  "description": "done-coding项目脚手架",
+  "module": "es/cli.mjs",
+  "type": "module",
+  "types": "types/cli.d.ts",
+  "bin": "es/cli.mjs",
+  "exports": {
+    ".": {
+      "import": "./es/cli.mjs"
+    }
+  },
+  "files": [
+    "es",
+    "lib",
+    "types",
+    "gif"
+  ],
+  "scripts": {
+    "clean": "rimraf es lib types",
+    "predev": "pnpm run clean",
+    "dev": "vite build --watch",
+    "prebuild": "pnpm run clean",
+    "build": "vite build",
+    "prepack": "pnpm build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/justsosu/done-coding-cli.git",
+    "directory": "packages/create"
+  },
+  "author": "JustSoSu",
+  "license": "MIT",
+  "sideEffects": false,
+  "devDependencies": {
+    "@types/node": "^16.18.58",
+    "@types/prompts": "^2.4.6",
+    "@types/yargs": "^17.0.33",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.2.2",
+    "vite": "^4.4.11",
+    "vite-plugin-dts": "^3.6.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "prompts": "^2.4.2",
+    "yargs": "^17.7.2"
+  }
+}
