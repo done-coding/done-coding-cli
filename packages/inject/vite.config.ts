@@ -4,8 +4,18 @@ import path from "node:path";
 import dts from "vite-plugin-dts";
 import pkg from "./package.json";
 import { builtinModules } from "node:module";
+import { handler } from "./src/handler";
+import type { Options } from "./src/utils";
 
 const isPro = process.env.NODE_ENV === "production";
+
+const injectInfoOptions: Options = {
+  sourceJsonFilePath: "./package.json",
+  injectKeyPath: ["version", "name"],
+  injectInfoFilePath: "./src/injectInfo.json",
+};
+
+handler(injectInfoOptions);
 
 const build = {
   minify: isPro,

@@ -21,11 +21,9 @@
   ],
   "scripts": {
     "clean": "rimraf es lib types",
-    "inject": "node es/cli.mjs",
-    "reset": "pnpm clean && pnpm build",
-    "predev": "pnpm run reset",
+    "predev": "pnpm run clean",
     "dev": "vite build --watch",
-    "prebuild": "pnpm run reset",
+    "prebuild": "pnpm run clean",
     "build": "vite build",
     "prepack": "pnpm build"
   },
