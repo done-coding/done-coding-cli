@@ -14,12 +14,12 @@ export const handler = async (argv: ArgumentsCamelCase<Options>) => {
   const currentPath = process.cwd();
 
   if (!sourceJsonFilePath.endsWith(".json")) {
-    console.log(chalk.red("源文件必须是json格式"));
+    console.log(chalk.red("源文件必须是json"));
     return process.exit(1);
   }
 
   if (!injectInfoFilePath.endsWith(".json")) {
-    console.log(chalk.red("注入文件必须是json格式"));
+    console.log(chalk.red("注入文件必须是json"));
     return process.exit(1);
   }
 
@@ -57,7 +57,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options>) => {
 
   fs.writeFileSync(injectInfoFileFullPath, injectInfoJson);
   console.log(
-    chalk.green(`文件注入成功过: ${injectInfoFileFullPath}`),
+    chalk.green(`文件注入成功: ${injectInfoFileFullPath}`),
     chalk.blue(injectInfoJson),
   );
   return injectInfo;
