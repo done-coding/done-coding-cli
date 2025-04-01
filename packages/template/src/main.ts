@@ -47,7 +47,6 @@ const getOptions = (): {
       alias: "o",
       describe: "输出文件路径",
       type: "string",
-      demandOption: true,
     },
     rollback: {
       alias: "r",
