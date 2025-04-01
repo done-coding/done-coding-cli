@@ -109,7 +109,9 @@ export const handler = async (argv: ArgumentsCamelCase<Options>) => {
 
   console.log(
     chalk.blue(`开始处理模板
-mode: ${mode}`),
+mode: ${mode}
+rollback: ${rollback}
+`),
   );
 
   /** 环境变量 */
@@ -138,8 +140,8 @@ mode: ${mode}`),
       ensureOutputNotNull(mode, output);
       ensureOutputNotEqualsInput(output, input);
       const outputPath = path.resolve(output);
-      if (rollback) {
-        if (fs.existsSync(outputPath)) {
+      if (fs.existsSync(outputPath)) {
+        if (rollback) {
           if (
             (
               await prompts({
@@ -153,13 +155,19 @@ mode: ${mode}`),
             console.log(chalk.green(`${mode}模式下${outputPath}已删除`));
             return;
           } else {
-            console.log(
-              chalk.yellow(`${mode}模式下${outputPath}不存在，无需回滚`),
-            );
+            console.log(chalk.yellow(`${mode}模式下${outputPath}回滚取消`));
             return;
           }
         }
-        return;
+        console.log(chalk.blue(`output:${outputPath} 已存在，将覆盖`));
+      } else {
+        if (rollback) {
+          console.log(
+            chalk.yellow(`${mode}模式下${outputPath}不存在，无需回滚`),
+          );
+          return;
+        }
+        console.log(chalk.blue(`output:${outputPath} 不存在，将创建`));
       }
       fs.writeFileSync(outputPath, outputContent, "utf-8");
       console.log(chalk.green(`模板处理完成，输出到 ${outputPath}`));
