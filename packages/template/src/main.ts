@@ -11,34 +11,43 @@ const getOptions = (): {
   [key in keyof Options]: YargsOptions;
 } => {
   return {
-    envData: {
-      alias: "e",
-      describe: "环境变量数据文件路径",
-      type: "string",
-    },
     envJson: {
       alias: "j",
       describe: "环境数据文件JSON文件相对路径(优先级高于envData)",
       type: "string",
+    },
+    envData: {
+      alias: "e",
+      describe: "环境变量数据(JSON字符串)",
+      type: "string",
+    },
+    input: {
+      alias: "i",
+      describe: "模板文件相对路径(优先级高于inputTemplate)",
+      type: "string",
+    },
+    inputTemplate: {
+      alias: "t",
+      describe: "模板文件内容",
+      type: "string",
+    },
+    mode: {
+      alias: "m",
+      describe: "输出模式",
+      type: "string",
+      choices: [
+        OutputModeEnum.OVERWRITE,
+        OutputModeEnum.APPEND,
+        OutputModeEnum.REPLACE,
+        OutputModeEnum.RETURN,
+      ],
+      default: OutputModeEnum.OVERWRITE,
     },
     output: {
       alias: "o",
       describe: "输出文件路径",
       type: "string",
       demandOption: true,
-    },
-    input: {
-      alias: "i",
-      describe: "模板文件路径",
-      type: "string",
-      demandOption: true,
-    },
-    mode: {
-      alias: "m",
-      describe: "输出模式",
-      type: "string",
-      choices: [OutputModeEnum.OVERWRITE, OutputModeEnum.APPEND],
-      default: OutputModeEnum.OVERWRITE,
     },
   };
 };

@@ -1,54 +1,177 @@
-import type { Options } from "@/utils";
+import { OutputModeEnum, type Options } from "@/utils";
 import type { ArgumentsCamelCase } from "yargs";
 import path from "node:path";
 import fs from "node:fs";
 import chalk from "chalk";
 import _template from "lodash.template";
 
-export const handler = async (argv: ArgumentsCamelCase<Options>) => {
-  console.log(argv);
-  const { envData: envDataInit, envJson, output, input } = argv;
+/** 获取数据 */
+const getData = <
+  J extends boolean,
+  R extends J extends true ? Record<string, any> : string = J extends true
+    ? Record<string, any>
+    : string,
+>({
+  filePath,
+  dataInit,
+  json,
+  filePathKey,
+  dataInitKey,
+}: {
+  /** 文件相对路径 */
+  filePath?: string;
+  /** 初始数据 */
+  dataInit?: string;
+  /** 是否json格式 */
+  json: J;
+  /** 文件路径key */
+  filePathKey: keyof Options;
+  /** 初始数据key */
+  dataInitKey: keyof Options;
+}): R => {
+  if (filePath) {
+    if (json) {
+      if (!filePath.endsWith(".json")) {
+        console.log(
+          chalk.red(`${filePathKey}必须是json文件，请检查文件后缀名`),
+        );
+        return process.exit(1);
+      }
+    }
 
-  if (input === output) {
-    console.log(chalk.red(`input不能与output相同`));
+    const fileContent = fs.readFileSync(path.resolve(filePath), "utf-8");
+
+    if (json) {
+      return JSON.parse(fileContent) as R;
+    } else {
+      return fileContent as R;
+    }
+  } else {
+    if (!dataInit) {
+      console.log(chalk.red(`${filePathKey}与${dataInitKey}不能同时为空`));
+      return process.exit(1);
+    }
+    console.log(chalk.green(`${filePathKey} 为空，将使用${dataInit}作为数据`));
+
+    if (json) {
+      return JSON.parse(dataInit) as R;
+    } else {
+      return dataInit as R;
+    }
+  }
+};
+
+/** 确保output不为空 */
+const ensureOutputNotNull = (mode: OutputModeEnum, output?: string) => {
+  if (!output) {
+    console.log(chalk.red(`${mode}模式下output不能为空`));
     return process.exit(1);
   }
+};
 
-  let envData: Record<string, string>;
-  if (envJson) {
-    if (!envJson.endsWith(".json")) {
-      console.log(chalk.red(`envJson必须是json文件，请检查文件后缀名`));
-      return process.exit(1);
-    }
+/** 确保output与input不相同 */
+const ensureOutputNotEqualsInput = (output: string, input?: string) => {
+  if (input && output === input) {
+    console.log(chalk.red(`output与input不能相同`));
+    return process.exit(1);
+  }
+};
 
-    if (envJson === output) {
-      console.log(chalk.red(`envJson不能与output相同`));
-      return process.exit(1);
-    }
+/** 确保input不为空 */
+const ensureInputNotNull = (mode: OutputModeEnum, input?: string) => {
+  if (!input) {
+    console.log(chalk.red(`${mode}模式下input不能为空`));
+    return process.exit(1);
+  }
+};
 
-    console.log(path.resolve(envJson) === path.resolve(process.cwd(), envJson));
-    envData = JSON.parse(fs.readFileSync(path.resolve(envJson), "utf-8"));
-  } else {
-    if (!envDataInit) {
-      console.log(chalk.red(`envData 与 envJson 不能同时为空`));
-      return process.exit(1);
+export const handler = async (argv: ArgumentsCamelCase<Options>) => {
+  const {
+    envData: envDataInit,
+    envJson,
+    input,
+    inputTemplate,
+    output,
+    mode,
+  } = argv;
+
+  console.log(
+    chalk.blue(`开始处理模板
+mode: ${mode}`),
+  );
+
+  /** 环境变量 */
+  const envData = getData({
+    filePath: envJson,
+    dataInit: envDataInit,
+    json: true,
+    filePathKey: "envJson",
+    dataInitKey: "envData",
+  });
+
+  /** 模板内容 */
+  const templateContent = getData({
+    filePath: input,
+    dataInit: inputTemplate,
+    json: false,
+    filePathKey: "input",
+    dataInitKey: "inputTemplate",
+  });
+
+  const compiled = _template(templateContent);
+  const outputContent = compiled(envData);
+
+  switch (mode) {
+    case OutputModeEnum.OVERWRITE: {
+      ensureOutputNotNull(mode, output);
+      ensureOutputNotEqualsInput(output, input);
+      const outputPath = path.resolve(output);
+      fs.writeFileSync(outputPath, outputContent, "utf-8");
+      console.log(chalk.green(`模板处理完成，输出到 ${outputPath}`));
+      break;
     }
-    console.log(
-      chalk.green(`envJson 为空，将使用 ${envDataInit} 作为环境变量`),
-    );
-    try {
-      envData = JSON.parse(envDataInit);
-    } catch (error: any) {
-      console.log(chalk.red(`envData 格式错误:${error.message}，请检查`));
+    case OutputModeEnum.APPEND: {
+      ensureOutputNotNull(mode, output);
+      ensureOutputNotEqualsInput(output, input);
+      const outputPath = path.resolve(output);
+      if (fs.existsSync(outputPath)) {
+        const oldContent = fs.readFileSync(outputPath, "utf-8");
+        const newContent = oldContent + outputContent;
+        fs.writeFileSync(outputPath, newContent, "utf-8");
+        console.log(chalk.green(`模板处理完成，追加到 ${outputPath}`));
+      } else {
+        console.log(chalk.blue(`output:${outputPath} 不存在，将创建`));
+        fs.writeFileSync(outputPath, outputContent, "utf-8");
+        console.log(chalk.green(`模板处理完成，输出到 ${outputPath}`));
+      }
+      break;
+    }
+    case OutputModeEnum.REPLACE: {
+      if (output) {
+        console.log(chalk.yellow(`output ${output} 将被忽略`));
+      }
+      ensureInputNotNull(mode, input);
+
+      if (envJson && envJson === input) {
+        console.log(chalk.red(`envJson与input不能相同`));
+        return process.exit(1);
+      }
+      const inputPath = path.resolve(input);
+      fs.writeFileSync(inputPath, outputContent, "utf-8");
+      console.log(chalk.green(`模板处理完成，输出到 ${inputPath}`));
+      break;
+    }
+    case OutputModeEnum.RETURN: {
+      console.log(
+        chalk.green(`模板处理完成，返回结果(函数调用才会拿到返回值)`),
+      );
+      return outputContent;
+    }
+    default: {
+      console.log(chalk.red(`mode ${mode} 不支持`));
       return process.exit(1);
     }
   }
-
-  const inputContent = fs.readFileSync(path.resolve(input), "utf-8");
-  const compiled = _template(inputContent);
-  const outputContent = compiled(envData);
-  fs.writeFileSync(path.resolve(output), outputContent);
-  console.log(chalk.green(`模板文件 ${input} 已渲染到 ${output}`));
 
   return outputContent;
 };
