@@ -6,9 +6,14 @@ export {
 export {
   command as browserCommand,
   handler as browserHandler,
-} from "create-done-coding/assets";
+} from "create-done-coding";
 
 export {
   command as publishCommand,
   handler as publishHandler,
 } from "@done-coding/cli-publish";
+
+export {
+  command as templateCommand,
+  handler as templateHandler,
+} from "@done-coding/cli-template";
