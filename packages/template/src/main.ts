@@ -49,6 +49,12 @@ const getOptions = (): {
       type: "string",
       demandOption: true,
     },
+    rollback: {
+      alias: "r",
+      describe: "是否回滚",
+      type: "boolean",
+      default: false,
+    },
   };
 };
 

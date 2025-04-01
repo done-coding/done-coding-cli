@@ -4,6 +4,7 @@ import path from "node:path";
 import fs from "node:fs";
 import chalk from "chalk";
 import _template from "lodash.template";
+import prompts from "prompts";
 
 /** 获取数据 */
 const getData = <
@@ -93,7 +94,18 @@ export const handler = async (argv: ArgumentsCamelCase<Options>) => {
     inputTemplate,
     output,
     mode,
+    rollback,
   } = argv;
+
+  if (rollback) {
+    switch (mode) {
+      case OutputModeEnum.REPLACE:
+      case OutputModeEnum.RETURN: {
+        console.log(chalk.red(`${mode}模式不支持回滚`));
+        return;
+      }
+    }
+  }
 
   console.log(
     chalk.blue(`开始处理模板
@@ -126,6 +138,29 @@ mode: ${mode}`),
       ensureOutputNotNull(mode, output);
       ensureOutputNotEqualsInput(output, input);
       const outputPath = path.resolve(output);
+      if (rollback) {
+        if (fs.existsSync(outputPath)) {
+          if (
+            (
+              await prompts({
+                type: "confirm",
+                name: "remove",
+                message: `${mode}模式下回滚将删除${outputPath}，是否继续？`,
+              })
+            ).remove
+          ) {
+            fs.rmSync(outputPath, { force: true });
+            console.log(chalk.green(`${mode}模式下${outputPath}已删除`));
+            return;
+          } else {
+            console.log(
+              chalk.yellow(`${mode}模式下${outputPath}不存在，无需回滚`),
+            );
+            return;
+          }
+        }
+        return;
+      }
       fs.writeFileSync(outputPath, outputContent, "utf-8");
       console.log(chalk.green(`模板处理完成，输出到 ${outputPath}`));
       break;
@@ -136,10 +171,25 @@ mode: ${mode}`),
       const outputPath = path.resolve(output);
       if (fs.existsSync(outputPath)) {
         const oldContent = fs.readFileSync(outputPath, "utf-8");
+        if (rollback) {
+          fs.writeFileSync(
+            outputPath,
+            oldContent.replace(outputContent, ""),
+            "utf-8",
+          );
+          console.log(chalk.green(`${mode}模式下${outputPath}回滚完成`));
+          return;
+        }
         const newContent = oldContent + outputContent;
         fs.writeFileSync(outputPath, newContent, "utf-8");
         console.log(chalk.green(`模板处理完成，追加到 ${outputPath}`));
       } else {
+        if (rollback) {
+          console.log(
+            chalk.yellow(`${mode}模式下${outputPath}不存在，无需回滚`),
+          );
+          return;
+        }
         console.log(chalk.blue(`output:${outputPath} 不存在，将创建`));
         fs.writeFileSync(outputPath, outputContent, "utf-8");
         console.log(chalk.green(`模板处理完成，输出到 ${outputPath}`));

@@ -23,4 +23,6 @@ export interface Options {
   output: string;
   /** 输出模式 */
   mode: OutputModeEnum;
+  /** 是否回滚 */
+  rollback: boolean;
 }
