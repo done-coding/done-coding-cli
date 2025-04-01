@@ -1,4 +1,9 @@
 export {
+  command as initCommand,
+  handler as initHandler,
+} from "@done-coding/cli-init";
+
+export {
   command as injectCommand,
   handler as injectHandler,
 } from "@done-coding/cli-inject";
