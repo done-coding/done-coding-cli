@@ -30,6 +30,10 @@
     "url": "https://gitee.com/justsosu/done-coding-cli.git",
     "directory": "packages/create"
   },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "author": "JustSoSu",
   "license": "MIT",
   "sideEffects": false,
