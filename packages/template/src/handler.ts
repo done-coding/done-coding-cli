@@ -18,6 +18,7 @@ const getData = <
   json,
   filePathKey,
   dataInitKey,
+  dealMarkdown = false,
 }: {
   /** 文件相对路径 */
   filePath?: string;
@@ -29,6 +30,8 @@ const getData = <
   filePathKey: keyof Options;
   /** 初始数据key */
   dataInitKey: keyof Options;
+  /** (检测是markdown)是否处理(单个)代码块包裹 */
+  dealMarkdown?: boolean;
 }): R => {
   if (filePath) {
     if (json) {
@@ -40,7 +43,15 @@ const getData = <
       }
     }
 
-    const fileContent = fs.readFileSync(path.resolve(filePath), "utf-8");
+    const fileContentInit = fs.readFileSync(path.resolve(filePath), "utf-8");
+
+    let fileContent = fileContentInit;
+    if (dealMarkdown && filePath.endsWith(".md")) {
+      fileContent = fileContentInit.replace(
+        /^\s*```[a-zA-Z0-9]+\s*[\r\n]+([\s\S]+?)```\s*$/,
+        "$1",
+      );
+    }
 
     if (json) {
       return JSON.parse(fileContent) as R;
@@ -97,6 +108,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options>) => {
     output,
     mode = OutputModeEnum.OVERWRITE,
     rollback = false,
+    dealMarkdown = false,
   } = argv;
 
   if (rollback) {
@@ -123,6 +135,7 @@ rollback: ${rollback}
     json: true,
     filePathKey: "env",
     dataInitKey: "envData",
+    dealMarkdown,
   });
 
   /** 模板内容 */
@@ -132,6 +145,7 @@ rollback: ${rollback}
     json: false,
     filePathKey: "input",
     dataInitKey: "inputData",
+    dealMarkdown,
   });
 
   const compiled = _template(templateContent);

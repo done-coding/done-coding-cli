@@ -25,4 +25,6 @@ export interface Options {
   mode: OutputModeEnum;
   /** 是否回滚 @default false */
   rollback?: boolean;
+  /** (检测是markdown)是否处理(单个)代码块包裹 */
+  dealMarkdown?: boolean;
 }

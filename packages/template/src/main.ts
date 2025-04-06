@@ -54,6 +54,12 @@ const getOptions = (): {
       type: "boolean",
       default: false,
     },
+    dealMarkdown: {
+      alias: "d",
+      describe: "(检测是markdown)是否处理(单个)代码块包裹",
+      type: "boolean",
+      default: false,
+    },
   };
 };
 
