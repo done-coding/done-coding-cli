@@ -11,13 +11,13 @@ const getOptions = (): {
   [key in keyof Options]: YargsOptions;
 } => {
   return {
-    envJson: {
-      alias: "j",
+    env: {
+      alias: "e",
       describe: "环境数据文件JSON文件相对路径(优先级高于envData)",
       type: "string",
     },
     envData: {
-      alias: "e",
+      alias: "E",
       describe: "环境变量数据(JSON字符串)",
       type: "string",
     },
@@ -26,9 +26,9 @@ const getOptions = (): {
       describe: "模板文件相对路径(优先级高于inputTemplate)",
       type: "string",
     },
-    inputTemplate: {
-      alias: "t",
-      describe: "模板文件内容",
+    inputData: {
+      alias: "I",
+      describe: "模板数据",
       type: "string",
     },
     mode: {

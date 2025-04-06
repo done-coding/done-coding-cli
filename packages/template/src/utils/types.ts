@@ -11,14 +11,14 @@ export enum OutputModeEnum {
 }
 
 export interface Options {
-  /** 环境数据文件JSON文件相对路径(优先级高于envData) */
-  envJson: string;
+  /** 环境数据(json)文件(优先级高于 envData ) */
+  env: string;
   /** 环境变量数据(JSON字符串) */
   envData: string;
-  /** 模板文件相对路径(优先级高于inputTemplate) */
+  /** 模板文件相对路径(优先级高于 inputData ) */
   input: string;
-  /** 模板文件内容  */
-  inputTemplate: string;
+  /** 模板数据 */
+  inputData: string;
   /** 输出文件相对路径 */
   output: string;
   /** 输出模式 */

@@ -89,9 +89,9 @@ const ensureInputNotNull = (mode: OutputModeEnum, input?: string) => {
 export const handler = async (argv: ArgumentsCamelCase<Options>) => {
   const {
     envData: envDataInit,
-    envJson,
+    env,
     input,
-    inputTemplate,
+    inputData,
     output,
     mode,
     rollback,
@@ -116,20 +116,20 @@ rollback: ${rollback}
 
   /** 环境变量 */
   const envData = getData({
-    filePath: envJson,
+    filePath: env,
     dataInit: envDataInit,
     json: true,
-    filePathKey: "envJson",
+    filePathKey: "env",
     dataInitKey: "envData",
   });
 
   /** 模板内容 */
   const templateContent = getData({
     filePath: input,
-    dataInit: inputTemplate,
+    dataInit: inputData,
     json: false,
     filePathKey: "input",
-    dataInitKey: "inputTemplate",
+    dataInitKey: "inputData",
   });
 
   const compiled = _template(templateContent);
@@ -210,7 +210,7 @@ rollback: ${rollback}
       }
       ensureInputNotNull(mode, input);
 
-      if (envJson && envJson === input) {
+      if (env && env === input) {
         console.log(chalk.red(`envJson与input不能相同`));
         return process.exit(1);
       }
