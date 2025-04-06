@@ -52,7 +52,9 @@ const getData = <
       console.log(chalk.red(`${filePathKey}与${dataInitKey}不能同时为空`));
       return process.exit(1);
     }
-    console.log(chalk.green(`${filePathKey} 为空，将使用${dataInit}作为数据`));
+    console.log(
+      chalk.green(`${filePathKey} 为空，将使用${dataInitKey}作为数据`),
+    );
 
     if (json) {
       return JSON.parse(dataInit) as R;
