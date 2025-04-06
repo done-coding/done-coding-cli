@@ -1,15 +1,17 @@
 {
-  "name": "@done-coding/cli",
-  "version": "0.3.1",
-  "description": "done-coding命令行工具",
+  "name": "@done-coding/cli-component",
+  "version": "0.0.0",
+  "description": "组件命令行工具",
   "private": false,
-  "module": "es/cli.mjs",
+  "module": "es/index.mjs",
   "type": "module",
-  "types": "types/cli.d.ts",
-  "bin": "es/cli.mjs",
+  "types": "types/index.d.ts",
+  "bin": {
+    "dc-component": "es/cli.mjs"
+  },
   "exports": {
     ".": {
-      "import": "./es/cli.mjs"
+      "import": "./es/index.mjs"
     }
   },
   "files": [
@@ -29,7 +31,7 @@
   "repository": {
     "type": "git",
     "url": "https://gitee.com/justsosu/done-coding-cli.git",
-    "directory": "packages/cli"
+    "directory": "packages/component"
   },
   "publishConfig": {
     "access": "public"
@@ -38,7 +40,9 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@done-coding/cli-inject": "workspace:^",
+    "@types/lodash.curry": "^4.1.9",
+    "@types/node": "^16.0.0",
     "@types/prompts": "^2.4.6",
     "@types/yargs": "^17.0.28",
     "rimraf": "^6.0.1",
@@ -50,13 +54,8 @@
     "node": ">=16.0.0"
   },
   "dependencies": {
-    "@done-coding/cli-component": "workspace:^",
-    "@done-coding/cli-init": "workspace:^",
-    "@done-coding/cli-inject": "workspace:^",
-    "@done-coding/cli-publish": "workspace:^",
-    "@done-coding/cli-template": "workspace:^",
     "chalk": "^5.3.0",
-    "create-done-coding": "workspace:^",
+    "lodash.curry": "^4.1.1",
     "prompts": "^2.4.2",
     "yargs": "^17.7.2"
   }

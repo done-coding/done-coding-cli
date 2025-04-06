@@ -56,6 +56,9 @@ importers:
 
   packages/cli:
     dependencies:
+      '@done-coding/cli-component':
+        specifier: workspace:^
+        version: link:../component
       '@done-coding/cli-init':
         specifier: workspace:^
         version: link:../init
@@ -102,6 +105,49 @@ importers:
       vite-plugin-dts:
         specifier: ^3.6.0
         version: 3.7.0(@types/node@20.17.28)(rollup@4.9.2)(typescript@5.3.3)(vite@4.5.10(@types/node@20.17.28))
+
+  packages/component:
+    dependencies:
+      chalk:
+        specifier: ^5.3.0
+        version: 5.4.1
+      lodash.curry:
+        specifier: ^4.1.1
+        version: 4.1.1
+      prompts:
+        specifier: ^2.4.2
+        version: 2.4.2
+      yargs:
+        specifier: ^17.7.2
+        version: 17.7.2
+    devDependencies:
+      '@done-coding/cli-inject':
+        specifier: workspace:^
+        version: link:../inject
+      '@types/lodash.curry':
+        specifier: ^4.1.9
+        version: 4.1.9
+      '@types/node':
+        specifier: ^16.0.0
+        version: 16.18.126
+      '@types/prompts':
+        specifier: ^2.4.6
+        version: 2.4.9
+      '@types/yargs':
+        specifier: ^17.0.28
+        version: 17.0.33
+      rimraf:
+        specifier: ^6.0.1
+        version: 6.0.1
+      typescript:
+        specifier: ^5.2.2
+        version: 5.3.3
+      vite:
+        specifier: ^4.4.11
+        version: 4.5.10(@types/node@16.18.126)
+      vite-plugin-dts:
+        specifier: ^3.6.0
+        version: 3.7.0(@types/node@16.18.126)(rollup@4.9.2)(typescript@5.3.3)(vite@4.5.10(@types/node@16.18.126))
 
   packages/create:
     dependencies:
@@ -641,7 +687,6 @@ packages:
 
   '@ls-lint/ls-lint@2.2.3':
     resolution: {integrity: sha512-ekM12jNm/7O2I/hsRv9HvYkRdfrHpiV1epVuI2NP+eTIcEgdIdKkKCs9KgQydu/8R5YXTov9aHdOgplmCHLupw==}
-    cpu: [x64, arm64, s390x]
     os: [darwin, linux, win32]
     hasBin: true
 
@@ -749,24 +794,28 @@ packages:
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@nx/nx-linux-arm64-musl@16.10.0':
     resolution: {integrity: sha512-uO6Gg+irqpVcCKMcEPIQcTFZ+tDI02AZkqkP7koQAjniLEappd8DnUBSQdcn53T086pHpdc264X/ZEpXFfrKWQ==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@nx/nx-linux-x64-gnu@16.10.0':
     resolution: {integrity: sha512-134PW/u/arNFAQKpqMJniC7irbChMPz+W+qtyKPAUXE0XFKPa7c1GtlI/wK2dvP9qJDZ6bKf0KtA0U/m2HMUOA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@nx/nx-linux-x64-musl@16.10.0':
     resolution: {integrity: sha512-q8sINYLdIJxK/iUx9vRk5jWAWb/2O0PAbOJFwv4qkxBv4rLoN7y+otgCZ5v0xfx/zztFgk/oNY4lg5xYjIso2Q==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@nx/nx-win32-arm64-msvc@16.10.0':
     resolution: {integrity: sha512-moJkL9kcqxUdJSRpG7dET3UeLIciwrfP08mzBQ12ewo8K8FzxU8ZUsTIVVdNrwt01CXOdXoweGfdQLjJ4qTURA==}
@@ -886,26 +935,31 @@ packages:
     resolution: {integrity: sha512-pL6QtV26W52aCWTG1IuFV3FMPL1m4wbsRG+qijIvgFO/VBsiXJjDPE/uiMdHBAO6YcpV4KvpKtd0v3WFbaxBtg==}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-arm64-musl@4.9.2':
     resolution: {integrity: sha512-On+cc5EpOaTwPSNetHXBuqylDW+765G/oqB9xGmWU3npEhCh8xu0xqHGUA+4xwZLqBbIZNcBlKSIYfkBm6ko7g==}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-riscv64-gnu@4.9.2':
     resolution: {integrity: sha512-Wnx/IVMSZ31D/cO9HSsU46FjrPWHqtdF8+0eyZ1zIB5a6hXaZXghUKpRrC4D5DcRTZOjml2oBhXoqfGYyXKipw==}
     cpu: [riscv64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-x64-gnu@4.9.2':
     resolution: {integrity: sha512-ym5x1cj4mUAMBummxxRkI4pG5Vht1QMsJexwGP8547TZ0sox9fCLDHw9KCH9c1FO5d9GopvkaJsBIOkTKxksdw==}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-x64-musl@4.9.2':
     resolution: {integrity: sha512-m0hYELHGXdYx64D6IDDg/1vOJEaiV8f1G/iO+tejvRCJNSwK4jJ15e38JQy5Q6dGkn1M/9KcyEOwqmlZ2kqaZg==}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-win32-arm64-msvc@4.9.2':
     resolution: {integrity: sha512-x1CWburlbN5JjG+juenuNa4KdedBdXLjZMp56nHFSHTOsb/MI2DYiGzLtRGHNMyydPGffGId+VgjOMrcltOksA==}
@@ -988,6 +1042,9 @@ packages:
   '@types/json-schema@7.0.13':
     resolution: {integrity: sha512-RbSSoHliUbnXj3ny0CNFOoxrIDV6SUGyStHsvDqosw6CkdPV8TtWGlfecuK4ToyMEAql6pzNxgCFKanovUzlgQ==}
 
+  '@types/lodash.curry@4.1.9':
+    resolution: {integrity: sha512-QV967vSflHEza0d0IMTK7fwbl+baPBXZjcESeAHrA5eSE+EHetaggZjPpkzX1NJh4qa8DLOLScwUR+f7FN85Zg==}
+
   '@types/lodash.get@4.4.9':
     resolution: {integrity: sha512-J5dvW98sxmGnamqf+/aLP87PYXyrha9xIgc2ZlHl6OHMFR2Ejdxep50QfU0abO1+CH6+ugx+8wEUN1toImAinA==}
 
@@ -1005,6 +1062,9 @@ packages:
 
   '@types/minimist@1.2.3':
     resolution: {integrity: sha512-ZYFzrvyWUNhaPomn80dsMNgMeXxNWZBdkuG/hWlUvXvbdUH8ZERNBGXnU87McuGcWDsyzX2aChCv/SVN348k3A==}
+
+  '@types/node@16.18.126':
+    resolution: {integrity: sha512-OTcgaiwfGFBKacvfwuHzzn1KLxH/er8mluiy8/uM3sGXHaRe73RrSIj01jow9t4kJEW633Ov+cOexXeiApTyAw==}
 
   '@types/node@18.19.4':
     resolution: {integrity: sha512-xNzlUhzoHotIsnFoXmJB+yWmBvFZgKCI9TtPIEdYIMM1KWfwuY8zh7wvc1u1OAXlC7dlf6mZVx/s+Y5KfFz19A==}
@@ -2447,6 +2507,9 @@ packages:
 
   lodash._reinterpolate@3.0.0:
     resolution: {integrity: sha512-xYHt68QRoYGjeeM/XOE1uJtvXQAgvszfBhjV4yvsQH0u2i9I6cI6c6/eG4Hh3UAOVn0y/xAXwmTzEay49Q//HA==}
+
+  lodash.curry@4.1.1:
+    resolution: {integrity: sha512-/u14pXGviLaweY5JI0IUzgzF2J6Ne8INyzAZjImcryjgkZ+ebruBxy2/JaOOkTqScddcYtakjhSaeemV8lR0tA==}
 
   lodash.get@4.4.2:
     resolution: {integrity: sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==}
@@ -4194,11 +4257,36 @@ snapshots:
       - supports-color
     optional: true
 
+  '@microsoft/api-extractor-model@7.28.3(@types/node@16.18.126)':
+    dependencies:
+      '@microsoft/tsdoc': 0.14.2
+      '@microsoft/tsdoc-config': 0.16.2
+      '@rushstack/node-core-library': 3.62.0(@types/node@16.18.126)
+    transitivePeerDependencies:
+      - '@types/node'
+
   '@microsoft/api-extractor-model@7.28.3(@types/node@20.17.28)':
     dependencies:
       '@microsoft/tsdoc': 0.14.2
       '@microsoft/tsdoc-config': 0.16.2
       '@rushstack/node-core-library': 3.62.0(@types/node@20.17.28)
+    transitivePeerDependencies:
+      - '@types/node'
+
+  '@microsoft/api-extractor@7.39.0(@types/node@16.18.126)':
+    dependencies:
+      '@microsoft/api-extractor-model': 7.28.3(@types/node@16.18.126)
+      '@microsoft/tsdoc': 0.14.2
+      '@microsoft/tsdoc-config': 0.16.2
+      '@rushstack/node-core-library': 3.62.0(@types/node@16.18.126)
+      '@rushstack/rig-package': 0.5.1
+      '@rushstack/ts-command-line': 4.17.1
+      colors: 1.2.5
+      lodash: 4.17.21
+      resolve: 1.22.6
+      semver: 7.5.4
+      source-map: 0.6.1
+      typescript: 5.3.3
     transitivePeerDependencies:
       - '@types/node'
 
@@ -4483,6 +4571,18 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.9.2':
     optional: true
 
+  '@rushstack/node-core-library@3.62.0(@types/node@16.18.126)':
+    dependencies:
+      colors: 1.2.5
+      fs-extra: 7.0.1
+      import-lazy: 4.0.0
+      jju: 1.4.0
+      resolve: 1.22.6
+      semver: 7.5.4
+      z-schema: 5.0.5
+    optionalDependencies:
+      '@types/node': 16.18.126
+
   '@rushstack/node-core-library@3.62.0(@types/node@20.17.28)':
     dependencies:
       colors: 1.2.5
@@ -4553,6 +4653,10 @@ snapshots:
 
   '@types/json-schema@7.0.13': {}
 
+  '@types/lodash.curry@4.1.9':
+    dependencies:
+      '@types/lodash': 4.17.16
+
   '@types/lodash.get@4.4.9':
     dependencies:
       '@types/lodash': 4.17.16
@@ -4570,6 +4674,8 @@ snapshots:
   '@types/minimatch@3.0.5': {}
 
   '@types/minimist@1.2.3': {}
+
+  '@types/node@16.18.126': {}
 
   '@types/node@18.19.4':
     dependencies:
@@ -6222,6 +6328,8 @@ snapshots:
 
   lodash._reinterpolate@3.0.0: {}
 
+  lodash.curry@4.1.1: {}
+
   lodash.get@4.4.2: {}
 
   lodash.isequal@4.5.0: {}
@@ -7496,6 +7604,22 @@ snapshots:
 
   validator@13.11.0: {}
 
+  vite-plugin-dts@3.7.0(@types/node@16.18.126)(rollup@4.9.2)(typescript@5.3.3)(vite@4.5.10(@types/node@16.18.126)):
+    dependencies:
+      '@microsoft/api-extractor': 7.39.0(@types/node@16.18.126)
+      '@rollup/pluginutils': 5.1.0(rollup@4.9.2)
+      '@vue/language-core': 1.8.27(typescript@5.3.3)
+      debug: 4.3.4(supports-color@9.4.0)
+      kolorist: 1.8.0
+      typescript: 5.3.3
+      vue-tsc: 1.8.27(typescript@5.3.3)
+    optionalDependencies:
+      vite: 4.5.10(@types/node@16.18.126)
+    transitivePeerDependencies:
+      - '@types/node'
+      - rollup
+      - supports-color
+
   vite-plugin-dts@3.7.0(@types/node@20.17.28)(rollup@4.9.2)(typescript@5.3.3)(vite@4.5.10(@types/node@20.17.28)):
     dependencies:
       '@microsoft/api-extractor': 7.39.0(@types/node@20.17.28)
@@ -7511,6 +7635,15 @@ snapshots:
       - '@types/node'
       - rollup
       - supports-color
+
+  vite@4.5.10(@types/node@16.18.126):
+    dependencies:
+      esbuild: 0.18.20
+      postcss: 8.4.32
+      rollup: 3.29.5
+    optionalDependencies:
+      '@types/node': 16.18.126
+      fsevents: 2.3.3
 
   vite@4.5.10(@types/node@20.17.28):
     dependencies:

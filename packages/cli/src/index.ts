@@ -22,3 +22,8 @@ export {
   command as templateCommand,
   handler as templateHandler,
 } from "@done-coding/cli-template";
+
+export {
+  command as componentCommand,
+  handler as componentHandler,
+} from "@done-coding/cli-component";

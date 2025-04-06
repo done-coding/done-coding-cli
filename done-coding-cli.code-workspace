@@ -27,6 +27,10 @@
     {
       "name": "template",
       "path": "packages/template"
+    },
+    {
+      "name": "component",
+      "path": "packages/component"
     }
   ],
   "settings": {
