@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "done-coding命令行工具",
   "private": false,
   "module": "es/cli.mjs",
