@@ -108,6 +108,9 @@ importers:
 
   packages/component:
     dependencies:
+      '@done-coding/cli-template':
+        specifier: workspace:^
+        version: link:../template
       chalk:
         specifier: ^5.3.0
         version: 5.4.1

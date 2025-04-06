@@ -6,9 +6,9 @@ export const subHandler = async (
   command: SubcommandEnum,
   argv: ArgumentsCamelCase<Options>,
 ) => {
-  console.log(argv);
+  console.log("com", argv);
 };
 
 export const handler = async (argv: ArgumentsCamelCase<Options>) => {
-  console.log(12, argv);
+  console.log("component 子命令处理函数", argv);
 };
