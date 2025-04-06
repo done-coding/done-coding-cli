@@ -51,15 +51,15 @@ export const listComponent = async () => {
   const list = getComponentList(config);
 
   console.table(
-    list.map((item) => {
+    list.map((nameKebab) => {
       const { name, fullName } = getComponentEnvData({
         ...config,
-        name: item,
+        name: nameKebab,
       });
       return {
         [chalk.green("名称")]: name,
         [chalk.green("带系列名称")]: fullName,
-        [chalk.green("绝对路径")]: path.resolve(config.componentDir, item),
+        [chalk.green("绝对路径")]: path.resolve(config.componentDir, nameKebab),
       };
     }),
   );

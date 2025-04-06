@@ -6,12 +6,18 @@ import prompts from "prompts";
 import { operateComponent } from "./operate";
 import { getComponentList } from "./list";
 import { getComponentEnvData } from "./env-data";
+import fs from "node:fs";
+import path from "node:path";
 
 /** 新增组件 */
 export const removeComponent = async ({ name: nameInit }: Options) => {
   console.log(chalk.blue("移除组件"));
   const config = getConfig();
   const list = await getComponentList(config);
+  if (list.length === 0) {
+    console.log(chalk.red("组件列表为空"));
+    return process.exit(1);
+  }
   let name: string;
   if (!nameInit) {
     name = (
@@ -35,11 +41,13 @@ export const removeComponent = async ({ name: nameInit }: Options) => {
       name,
     });
     if (data.nameKebab === nameKebab) {
-      return operateComponent({
+      await operateComponent({
         name,
         config,
         command: SubcommandEnum.REMOVE,
       });
+      fs.rmdirSync(path.resolve(config.componentDir, nameKebab));
+      return;
     }
   }
 

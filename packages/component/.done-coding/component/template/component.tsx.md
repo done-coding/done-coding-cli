@@ -10,7 +10,7 @@ export type ${name}Emits = {};
 
 export interface ${name}Slots {}
 
-const boxCls = "${cls}";
+const boxCls = `${$}{import.meta.env.VITE_COMPONENTS_PREFIX}-${nameKebab}`;
 
 export default withInstall(
   defineComponent<${name}Props, ${name}Emits, string, SlotsType<${name}Slots>>(

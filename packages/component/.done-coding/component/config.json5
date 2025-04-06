@@ -21,11 +21,11 @@
         inputData: '\n\
 export { default as ${name} } from "./${nameKebab}";\n\
 export type * from "./${nameKebab}";',
-        output: "${execDir}/src/${nameKebab}/index.tsx",
+        output: "${execDir}/src/components.ts",
       },
       index: {
         input: "${templateDir}/template/component.tsx.md",
-        output: "${execDir}/src/components.ts",
+        output: "${execDir}/src/${nameKebab}/index.tsx",
       },
     },
     /** 组件样式文件 */
@@ -33,11 +33,11 @@ export type * from "./${nameKebab}";',
       entry: {
         inputData: '\n\
 @import "./${nameKebab}.less";',
-        output: "${execDir}/src/styles/${nameKebab}.less",
+        output: "${execDir}/src/styles/index.less",
       },
       index: {
         input: "${templateDir}/template/style.less.md",
-        output: "${execDir}/src/styles/index.less",
+        output: "${execDir}/src/styles/${nameKebab}.less",
       },
     },
     /** 样式变量文件 */
@@ -53,12 +53,13 @@ export type * from "./${nameKebab}";',
     /** 组件类型文件 */
     {
       entry: {
-        inputData: "6666",
-        output: "${execDir}/src/types/${nameKebab}.ts",
+        inputData: '\n\
+export * from "./${nameKebab}";',
+        output: "${execDir}/src/types/index.ts",
       },
       index: {
         input: "${templateDir}/template/type.tsx.md",
-        output: "${execDir}/src/types/index.ts",
+        output: "${execDir}/src/types/${nameKebab}.ts",
       },
     },
     /** 组件调用示例文件 */
@@ -66,11 +67,11 @@ export type * from "./${nameKebab}";',
       entry: {
         inputData: '\n\
 export { default as ${name} } from "./${nameKebab}"',
-        output: "${execDir}/src/examples/${nameKebab}.tsx",
+        output: "${execDir}/src/examples/components.tsx",
       },
       index: {
         input: "${templateDir}/template/example.tsx.md",
-        output: "${execDir}/src/examples/components.tsx",
+        output: "${execDir}/src/examples/${nameKebab}.tsx",
       },
     },
   ],

@@ -1,3 +1,5 @@
 ```tsx
-测试测试;
+export interface ${name}Props {}
+
+export interface ${name}Slots {}
 ```
