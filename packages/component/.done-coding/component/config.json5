@@ -1,0 +1,69 @@
+{
+  /** 组件系列 */
+  series: "Dc",
+  /** 组件名排除列表 */
+  nameExcludes: ["index", "components", "styles", "types", "examples"],
+  /** 组件目录 */
+  componentDir: "${execDir}/src",
+  /** 配置列表 */
+  list: [
+    /** 组件逻辑文件 */
+    {
+      entry: {
+        inputData: '\n\
+export { default as ${name} } from "./${nameKebab}";\n\
+export type * from "./${nameKebab}";',
+        output: "${execDir}/src/${nameKebab}/index.tsx",
+      },
+      index: {
+        input: "${templateDir}/template/component.tsx.md",
+        output: "${execDir}/src/components.ts",
+      },
+    },
+    /** 组件样式文件 */
+    {
+      entry: {
+        inputData: '\n\
+@import "./${nameKebab}.less";',
+        output: "${execDir}/src/styles/${nameKebab}.less",
+      },
+      index: {
+        input: "${templateDir}/template/style.less.md",
+        output: "${execDir}/src/styles/index.less",
+      },
+    },
+    /** 样式变量文件 */
+    {
+      entry: {
+        inputData: "\n\
+\n\
+// ------------------ ${name} ------------------\n\
+@${nameLowerFirst}Prefix: ~'@{prefix}-${nameKebab}';",
+        output: "./src/styles/var.less",
+      },
+    },
+    /** 组件类型文件 */
+    {
+      entry: {
+        inputData: "6666",
+        output: "${execDir}/src/types/${nameKebab}.ts",
+      },
+      index: {
+        input: "${templateDir}/template/type.tsx.md",
+        output: "${execDir}/src/types/index.ts",
+      },
+    },
+    /** 组件调用示例文件 */
+    {
+      entry: {
+        inputData: '\n\
+export { default as ${name} } from "./${nameKebab}"',
+        output: "${execDir}/src/examples/${nameKebab}.tsx",
+      },
+      index: {
+        input: "${templateDir}/template/example.tsx.md",
+        output: "${execDir}/src/examples/components.tsx",
+      },
+    },
+  ],
+}
