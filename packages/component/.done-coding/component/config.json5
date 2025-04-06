@@ -8,7 +8,10 @@
     "styles",
     "types",
     "examples",
+    "docs",
     "utils",
+    "_utils",
+    "hooks",
     "locales",
   ],
   /** 组件目录 */
@@ -67,7 +70,7 @@ export * from "./${nameKebab}";',
       entry: {
         inputData: '\n\
 export { default as ${name} } from "./${nameKebab}"',
-        output: "${execDir}/src/examples/components.tsx",
+        output: "${execDir}/src/examples/components.ts",
       },
       index: {
         input: "${templateDir}/template/example.tsx.md",
