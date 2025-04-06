@@ -1,33 +1,48 @@
+import type { Options } from "./types";
 import { SubcommandEnum } from "./types";
 import { getConfig } from "./config";
 import chalk from "chalk";
 import prompts from "prompts";
 import { operateComponent } from "./operate";
-import path from "node:path";
-import _template from "lodash.template";
 import { getComponentList } from "./list";
-import { getPathEnvData } from "./env-data";
+import { getComponentEnvData } from "./env-data";
 
 /** 新增组件 */
-export const removeComponent = async () => {
-  console.log(chalk.green("移除组件"));
+export const removeComponent = async ({ name: nameInit }: Options) => {
+  console.log(chalk.blue("移除组件"));
   const config = getConfig();
-  const { name } = await prompts({
-    type: "select",
-    name: "name",
-    message: "请选择要移除的组件",
-    choices: (
-      await getComponentList(
-        path.resolve(_template(config.componentDir)(getPathEnvData())),
-      )
-    ).map((item) => {
-      return { title: item, value: item };
-    }),
-  });
+  const list = await getComponentList(config);
+  let name: string;
+  if (!nameInit) {
+    name = (
+      await prompts({
+        type: "select",
+        name: "name",
+        message: "请选择要移除的组件",
+        choices: list.map((item) => {
+          return { title: item, value: item };
+        }),
+      })
+    ).name;
+  } else {
+    name = nameInit;
+  }
 
-  return operateComponent({
-    name,
-    config,
-    command: SubcommandEnum.REMOVE,
-  });
+  const { series } = config;
+  for (let nameKebab of list) {
+    const data = getComponentEnvData({
+      series,
+      name,
+    });
+    if (data.nameKebab === nameKebab) {
+      return operateComponent({
+        name,
+        config,
+        command: SubcommandEnum.REMOVE,
+      });
+    }
+  }
+
+  console.log(chalk.red(`组件${name}不存在`));
+  return process.exit(1);
 };

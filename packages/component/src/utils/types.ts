@@ -6,6 +6,8 @@ export enum SubcommandEnum {
   ADD = "add",
   /** 移除组件 */
   REMOVE = "remove",
+  /** 展示列表 */
+  LIST = "list",
 }
 
 export interface Options {

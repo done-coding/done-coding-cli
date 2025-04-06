@@ -52,6 +52,12 @@ const addSubcommand = (cli: yargs.Argv<Options>) => {
         },
         handler: _curry(subHandler)(SubcommandEnum.REMOVE),
       })
+      /** @ts-ignore */
+      .command({
+        command: SubcommandEnum.LIST,
+        describe: "展示组件列表",
+        handler: _curry(subHandler)(SubcommandEnum.LIST),
+      })
       .demandCommand(1)
   );
 };

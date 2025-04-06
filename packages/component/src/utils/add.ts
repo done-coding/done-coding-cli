@@ -5,10 +5,12 @@ import { getConfig } from "./config";
 import chalk from "chalk";
 import prompts from "prompts";
 import { operateComponent } from "./operate";
+import { getComponentList } from "./list";
+import { getComponentEnvData } from "./env-data";
 
 /** 新增组件 */
 export const addComponent = async ({ name: nameInit }: Options) => {
-  console.log(chalk.green("添加组件"));
+  console.log(chalk.blue("添加组件"));
   let name: string;
   if (!nameInit) {
     name = (
@@ -23,6 +25,18 @@ export const addComponent = async ({ name: nameInit }: Options) => {
   }
   const config = getConfig();
   ensureNameLegal(name, config);
+  const { series } = config;
+  const list = await getComponentList(config);
+  for (let nameKebab of list) {
+    const data = getComponentEnvData({
+      series,
+      name,
+    });
+    if (data.nameKebab === nameKebab) {
+      console.log(chalk.red(`组件${nameKebab}已存在, 不能再次创建${name}组件`));
+      return process.exit(1);
+    }
+  }
   return operateComponent({
     name,
     config,

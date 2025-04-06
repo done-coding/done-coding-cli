@@ -5,6 +5,7 @@ import { SubcommandEnum } from "./types";
 import type { Options } from "@done-coding/cli-template";
 import { handler, OutputModeEnum } from "@done-coding/cli-template";
 import _template from "lodash.template";
+import chalk from "chalk";
 
 /** 操作组件 */
 export const operateComponent = async ({
@@ -16,6 +17,10 @@ export const operateComponent = async ({
   config: Config;
   command: SubcommandEnum;
 }) => {
+  if (![SubcommandEnum.ADD, SubcommandEnum.REMOVE].includes(command)) {
+    console.log(chalk.red(`不支持组件${command}操作`));
+    return process.exit(1);
+  }
   const envData = getEnvData({
     ...config,
     name,

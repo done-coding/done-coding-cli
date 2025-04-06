@@ -1,5 +1,10 @@
 import type { Options } from "@/utils";
-import { addComponent, removeComponent, SubcommandEnum } from "@/utils";
+import {
+  addComponent,
+  listComponent,
+  removeComponent,
+  SubcommandEnum,
+} from "@/utils";
 import type { ArgumentsCamelCase } from "yargs";
 import chalk from "chalk";
 
@@ -12,8 +17,9 @@ export const subHandler = async (
   if (command === SubcommandEnum.ADD) {
     return addComponent(argv);
   } else if (command === SubcommandEnum.REMOVE) {
-    console.log(chalk.green("移除组件"));
-    return removeComponent();
+    return removeComponent(argv);
+  } else if (command === SubcommandEnum.LIST) {
+    return listComponent();
   } else {
     console.log(chalk.red("无效的命令"));
     return process.exit(1);

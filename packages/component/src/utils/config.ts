@@ -38,7 +38,7 @@ export const getConfig = () => {
 
   const pathEnvData = getPathEnvData();
 
-  /** 组件目录 */
+  /** 组件目录-绝对路径 */
   config.componentDir = _template(config.componentDir)(pathEnvData);
 
   return config;

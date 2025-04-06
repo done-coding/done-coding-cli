@@ -27,8 +27,8 @@ export const getPathEnvData = () => {
   };
 };
 
-/** 环境变量 */
-export interface EnvData extends PathEnvData {
+/** 组件环境变量 */
+export interface ComponentEnvData {
   /** 矫正后的组件系列 */
   series: string;
   /** 矫正后的组件名 */
@@ -43,14 +43,12 @@ export interface EnvData extends PathEnvData {
   fullNameKebab: string;
   /** 组件类名 */
   cls: string;
-  /** 转义的$ */
-  $: "$";
 }
 
 /** 获取环境变量 */
-export const getEnvData = (
+export const getComponentEnvData = (
   data: Pick<Config, "series"> & Required<Options>,
-): EnvData => {
+): ComponentEnvData => {
   const { series: seriesInit, name: nameInit } = data;
 
   /** 矫正后的组件名 */
@@ -66,7 +64,7 @@ export const getEnvData = (
   /** 矫正后的带系列小写连接的组件名 */
   const fullNameKebab = _kebabCase(fullName);
 
-  const res: EnvData = {
+  const res: ComponentEnvData = {
     series,
     name,
     nameLowerFirst,
@@ -74,8 +72,25 @@ export const getEnvData = (
     fullName,
     fullNameKebab,
     cls: fullNameKebab,
+  };
+
+  return res;
+};
+
+/** 环境变量 */
+export interface EnvData extends PathEnvData, ComponentEnvData {
+  /** 转义的$ */
+  $: "$";
+}
+
+/** 获取环境变量 */
+export const getEnvData = (
+  data: Pick<Config, "series"> & Required<Options>,
+): EnvData => {
+  const res: EnvData = {
     $: "$",
     ...getPathEnvData(),
+    ...getComponentEnvData(data),
   };
 
   return res;

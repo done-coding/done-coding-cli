@@ -2,7 +2,15 @@
   /** 组件系列 */
   series: "Dc",
   /** 组件名排除列表 */
-  nameExcludes: ["index", "components", "styles", "types", "examples"],
+  nameExcludes: [
+    "index",
+    "components",
+    "styles",
+    "types",
+    "examples",
+    "utils",
+    "locales",
+  ],
   /** 组件目录 */
   componentDir: "${execDir}/src",
   /** 配置列表 */
