@@ -93,8 +93,8 @@ export const handler = async (argv: ArgumentsCamelCase<Options>) => {
     input,
     inputData,
     output,
-    mode,
-    rollback,
+    mode = OutputModeEnum.OVERWRITE,
+    rollback = false,
   } = argv;
 
   if (rollback) {
@@ -140,6 +140,7 @@ rollback: ${rollback}
       ensureOutputNotNull(mode, output);
       ensureOutputNotEqualsInput(output, input);
       const outputPath = path.resolve(output);
+      fs.mkdirSync(path.dirname(outputPath), { recursive: true });
       if (fs.existsSync(outputPath)) {
         if (rollback) {
           if (
@@ -177,6 +178,7 @@ rollback: ${rollback}
       ensureOutputNotNull(mode, output);
       ensureOutputNotEqualsInput(output, input);
       const outputPath = path.resolve(output);
+      fs.mkdirSync(path.dirname(outputPath), { recursive: true });
       if (fs.existsSync(outputPath)) {
         const oldContent = fs.readFileSync(outputPath, "utf-8");
         if (rollback) {
@@ -211,10 +213,11 @@ rollback: ${rollback}
       ensureInputNotNull(mode, input);
 
       if (env && env === input) {
-        console.log(chalk.red(`envJson与input不能相同`));
+        console.log(chalk.red(`env 与 input 不能相同`));
         return process.exit(1);
       }
-      const inputPath = path.resolve(input);
+      const inputPath = path.resolve(input!);
+      fs.mkdirSync(path.dirname(inputPath), { recursive: true });
       fs.writeFileSync(inputPath, outputContent, "utf-8");
       console.log(chalk.green(`模板处理完成，输出到 ${inputPath}`));
       break;

@@ -12,17 +12,17 @@ export enum OutputModeEnum {
 
 export interface Options {
   /** 环境数据(json)文件(优先级高于 envData ) */
-  env: string;
+  env?: string;
   /** 环境变量数据(JSON字符串) */
-  envData: string;
+  envData?: string;
   /** 模板文件相对路径(优先级高于 inputData ) */
-  input: string;
+  input?: string;
   /** 模板数据 */
-  inputData: string;
+  inputData?: string;
   /** 输出文件相对路径 */
   output: string;
-  /** 输出模式 */
+  /** 输出模式 @default OutputModeEnum.OVERWRITE */
   mode: OutputModeEnum;
-  /** 是否回滚 */
-  rollback: boolean;
+  /** 是否回滚 @default false */
+  rollback?: boolean;
 }

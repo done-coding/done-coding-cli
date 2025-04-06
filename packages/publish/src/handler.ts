@@ -14,8 +14,6 @@ import pinyin from "pinyin";
 import { readFileSync, existsSync } from "node:fs";
 import chalk from "chalk";
 
-const rootPath = process.cwd();
-
 const configPath = "/.dc/publish.json";
 
 const pkgPath = "/package.json";
@@ -80,7 +78,7 @@ const getGitInfo = ({ gitOriginName = "origin" }: ConfigInfo): GitInfo => {
  * 获取npmInfo
  */
 const getNpmInfo = async (type: ReleaseType): Promise<NpmInfo> => {
-  const pkgStr = readFileSync(join(rootPath, pkgPath), "utf-8");
+  const pkgStr = readFileSync(join(process.cwd(), pkgPath), "utf-8");
   const pkg = JSON.parse(pkgStr);
   let name = pkg.name;
   let version = "";
@@ -131,7 +129,7 @@ const getNpmInfo = async (type: ReleaseType): Promise<NpmInfo> => {
  */
 const getConfig = (): ConfigInfo => {
   let cfg;
-  const path = join(rootPath, configPath);
+  const path = join(process.cwd(), configPath);
   if (existsSync(path)) {
     const cfgStr = readFileSync(path, "utf-8");
     cfg = JSON.parse(cfgStr);
