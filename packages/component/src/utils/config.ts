@@ -1,0 +1,45 @@
+import path from "node:path";
+import fs from "node:fs";
+import json5 from "json5";
+import type { Config } from "./types";
+import chalk from "chalk";
+import { getPathEnvData, getTemplateDirAbsolutePath } from "./env-data";
+import _template from "lodash.template";
+
+/** 获取配置 */
+export const getConfig = () => {
+  /** 模块入口文件 */
+  const moduleIndex = path.resolve(getTemplateDirAbsolutePath(), "index.json");
+  if (!fs.existsSync(moduleIndex)) {
+    console.log(chalk.red(`模块入口文件不存在: ${moduleIndex}`));
+    return process.exit(1);
+  }
+  /** 模块入口文件内容 */
+  const indexContent = JSON.parse(fs.readFileSync(moduleIndex, "utf-8"));
+  /** 配置文件相对路径 */
+  const configRelativePath = indexContent.config;
+
+  if (!configRelativePath) {
+    console.log(chalk.red(`配置文件相对路径不存在: ${configRelativePath}`));
+    return process.exit(1);
+  }
+
+  /** 配置文件路径 */
+  const configPath = path.resolve(
+    path.dirname(moduleIndex),
+    configRelativePath,
+  );
+  if (!fs.existsSync(configPath)) {
+    console.log(chalk.red(`配置文件不存在: ${configPath}`));
+    return process.exit(1);
+  }
+  /** 配置文件内容 */
+  const config = json5.parse(fs.readFileSync(configPath, "utf-8")) as Config;
+
+  const pathEnvData = getPathEnvData();
+
+  /** 组件目录 */
+  config.componentDir = _template(config.componentDir)(pathEnvData);
+
+  return config;
+};

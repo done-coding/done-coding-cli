@@ -6,8 +6,9 @@ import { handler, subHandler } from "@/handler";
 import chalk from "chalk";
 import injectInfo from "@/injectInfo.json";
 import _curry from "lodash.curry";
+import { MODULE_NAME } from "@/utils";
 
-const commandName = "component";
+const commandName = MODULE_NAME;
 
 const failHandler = (msg: string, err: Error) => {
   if (msg) {
