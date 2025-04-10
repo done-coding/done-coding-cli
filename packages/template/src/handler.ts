@@ -1,3 +1,4 @@
+import type { CompileTemplateOptions } from "@/utils";
 import { OutputModeEnum, type Options } from "@/utils";
 import type { ArgumentsCamelCase } from "yargs";
 import path from "node:path";
@@ -99,45 +100,17 @@ const ensureInputNotNull = (mode: OutputModeEnum, input?: string) => {
   }
 };
 
-export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
-  const {
-    envData: envDataInit,
-    env,
-    input,
-    inputData,
-    output,
-    mode = OutputModeEnum.OVERWRITE,
-    rollback = false,
-    dealMarkdown = false,
-  } = argv;
-
-  if (rollback) {
-    switch (mode) {
-      case OutputModeEnum.REPLACE:
-      case OutputModeEnum.RETURN: {
-        console.log(chalk.red(`${mode}模式不支持回滚`));
-        return;
-      }
-    }
-  }
-
-  console.log(
-    chalk.blue(`开始处理模板
-mode: ${mode}
-rollback: ${rollback}
-`),
-  );
-
-  /** 环境变量 */
-  const envData = getData({
-    filePath: env,
-    dataInit: envDataInit,
-    json: true,
-    filePathKey: "env",
-    dataInitKey: "envData",
-    dealMarkdown,
-  });
-
+/** 编译模板 */
+const compileTemplate = async ({
+  env,
+  input,
+  inputData,
+  output,
+  mode,
+  rollback,
+  dealMarkdown,
+  envData,
+}: CompileTemplateOptions) => {
   /** 模板内容 */
   const templateContent = getData({
     filePath: input,
@@ -251,4 +224,61 @@ rollback: ${rollback}
   }
 
   return outputContent;
+};
+
+export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
+  const {
+    envData: envDataInit,
+    env,
+    input,
+    inputData,
+    output,
+    mode = OutputModeEnum.OVERWRITE,
+    rollback = false,
+    dealMarkdown = false,
+  } = argv;
+
+  if (rollback) {
+    switch (mode) {
+      case OutputModeEnum.REPLACE:
+      case OutputModeEnum.RETURN: {
+        console.log(chalk.red(`${mode}模式不支持回滚`));
+        return;
+      }
+    }
+  }
+
+  console.log(
+    chalk.blue(`开始处理模板
+mode: ${mode}
+rollback: ${rollback}
+`),
+  );
+
+  /** 环境变量 */
+  const envData = getData({
+    filePath: env,
+    dataInit: envDataInit,
+    json: true,
+    filePathKey: "env",
+    dataInitKey: "envData",
+    dealMarkdown,
+  });
+
+  return compileTemplate({
+    input,
+    inputData,
+    output,
+    mode,
+    rollback,
+    dealMarkdown,
+    envData,
+  });
+};
+
+export const handlerGetConfig = async () => {
+  // TODO: 获取配置文件
+  const list: CompileTemplateOptions[] = [];
+
+  return Promise.all(list.map(compileTemplate));
 };

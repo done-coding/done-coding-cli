@@ -28,3 +28,9 @@ export interface Options {
   /** (检测是markdown)是否处理(单个)代码块包裹 */
   dealMarkdown?: boolean;
 }
+
+/** 编译模板选项 */
+export type CompileTemplateOptions = Omit<Options, "envData"> & {
+  /** 已经解析为对象的envData */
+  envData: Record<string, any>;
+};
