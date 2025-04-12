@@ -11,7 +11,15 @@ const isPro = process.env.NODE_ENV === "production";
 
 const injectInfoOptions: Options = {
   sourceJsonFilePath: "./package.json",
-  injectKeyPath: ["version", "name", "description"],
+  injectKeyPath: [
+    "version",
+    "name",
+    "description",
+    `name:cliConfig.namespaceDir:VALUE:.done-coding`,
+    `name:cliConfig.commandName:REG:${
+      /@done-coding\/cli-([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*)/.source
+    }:$1`,
+  ],
   injectInfoFilePath: "./src/injectInfo.json",
 };
 

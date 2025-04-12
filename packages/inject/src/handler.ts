@@ -1,4 +1,5 @@
-import type { Options } from "@/utils";
+// 本文件会在vite.config.ts中vite启动前调用 此处不能用@开头的别名
+import { getKey, paramsResolve, type Options } from "./utils";
 import type { ArgumentsCamelCase } from "yargs";
 import path from "node:path";
 import fs from "node:fs";
@@ -6,7 +7,7 @@ import _get from "lodash.get";
 import _set from "lodash.set";
 import chalk from "chalk";
 
-export const handler = async (argv: ArgumentsCamelCase<Options>) => {
+export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   // console.log(argv)
 
   const { sourceJsonFilePath, injectKeyPath, injectInfoFilePath } = argv;
@@ -26,14 +27,23 @@ export const handler = async (argv: ArgumentsCamelCase<Options>) => {
   // 源文件路径
   const sourceJsonFileFullPath = path.resolve(currentPath, sourceJsonFilePath);
 
-  const sourceJson = JSON.parse(
-    fs.readFileSync(sourceJsonFileFullPath, "utf-8"),
-  );
+  const sourceStr = fs.readFileSync(sourceJsonFileFullPath, "utf-8");
 
-  const injectInfo: Record<string, any> = injectKeyPath.reduce((acc, key) => {
-    _set(acc, key, _get(sourceJson, key));
-    return acc;
-  }, {});
+  const sourceJson = JSON.parse(sourceStr);
+
+  const injectInfo: Record<string, any> = injectKeyPath.reduce(
+    (acc, keyInit) => {
+      const { key, targetKey, paramsList } = getKey(keyInit);
+      const valueInit = _get(sourceJson, key);
+      const value = paramsResolve({
+        valueInit,
+        paramsList,
+      });
+      _set(acc, targetKey, value);
+      return acc;
+    },
+    {},
+  );
 
   /** 保存的注入文件路径 */
   const injectInfoFileFullPath = path.resolve(currentPath, injectInfoFilePath);

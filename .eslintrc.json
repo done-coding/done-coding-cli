@@ -1,5 +1,6 @@
 {
   "extends": ["alloy", "alloy/typescript"],
+  "plugins": ["regexp"],
   "root": true,
   "env": {
     // Your environments (which contains several predefined global variables)
@@ -17,6 +18,8 @@
   },
   "rules": {
     // Customize your rules
+    "regexp/no-useless-escape": "error",
+    "regexp/no-useless-character-class": "error"
   },
   "ignorePatterns": [
     "**/node_modules/**",

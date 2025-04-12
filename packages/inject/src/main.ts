@@ -31,7 +31,7 @@ const getOptions = (): {
   };
 };
 
-const commandName = "inject";
+const commandName = injectInfo.cliConfig.commandName;
 
 const failHandler = (msg: string, err: Error) => {
   if (msg) {
