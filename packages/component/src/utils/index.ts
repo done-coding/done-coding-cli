@@ -1,4 +1,3 @@
-export * from "./const";
 export * from "./types";
 export * from "./name";
 export * from "./config";

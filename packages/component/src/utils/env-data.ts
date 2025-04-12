@@ -4,11 +4,12 @@ import _kebabCase from "lodash.kebabcase";
 import _lowerFirst from "lodash.lowerfirst";
 import path from "node:path";
 import type { Config, Options } from "./types";
-import { CLI_NAMESPACE_DIR, MODULE_NAME } from "./const";
+import injectInfo from "@/injectInfo.json";
+const { namespaceDir, moduleName } = injectInfo.cliConfig;
 
 /** 获取模板目录绝对路径 */
 export const getTemplateDirAbsolutePath = () => {
-  return path.resolve(CLI_NAMESPACE_DIR, MODULE_NAME);
+  return path.resolve(namespaceDir, moduleName);
 };
 
 /** 路径环境变量 */

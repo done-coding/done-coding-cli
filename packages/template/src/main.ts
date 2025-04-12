@@ -63,7 +63,7 @@ const getOptions = (): {
   };
 };
 
-const commandName = "template";
+const commandName = injectInfo.cliConfig.commandName;
 
 const failHandler = (msg: string, err: Error) => {
   if (msg) {

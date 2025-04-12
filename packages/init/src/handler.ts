@@ -2,24 +2,27 @@ import type { Options } from "@/utils";
 import type { ArgumentsCamelCase } from "yargs";
 import fs from "node:fs";
 import path from "node:path";
-import { CLI_NAMESPACE_DIR, lookForParentTargetDir } from "@/utils";
+import { lookForParentTargetDir } from "@/utils";
 import chalk from "chalk";
+import injectInfo from "@/injectInfo.json";
 
-export const handler = async (argv: ArgumentsCamelCase<Options>) => {
+const NAMESPACE_DIR = injectInfo.cliConfig.namespaceDir;
+
+export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   console.log(argv);
 
-  const targetParentDir = lookForParentTargetDir(CLI_NAMESPACE_DIR);
+  const targetParentDir = lookForParentTargetDir(NAMESPACE_DIR);
 
   if (targetParentDir) {
     console.log(
-      chalk.red(`${targetParentDir}已存在${CLI_NAMESPACE_DIR}，不能重复初始化`),
+      chalk.red(`${targetParentDir}已存在${NAMESPACE_DIR}，不能重复初始化`),
     );
     return process.exit(1);
   }
 
-  console.log(chalk.blue(`${CLI_NAMESPACE_DIR}不存在将创建`));
+  console.log(chalk.blue(`${NAMESPACE_DIR}不存在将创建`));
 
-  const namespaceRootDir = path.resolve(CLI_NAMESPACE_DIR);
+  const namespaceRootDir = path.resolve(NAMESPACE_DIR);
 
   fs.mkdirSync(namespaceRootDir, { recursive: true });
 

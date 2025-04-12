@@ -146,7 +146,7 @@ const getConfig = (): ConfigInfo => {
   };
 };
 
-export const handler = async (argv: ArgumentsCamelCase<Options>) => {
+export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   console.log(argv);
 
   const { mode, type, push } = argv;

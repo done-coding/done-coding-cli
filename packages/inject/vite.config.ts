@@ -4,26 +4,10 @@ import path from "node:path";
 import dts from "vite-plugin-dts";
 import pkg from "./package.json";
 import { builtinModules } from "node:module";
-import { handler } from "./src/handler";
+import { handler as injectHandler } from "./src/handler";
 import type { Options } from "./src/utils";
 
 const isPro = process.env.NODE_ENV === "production";
-
-const injectInfoOptions: Options = {
-  sourceJsonFilePath: "./package.json",
-  injectKeyPath: [
-    "version",
-    "name",
-    "description",
-    `name:cliConfig.namespaceDir:VALUE:.done-coding`,
-    `name:cliConfig.commandName:REG:${
-      /@done-coding\/cli-([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*)/.source
-    }:$1`,
-  ],
-  injectInfoFilePath: "./src/injectInfo.json",
-};
-
-handler(injectInfoOptions);
 
 const build = {
   minify: isPro,
@@ -51,6 +35,22 @@ const build = {
     entry: ["src/index.ts", "src/cli.ts"],
   },
 } satisfies BuildOptions;
+
+const injectInfoOptions: Options = {
+  sourceJsonFilePath: "./package.json",
+  injectKeyPath: [
+    "version",
+    "name",
+    "description",
+    `name:cliConfig.namespaceDir:VALUE:.done-coding`,
+    `name:cliConfig.commandName:REG:${
+      /@done-coding\/cli-([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*)/.source
+    }:$1`,
+  ],
+  injectInfoFilePath: "./src/injectInfo.json",
+};
+
+injectHandler(injectInfoOptions);
 
 // https://vitejs.dev/config/
 export default defineConfig({

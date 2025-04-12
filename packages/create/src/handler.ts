@@ -15,7 +15,7 @@ import { resolve } from "node:path";
 import chalk from "chalk";
 import { CUSTOM_TEMPLATE_NAME } from "@/utils";
 
-export const handler = async (argv: ArgumentsCamelCase<Options>) => {
+export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   const {
     projectName: projectNameInit,
     template: templateInit,

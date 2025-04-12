@@ -11,7 +11,7 @@ import chalk from "chalk";
 /** 子命令处理函数 */
 export const subHandler = async (
   command: SubcommandEnum,
-  argv: ArgumentsCamelCase<Options>,
+  argv: ArgumentsCamelCase<Options> | Options,
 ) => {
   console.log("com", argv);
   if (command === SubcommandEnum.ADD) {
@@ -26,6 +26,6 @@ export const subHandler = async (
   }
 };
 
-export const handler = async (argv: ArgumentsCamelCase<Options>) => {
+export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   console.log("component 子命令处理函数", argv);
 };

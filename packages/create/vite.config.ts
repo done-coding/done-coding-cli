@@ -4,7 +4,8 @@ import path from "node:path";
 import dts from "vite-plugin-dts";
 import pkg from "./package.json";
 import { builtinModules } from "node:module";
-import { execSync } from "node:child_process";
+import type { Options } from "@done-coding/cli-inject";
+import { handler as injectHandler } from "@done-coding/cli-inject";
 
 const isPro = process.env.NODE_ENV === "production";
 
@@ -35,7 +36,19 @@ const build = {
   },
 } satisfies BuildOptions;
 
-execSync(`dc-inject 1>&2`);
+const injectInfoOptions: Options = {
+  sourceJsonFilePath: "./package.json",
+  injectKeyPath: [
+    "version",
+    "name",
+    "description",
+    `name:cliConfig.namespaceDir:VALUE:.done-coding`,
+    `name:cliConfig.commandName:VALUE:create`,
+  ],
+  injectInfoFilePath: "./src/injectInfo.json",
+};
+
+injectHandler(injectInfoOptions);
 
 // https://vitejs.dev/config/
 export default defineConfig({

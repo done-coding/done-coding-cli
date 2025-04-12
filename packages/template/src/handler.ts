@@ -99,7 +99,7 @@ const ensureInputNotNull = (mode: OutputModeEnum, input?: string) => {
   }
 };
 
-export const handler = async (argv: ArgumentsCamelCase<Options>) => {
+export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   const {
     envData: envDataInit,
     env,
