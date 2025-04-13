@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-init",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "初始化配置命令行工具",
   "private": false,
   "module": "es/index.mjs",
