@@ -8,14 +8,15 @@ import { handler as injectHandler } from "./handler";
  * 从 package.json 中注入 done-coding-cli 信息
  */
 export const injectDoneCodingCliInfo = (
+  moduleNameConfig = `name:cliConfig.moduleName:REG:${
+    /@done-coding\/cli-([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*)/.source
+  }:$1`,
   injectKeyPath = [
     "version",
     "name",
     "description",
     `name:cliConfig.namespaceDir:VALUE:.done-coding`,
-    `name:cliConfig.moduleName:REG:${
-      /@done-coding\/cli-([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*)/.source
-    }:$1`,
+    moduleNameConfig,
   ],
 ) => {
   const injectInfoOptions: Options = {

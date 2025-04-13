@@ -36,7 +36,7 @@ const build = {
   },
 } satisfies BuildOptions;
 
-injectDoneCodingCliInfo();
+injectDoneCodingCliInfo("name:cliConfig.moduleName:VALUE:dc");
 
 // https://vitejs.dev/config/
 export default defineConfig({

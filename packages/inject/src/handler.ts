@@ -34,6 +34,10 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   const injectInfo: Record<string, any> = injectKeyPath.reduce(
     (acc, keyInit) => {
       const { key, targetKey, paramsList } = getKey(keyInit);
+      if (!key) {
+        console.log(chalk.red(`注入key不能为空,请检查配置${keyInit}是否正确`));
+        return acc;
+      }
       const valueInit = _get(sourceJson, key);
       const value = paramsResolve({
         valueInit,
