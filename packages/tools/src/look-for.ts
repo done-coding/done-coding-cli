@@ -26,7 +26,7 @@ export const lookForParentTarget = (
     const dir = dirList.pop()!;
     const currentNamespaceDir = path.join(dir, target);
     if (fs.existsSync(currentNamespaceDir)) {
-      return currentNamespaceDir;
+      return dir;
     }
   }
 
