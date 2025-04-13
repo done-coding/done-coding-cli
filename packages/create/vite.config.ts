@@ -4,8 +4,7 @@ import path from "node:path";
 import dts from "vite-plugin-dts";
 import pkg from "./package.json";
 import { builtinModules } from "node:module";
-import type { Options } from "@done-coding/cli-inject";
-import { handler as injectHandler } from "@done-coding/cli-inject";
+import { injectDoneCodingCliInfo } from "@done-coding/cli-inject/use";
 
 const isPro = process.env.NODE_ENV === "production";
 
@@ -36,19 +35,7 @@ const build = {
   },
 } satisfies BuildOptions;
 
-const injectInfoOptions: Options = {
-  sourceJsonFilePath: "./package.json",
-  injectKeyPath: [
-    "version",
-    "name",
-    "description",
-    `name:cliConfig.namespaceDir:VALUE:.done-coding`,
-    `name:cliConfig.moduleName:VALUE:create`,
-  ],
-  injectInfoFilePath: "./src/injectInfo.json",
-};
-
-injectHandler(injectInfoOptions);
+injectDoneCodingCliInfo();
 
 // https://vitejs.dev/config/
 export default defineConfig({

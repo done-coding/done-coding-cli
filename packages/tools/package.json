@@ -38,14 +38,14 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^18.0.0",
     "rimraf": "^6.0.1",
     "typescript": "^5.2.2",
     "vite": "^4.4.11",
     "vite-plugin-dts": "^3.6.0"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "chalk": "^5.3.0"

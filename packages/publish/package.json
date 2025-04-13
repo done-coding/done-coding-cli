@@ -42,7 +42,7 @@
   "sideEffects": false,
   "devDependencies": {
     "@done-coding/cli-inject": "workspace:^",
-    "@types/node": "^20.0.0",
+    "@types/node": "^18.0.0",
     "@types/pinyin": "^2.10.0",
     "@types/prompts": "^2.4.6",
     "@types/semver": "^7.5.3",
@@ -53,7 +53,7 @@
     "vite-plugin-dts": "^3.6.0"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "chalk": "^5.3.0",

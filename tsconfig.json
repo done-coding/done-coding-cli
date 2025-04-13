@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "ES2020",
     "declaration": true,
     "types": [],
     "esModuleInterop": true,
     "pretty": true,
-    "moduleResolution": "node",
+    "module": "ES2020",
+    "moduleResolution": "Node",
     "lib": ["ESNext"],
     "allowSyntheticDefaultImports": true,
     "stripInternal": true,
@@ -20,7 +21,6 @@
     "strictFunctionTypes": true,
     "alwaysStrict": true,
     "resolveJsonModule": true,
-    "module": "commonjs",
     "typeRoots": ["node_modules/@types"]
   },
   "exclude": ["node_modules"]
