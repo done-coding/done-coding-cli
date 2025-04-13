@@ -5,6 +5,10 @@
       "path": "."
     },
     {
+      "name": "tools",
+      "path": "packages/tools"
+    },
+    {
       "name": "init",
       "path": "packages/init"
     },
