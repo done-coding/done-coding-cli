@@ -2,7 +2,7 @@ import type { Options } from "@/utils";
 import type { ArgumentsCamelCase } from "yargs";
 import fs from "node:fs";
 import path from "node:path";
-import { lookForParentTargetDir } from "@/utils";
+import { lookForParentTarget } from "@done-coding/node-tools";
 import chalk from "chalk";
 import injectInfo from "@/injectInfo.json";
 
@@ -11,7 +11,7 @@ const NAMESPACE_DIR = injectInfo.cliConfig.namespaceDir;
 export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   console.log(argv);
 
-  const targetParentDir = lookForParentTargetDir(NAMESPACE_DIR);
+  const targetParentDir = lookForParentTarget(NAMESPACE_DIR);
 
   if (targetParentDir) {
     console.log(
