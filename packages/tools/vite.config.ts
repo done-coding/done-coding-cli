@@ -4,8 +4,6 @@ import path from "node:path";
 import dts from "vite-plugin-dts";
 import pkg from "./package.json";
 import { builtinModules } from "node:module";
-import type { Options } from "@done-coding/cli-inject";
-import { handler as injectHandler } from "@done-coding/cli-inject";
 
 const isPro = process.env.NODE_ENV === "production";
 
@@ -17,9 +15,8 @@ const build = {
       ...builtinModules,
       ...builtinModules.map((m) => `node:${m}`),
       ...Object.keys(pkg.dependencies || {}),
-      "yargs/helpers",
     ],
-    input: ["src/index.ts", "src/cli.ts"],
+    input: ["src/index.ts"],
     output: [
       {
         format: "es",
@@ -32,25 +29,9 @@ const build = {
     ],
   },
   lib: {
-    entry: ["src/index.ts", "src/cli.ts"],
+    entry: ["src/index.ts"],
   },
 } satisfies BuildOptions;
-
-const injectInfoOptions: Options = {
-  sourceJsonFilePath: "./package.json",
-  injectKeyPath: [
-    "version",
-    "name",
-    "description",
-    `name:cliConfig.namespaceDir:VALUE:.done-coding`,
-    `name:cliConfig.moduleName:REG:${
-      /@done-coding\/cli-([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*)/.source
-    }:$1`,
-  ],
-  injectInfoFilePath: "./src/injectInfo.json",
-};
-
-injectHandler(injectInfoOptions);
 
 // https://vitejs.dev/config/
 export default defineConfig({

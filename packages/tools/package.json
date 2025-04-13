@@ -38,21 +38,16 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:^",
-    "@types/node": "^16.0.0",
-    "@types/prompts": "^2.4.6",
-    "@types/yargs": "^17.0.28",
+    "@types/node": "^20.0.0",
     "rimraf": "^6.0.1",
     "typescript": "^5.2.2",
     "vite": "^4.4.11",
     "vite-plugin-dts": "^3.6.0"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=20.0.0"
   },
   "dependencies": {
-    "chalk": "^5.3.0",
-    "prompts": "^2.4.2",
-    "yargs": "^17.7.2"
+    "chalk": "^5.3.0"
   }
 }
