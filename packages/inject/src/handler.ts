@@ -56,10 +56,10 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
 
     // 如果注入文件存在且内容相同，则不重复注入
     if (injectInfoJson === currentInjectInfo) {
-      console.log(chalk.green("注入文件已存在且内容相同，无需重复注入"));
+      console.log(chalk.gray("注入文件已存在且内容相同，无需重复注入"));
       return injectInfo;
     } else {
-      console.log(chalk.green("文件内容变化,开始覆盖注入文件"));
+      console.log(chalk.blue("文件内容变化,开始覆盖注入文件"));
     }
   } else {
     console.log(chalk.green("开始注入文件"));

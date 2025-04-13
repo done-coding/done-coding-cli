@@ -51,6 +51,7 @@ export const saveGitHistoryForm = {
   type: "confirm" as const,
   name: "saveGitHistory",
   message: "是否保留git历史",
+  initial: false,
 };
 
 export const shallowCloneForm = {

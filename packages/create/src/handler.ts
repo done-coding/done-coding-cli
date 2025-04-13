@@ -2,7 +2,6 @@ import {
   getRemoveDirForm,
   projectNameForm,
   saveGitHistoryForm,
-  shallowCloneForm,
   getTemplateChoices,
   getTemplateForm,
   type Options,
@@ -10,18 +9,16 @@ import {
 import type { ArgumentsCamelCase } from "yargs";
 import prompts from "prompts";
 import { execSync } from "node:child_process";
-import { writeFileSync, rmSync, readFileSync, existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { rmSync, existsSync } from "node:fs";
+import path, { resolve } from "node:path";
 import chalk from "chalk";
 import { CUSTOM_TEMPLATE_NAME } from "@/utils";
+import { getConfigPath, batchHandler } from "@done-coding/cli-template";
+import { lookForParentTarget } from "@done-coding/node-tools";
 
+// eslint-disable-next-line complexity
 export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
-  const {
-    projectName: projectNameInit,
-    template: templateInit,
-    saveGitHistory: saveGitHistoryInit,
-    shallowClone: shallowCloneInit,
-  } = argv;
+  const { projectName: projectNameInit, template: templateInit } = argv;
   const projectNameNoTrim =
     projectNameInit ?? (await prompts(projectNameForm)).projectName;
 
@@ -79,55 +76,75 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
     remoteUrl = target.url;
   }
 
+  /** 父级git目录 */
+  const parentGitDir = lookForParentTarget(".git");
+
   console.log(chalk.green("正在初始化项目，请稍等..."));
 
   execSync(`git clone ${remoteUrl} ${projectName} --depth=1`);
 
-  const saveGitHistory =
-    saveGitHistoryInit ?? (await prompts(saveGitHistoryForm)).saveGitHistory;
+  const configPath = getConfigPath(projectNamePath);
 
-  if (saveGitHistory === false) {
-    const gitDir = `${projectNamePath}/.git`;
-    if (!existsSync(gitDir)) {
-      throw new Error("git目录不存在");
+  if (configPath) {
+    await batchHandler({
+      rootDir: projectNamePath,
+    });
+    const { isRemoveTemplateConfig } = await prompts({
+      type: "confirm",
+      name: "isRemoveTemplateConfig",
+      message: `已成功将模板项目配置注入到当前项目，是否删除模板项目配置文件(${configPath})`,
+    });
+    if (isRemoveTemplateConfig) {
+      rmSync(configPath, { force: true });
     }
-    rmSync(`${projectNamePath}/.git`, { recursive: true, force: true });
-  } else {
-    execSync(`cd ${projectNamePath} && git remote rename origin upstream`);
   }
-
-  const pkgContent = readFileSync(`${projectNamePath}/package.json`, "utf-8");
-  const pkg = JSON.parse(pkgContent);
-  const { name } = pkg;
-  pkg.name = projectName;
-  rmSync(`${projectNamePath}/package.json`);
-
-  writeFileSync(
-    `${projectNamePath}/package.json`,
-    JSON.stringify(pkg, null, 2),
-  );
-
-  const readmeContent = readFileSync(`${projectNamePath}/README.md`, "utf-8");
-  const newReadmeContent = readmeContent.replace(name, projectName);
-  rmSync(`${projectNamePath}/README.md`);
-  writeFileSync(`${projectNamePath}/README.md`, newReadmeContent);
 
   console.log(chalk.green("项目初始化完成"));
 
-  if (saveGitHistory) {
-    // 保留历史记录 同时又只使用浅克隆 二次确认下是否使用浅克隆
-    const shallowClone = shallowCloneInit
-      ? (await prompts(shallowCloneForm)).shallowClone
-      : false;
-    // 不使用浅克隆
-    if (!shallowClone) {
-      execSync(`cd ${projectNamePath} && git fetch --unshallow`);
-      console.log(
-        chalk.green(`已完整克隆项目，后续可以与模板git仓库有完整的交互`),
-      );
+  if (parentGitDir) {
+    /** 当前项目git目录 */
+    const currentGitDir = path.resolve(projectNamePath);
+    /** 当前项目git信息目录 */
+    const currentGitInfoDir = path.resolve(currentGitDir, ".git");
+
+    if (!existsSync(currentGitInfoDir)) {
+      throw new Error("git目录不存在");
+    }
+
+    const { isRemoveGit } = await prompts({
+      type: "confirm",
+      name: "isRemoveGit",
+      message: `项目创建在父级git仓库${parentGitDir}中，是否删除${projectName}目录下的.git(${currentGitInfoDir})`,
+    });
+    if (isRemoveGit) {
+      rmSync(currentGitInfoDir, { recursive: true, force: true });
+      console.log(chalk.green("已删除当前项目git目录"));
     } else {
       console.log(
-        chalk.yellow(`当前使用浅克隆，后续不能与模板git仓库有完整的交互`),
+        chalk.yellow(
+          `项目创建在父级git仓库${parentGitDir}中，请手动删除${projectName}目录下的.git(${currentGitInfoDir})，否则会影响后续的git操作`,
+        ),
+      );
+    }
+  } else {
+    // 如果项目不在git仓库中，则询问是否保存git历史记录
+
+    const saveGitHistory = (await prompts(saveGitHistoryForm)).saveGitHistory;
+
+    if (saveGitHistory) {
+      // 保存git记录则重命名origin为upstream 同时完整克隆仓库
+      execSync(
+        `cd ${projectNamePath} && git remote rename origin upstream && git fetch --unshallow`,
+      );
+
+      console.log(
+        chalk.green(
+          `已经将origin重命名为upstream，后续可以与模板git仓库有完整的交互`,
+        ),
+      );
+
+      console.log(
+        chalk.green(`已保存git历史记录，后续可以与模板git仓库有完整的交互`),
       );
     }
   }

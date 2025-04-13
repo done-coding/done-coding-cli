@@ -4,13 +4,7 @@ import { hideBin } from "yargs/helpers";
 import type { Options } from "@/utils";
 import { handler } from "@/handler";
 import chalk from "chalk";
-import {
-  projectNameForm,
-  saveGitHistoryForm,
-  shallowCloneForm,
-  getTemplateChoices,
-  getTemplateForm,
-} from "@/utils";
+import { projectNameForm, getTemplateChoices, getTemplateForm } from "@/utils";
 import injectInfo from "@/injectInfo.json";
 
 const getOptions = async (): Promise<{
@@ -27,17 +21,6 @@ const getOptions = async (): Promise<{
       alias: "t",
       choices: (await getTemplateChoices()).map((item) => item.name),
       describe: (await getTemplateForm()).message as string,
-    },
-    saveGitHistory: {
-      type: "boolean",
-      alias: "s",
-      describe: saveGitHistoryForm.message,
-    },
-    shallowClone: {
-      type: "boolean",
-      alias: "c",
-      describe: shallowCloneForm.message,
-      default: true,
     },
   };
 };
