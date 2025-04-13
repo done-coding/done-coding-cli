@@ -2,6 +2,16 @@
   "globalEnvData": {
     "moduleName": "template"
   },
+  "collectEnvDataForm": [
+    {
+      "key": "test",
+      "label": "TEST"
+    },
+    {
+      "key": "test2",
+      "label": "TEST2"
+    }
+  ],
   "list": [
     {
       "input": "./test-input.json",

@@ -37,10 +37,20 @@ export type CompileTemplateConfigListItem = Omit<Options, "envData"> & {
   envData: Record<string, any>;
 };
 
+/** 采集环境变量配置 */
+export interface CollectFormItem {
+  /** 采集环境变量的key */
+  key: string;
+  /** 采集环境变量标签 */
+  label: string;
+}
+
 /** 编译模板配置 */
 export interface CompileTemplateConfig {
   /** 全局环境变量 */
-  globalEnvData: Record<string, any>;
+  globalEnvData?: Record<string, any>;
+  /** 采集环境变量表单配置 */
+  collectEnvDataForm?: (CollectFormItem | string)[];
   /** 配置列表 */
   list: CompileTemplateConfigListItem[];
 }

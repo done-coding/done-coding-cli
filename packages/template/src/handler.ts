@@ -296,7 +296,41 @@ export const batchHandler = async (
     config = JSON.parse(configStr) as CompileTemplateConfig;
   }
 
-  const { list: listInit, globalEnvData } = config;
+  const {
+    list: listInit,
+    globalEnvData = {},
+    collectEnvDataForm = [],
+  } = config;
+
+  const collectEnvData: Record<string, any> = {};
+
+  for (const formItem of collectEnvDataForm) {
+    let keyName: string;
+    let label: string;
+    if (typeof formItem === "string") {
+      keyName = formItem;
+      label = formItem;
+    } else {
+      keyName = formItem.key;
+      label = formItem.label;
+    }
+    collectEnvData[keyName] = (
+      await prompts({
+        type: "text",
+        name: keyName,
+        message: `请输入${label}`,
+        format: (value) => (value || "").trim(),
+        validate: (value) => {
+          if (!value) {
+            return `${label}不能为空`;
+          }
+          return true;
+        },
+      })
+    )[keyName];
+  }
+
+  console.log(140, collectEnvData);
 
   const list = listInit.map((item) => {
     /** 使用item的rollback，否则使用globalRollback */
@@ -309,18 +343,20 @@ export const batchHandler = async (
 
     return {
       ...rest,
-      envData: _assign({}, globalEnvData, itemEnvData),
+      envData: _assign({}, globalEnvData, collectEnvData, itemEnvData),
       rollback,
     };
   });
 
-  return Promise.all(
-    list.map((item) =>
-      compileTemplate(item, {
-        rollbackDelFileAgree: true,
-      }),
-    ),
-  );
+  const listResult = [];
+  for (const item of list) {
+    const result = await compileTemplate(item, {
+      rollbackDelFileAgree: true,
+    });
+    listResult.push(result);
+  }
+
+  return listResult;
 };
 
 export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
