@@ -2,7 +2,12 @@ import type {
   CompileTemplateConfigListItem,
   CompileTemplateConfig,
 } from "@/utils";
-import { OutputModeEnum, completeDefaultOptions, type Options } from "@/utils";
+import {
+  OutputModeEnum,
+  completeDefaultOptions,
+  getConfigPath,
+  type Options,
+} from "@/utils";
 import type { ArgumentsCamelCase } from "yargs";
 import path from "node:path";
 import fs from "node:fs";
@@ -10,7 +15,6 @@ import chalk from "chalk";
 import _template from "lodash.template";
 import _assign from "lodash.assign";
 import prompts from "prompts";
-import injectInfo from "@/injectInfo.json";
 
 /** 获取数据 */
 const getData = <
@@ -288,15 +292,9 @@ export const batchHandler = async (
   if (paramsConfig) {
     config = paramsConfig;
   } else {
-    const { namespaceDir, moduleName } = injectInfo.cliConfig;
+    const configPath = getConfigPath(rootDir);
 
-    const resolveParams = [namespaceDir, `${moduleName}.json`];
-    if (rootDir) {
-      resolveParams.unshift(rootDir);
-    }
-    const configPath = path.resolve(...resolveParams);
-
-    if (!fs.existsSync(configPath)) {
+    if (!configPath) {
       console.log(chalk.red(`配置文件${configPath}不存在`));
       return process.exit(1);
     }
