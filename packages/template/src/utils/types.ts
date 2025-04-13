@@ -20,7 +20,7 @@ export interface Options {
   /** 模板数据 */
   inputData?: string;
   /** 输出文件相对路径 */
-  output: string;
+  output?: string;
   /** 输出模式 @default OutputModeEnum.OVERWRITE */
   mode: OutputModeEnum;
   /** 是否回滚 @default false */
@@ -43,6 +43,8 @@ export interface CollectFormItem {
   key: string;
   /** 采集环境变量标签 */
   label: string;
+  /** 采集环境变量初始值 */
+  initial?: string;
 }
 
 /** 编译模板配置 */

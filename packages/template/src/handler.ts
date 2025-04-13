@@ -94,7 +94,7 @@ const ensureOutputNotNull = (mode: OutputModeEnum, output?: string) => {
 };
 
 /** 确保output与input不相同 */
-const ensureOutputNotEqualsInput = (output: string, input?: string) => {
+const ensureOutputNotEqualsInput = (output?: string, input?: string) => {
   if (input && output === input) {
     console.log(chalk.red(`output与input不能相同`));
     return process.exit(1);
@@ -170,7 +170,8 @@ rollback: ${rollback}
     case OutputModeEnum.OVERWRITE: {
       ensureOutputNotNull(mode, output);
       ensureOutputNotEqualsInput(output, input);
-      const outputPath = path.resolve(output);
+      // 上面两个确保后，output一定不为空
+      const outputPath = path.resolve(output!);
       fs.mkdirSync(path.dirname(outputPath), { recursive: true });
       if (fs.existsSync(outputPath)) {
         if (rollback) {
@@ -210,7 +211,8 @@ rollback: ${rollback}
     case OutputModeEnum.APPEND: {
       ensureOutputNotNull(mode, output);
       ensureOutputNotEqualsInput(output, input);
-      const outputPath = path.resolve(output);
+      // 上面两个确保后，output一定不为空
+      const outputPath = path.resolve(output!);
       fs.mkdirSync(path.dirname(outputPath), { recursive: true });
       if (fs.existsSync(outputPath)) {
         const oldContent = fs.readFileSync(outputPath, "utf-8");
@@ -272,8 +274,11 @@ rollback: ${rollback}
 
 export const batchHandler = async (
   {
+    rootDir = process.cwd(),
     itemDefaultRollback = false,
   }: {
+    /** 根目录 */
+    rootDir?: string;
     /** item默认回滚? */
     itemDefaultRollback?: boolean;
   } = {},
@@ -284,7 +289,12 @@ export const batchHandler = async (
     config = paramsConfig;
   } else {
     const { namespaceDir, moduleName } = injectInfo.cliConfig;
-    const configPath = path.resolve(namespaceDir, `${moduleName}.json`);
+
+    const resolveParams = [namespaceDir, `${moduleName}.json`];
+    if (rootDir) {
+      resolveParams.unshift(rootDir);
+    }
+    const configPath = path.resolve(...resolveParams);
 
     if (!fs.existsSync(configPath)) {
       console.log(chalk.red(`配置文件${configPath}不存在`));
@@ -305,20 +315,27 @@ export const batchHandler = async (
   const collectEnvData: Record<string, any> = {};
 
   for (const formItem of collectEnvDataForm) {
+    /** 键名 */
     let keyName: string;
+    /** 标签 */
     let label: string;
+    /** 初始值 */
+    let initial: string | undefined;
     if (typeof formItem === "string") {
       keyName = formItem;
       label = formItem;
+      initial = undefined;
     } else {
       keyName = formItem.key;
       label = formItem.label;
+      initial = formItem.initial;
     }
     collectEnvData[keyName] = (
       await prompts({
         type: "text",
         name: keyName,
         message: `请输入${label}`,
+        initial,
         format: (value) => (value || "").trim(),
         validate: (value) => {
           if (!value) {
@@ -330,12 +347,18 @@ export const batchHandler = async (
     )[keyName];
   }
 
-  console.log(140, collectEnvData);
+  // console.log(140, collectEnvData);
 
   const list = listInit.map((item) => {
     /** 使用item的rollback，否则使用globalRollback */
     const { rollback = itemDefaultRollback } = item;
-    const { envData: itemEnvData, env, ...rest } = completeDefaultOptions(item);
+    const {
+      envData: itemEnvData,
+      env,
+      input,
+      output,
+      ...rest
+    } = completeDefaultOptions(item);
 
     if (env) {
       console.log(chalk.yellow(`批量处理中 env:${env} 将被忽略，只读envData`));
@@ -343,6 +366,9 @@ export const batchHandler = async (
 
     return {
       ...rest,
+      env,
+      input: rootDir && input ? path.resolve(rootDir, input) : input,
+      output: rootDir && output ? path.resolve(rootDir, output) : output,
       envData: _assign({}, globalEnvData, collectEnvData, itemEnvData),
       rollback,
     };
