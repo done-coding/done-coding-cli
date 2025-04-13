@@ -42,7 +42,7 @@ const getOptions = async (): Promise<{
   };
 };
 
-const commandName = injectInfo.cliConfig.commandName;
+const commandName = injectInfo.cliConfig.moduleName;
 
 const failHandler = (msg: string, err: Error) => {
   if (msg) {

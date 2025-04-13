@@ -43,7 +43,7 @@ const injectInfoOptions: Options = {
     "name",
     "description",
     `name:cliConfig.namespaceDir:VALUE:.done-coding`,
-    `name:cliConfig.commandName:VALUE:create`,
+    `name:cliConfig.moduleName:VALUE:create`,
   ],
   injectInfoFilePath: "./src/injectInfo.json",
 };

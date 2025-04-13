@@ -43,7 +43,7 @@ const injectInfoOptions: Options = {
     "name",
     "description",
     `name:cliConfig.namespaceDir:VALUE:.done-coding`,
-    `name:cliConfig.commandName:REG:${
+    `name:cliConfig.moduleName:REG:${
       /@done-coding\/cli-([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*)/.source
     }:$1`,
   ],

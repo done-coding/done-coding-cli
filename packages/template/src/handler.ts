@@ -283,8 +283,8 @@ export const batchHandler = async (
   if (paramsConfig) {
     config = paramsConfig;
   } else {
-    const { namespaceDir, commandName } = injectInfo.cliConfig;
-    const configPath = path.resolve(namespaceDir, `${commandName}.json`);
+    const { namespaceDir, moduleName } = injectInfo.cliConfig;
+    const configPath = path.resolve(namespaceDir, `${moduleName}.json`);
 
     if (!fs.existsSync(configPath)) {
       console.log(chalk.red(`配置文件${configPath}不存在`));
