@@ -1,11 +1,16 @@
-import type { CompileTemplateOptions } from "@/utils";
-import { OutputModeEnum, type Options } from "@/utils";
+import type {
+  CompileTemplateConfigListItem,
+  CompileTemplateConfig,
+} from "@/utils";
+import { OutputModeEnum, completeDefaultOptions, type Options } from "@/utils";
 import type { ArgumentsCamelCase } from "yargs";
 import path from "node:path";
 import fs from "node:fs";
 import chalk from "chalk";
 import _template from "lodash.template";
+import _assign from "lodash.assign";
 import prompts from "prompts";
+import injectInfo from "@/injectInfo.json";
 
 /** 获取数据 */
 const getData = <
@@ -16,7 +21,7 @@ const getData = <
 >({
   filePath,
   dataInit,
-  json,
+  limitJson,
   filePathKey,
   dataInitKey,
   dealMarkdown = false,
@@ -25,8 +30,12 @@ const getData = <
   filePath?: string;
   /** 初始数据 */
   dataInit?: string;
-  /** 是否json格式 */
-  json: J;
+  /**
+   * 是否限制必须json
+   * ----
+   * 拓展名为json 同时以JSON parse解析
+   */
+  limitJson: J;
   /** 文件路径key */
   filePathKey: keyof Options;
   /** 初始数据key */
@@ -35,7 +44,7 @@ const getData = <
   dealMarkdown?: boolean;
 }): R => {
   if (filePath) {
-    if (json) {
+    if (limitJson) {
       if (!filePath.endsWith(".json")) {
         console.log(
           chalk.red(`${filePathKey}必须是json文件，请检查文件后缀名`),
@@ -54,7 +63,7 @@ const getData = <
       );
     }
 
-    if (json) {
+    if (limitJson) {
       return JSON.parse(fileContent) as R;
     } else {
       return fileContent as R;
@@ -68,7 +77,7 @@ const getData = <
       chalk.green(`${filePathKey} 为空，将使用${dataInitKey}作为数据`),
     );
 
-    if (json) {
+    if (limitJson) {
       return JSON.parse(dataInit) as R;
     } else {
       return dataInit as R;
@@ -101,27 +110,60 @@ const ensureInputNotNull = (mode: OutputModeEnum, input?: string) => {
 };
 
 /** 编译模板 */
-const compileTemplate = async ({
-  env,
-  input,
-  inputData,
-  output,
-  mode,
-  rollback,
-  dealMarkdown,
-  envData,
-}: CompileTemplateOptions) => {
+const compileTemplate = async (
+  completeOptions: Omit<CompileTemplateConfigListItem, "envData"> & {
+    envData:
+      | CompileTemplateConfigListItem["envData"]
+      | (() => CompileTemplateConfigListItem["envData"]);
+  },
+  {
+    rollbackDelFileAgree = false,
+  }: {
+    /** 回滚遇到删除文件是否同意 */
+    rollbackDelFileAgree?: boolean;
+  } = {},
+) => {
+  const {
+    env,
+    input,
+    inputData,
+    output,
+    mode,
+    rollback,
+    dealMarkdown,
+    envData: envDataInit,
+  } = completeOptions;
+
+  if (rollback) {
+    switch (mode) {
+      case OutputModeEnum.REPLACE:
+      case OutputModeEnum.RETURN: {
+        console.log(chalk.red(`${mode}模式不支持回滚`));
+        return;
+      }
+    }
+  }
+
+  console.log(
+    chalk.blue(`开始处理模板
+mode: ${mode}
+rollback: ${rollback}
+`),
+  );
+
   /** 模板内容 */
   const templateContent = getData({
     filePath: input,
     dataInit: inputData,
-    json: false,
+    limitJson: false,
     filePathKey: "input",
     dataInitKey: "inputData",
     dealMarkdown,
   });
 
   const compiled = _template(templateContent);
+  const envData =
+    typeof envDataInit === "function" ? envDataInit() : envDataInit;
   const outputContent = compiled(envData);
 
   switch (mode) {
@@ -133,13 +175,15 @@ const compileTemplate = async ({
       if (fs.existsSync(outputPath)) {
         if (rollback) {
           if (
-            (
-              await prompts({
-                type: "confirm",
-                name: "remove",
-                message: `${mode}模式下回滚将删除${outputPath}，是否继续？`,
-              })
-            ).remove
+            rollbackDelFileAgree
+              ? true
+              : (
+                  await prompts({
+                    type: "confirm",
+                    name: "remove",
+                    message: `${mode}模式下回滚将删除${outputPath}，是否继续？`,
+                  })
+                ).remove
           ) {
             fs.rmSync(outputPath, { force: true });
             console.log(chalk.green(`${mode}模式下${outputPath}已删除`));
@@ -226,6 +270,59 @@ const compileTemplate = async ({
   return outputContent;
 };
 
+export const batchHandler = async (
+  {
+    itemDefaultRollback = false,
+  }: {
+    /** item默认回滚? */
+    itemDefaultRollback?: boolean;
+  } = {},
+  paramsConfig?: CompileTemplateConfig,
+) => {
+  let config: CompileTemplateConfig;
+  if (paramsConfig) {
+    config = paramsConfig;
+  } else {
+    const { namespaceDir, commandName } = injectInfo.cliConfig;
+    const configPath = path.resolve(namespaceDir, `${commandName}.json`);
+
+    if (!fs.existsSync(configPath)) {
+      console.log(chalk.red(`配置文件${configPath}不存在`));
+      return process.exit(1);
+    }
+
+    const configStr = fs.readFileSync(configPath, "utf-8");
+
+    config = JSON.parse(configStr) as CompileTemplateConfig;
+  }
+
+  const { list: listInit, globalEnvData } = config;
+
+  const list = listInit.map((item) => {
+    /** 使用item的rollback，否则使用globalRollback */
+    const { rollback = itemDefaultRollback } = item;
+    const { envData: itemEnvData, env, ...rest } = completeDefaultOptions(item);
+
+    if (env) {
+      console.log(chalk.yellow(`批量处理中 env:${env} 将被忽略，只读envData`));
+    }
+
+    return {
+      ...rest,
+      envData: _assign({}, globalEnvData, itemEnvData),
+      rollback,
+    };
+  });
+
+  return Promise.all(
+    list.map((item) =>
+      compileTemplate(item, {
+        rollbackDelFileAgree: true,
+      }),
+    ),
+  );
+};
+
 export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   const {
     envData: envDataInit,
@@ -233,33 +330,26 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
     input,
     inputData,
     output,
-    mode = OutputModeEnum.OVERWRITE,
-    rollback = false,
-    dealMarkdown = false,
-  } = argv;
+    mode,
+    rollback,
+    dealMarkdown,
+    batch,
+  } = completeDefaultOptions(argv);
 
-  if (rollback) {
-    switch (mode) {
-      case OutputModeEnum.REPLACE:
-      case OutputModeEnum.RETURN: {
-        console.log(chalk.red(`${mode}模式不支持回滚`));
-        return;
-      }
-    }
+  if (batch) {
+    console.log(chalk.blue("开始批量处理"));
+    return batchHandler({
+      // 回滚默认值 基于全局
+      itemDefaultRollback: rollback,
+    });
   }
-
-  console.log(
-    chalk.blue(`开始处理模板
-mode: ${mode}
-rollback: ${rollback}
-`),
-  );
+  console.log(chalk.blue("开始单个处理"));
 
   /** 环境变量 */
   const envData = getData({
     filePath: env,
     dataInit: envDataInit,
-    json: true,
+    limitJson: true,
     filePathKey: "env",
     dataInitKey: "envData",
     dealMarkdown,
@@ -274,11 +364,4 @@ rollback: ${rollback}
     dealMarkdown,
     envData,
   });
-};
-
-export const handlerGetConfig = async () => {
-  // TODO: 获取配置文件
-  const list: CompileTemplateOptions[] = [];
-
-  return Promise.all(list.map(compileTemplate));
 };

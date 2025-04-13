@@ -27,10 +27,20 @@ export interface Options {
   rollback?: boolean;
   /** (检测是markdown)是否处理(单个)代码块包裹 */
   dealMarkdown?: boolean;
+  /** 是否批量处理 */
+  batch?: boolean;
 }
 
-/** 编译模板选项 */
-export type CompileTemplateOptions = Omit<Options, "envData"> & {
+/** 编译模板配置选项 */
+export type CompileTemplateConfigListItem = Omit<Options, "envData"> & {
   /** 已经解析为对象的envData */
   envData: Record<string, any>;
 };
+
+/** 编译模板配置 */
+export interface CompileTemplateConfig {
+  /** 全局环境变量 */
+  globalEnvData: Record<string, any>;
+  /** 配置列表 */
+  list: CompileTemplateConfigListItem[];
+}

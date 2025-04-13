@@ -2,7 +2,7 @@ import type { CommandModule, Options as YargsOptions } from "yargs";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import type { Options } from "@/utils";
-import { OutputModeEnum } from "@/utils";
+import { defaultOptions, OutputModeEnum } from "@/utils";
 import { handler } from "@/handler";
 import chalk from "chalk";
 import injectInfo from "@/injectInfo.json";
@@ -41,7 +41,7 @@ const getOptions = (): {
         OutputModeEnum.REPLACE,
         OutputModeEnum.RETURN,
       ],
-      default: OutputModeEnum.OVERWRITE,
+      default: defaultOptions.mode,
     },
     output: {
       alias: "o",
@@ -52,13 +52,19 @@ const getOptions = (): {
       alias: "r",
       describe: "是否回滚",
       type: "boolean",
-      default: false,
+      default: defaultOptions.rollback,
     },
     dealMarkdown: {
       alias: "d",
       describe: "(检测是markdown)是否处理(单个)代码块包裹",
       type: "boolean",
-      default: false,
+      default: defaultOptions.dealMarkdown,
+    },
+    batch: {
+      alias: "b",
+      describe: "是否批量处理",
+      type: "boolean",
+      default: defaultOptions.batch,
     },
   };
 };

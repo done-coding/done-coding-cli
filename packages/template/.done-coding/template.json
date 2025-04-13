@@ -1,9 +1,51 @@
 {
+  "globalEnvData": {
+    "moduleName": "template"
+  },
   "list": [
     {
-      "input": "",
-      "output": "",
-      "mode": ""
+      "input": "./test-input.json",
+      "output": "./test-overwrite-output.json",
+      "mode": "overwrite"
+    },
+    {
+      "input": "./test-input.json",
+      "output": "./test-append-output.json",
+      "mode": "append"
+    },
+    {
+      "input": "./test-input.json",
+      "output": "./test-return-output.json",
+      "mode": "return"
+    },
+    {
+      "input": "./test-replace-input.json",
+      "output": "./test-replace-output.json",
+      "mode": "replace"
+    },
+    {
+      "input": "./test-input.md",
+      "output": "./test-overwrite-output.md.json",
+      "dealMarkdown": true,
+      "mode": "overwrite"
+    },
+    {
+      "input": "./test-input.md",
+      "output": "./test-append-output.md.json",
+      "dealMarkdown": true,
+      "mode": "append"
+    },
+    {
+      "input": "./test-input.md",
+      "output": "./test-return-output.md.json",
+      "dealMarkdown": true,
+      "mode": "return"
+    },
+    {
+      "input": "./test-replace-input.md",
+      "output": "./test-replace-output.md.json",
+      "dealMarkdown": true,
+      "mode": "replace"
     }
   ]
 }
