@@ -1,7 +1,7 @@
 import type { CommandModule, Options as YargsOptions } from "yargs";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { PublishModeEnum, type Options } from "@/utils";
+import { PublishModeEnum, type Options, PublishVersionTypeEnum } from "@/utils";
 import { handler } from "@/handler";
 import chalk from "chalk";
 import injectInfo from "@/injectInfo.json";
@@ -19,8 +19,15 @@ const getOptions = (): {
     type: {
       alias: "t",
       describe: "发布类型",
-      choices: ["major", "minor", "patch"],
-      default: "patch",
+      choices: [
+        PublishVersionTypeEnum.MAJOR,
+        PublishVersionTypeEnum.MINOR,
+        PublishVersionTypeEnum.PATCH,
+        PublishVersionTypeEnum.PREMAJOR,
+        PublishVersionTypeEnum.PREMINOR,
+        PublishVersionTypeEnum.PREPATCH,
+        PublishVersionTypeEnum.PRERELEASE,
+      ],
     },
     push: {
       alias: "p",

@@ -1,4 +1,4 @@
-import type { ReleaseType } from "semver";
+import type { PublishTagEnum, PublishVersionTypeEnum } from "./enums";
 /**
  * git仓库信息
  */
@@ -60,7 +60,7 @@ export interface NpmInfo {
   /**
    * 标签
    */
-  tag: "latest" | "next" | "alpha";
+  tag: PublishTagEnum;
 }
 
 /**
@@ -91,7 +91,7 @@ export interface Options {
   /**
    * 发布类型
    */
-  type: ReleaseType;
+  type?: PublishVersionTypeEnum;
   /** (发布成功后)是否推送至远程仓库 */
   push: boolean;
 }

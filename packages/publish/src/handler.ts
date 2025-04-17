@@ -5,6 +5,8 @@ import {
   type NpmInfo,
   type ConfigInfo,
   PublishModeEnum,
+  PublishVersionTypeEnum,
+  PublishTagEnum,
 } from "@/utils";
 import type { ReleaseType } from "semver";
 import { inc, prerelease } from "semver";
@@ -13,6 +15,7 @@ import { execSync } from "node:child_process";
 import pinyin from "pinyin";
 import { readFileSync, existsSync } from "node:fs";
 import chalk from "chalk";
+import prompts from "prompts";
 
 const configPath = "/.dc/publish.json";
 
@@ -77,9 +80,10 @@ const getGitInfo = ({ gitOriginName = "origin" }: ConfigInfo): GitInfo => {
 /**
  * 获取npmInfo
  */
-const getNpmInfo = async (type: ReleaseType): Promise<NpmInfo> => {
-  const pkgStr = readFileSync(join(process.cwd(), pkgPath), "utf-8");
-  const pkg = JSON.parse(pkgStr);
+const getNpmInfo = (
+  type: PublishVersionTypeEnum,
+  pkg = JSON.parse(readFileSync(join(process.cwd(), pkgPath), "utf-8")),
+): NpmInfo => {
   let name = pkg.name;
   let version = "";
   let tag: NpmInfo["tag"];
@@ -88,10 +92,22 @@ const getNpmInfo = async (type: ReleaseType): Promise<NpmInfo> => {
 
   const { version: currentVersion } = pkg;
 
-  if (["major", "minor", "patch"].includes(type)) {
+  if (
+    [
+      PublishVersionTypeEnum.MAJOR as ReleaseType,
+      PublishVersionTypeEnum.MINOR as ReleaseType,
+      PublishVersionTypeEnum.PATCH as ReleaseType,
+    ].includes(type)
+  ) {
     version = inc(currentVersion, type as ReleaseType)!;
-    tag = "latest";
-  } else if (["premajor", "preminor", "prepatch"].includes(type)) {
+    tag = PublishTagEnum.LATEST;
+  } else if (
+    [
+      PublishVersionTypeEnum.PREMAJOR as ReleaseType,
+      PublishVersionTypeEnum.PREMINOR as ReleaseType,
+      PublishVersionTypeEnum.PREPATCH as ReleaseType,
+    ].includes(type)
+  ) {
     const prereleaseRes = prerelease(currentVersion);
 
     // console.log(94, prereleaseRes);
@@ -101,7 +117,10 @@ const getNpmInfo = async (type: ReleaseType): Promise<NpmInfo> => {
         chalk.yellow("当前版本已经是预发布版本，将会在当前版本基础上进行发布"),
       );
       if (prereleaseRes.length === 1 && typeof prereleaseRes[0] === "number") {
-        version = inc(currentVersion, "prerelease")!;
+        version = inc(
+          currentVersion,
+          PublishVersionTypeEnum.PRERELEASE as ReleaseType,
+        )!;
       } else {
         // version = inc(currentVersion.split("-")[0], type)!;
         version = currentVersion.split("-")[0] + "-0";
@@ -109,10 +128,14 @@ const getNpmInfo = async (type: ReleaseType): Promise<NpmInfo> => {
     } else {
       version = inc(currentVersion, type as ReleaseType)!;
     }
-    tag = "next";
+    tag = PublishTagEnum.NEXT;
   } else {
-    tag = "alpha";
-    version = inc(currentVersion, "prerelease", tag)!;
+    tag = PublishTagEnum.ALPHA;
+    version = inc(
+      currentVersion,
+      PublishVersionTypeEnum.PRERELEASE as ReleaseType,
+      tag,
+    )!;
   }
   if (!version) {
     throw new Error("version is empty");
@@ -149,14 +172,109 @@ const getConfig = (): ConfigInfo => {
 export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   console.log(argv);
 
-  const { mode, type, push } = argv;
+  const { mode, type: typeInit, push } = argv;
 
   const configInfo = getConfig();
 
   const gitInfo = getGitInfo(configInfo);
-  console.log("type:", type);
+
   console.log("gitInfo:", gitInfo);
-  const npmInfo = await getNpmInfo(type);
+
+  let type = typeInit;
+  let npmInfo: NpmInfo;
+  if (type) {
+    console.log("type:", type);
+    npmInfo = await getNpmInfo(type!);
+  } else {
+    const pkg = JSON.parse(readFileSync(join(process.cwd(), pkgPath), "utf-8"));
+    const versionMap: {
+      [key in PublishVersionTypeEnum]: NpmInfo;
+    } = {
+      [PublishVersionTypeEnum.MAJOR]: getNpmInfo(
+        PublishVersionTypeEnum.MAJOR,
+        pkg,
+      ),
+      [PublishVersionTypeEnum.MINOR]: getNpmInfo(
+        PublishVersionTypeEnum.MINOR,
+        pkg,
+      ),
+      [PublishVersionTypeEnum.PATCH]: getNpmInfo(
+        PublishVersionTypeEnum.PATCH,
+        pkg,
+      ),
+      [PublishVersionTypeEnum.PREMAJOR]: getNpmInfo(
+        PublishVersionTypeEnum.PREMAJOR,
+        pkg,
+      ),
+      [PublishVersionTypeEnum.PREMINOR]: getNpmInfo(
+        PublishVersionTypeEnum.PREMINOR,
+        pkg,
+      ),
+      [PublishVersionTypeEnum.PREPATCH]: getNpmInfo(
+        PublishVersionTypeEnum.PREPATCH,
+        pkg,
+      ),
+      [PublishVersionTypeEnum.PRERELEASE]: getNpmInfo(
+        PublishVersionTypeEnum.PRERELEASE,
+        pkg,
+      ),
+    };
+    /** 版本选项 */
+    const choices = [
+      {
+        title: `主版本(${versionMap[PublishVersionTypeEnum.MAJOR].version})`,
+        value: PublishVersionTypeEnum.MAJOR,
+      },
+      {
+        title: `次版本(${versionMap[PublishVersionTypeEnum.MINOR].version})`,
+        value: PublishVersionTypeEnum.MINOR,
+      },
+      {
+        title: `修订版本(${versionMap[PublishVersionTypeEnum.PATCH].version})`,
+        value: PublishVersionTypeEnum.PATCH,
+      },
+      {
+        title: `预发布主版本(${
+          versionMap[PublishVersionTypeEnum.PREMAJOR].version
+        })`,
+        value: PublishVersionTypeEnum.PREMAJOR,
+      },
+      {
+        title: `预发布次版本(${
+          versionMap[PublishVersionTypeEnum.PREMINOR].version
+        })`,
+        value: PublishVersionTypeEnum.PREMINOR,
+      },
+      {
+        title: `预发布修订版本(${
+          versionMap[PublishVersionTypeEnum.PREPATCH].version
+        })`,
+        value: PublishVersionTypeEnum.PREPATCH,
+      },
+      {
+        title: `alpha版本(${
+          versionMap[PublishVersionTypeEnum.PRERELEASE].version
+        })`,
+        value: PublishVersionTypeEnum.PRERELEASE,
+      },
+    ];
+
+    type = (
+      await prompts({
+        type: "select",
+        name: "type",
+        message: `请选择发布类型，当前版本：${pkg.version}`,
+        choices,
+        validate: (value) => {
+          if (!value) {
+            return "请选择发布类型";
+          }
+          return true;
+        },
+      })
+    ).type;
+    npmInfo = versionMap[type!];
+  }
 
   const { version } = npmInfo;
 

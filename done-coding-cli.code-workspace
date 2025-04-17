@@ -78,6 +78,9 @@
       "kebabcase",
       "lowerfirst",
       "preinstall",
+      "PREMAJOR",
+      "PREMINOR",
+      "PREPATCH",
       "unplugin",
       "upperfirst",
       "VITE"
