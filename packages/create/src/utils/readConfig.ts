@@ -21,7 +21,7 @@ export const readConfig = async (): Promise<ConfigJson> => {
     READ_CONFIG_TEMPORARY_DIRECTORY,
   );
 
-  console.log(chalk.blue(`配置目录：${configDir}`));
+  console.log(chalk.blue(`配置临时目录：${configDir}`));
 
   if (fs.existsSync(configDir)) {
     const removeMessage = `${configDir}目录已存在，是否删除？`;

@@ -23,9 +23,9 @@ const build = {
       {
         format: "es",
         entryFileNames: "[name].mjs",
-        preserveModules: true,
+        // preserveModules: true,
         dir: "./es",
-        preserveModulesRoot: "src",
+        // preserveModulesRoot: "src",
         banner: `#!/usr/bin/env node`,
       },
     ],
