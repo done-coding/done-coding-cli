@@ -88,11 +88,15 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   if (configPath) {
     await batchHandler({
       rootDir: projectNamePath,
+      extraEnvData: {
+        $projectName: projectName,
+      },
     });
     const { isRemoveTemplateConfig } = await prompts({
       type: "confirm",
       name: "isRemoveTemplateConfig",
       message: `已成功将模板项目配置注入到当前项目，是否删除模板项目配置文件(${configPath})`,
+      initial: true,
     });
     if (isRemoveTemplateConfig) {
       rmSync(configPath, { force: true });
@@ -115,6 +119,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
       type: "confirm",
       name: "isRemoveGit",
       message: `项目创建在父级git仓库${parentGitDir}中，是否删除${projectName}目录下的.git(${currentGitInfoDir})`,
+      initial: true,
     });
     if (isRemoveGit) {
       rmSync(currentGitInfoDir, { recursive: true, force: true });
@@ -146,7 +151,18 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
       console.log(
         chalk.green(`已保存git历史记录，后续可以与模板git仓库有完整的交互`),
       );
+    } else {
+      // 项目git目录
+      const projectNameGitPath = path.resolve(projectNamePath, ".git");
+      rmSync(projectNameGitPath, { recursive: true, force: true });
+
+      execSync(`cd ${projectNamePath} && git init`);
     }
+
+    // 提交代码
+    execSync(
+      `cd ${projectNamePath} && git add . && git commit -m '初始化${projectName}'`,
+    );
   }
 
   console.log(
