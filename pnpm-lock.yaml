@@ -62,6 +62,9 @@ importers:
       '@done-coding/cli-component':
         specifier: workspace:^
         version: link:../component
+      '@done-coding/cli-git':
+        specifier: workspace:^
+        version: link:../git
       '@done-coding/cli-init':
         specifier: workspace:^
         version: link:../init
