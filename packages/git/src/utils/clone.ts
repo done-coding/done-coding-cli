@@ -1,89 +1,13 @@
 import chalk from "chalk";
-import { GitPlatformEnum, type Options } from "./types";
-import { getGiteeUserAllRepos, getGiteeUserPublicRepos } from "@/api/gitee";
-import { getGithubUserPublicRepos } from "@/api/github";
-import prompts from "prompts";
+import type { Options } from "./types";
+import { getTargetRepoUrl } from "./get-repo";
 import { execSync } from "node:child_process";
-import { getGitConfigInfo } from "./config";
 
+/** 克隆目标仓库 */
 export const clone = async (options: Options) => {
-  const { platform, username } = options;
-  let repos: {
-    name: string;
-    httpUrl: string;
-    sshUrl: string;
-    description: string;
-  }[] = [];
+  const repoUrl = await getTargetRepoUrl(options);
 
-  const gitInfo = getGitConfigInfo({
-    secretKey: username,
-    platform,
-  });
+  execSync(`git clone ${repoUrl} 1>&2`);
 
-  let accessToken = gitInfo?.accessToken;
-
-  console.log(chalk.blue(`正在获取${username}的${platform}仓库列表...`));
-
-  const params = {
-    username,
-    accessToken,
-  };
-  switch (options.platform) {
-    case GitPlatformEnum.GITHUB: {
-      repos = (await getGithubUserPublicRepos(params)).data.map((item) => {
-        return {
-          name: item.name,
-          httpUrl: item.clone_url,
-          sshUrl: item.ssh_url,
-          description: item.description || "",
-        };
-      });
-      break;
-    }
-    case GitPlatformEnum.GITEE: {
-      repos = (
-        await (params.accessToken
-          ? getGiteeUserAllRepos
-          : getGiteeUserPublicRepos)(params)
-      ).data.map((item) => {
-        return {
-          name: item.name,
-          httpUrl: item.html_url,
-          sshUrl: item.ssh_url,
-          description: item.description || "",
-        };
-      });
-      break;
-    }
-    default: {
-      console.log(chalk.red(`未知平台${platform}`));
-      return process.exit(1);
-    }
-  }
-
-  console.log(chalk.green(`获取${username}的${platform}仓库列表成功`));
-  // console.log(repos.map((item) => item.name));
-
-  if (repos.length === 0) {
-    console.log(chalk.yellow(`${username} 可获取${platform}仓库列表为空`));
-    return;
-  } else {
-    console.log(chalk.blue(`共${repos.length}个仓库`));
-  }
-
-  const { repo } = await prompts({
-    name: "repo",
-    type: "select",
-    message: "选择一个仓库来克隆",
-    choices: repos.map((item) => {
-      return {
-        title: `${item.name} ${item.description}`,
-        value: item.sshUrl,
-      };
-    }),
-  });
-
-  execSync(`git clone ${repo} 1>&2`);
-
-  console.log(chalk.green(`克隆${repo}成功`));
+  console.log(chalk.green(`克隆${repoUrl}成功`));
 };

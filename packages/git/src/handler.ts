@@ -17,6 +17,7 @@ export const subHandler = async (
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
-  console.log("component 子命令处理函数", argv);
+  // console.log("component 子命令处理函数", argv);
 };
