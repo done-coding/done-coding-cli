@@ -21,7 +21,7 @@ export const subHandler = async (
   } else if (command === SubcommandEnum.LIST) {
     return listComponent();
   } else {
-    console.log(chalk.red("无效的命令"));
+    console.log(chalk.red(`无效的命令: ${command}`));
     return process.exit(1);
   }
 };
