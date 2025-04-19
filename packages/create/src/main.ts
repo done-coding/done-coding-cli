@@ -6,6 +6,7 @@ import { handler } from "@/handler";
 import chalk from "chalk";
 import { projectNameForm, getTemplateChoices, getTemplateForm } from "@/utils";
 import injectInfo from "@/injectInfo.json";
+import { gitCloneCommand } from "@done-coding/cli-git";
 
 const getOptions = async (): Promise<{
   [key in keyof Options]: YargsOptions;
@@ -55,6 +56,7 @@ const getCli = async (
     .alias("v", "version")
     .alias("h", "help")
     .options(options)
+    .command(gitCloneCommand)
     .fail(failHandler).argv;
 };
 
