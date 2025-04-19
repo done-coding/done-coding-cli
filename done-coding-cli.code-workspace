@@ -35,6 +35,10 @@
     {
       "name": "component",
       "path": "packages/component"
+    },
+    {
+      "name": "git",
+      "path": "packages/git"
     }
   ],
   "settings": {
