@@ -11,12 +11,14 @@ export const injectDoneCodingCliInfo = (
   moduleNameConfig = `name:cliConfig.moduleName:REG:${
     /@done-coding\/cli-([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*)/.source
   }:$1`,
+  extraKeyPath = [],
   injectKeyPath = [
     "version",
     "name",
     "description",
     `name:cliConfig.namespaceDir:VALUE:.done-coding`,
     moduleNameConfig,
+    ...extraKeyPath,
   ],
 ) => {
   const injectInfoOptions: Options = {

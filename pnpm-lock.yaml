@@ -242,6 +242,9 @@ importers:
 
   packages/git:
     dependencies:
+      '@done-coding/node-tools':
+        specifier: workspace:^
+        version: link:../tools
       '@done-coding/request-axios':
         specifier: ^1.1.1
         version: 1.1.1(axios@1.8.4)

@@ -18,3 +18,9 @@ export interface Options {
   /** 用户名 */
   username: string;
 }
+
+/** Git 配置信息 */
+export interface GitConfigInfo {
+  /** token */
+  accessToken: string;
+}

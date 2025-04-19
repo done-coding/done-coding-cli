@@ -1,9 +1,10 @@
 import chalk from "chalk";
 import { GitPlatformEnum, type Options } from "./types";
-import { getGiteeUserGitRepos } from "@/api/gitee";
-import { getGithubUserGitRepos } from "@/api/github";
+import { getGiteeUserAllRepos, getGiteeUserPublicRepos } from "@/api/gitee";
+import { getGithubUserPublicRepos } from "@/api/github";
 import prompts from "prompts";
 import { execSync } from "node:child_process";
+import { getGitConfigInfo } from "./config";
 
 export const clone = async (options: Options) => {
   const { platform, username } = options;
@@ -14,10 +15,22 @@ export const clone = async (options: Options) => {
     description: string;
   }[] = [];
 
+  const gitInfo = getGitConfigInfo({
+    secretKey: username,
+    platform,
+  });
+
+  let accessToken = gitInfo?.accessToken;
+
   console.log(chalk.blue(`正在获取${username}的${platform}仓库列表...`));
+
+  const params = {
+    username,
+    accessToken,
+  };
   switch (options.platform) {
     case GitPlatformEnum.GITHUB: {
-      repos = (await getGithubUserGitRepos(username)).data.map((item) => {
+      repos = (await getGithubUserPublicRepos(params)).data.map((item) => {
         return {
           name: item.name,
           httpUrl: item.clone_url,
@@ -28,7 +41,11 @@ export const clone = async (options: Options) => {
       break;
     }
     case GitPlatformEnum.GITEE: {
-      repos = (await getGiteeUserGitRepos(username)).data.map((item) => {
+      repos = (
+        await (params.accessToken
+          ? getGiteeUserAllRepos
+          : getGiteeUserPublicRepos)(params)
+      ).data.map((item) => {
         return {
           name: item.name,
           httpUrl: item.html_url,
@@ -45,11 +62,13 @@ export const clone = async (options: Options) => {
   }
 
   console.log(chalk.green(`获取${username}的${platform}仓库列表成功`));
-  console.log(repos);
+  // console.log(repos.map((item) => item.name));
 
   if (repos.length === 0) {
     console.log(chalk.yellow(`${username} 可获取${platform}仓库列表为空`));
     return;
+  } else {
+    console.log(chalk.blue(`共${repos.length}个仓库`));
   }
 
   const { repo } = await prompts({
@@ -58,7 +77,7 @@ export const clone = async (options: Options) => {
     message: "选择一个仓库来克隆",
     choices: repos.map((item) => {
       return {
-        title: item.name,
+        title: `${item.name} ${item.description}`,
         value: item.sshUrl,
       };
     }),

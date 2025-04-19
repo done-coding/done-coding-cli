@@ -1,6 +1,12 @@
 import { githubRequest } from "./_request";
 
-export const getGithubUserGitRepos = (username: string) => {
+/** 获取 github 用户公开仓库列表 */
+export const getGithubUserPublicRepos = ({
+  username,
+}: {
+  username: string;
+  accessToken?: string;
+}) => {
   return githubRequest<
     {
       /** 仓库名 */
