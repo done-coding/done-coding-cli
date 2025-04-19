@@ -13,7 +13,6 @@ export const subHandler = async (
   command: SubcommandEnum,
   argv: ArgumentsCamelCase<Options> | Options,
 ) => {
-  console.log("com", argv);
   if (command === SubcommandEnum.ADD) {
     return addComponent(argv);
   } else if (command === SubcommandEnum.REMOVE) {

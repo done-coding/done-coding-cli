@@ -1,4 +1,4 @@
-import type { CommandModule } from "yargs";
+import type { ArgumentsCamelCase, CommandModule } from "yargs";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { GitPlatformEnum, SubcommandEnum, type Options } from "@/utils";
@@ -40,7 +40,12 @@ export const gitCloneCommand: CommandModule = {
       });
   },
   /** @ts-ignore */
-  handler: _curry(subHandler)(SubcommandEnum.CLONE),
+  async handler(options) {
+    await _curry(subHandler)(SubcommandEnum.CLONE)(
+      options as ArgumentsCamelCase<Options>,
+    );
+    return process.exit(0);
+  },
 };
 
 const addSubcommand = (cli: yargs.Argv<Options>) => {

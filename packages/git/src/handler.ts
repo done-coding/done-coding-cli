@@ -8,7 +8,6 @@ export const subHandler = async (
   command: SubcommandEnum,
   argv: ArgumentsCamelCase<Options> | Options,
 ) => {
-  console.log("com", argv);
   if (command === SubcommandEnum.CLONE) {
     return gitClone(argv);
   } else {

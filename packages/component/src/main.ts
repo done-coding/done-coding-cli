@@ -37,7 +37,10 @@ const addSubcommand = (cli: yargs.Argv<Options>) => {
             type: "string",
           });
         },
-        handler: _curry(subHandler)(SubcommandEnum.ADD),
+        async handler(options) {
+          await _curry(subHandler)(SubcommandEnum.ADD)(options);
+          return process.exit(0);
+        },
       })
       /** @ts-ignore */
       .command({
@@ -49,13 +52,19 @@ const addSubcommand = (cli: yargs.Argv<Options>) => {
             type: "string",
           });
         },
-        handler: _curry(subHandler)(SubcommandEnum.REMOVE),
+        async handler(options) {
+          await _curry(subHandler)(SubcommandEnum.REMOVE)(options);
+          return process.exit(0);
+        },
       })
       /** @ts-ignore */
       .command({
         command: SubcommandEnum.LIST,
         describe: "展示组件列表",
-        handler: _curry(subHandler)(SubcommandEnum.LIST),
+        async handler(options) {
+          await _curry(subHandler)(SubcommandEnum.LIST)(options);
+          return process.exit(0);
+        },
       })
       .demandCommand(1)
   );
