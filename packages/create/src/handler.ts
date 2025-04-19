@@ -5,6 +5,7 @@ import {
   getTemplateChoices,
   getTemplateForm,
   type Options,
+  SOMEONE_PUBLIC_REPO_NAME,
 } from "@/utils";
 import type { ArgumentsCamelCase } from "yargs";
 import prompts from "prompts";
@@ -15,6 +16,7 @@ import chalk from "chalk";
 import { CUSTOM_TEMPLATE_NAME } from "@/utils";
 import { getConfigPath, batchHandler } from "@done-coding/cli-template";
 import { lookForParentTarget } from "@done-coding/node-tools";
+import { getTargetRepoUrl } from "@done-coding/cli-git";
 
 // eslint-disable-next-line complexity
 export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
@@ -61,6 +63,9 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
       message: "请输入自定义模板路径",
     });
     remoteUrl = customUrl;
+  }
+  if (template === SOMEONE_PUBLIC_REPO_NAME) {
+    remoteUrl = await getTargetRepoUrl();
   } else {
     const target = (await getTemplateChoices()).find(
       (item) => item.name === template,

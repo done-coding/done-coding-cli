@@ -202,6 +202,9 @@ importers:
 
   packages/create:
     dependencies:
+      '@done-coding/cli-git':
+        specifier: workspace:^
+        version: link:../git
       '@done-coding/cli-template':
         specifier: workspace:^
         version: link:../template

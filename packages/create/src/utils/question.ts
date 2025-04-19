@@ -1,5 +1,5 @@
 import type { PromptObject } from "prompts";
-import { CUSTOM_TEMPLATE_NAME } from "./const";
+import { CUSTOM_TEMPLATE_NAME, SOMEONE_PUBLIC_REPO_NAME } from "./const";
 import { readConfig } from "./readConfig";
 
 /** 模版选项 */
@@ -22,7 +22,11 @@ export const getTemplateList = async () => {
 /** 模版选项 */
 export const getTemplateChoices = async () => {
   const templateList = await getTemplateList();
-  return [...templateList, { name: CUSTOM_TEMPLATE_NAME }];
+  return [
+    ...templateList,
+    { name: CUSTOM_TEMPLATE_NAME },
+    { name: SOMEONE_PUBLIC_REPO_NAME },
+  ];
 };
 
 export const projectNameForm: PromptObject<string> = {
