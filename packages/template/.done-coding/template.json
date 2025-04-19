@@ -10,6 +10,10 @@
     {
       "key": "test2",
       "label": "TEST2"
+    },
+    {
+      "key": "inputFileName",
+      "label": "入口文件名"
     }
   ],
   "list": [
@@ -34,6 +38,10 @@
       "mode": "replace"
     },
     {
+      "input": "./${inputFileName}.json",
+      "mode": "replace"
+    },
+    {
       "input": "./test-input.md",
       "output": "./test-overwrite-output.md.json",
       "dealMarkdown": true,
@@ -54,6 +62,11 @@
     {
       "input": "./test-replace-input.md",
       "output": "./test-replace-output.md.json",
+      "dealMarkdown": true,
+      "mode": "replace"
+    },
+    {
+      "input": "./${inputFileName}.md",
       "dealMarkdown": true,
       "mode": "replace"
     }

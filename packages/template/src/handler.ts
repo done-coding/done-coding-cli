@@ -114,6 +114,7 @@ const ensureInputNotNull = (mode: OutputModeEnum, input?: string) => {
 };
 
 /** 编译模板 */
+// eslint-disable-next-line complexity
 const compileTemplate = async (
   completeOptions: Omit<CompileTemplateConfigListItem, "envData"> & {
     envData:
@@ -255,7 +256,21 @@ rollback: ${rollback}
         console.log(chalk.red(`env 与 input 不能相同`));
         return process.exit(1);
       }
-      const inputPath = path.resolve(input!);
+      const inputPathInit = path.resolve(input!);
+      let inputPath = inputPathInit;
+
+      // 输入文件-不包含运行目录部分
+      const inputRawFilePath = input!.replace(`${process.cwd()}/`, "");
+      // 输入文件路径编译
+      const inputCompileFilePath = _template(inputRawFilePath)(envData);
+      if (inputCompileFilePath !== inputRawFilePath) {
+        console.log(
+          chalk.green(`检测输入文件名也需要替换
+            ./${inputRawFilePath} => ./${inputCompileFilePath} `),
+        );
+        fs.rmSync(inputPathInit);
+        inputPath = path.resolve(`./${inputCompileFilePath}`);
+      }
       fs.mkdirSync(path.dirname(inputPath), { recursive: true });
       fs.writeFileSync(inputPath, outputContent, "utf-8");
       console.log(chalk.green(`模板处理完成，输出到 ${inputPath}`));
@@ -280,11 +295,14 @@ export const batchHandler = async (
   {
     rootDir = process.cwd(),
     itemDefaultRollback = false,
+    extraEnvData = {},
   }: {
     /** 根目录 */
     rootDir?: string;
     /** item默认回滚? */
     itemDefaultRollback?: boolean;
+    /** 额外环境变量 */
+    extraEnvData?: object;
   } = {},
   paramsConfig?: CompileTemplateConfig,
 ) => {
@@ -367,7 +385,13 @@ export const batchHandler = async (
       env,
       input: rootDir && input ? path.resolve(rootDir, input) : input,
       output: rootDir && output ? path.resolve(rootDir, output) : output,
-      envData: _assign({}, globalEnvData, collectEnvData, itemEnvData),
+      envData: _assign(
+        {},
+        extraEnvData,
+        globalEnvData,
+        collectEnvData,
+        itemEnvData,
+      ),
       rollback,
     };
   });
