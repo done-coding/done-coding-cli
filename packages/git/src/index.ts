@@ -1,3 +1,3 @@
 export { handler } from "./handler";
-export { command } from "./main";
-export { getTargetRepoUrl } from "./utils";
+export { command, gitCloneCommand } from "./main";
+export { getTargetRepoUrl, gitClone } from "./utils";

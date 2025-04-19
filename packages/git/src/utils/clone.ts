@@ -4,7 +4,7 @@ import { getTargetRepoUrl } from "./get-repo";
 import { execSync } from "node:child_process";
 
 /** 克隆目标仓库 */
-export const clone = async (options: Options) => {
+export const gitClone = async (options: Options) => {
   const repoUrl = await getTargetRepoUrl(options);
 
   execSync(`git clone ${repoUrl} 1>&2`);

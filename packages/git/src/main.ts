@@ -24,27 +24,30 @@ const childCommandUsage = `Usage: $0 ${commandName} <command> [options]`;
 
 const mainCommandUsage = `Usage: $0 <command> [options]`;
 
+export const gitCloneCommand: CommandModule = {
+  command: `${SubcommandEnum.CLONE} <platform> <username>`,
+  describe: "从选择的git平台克隆代码",
+  builder: (subCli) => {
+    return subCli
+      .positional("platform", {
+        describe: "选择git平台",
+        type: "string",
+        choices: [GitPlatformEnum.GITHUB, GitPlatformEnum.GITEE],
+      })
+      .positional("username", {
+        describe: "git平台用户名",
+        type: "string",
+      });
+  },
+  /** @ts-ignore */
+  handler: _curry(subHandler)(SubcommandEnum.CLONE),
+};
+
 const addSubcommand = (cli: yargs.Argv<Options>) => {
   return (
     cli
       /** @ts-ignore */
-      .command({
-        command: `${SubcommandEnum.CLONE} <platform> <username>`,
-        describe: "从一个某个git平台克隆代码",
-        builder: (subCli) => {
-          return subCli
-            .positional("platform", {
-              describe: "git平台",
-              type: "string",
-              choices: [GitPlatformEnum.GITHUB, GitPlatformEnum.GITEE],
-            })
-            .positional("username", {
-              describe: "git平台用户名",
-              type: "string",
-            });
-        },
-        handler: _curry(subHandler)(SubcommandEnum.CLONE),
-      })
+      .command(gitCloneCommand)
       .demandCommand(1)
   );
 };

@@ -1,4 +1,4 @@
-import { SubcommandEnum, clone as gitClone } from "@/utils";
+import { SubcommandEnum, gitClone } from "@/utils";
 import type { Options } from "@/utils";
 import type { ArgumentsCamelCase } from "yargs";
 import chalk from "chalk";
