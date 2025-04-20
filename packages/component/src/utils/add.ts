@@ -7,6 +7,7 @@ import prompts from "prompts";
 import { operateComponent } from "./operate";
 import { getComponentList } from "./list";
 import { getComponentEnvData } from "./env-data";
+import { onPromptFormStateForSigint } from "@done-coding/cli-template";
 
 /** 新增组件 */
 export const addComponent = async ({ name: nameInit }: Options) => {
@@ -18,6 +19,7 @@ export const addComponent = async ({ name: nameInit }: Options) => {
         type: "text",
         name: "name",
         message: "请输入组件名",
+        onState: onPromptFormStateForSigint,
       })
     ).name;
   } else {

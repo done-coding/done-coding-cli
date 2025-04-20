@@ -8,6 +8,7 @@ import { getComponentList } from "./list";
 import { getComponentEnvData } from "./env-data";
 import fs from "node:fs";
 import path from "node:path";
+import { onPromptFormStateForSigint } from "@done-coding/cli-template";
 
 /** 新增组件 */
 export const removeComponent = async ({ name: nameInit }: Options) => {
@@ -28,6 +29,7 @@ export const removeComponent = async ({ name: nameInit }: Options) => {
         choices: list.map((item) => {
           return { title: item, value: item };
         }),
+        onState: onPromptFormStateForSigint,
       })
     ).name;
   } else {
