@@ -58,6 +58,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@done-coding/node-tools": "workspace:^",
     "chalk": "^5.3.0",
     "lodash.assign": "^4.2.0",
     "lodash.get": "^4.4.2",

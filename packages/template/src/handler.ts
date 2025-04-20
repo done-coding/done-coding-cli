@@ -15,6 +15,7 @@ import chalk from "chalk";
 import _template from "lodash.template";
 import _assign from "lodash.assign";
 import prompts from "prompts";
+import { onPromptFormStateForSigint } from "@done-coding/node-tools";
 
 /** 获取数据 */
 const getData = <
@@ -188,6 +189,7 @@ rollback: ${rollback}
                     type: "confirm",
                     name: "remove",
                     message: `${mode}模式下回滚将删除${outputPath}，是否继续？`,
+                    onState: onPromptFormStateForSigint,
                   })
                 ).remove
           ) {
@@ -352,13 +354,9 @@ export const batchHandler = async (
         name: keyName,
         message: `请输入${label}`,
         initial,
-        format: (value) => (value || "").trim(),
-        validate: (value) => {
-          if (!value) {
-            return `${label}不能为空`;
-          }
-          return true;
-        },
+        format: (value) => value.trim(),
+        validate: (value) => value.length > 0 || `${label}不能为空`,
+        onState: onPromptFormStateForSigint,
       })
     )[keyName];
   }
