@@ -4,6 +4,7 @@ import { getGiteeUserAllRepos, getGiteeUserPublicRepos } from "@/api/gitee";
 import { getGithubUserPublicRepos } from "@/api/github";
 import prompts from "prompts";
 import { getGitConfigInfo } from "./config";
+import { onPromptFormStateForSigint } from "@done-coding/node-tools";
 
 /** 获取目标仓库地址 */
 export const getTargetRepoUrl = async ({
@@ -15,27 +16,18 @@ export const getTargetRepoUrl = async ({
     username: usernameInit!,
   };
   if (!platformInit) {
+    /** git平台选择 */
+    const gitPlatformChoices = [
+      { title: "GitHub", value: GitPlatformEnum.GITHUB },
+      { title: "Gitee", value: GitPlatformEnum.GITEE },
+    ];
     options.platform = (
       await prompts({
         type: "select",
         name: "platform",
         message: "选择git平台",
-        choices: [
-          {
-            title: "Github",
-            value: GitPlatformEnum.GITHUB,
-          },
-          {
-            title: "Gitee",
-            value: GitPlatformEnum.GITEE,
-          },
-        ],
-        validate: (value) => {
-          if (value === undefined) {
-            return "请选择git平台";
-          }
-          return true;
-        },
+        choices: gitPlatformChoices,
+        onState: onPromptFormStateForSigint,
       })
     ).platform as GitPlatformEnum;
   }
@@ -45,12 +37,9 @@ export const getTargetRepoUrl = async ({
         type: "text",
         name: "username",
         message: "请输入用户名",
-        validate: (value) => {
-          if (value.trim() === "") {
-            return "用户名不能为空";
-          }
-          return true;
-        },
+        format: (value) => value.trim(),
+        validate: (value) => value.length > 0 || "用户名不能为空",
+        onState: onPromptFormStateForSigint,
       })
     ).username;
   }
@@ -130,6 +119,7 @@ export const getTargetRepoUrl = async ({
         value: item.sshUrl,
       };
     }),
+    onState: onPromptFormStateForSigint,
   });
 
   return repoUrl;
