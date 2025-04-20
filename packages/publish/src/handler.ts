@@ -16,6 +16,7 @@ import pinyin from "pinyin";
 import { readFileSync, existsSync } from "node:fs";
 import chalk from "chalk";
 import prompts from "prompts";
+import { onPromptFormStateForSigint } from "@done-coding/node-tools";
 
 const configPath = "/.dc/publish.json";
 
@@ -265,12 +266,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
         name: "type",
         message: `请选择发布类型，当前版本：${pkg.version}`,
         choices,
-        validate: (value) => {
-          if (!value) {
-            return "请选择发布类型";
-          }
-          return true;
-        },
+        onState: onPromptFormStateForSigint,
       })
     ).type;
     npmInfo = versionMap[type!];
