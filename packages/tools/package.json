@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/node-tools",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "node 工具",
   "private": false,
   "module": "es/index.mjs",
