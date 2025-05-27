@@ -22,11 +22,16 @@ import { getTargetRepoUrl } from "@done-coding/cli-git";
 
 // eslint-disable-next-line complexity
 export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
-  const { projectName: projectNameInit, template: templateInit } = argv;
+  const { projectName: projectNameInit } = argv;
   const projectNameNoTrim =
     projectNameInit ?? (await prompts(projectNameForm)).projectName;
 
   const projectName = (projectNameNoTrim || "").trim();
+
+  if (!projectName) {
+    console.log(chalk.red("项目名称不能为空"));
+    return process.exit(1);
+  }
 
   if (
     projectName.includes(" ") ||
@@ -49,8 +54,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
     }
   }
 
-  const template =
-    templateInit ?? (await prompts(await getTemplateForm())).template;
+  const { template } = await prompts(await getTemplateForm());
 
   let remoteUrl = "";
 
@@ -79,7 +83,9 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
 
   console.log(chalk.blue("正在初始化项目，请稍等..."));
 
-  execSync(`git clone ${remoteUrl} ${projectName} --depth=1 1>&2`);
+  execSync(`git clone ${remoteUrl} ${projectName} --depth=1`, {
+    stdio: "inherit",
+  });
 
   const configPath = getConfigPath(projectNamePath);
 
@@ -120,9 +126,10 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
 
     if (saveGitHistory) {
       // 保存git记录则重命名origin为upstream 同时完整克隆仓库
-      execSync(
-        `cd ${projectNamePath} && git remote rename origin upstream && git fetch --unshallow`,
-      );
+      execSync(`git remote rename origin upstream && git fetch --unshallow`, {
+        cwd: projectNamePath,
+        stdio: "inherit",
+      });
 
       console.log(
         chalk.green(
@@ -136,7 +143,10 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
       const projectNameGitPath = path.resolve(projectNamePath, ".git");
       rmSync(projectNameGitPath, { recursive: true, force: true });
 
-      execSync(`cd ${projectNamePath} && git init`);
+      execSync(`git init`, {
+        cwd: projectNamePath,
+        stdio: "inherit",
+      });
     }
   }
 
@@ -145,9 +155,10 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   );
 
   // 提交代码
-  execSync(
-    `cd ${projectNamePath} && git add . && git commit -m '${gitCommitMessage}'`,
-  );
+  execSync(`git add . && git commit -m '${gitCommitMessage}'`, {
+    cwd: projectNamePath,
+    stdio: "inherit",
+  });
 
   console.log(chalk.green(`项目${projectName}初始化完成`));
 

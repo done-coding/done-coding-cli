@@ -14,8 +14,7 @@
   "files": [
     "es",
     "lib",
-    "types",
-    "gif"
+    "types"
   ],
   "scripts": {
     "clean": "rimraf es lib types",
@@ -38,7 +37,6 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:^",
     "@types/node": "^18.0.0",
     "@types/prompts": "^2.4.6",
     "@types/yargs": "^17.0.28",
