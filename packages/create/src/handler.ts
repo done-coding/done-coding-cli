@@ -57,6 +57,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   const { template } = await prompts(await getTemplateForm());
 
   let remoteUrl = "";
+  let templateBranch: string | undefined = "";
 
   if (template === CUSTOM_TEMPLATE_NAME) {
     const { customUrl } = await prompts(customUrlForm);
@@ -76,6 +77,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
       return process.exit(1);
     }
     remoteUrl = target.url;
+    templateBranch = target.branch;
   }
 
   /** 父级git目录 */
@@ -83,9 +85,12 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
 
   console.log(chalk.blue("正在初始化项目，请稍等..."));
 
-  execSync(`git clone ${remoteUrl} ${projectName} --depth=1`, {
-    stdio: "inherit",
-  });
+  execSync(
+    `git clone${
+      templateBranch ? ` -b ${templateBranch}` : ""
+    } ${remoteUrl} ${projectName} --depth=1`,
+    { stdio: "inherit" },
+  );
 
   const configPath = getConfigPath(projectNamePath);
 

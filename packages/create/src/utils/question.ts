@@ -5,8 +5,16 @@ import { onPromptFormStateForSigint } from "@done-coding/node-tools";
 
 /** 模版选项 */
 export interface TemplateChoiceItem {
+  /** 模板名 */
   name: string;
+  /** 仓库地址 */
   url?: string;
+  /** 描述 */
+  description?: string;
+  /** 目标分支 */
+  branch?: string;
+  /** 应用实例 */
+  instances?: string[];
 }
 
 let templateList: TemplateChoiceItem[];
@@ -48,8 +56,14 @@ export const getTemplateForm: () => Promise<
     name: "template",
     message: "请选择模板",
     choices: templateChoices.map((item) => ({
-      title: item.name,
+      title: item.branch ? `${item.name}(${item.branch})` : item.name,
       value: item.name,
+      description:
+        `${item.description || ""}${
+          item.instances?.length
+            ? `, 已应用于: ${[""].concat(item.instances).join("\n- ")}`
+            : ""
+        }` || undefined,
     })),
     validate: (value) => value.trim().length > 0 || "模板不能为空",
     onState: onPromptFormStateForSigint,
@@ -61,6 +75,7 @@ export const saveGitHistoryForm = {
   name: "saveGitHistory",
   message: "是否保留git历史",
   initial: false,
+  onState: onPromptFormStateForSigint,
 };
 
 /*
@@ -76,6 +91,7 @@ export const getRemoveDirForm = (message = "项目已存在，是否删除") => 
   type: "confirm" as const,
   name: "isRemove",
   message,
+  onState: onPromptFormStateForSigint,
 });
 
 /** 自定义模板路径表单 */
