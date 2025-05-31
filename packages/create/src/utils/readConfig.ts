@@ -1,11 +1,10 @@
-import chalk from "chalk";
 import { execSync } from "node:child_process";
 import path from "node:path";
 import fs, { existsSync } from "node:fs";
 import { CONFIG_GIT_REPO, READ_CONFIG_TEMPORARY_DIRECTORY } from "./const";
 import injectInfo from "@/injectInfo.json";
 import { getRemoveDirForm, type TemplateChoiceItem } from "./question";
-import { xPrompts } from "@done-coding/cli-utils";
+import { log, xPrompts } from "@done-coding/cli-utils";
 
 /** 配置文件 */
 export interface ConfigJson {
@@ -14,7 +13,7 @@ export interface ConfigJson {
 
 /** 读取配置 */
 export const readConfig = async (): Promise<ConfigJson> => {
-  console.log(chalk.blue(`拉取模板列表，请稍等...`));
+  log.stage(`拉取模板列表，请稍等...`);
 
   const configDir = path.resolve(
     process.cwd(),
@@ -22,11 +21,11 @@ export const readConfig = async (): Promise<ConfigJson> => {
   );
 
   if (existsSync(configDir)) {
-    console.log(chalk.red(`${configDir} 已存在，请手动删除该目录再试`));
+    log.error(`${configDir} 已存在，请手动删除该目录再试`);
     return process.exit(1);
   }
 
-  console.log(chalk.blue(`配置临时目录：${configDir}`));
+  log.info(`配置临时目录：${configDir}`);
 
   if (fs.existsSync(configDir)) {
     const removeMessage = `${configDir}目录已存在，是否删除？`;
@@ -34,7 +33,7 @@ export const readConfig = async (): Promise<ConfigJson> => {
     if (isRemove) {
       fs.rmSync(configDir, { recursive: true, force: true });
     } else {
-      console.log(chalk.red(`${configDir}已存在，请手动删除后再试！`));
+      log.error(`${configDir} 已存在，请手动删除该目录再试`);
       return process.exit(1);
     }
   }
@@ -54,7 +53,7 @@ export const readConfig = async (): Promise<ConfigJson> => {
       throw new Error(errorMsg);
     }
 
-    console.log(chalk.green(`模板列表拉取成功！`));
+    log.success(`模板列表拉取成功！`);
   } finally {
     fs.rmSync(configDir, { recursive: true, force: true });
   }

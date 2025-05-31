@@ -13,10 +13,9 @@ import type { ArgumentsCamelCase } from "yargs";
 import { execSync } from "node:child_process";
 import { rmSync, existsSync } from "node:fs";
 import path, { resolve } from "node:path";
-import chalk from "chalk";
 import { CUSTOM_TEMPLATE_NAME } from "@/utils";
 import { getConfigPath, batchHandler } from "@done-coding/cli-template";
-import { lookForParentTarget, xPrompts } from "@done-coding/cli-utils";
+import { log, lookForParentTarget, xPrompts } from "@done-coding/cli-utils";
 import { getTargetRepoUrl } from "@done-coding/cli-git";
 
 // eslint-disable-next-line complexity
@@ -28,7 +27,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   const projectName = (projectNameNoTrim || "").trim();
 
   if (!projectName) {
-    console.log(chalk.red("项目名称不能为空"));
+    log.error(`项目名称不能为空`);
     return process.exit(1);
   }
 
@@ -37,7 +36,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
     projectName.includes("\\") ||
     projectName.includes("/")
   ) {
-    console.log(chalk.red(`项目名称\`${projectName}\`不能包含空格或者\\或者/`));
+    log.error(`项目名称\`${projectName}\`不能包含空格或者\\或者/`);
     return process.exit(1);
   }
 
@@ -48,7 +47,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
     if (isRemove === true) {
       rmSync(projectNamePath, { recursive: true, force: true });
     } else {
-      console.log(chalk.red("项目已存在"));
+      log.error(`项目${projectName}已存在`);
       return process.exit(1);
     }
   }
@@ -68,11 +67,11 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
       (item) => item.name === template,
     );
     if (!target) {
-      console.log(chalk.red(`模板${template}不存在`));
+      log.error(`模板${template}不存在`);
       return process.exit(1);
     }
     if (!target.url) {
-      console.log(chalk.red(`模板${template}仓库地址不存在`));
+      log.error(`模板${template}仓库地址不存在`);
       return process.exit(1);
     }
     remoteUrl = target.url;
@@ -82,7 +81,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   /** 父级git目录 */
   const parentGitDir = lookForParentTarget(".git");
 
-  console.log(chalk.blue("正在初始化项目，请稍等..."));
+  log.stage("正在初始化项目，请稍等...");
 
   execSync(
     `git clone${
@@ -102,10 +101,10 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
     });
     rmSync(configPath, { force: true });
 
-    console.log(chalk.blue("模板项目配置注入成功, 模版项目配置文件已删除"));
+    log.stage("模板项目配置注入成功, 模版项目配置文件已删除");
   }
 
-  console.log(chalk.blue("项目初始化完成"));
+  log.stage("项目初始化完成");
 
   if (parentGitDir) {
     /** 当前项目git目录 */
@@ -118,10 +117,8 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
     }
 
     rmSync(currentGitInfoDir, { recursive: true, force: true });
-    console.log(
-      chalk.green(
-        `项目创建在父级git仓库${parentGitDir}中，已删除${projectName}目录下的.git(${currentGitInfoDir})`,
-      ),
+    log.stage(
+      `项目创建在父级git仓库${parentGitDir}中，已删除${projectName}目录下的.git(${currentGitInfoDir})`,
     );
   } else {
     // 如果项目不在git仓库中，则询问是否保存git历史记录
@@ -135,13 +132,11 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
         stdio: "inherit",
       });
 
-      console.log(
-        chalk.green(
-          `已经将origin重命名为upstream，后续可以与模板git仓库有完整的交互`,
-        ),
+      log.stage(
+        `已经将origin重命名为upstream，后续可以与模板git仓库有完整的交互`,
       );
 
-      console.log(chalk.green(`已保存git历史记录`));
+      log.success(`已保存git历史记录`);
     } else {
       // 项目git目录
       const projectNameGitPath = path.resolve(projectNamePath, ".git");
@@ -164,14 +159,12 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
     stdio: "inherit",
   });
 
-  console.log(chalk.green(`项目${projectName}初始化完成`));
+  log.success(`项目${projectName}初始化完成`);
 
-  console.log(
-    chalk.blue(`
+  log.info(`
 使用步骤: 
   1. cd ${projectName}
   2. pnpm install
   3. pnpm run dev
-  `),
-  );
+  `);
 };
