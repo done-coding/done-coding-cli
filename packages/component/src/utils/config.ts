@@ -2,16 +2,16 @@ import path from "node:path";
 import fs from "node:fs";
 import json5 from "json5";
 import type { Config } from "./types";
-import chalk from "chalk";
 import { getPathEnvData, getTemplateDirAbsolutePath } from "./env-data";
 import _template from "lodash.template";
+import { log } from "@done-coding/cli-utils";
 
 /** 获取配置 */
 export const getConfig = () => {
   /** 模块入口文件 */
   const moduleIndex = path.resolve(getTemplateDirAbsolutePath(), "index.json");
   if (!fs.existsSync(moduleIndex)) {
-    console.log(chalk.red(`模块入口文件不存在: ${moduleIndex}`));
+    log.error(`模块入口文件不存在: ${moduleIndex}`);
     return process.exit(1);
   }
   /** 模块入口文件内容 */
@@ -20,7 +20,7 @@ export const getConfig = () => {
   const configRelativePath = indexContent.config;
 
   if (!configRelativePath) {
-    console.log(chalk.red(`配置文件相对路径不存在: ${configRelativePath}`));
+    log.error(`配置文件相对路径不存在: ${configRelativePath}`);
     return process.exit(1);
   }
 
@@ -30,7 +30,7 @@ export const getConfig = () => {
     configRelativePath,
   );
   if (!fs.existsSync(configPath)) {
-    console.log(chalk.red(`配置文件不存在: ${configPath}`));
+    log.error(`配置文件不存在: ${configPath}`);
     return process.exit(1);
   }
   /** 配置文件内容 */

@@ -1,7 +1,6 @@
 import type { CommandModule } from "yargs";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import chalk from "chalk";
 import { command as initCommand } from "@done-coding/cli-init";
 import { command as injectCommand } from "@done-coding/cli-inject";
 import { command as extractCommand } from "@done-coding/cli-extract";
@@ -11,12 +10,13 @@ import { command as publishCommand } from "@done-coding/cli-publish";
 import { command as templateCommand } from "@done-coding/cli-template";
 import { command as componentCommand } from "@done-coding/cli-component";
 import injectInfo from "@/injectInfo.json";
+import { log } from "@done-coding/cli-utils";
 
 const failHandler = (msg: string, err: Error) => {
   if (msg) {
-    console.log(chalk.red(msg));
+    log.error(msg);
   } else {
-    console.log(chalk.red(err.message));
+    log.error(err.message);
   }
   process.exit(1);
 };

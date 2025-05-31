@@ -1,9 +1,9 @@
-import chalk from "chalk";
 import path from "node:path";
 import fs from "node:fs";
 import { getConfig } from "./config";
 import { getComponentEnvData } from "./env-data";
 import type { Config } from "./types";
+import { chalk, log } from "@done-coding/cli-utils";
 
 /**
  * 获取组件列表
@@ -40,13 +40,13 @@ export const getComponentList = (config: Config): string[] => {
 
     return list;
   } else {
-    console.log(chalk.red("组件源码路径不是目录"));
+    log.error("组件源码路径不是目录");
     return process.exit(1);
   }
 };
 
 export const listComponent = async () => {
-  console.log(chalk.blue("展示列表"));
+  log.stage("展示列表");
   const config = getConfig();
   const list = getComponentList(config);
 

@@ -3,8 +3,8 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import type { Options } from "@/utils";
 import { handler } from "@/handler";
-import chalk from "chalk";
 import injectInfo from "@/injectInfo.json";
+import { log } from "@done-coding/cli-utils";
 
 const getOptions = (): {
   [key in keyof Options]: YargsOptions;
@@ -35,9 +35,9 @@ const commandName = injectInfo.cliConfig.moduleName;
 
 const failHandler = (msg: string, err: Error) => {
   if (msg) {
-    console.log(chalk.red(msg));
+    log.error(msg);
   } else {
-    console.log(chalk.red(err.message));
+    log.error(err.message);
   }
   process.exit(1);
 };

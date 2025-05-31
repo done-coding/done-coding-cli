@@ -2,11 +2,11 @@ import {
   lookForParentTarget,
   decryptAES,
   encryptAES,
+  log,
 } from "@done-coding/cli-utils";
 import type { GitConfigInfo, GitPlatformEnum } from "./types";
 import injectInfo from "@/injectInfo.json";
 import fs from "node:fs";
-import chalk from "chalk";
 import path from "node:path";
 const { namespaceDir, moduleName } = injectInfo.cliConfig;
 
@@ -33,7 +33,7 @@ export const getGitConfigInfo = ({
   /** 配置目录 */
   const parentGitDir = lookForParentTarget(platformConfigBasePath);
   if (!parentGitDir) {
-    console.log(chalk.yellow(`配置文件不存在`));
+    log.warn(`配置文件不存在`);
     return;
   }
   /** 配置文件路径 */
@@ -44,7 +44,7 @@ export const getGitConfigInfo = ({
   const configDecrypt = decryptAES({ encryptedText: configStr, secretKey });
 
   if (!configDecrypt) {
-    console.log(chalk.yellow(`配置文件解密失败`));
+    log.warn(`配置文件解密失败`);
     return;
   }
 

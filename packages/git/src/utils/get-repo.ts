@@ -1,10 +1,8 @@
-import chalk from "chalk";
 import { GitPlatformEnum, type Options } from "./types";
 import { getGiteeUserAllRepos, getGiteeUserPublicRepos } from "@/api/gitee";
 import { getGithubUserPublicRepos } from "@/api/github";
-import prompts from "prompts";
 import { getGitConfigInfo } from "./config";
-import { onPromptFormStateForSigint } from "@done-coding/cli-utils";
+import { log, xPrompts } from "@done-coding/cli-utils";
 
 /** 获取目标仓库地址 */
 export const getTargetRepoUrl = async ({
@@ -22,24 +20,22 @@ export const getTargetRepoUrl = async ({
       { title: "Gitee", value: GitPlatformEnum.GITEE },
     ];
     options.platform = (
-      await prompts({
+      await xPrompts({
         type: "select",
         name: "platform",
         message: "选择git平台",
         choices: gitPlatformChoices,
-        onState: onPromptFormStateForSigint,
       })
     ).platform as GitPlatformEnum;
   }
   if (!usernameInit) {
     options.username = (
-      await prompts({
+      await xPrompts({
         type: "text",
         name: "username",
         message: "请输入用户名",
         format: (value) => value.trim(),
         validate: (value) => value.length > 0 || "用户名不能为空",
-        onState: onPromptFormStateForSigint,
       })
     ).username;
   }
@@ -60,7 +56,7 @@ export const getTargetRepoUrl = async ({
 
   let accessToken = gitInfo?.accessToken;
 
-  console.log(chalk.blue(`正在获取${username}的${platform}仓库列表...`));
+  log.stage(`正在获取${username}的${platform}仓库列表...`);
 
   const params = {
     username,
@@ -94,22 +90,22 @@ export const getTargetRepoUrl = async ({
       break;
     }
     default: {
-      console.log(chalk.red(`未知平台${platform}`));
+      log.error(`未知平台${platform}`);
       return process.exit(1);
     }
   }
 
-  console.log(chalk.green(`获取${username}的${platform}仓库列表成功`));
+  log.success(`获取${username}的${platform}仓库列表成功`);
   // console.log(repos.map((item) => item.name));
 
   if (repos.length === 0) {
-    console.log(chalk.yellow(`${username} 可获取${platform}仓库列表为空`));
+    log.warn(`${username} 可获取${platform}仓库列表为空`);
     return;
   } else {
-    console.log(chalk.blue(`共${repos.length}个仓库`));
+    log.stage(`共${repos.length}个仓库`);
   }
 
-  const { repoUrl } = await prompts({
+  const { repoUrl } = await xPrompts({
     name: "repoUrl",
     type: "select",
     message: "选择仓库",
@@ -119,7 +115,6 @@ export const getTargetRepoUrl = async ({
         value: item.sshUrl,
       };
     }),
-    onState: onPromptFormStateForSigint,
   });
 
   return repoUrl;

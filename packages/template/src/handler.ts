@@ -11,11 +11,9 @@ import {
 import type { ArgumentsCamelCase } from "yargs";
 import path from "node:path";
 import fs from "node:fs";
-import chalk from "chalk";
 import _template from "lodash.template";
 import _assign from "lodash.assign";
-import prompts from "prompts";
-import { onPromptFormStateForSigint } from "@done-coding/cli-utils";
+import { log, xPrompts } from "@done-coding/cli-utils";
 
 /** 获取数据 */
 const getData = <
@@ -51,9 +49,7 @@ const getData = <
   if (filePath) {
     if (limitJson) {
       if (!filePath.endsWith(".json")) {
-        console.log(
-          chalk.red(`${filePathKey}必须是json文件，请检查文件后缀名`),
-        );
+        log.error(`${filePathKey}必须是json文件，请检查文件后缀名`);
         return process.exit(1);
       }
     }
@@ -75,12 +71,10 @@ const getData = <
     }
   } else {
     if (!dataInit) {
-      console.log(chalk.red(`${filePathKey}与${dataInitKey}不能同时为空`));
+      log.error(`${filePathKey}与${dataInitKey}不能同时为空`);
       return process.exit(1);
     }
-    console.log(
-      chalk.green(`${filePathKey} 为空，将使用${dataInitKey}作为数据`),
-    );
+    log.info(`${filePathKey} 为空，将使用${dataInitKey}作为数据`);
 
     if (limitJson) {
       return JSON.parse(dataInit) as R;
@@ -93,7 +87,7 @@ const getData = <
 /** 确保output不为空 */
 const ensureOutputNotNull = (mode: OutputModeEnum, output?: string) => {
   if (!output) {
-    console.log(chalk.red(`${mode}模式下output不能为空`));
+    log.error(`${mode}模式下output不能为空`);
     return process.exit(1);
   }
 };
@@ -101,7 +95,7 @@ const ensureOutputNotNull = (mode: OutputModeEnum, output?: string) => {
 /** 确保output与input不相同 */
 const ensureOutputNotEqualsInput = (output?: string, input?: string) => {
   if (input && output === input) {
-    console.log(chalk.red(`output与input不能相同`));
+    log.error(`output与input不能相同`);
     return process.exit(1);
   }
 };
@@ -109,7 +103,7 @@ const ensureOutputNotEqualsInput = (output?: string, input?: string) => {
 /** 确保input不为空 */
 const ensureInputNotNull = (mode: OutputModeEnum, input?: string) => {
   if (!input) {
-    console.log(chalk.red(`${mode}模式下input不能为空`));
+    log.error(`${mode}模式下input不能为空`);
     return process.exit(1);
   }
 };
@@ -144,18 +138,16 @@ const compileTemplate = async (
     switch (mode) {
       case OutputModeEnum.REPLACE:
       case OutputModeEnum.RETURN: {
-        console.log(chalk.red(`${mode}模式不支持回滚`));
+        log.error(`${mode}模式不支持回滚`);
         return;
       }
     }
   }
 
-  console.log(
-    chalk.blue(`开始处理模板
+  log.stage(`开始处理模板
 mode: ${mode}
 rollback: ${rollback}
-`),
-  );
+`);
 
   /** 模板内容 */
   const templateContent = getData({
@@ -185,34 +177,31 @@ rollback: ${rollback}
             rollbackDelFileAgree
               ? true
               : (
-                  await prompts({
+                  await xPrompts({
                     type: "confirm",
                     name: "remove",
                     message: `${mode}模式下回滚将删除${outputPath}，是否继续？`,
-                    onState: onPromptFormStateForSigint,
                   })
                 ).remove
           ) {
             fs.rmSync(outputPath, { force: true });
-            console.log(chalk.green(`${mode}模式下${outputPath}已删除`));
+            log.success(`${mode}模式下${outputPath}已删除`);
             return;
           } else {
-            console.log(chalk.yellow(`${mode}模式下${outputPath}回滚取消`));
+            log.warn(`${mode}模式下${outputPath}回滚取消`);
             return;
           }
         }
-        console.log(chalk.blue(`output:${outputPath} 已存在，将覆盖`));
+        log.info(`output:${outputPath} 已存在，将覆盖`);
       } else {
         if (rollback) {
-          console.log(
-            chalk.yellow(`${mode}模式下${outputPath}不存在，无需回滚`),
-          );
+          log.warn(`${mode}模式下${outputPath}不存在，无需回滚`);
           return;
         }
-        console.log(chalk.blue(`output:${outputPath} 不存在，将创建`));
+        log.stage(`output:${outputPath} 不存在，将创建`);
       }
       fs.writeFileSync(outputPath, outputContent, "utf-8");
-      console.log(chalk.green(`模板处理完成，输出到 ${outputPath}`));
+      log.success(`模板处理完成，输出到 ${outputPath}`);
       break;
     }
     case OutputModeEnum.APPEND: {
@@ -229,33 +218,31 @@ rollback: ${rollback}
             oldContent.replace(outputContent, ""),
             "utf-8",
           );
-          console.log(chalk.green(`${mode}模式下${outputPath}回滚完成`));
+          log.success(`${mode}模式下${outputPath}回滚完成`);
           return;
         }
         const newContent = oldContent + outputContent;
         fs.writeFileSync(outputPath, newContent, "utf-8");
-        console.log(chalk.green(`模板处理完成，追加到 ${outputPath}`));
+        log.success(`模板处理完成，追加到 ${outputPath}`);
       } else {
         if (rollback) {
-          console.log(
-            chalk.yellow(`${mode}模式下${outputPath}不存在，无需回滚`),
-          );
+          log.warn(`${mode}模式下${outputPath}不存在，无需回滚`);
           return;
         }
-        console.log(chalk.blue(`output:${outputPath} 不存在，将创建`));
+        log.stage(`output:${outputPath} 不存在，将创建`);
         fs.writeFileSync(outputPath, outputContent, "utf-8");
-        console.log(chalk.green(`模板处理完成，输出到 ${outputPath}`));
+        log.success(`模板处理完成，输出到 ${outputPath}`);
       }
       break;
     }
     case OutputModeEnum.REPLACE: {
       if (output) {
-        console.log(chalk.yellow(`output ${output} 将被忽略`));
+        log.warn(`output ${output} 将被忽略`);
       }
       ensureInputNotNull(mode, input);
 
       if (env && env === input) {
-        console.log(chalk.red(`env 与 input 不能相同`));
+        log.error(`env 与 input 不能相同`);
         return process.exit(1);
       }
       const inputPathInit = path.resolve(input!);
@@ -266,26 +253,22 @@ rollback: ${rollback}
       // 输入文件路径编译
       const inputCompileFilePath = _template(inputRawFilePath)(envData);
       if (inputCompileFilePath !== inputRawFilePath) {
-        console.log(
-          chalk.green(`检测输入文件名也需要替换
-            ./${inputRawFilePath} => ./${inputCompileFilePath} `),
-        );
+        log.success(`检测输入文件名也需要替换
+            ./${inputRawFilePath} => ./${inputCompileFilePath} `);
         fs.rmSync(inputPathInit);
         inputPath = path.resolve(`./${inputCompileFilePath}`);
       }
       fs.mkdirSync(path.dirname(inputPath), { recursive: true });
       fs.writeFileSync(inputPath, outputContent, "utf-8");
-      console.log(chalk.green(`模板处理完成，输出到 ${inputPath}`));
+      log.success(`模板处理完成，输出到 ${inputPath}`);
       break;
     }
     case OutputModeEnum.RETURN: {
-      console.log(
-        chalk.green(`模板处理完成，返回结果(函数调用才会拿到返回值)`),
-      );
+      log.success(`模板处理完成，返回结果(函数调用才会拿到返回值)`);
       return outputContent;
     }
     default: {
-      console.log(chalk.red(`mode ${mode} 不支持`));
+      log.error(`mode ${mode} 不支持`);
       return process.exit(1);
     }
   }
@@ -315,7 +298,7 @@ export const batchHandler = async (
     const configPath = getConfigPath(rootDir);
 
     if (!configPath) {
-      console.log(chalk.red(`配置文件${configPath}不存在`));
+      log.error(`配置文件${configPath}不存在`);
       return process.exit(1);
     }
 
@@ -349,14 +332,13 @@ export const batchHandler = async (
       initial = formItem.initial;
     }
     collectEnvData[keyName] = (
-      await prompts({
+      await xPrompts({
         type: "text",
         name: keyName,
         message: `请输入${label}`,
         initial,
         format: (value) => value.trim(),
         validate: (value) => value.length > 0 || `${label}不能为空`,
-        onState: onPromptFormStateForSigint,
       })
     )[keyName];
   }
@@ -375,7 +357,7 @@ export const batchHandler = async (
     } = completeDefaultOptions(item);
 
     if (env) {
-      console.log(chalk.yellow(`批量处理中 env:${env} 将被忽略，只读envData`));
+      log.warn(`批量处理中 env:${env} 将被忽略，只读envData`);
     }
 
     return {
@@ -419,13 +401,13 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   } = completeDefaultOptions(argv);
 
   if (batch) {
-    console.log(chalk.blue("开始批量处理"));
+    log.stage(`开始批量处理`);
     return batchHandler({
       // 回滚默认值 基于全局
       itemDefaultRollback: rollback,
     });
   }
-  console.log(chalk.blue("开始单个处理"));
+  log.stage(`开始单个处理`);
 
   /** 环境变量 */
   const envData = getData({

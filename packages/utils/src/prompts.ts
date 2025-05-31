@@ -12,17 +12,6 @@ export type {
   InitialReturnValue as PromptInitialReturnValue,
 } from "prompts";
 
-/** @deprecated prompt表单-进程退出信号处理 */
-export function onPromptFormStateForSigint(params: {
-  aborted: boolean;
-  value: any;
-}) {
-  if (params.aborted) {
-    log.error("退出输入");
-    return process.exit(1);
-  }
-}
-
 /** prompts 拓展 */
 export const xPrompts = (...args: Parameters<typeof prompts>) => {
   const [questions, options = {}] = args;

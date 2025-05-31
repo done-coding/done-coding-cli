@@ -14,9 +14,7 @@ import { join } from "node:path";
 import { execSync } from "node:child_process";
 import pinyin from "pinyin";
 import { readFileSync, existsSync } from "node:fs";
-import chalk from "chalk";
-import prompts from "prompts";
-import { onPromptFormStateForSigint } from "@done-coding/cli-utils";
+import { log, xPrompts } from "@done-coding/cli-utils";
 
 const configPath = "/.dc/publish.json";
 
@@ -114,9 +112,7 @@ const getNpmInfo = (
     // console.log(94, prereleaseRes);
 
     if (prereleaseRes) {
-      console.log(
-        chalk.yellow("当前版本已经是预发布版本，将会在当前版本基础上进行发布"),
-      );
+      log.warn("当前版本已经是预发布版本，将会在当前版本基础上进行发布");
       if (prereleaseRes.length === 1 && typeof prereleaseRes[0] === "number") {
         version = inc(
           currentVersion,
@@ -158,11 +154,9 @@ const getConfig = (): ConfigInfo => {
     const cfgStr = readFileSync(path, "utf-8");
     cfg = JSON.parse(cfgStr);
   } else {
-    console.log(
-      chalk.yellow(`未找到配置文件，将使用默认配置
+    log.warn(`未找到配置文件，将使用默认配置
       { gitOriginName: "origin" }
-    `),
-    );
+    `);
   }
   return {
     gitOriginName: "origin",
@@ -261,12 +255,11 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
     ];
 
     type = (
-      await prompts({
+      await xPrompts({
         type: "select",
         name: "type",
         message: `请选择发布类型，当前版本：${pkg.version}`,
         choices,
-        onState: onPromptFormStateForSigint,
       })
     ).type;
     npmInfo = versionMap[type!];
@@ -289,24 +282,22 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
       if (webBuild) {
         execSync(`${webBuild} 1>&2`);
       } else {
-        console.log(chalk.yellow("webBuild为空，不执行web构建"));
+        log.warn("webBuild为空，不执行web构建");
       }
     } else {
       throw new Error("未知命令");
     }
   } catch (error: any) {
-    console.log(chalk.red(`发布失败, error: ${error.message}`));
+    log.error(`发布失败, error: ${error.message}`);
 
     try {
-      console.log(
-        chalk.blue(`回滚本地版本到发布前的版本：${gitInfo.lastHash}`),
-      );
+      log.info(`回滚本地版本到发布前的版本：${gitInfo.lastHash}`);
       const { lastHash } = gitInfo;
       execSync(`git reset --hard ${lastHash} 1>&2`);
-      console.log(chalk.blue(`删除本次发布时生成的tag：v${npmInfo.version}`));
+      log.info(`删除本次发布时生成的tag：v${npmInfo.version}`);
       execSync(`git tag -d v${npmInfo.version} 1>&2`);
     } catch (error: any) {
-      console.log(chalk.red(`回滚失败, error: ${error.message}`));
+      log.error(`回滚失败, error: ${error.message}`);
     }
     return process.exit(1);
   }
@@ -317,5 +308,5 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
     execSync(`git push ${configInfo.gitOriginName} ${gitInfo.branchName} 1>&2`);
   }
 
-  console.log(chalk.green("发布成功"));
+  log.success(`发布成功，版本号：${version}`);
 };

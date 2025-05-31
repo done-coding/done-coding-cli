@@ -5,8 +5,8 @@ import {
   removeComponent,
   SubcommandEnum,
 } from "@/utils";
+import { log } from "@done-coding/cli-utils";
 import type { ArgumentsCamelCase } from "yargs";
-import chalk from "chalk";
 
 /** 子命令处理函数 */
 export const subHandler = async (
@@ -20,7 +20,7 @@ export const subHandler = async (
   } else if (command === SubcommandEnum.LIST) {
     return listComponent();
   } else {
-    console.log(chalk.red(`无效的命令: ${command}`));
+    log.error(`无效的命令: ${command}`);
     return process.exit(1);
   }
 };

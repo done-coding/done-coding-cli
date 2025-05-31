@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { log } from "@done-coding/cli-utils";
 
 /** 配置类型枚举 */
 export enum ConfigTypeEnum {
@@ -55,10 +55,8 @@ export const paramsResolve = ({
       if (typeof valueInit === "string") {
         return valueInit.replace(reg, replaceValue);
       } else {
-        console.log(
-          chalk.yellow(
-            `${valueInit}不是字符串类型，无法使用正则表达式进行替换，此处将直接返回原值`,
-          ),
+        log.warn(
+          `${valueInit}不是字符串类型，无法使用正则表达式进行替换，此处将直接返回原值`,
         );
         return valueInit;
       }

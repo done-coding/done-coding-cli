@@ -44,7 +44,6 @@
     "@done-coding/cli-inject": "workspace:^",
     "@types/lodash.curry": "^4.1.8",
     "@types/node": "^16.0.0",
-    "@types/prompts": "^2.4.6",
     "@types/yargs": "^17.0.28",
     "rimraf": "^6.0.1",
     "typescript": "^5.2.2",
@@ -58,9 +57,7 @@
     "@done-coding/cli-utils": "workspace:^",
     "@done-coding/request-axios": "^1.1.1",
     "axios": "^1.8.4",
-    "chalk": "^5.3.0",
     "lodash.curry": "^4.1.1",
-    "prompts": "^2.4.2",
     "yargs": "^17.7.2"
   }
 }

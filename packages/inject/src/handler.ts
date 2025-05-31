@@ -5,7 +5,7 @@ import path from "node:path";
 import fs from "node:fs";
 import _get from "lodash.get";
 import _set from "lodash.set";
-import chalk from "chalk";
+import { log } from "@done-coding/cli-utils";
 
 export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   // console.log(argv)
@@ -15,12 +15,12 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   const currentPath = process.cwd();
 
   if (!sourceJsonFilePath.endsWith(".json")) {
-    console.log(chalk.red("源文件必须是json"));
+    log.error("源文件必须是json");
     return process.exit(1);
   }
 
   if (!injectInfoFilePath.endsWith(".json")) {
-    console.log(chalk.red("注入文件必须是json"));
+    log.error("注入文件必须是json");
     return process.exit(1);
   }
 
@@ -35,7 +35,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
     (acc, keyInit) => {
       const { key, targetKey, paramsList } = getKey(keyInit);
       if (!key) {
-        console.log(chalk.red(`注入key不能为空,请检查配置${keyInit}是否正确`));
+        log.error(`注入key不能为空,请检查配置${keyInit}是否正确`);
         return acc;
       }
       const valueInit = _get(sourceJson, key);
@@ -60,19 +60,19 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
 
     // 如果注入文件存在且内容相同，则不重复注入
     if (injectInfoJson === currentInjectInfo) {
-      console.log(chalk.gray("注入文件已存在且内容相同，无需重复注入"));
+      log.skip(`注入文件已存在且内容相同，无需重复注入`);
       return injectInfo;
     } else {
-      console.log(chalk.blue("文件内容变化,开始覆盖注入文件"));
+      log.stage(`文件内容变化,开始覆盖注入文件`);
     }
   } else {
-    console.log(chalk.green("开始注入文件"));
+    log.stage(`开始注入文件`);
   }
 
   fs.writeFileSync(injectInfoFileFullPath, injectInfoJson);
   console.log(
-    chalk.green(`文件注入成功: ${injectInfoFileFullPath}`),
-    chalk.blue(injectInfoJson),
+    log.success(`文件注入成功: ${injectInfoFileFullPath}`),
+    log.info(injectInfoJson),
   );
   return injectInfo;
 };

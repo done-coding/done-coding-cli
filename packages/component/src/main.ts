@@ -3,17 +3,17 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { SubcommandEnum, type Options } from "@/utils";
 import { handler, subHandler } from "@/handler";
-import chalk from "chalk";
 import injectInfo from "@/injectInfo.json";
 import _curry from "lodash.curry";
+import { log } from "@done-coding/cli-utils";
 
 const commandName = injectInfo.cliConfig.moduleName;
 
 const failHandler = (msg: string, err: Error) => {
   if (msg) {
-    console.log(chalk.red(msg));
+    log.error(msg);
   } else {
-    console.log(chalk.red(err.message));
+    log.error(err.message);
   }
   process.exit(1);
 };

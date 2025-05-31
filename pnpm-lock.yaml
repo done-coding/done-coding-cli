@@ -80,15 +80,12 @@ importers:
       '@done-coding/cli-template':
         specifier: workspace:^
         version: link:../template
-      chalk:
-        specifier: ^5.3.0
-        version: 5.4.1
+      '@done-coding/cli-utils':
+        specifier: workspace:^
+        version: link:../utils
       create-done-coding:
         specifier: workspace:^
         version: link:../create
-      prompts:
-        specifier: ^2.4.2
-        version: 2.4.2
       yargs:
         specifier: ^17.7.2
         version: 17.7.2
@@ -96,9 +93,6 @@ importers:
       '@types/node':
         specifier: ^18.0.0
         version: 18.19.4
-      '@types/prompts':
-        specifier: ^2.4.6
-        version: 2.4.9
       '@types/yargs':
         specifier: ^17.0.28
         version: 17.0.33
@@ -120,9 +114,9 @@ importers:
       '@done-coding/cli-template':
         specifier: workspace:^
         version: link:../template
-      chalk:
-        specifier: ^5.3.0
-        version: 5.4.1
+      '@done-coding/cli-utils':
+        specifier: workspace:^
+        version: link:../utils
       json5:
         specifier: ^2.2.3
         version: 2.2.3
@@ -147,9 +141,6 @@ importers:
       lodash.upperfirst:
         specifier: ^4.3.1
         version: 4.3.1
-      prompts:
-        specifier: ^2.4.2
-        version: 2.4.2
       yargs:
         specifier: ^17.7.2
         version: 17.7.2
@@ -184,9 +175,6 @@ importers:
       '@types/node':
         specifier: ^18.0.0
         version: 18.19.4
-      '@types/prompts':
-        specifier: ^2.4.6
-        version: 2.4.9
       '@types/yargs':
         specifier: ^17.0.28
         version: 17.0.33
@@ -242,12 +230,9 @@ importers:
 
   packages/extract:
     dependencies:
-      chalk:
-        specifier: ^5.3.0
-        version: 5.4.1
-      prompts:
-        specifier: ^2.4.2
-        version: 2.4.2
+      '@done-coding/cli-utils':
+        specifier: workspace:^
+        version: link:../utils
       yargs:
         specifier: ^17.7.2
         version: 17.7.2
@@ -258,9 +243,6 @@ importers:
       '@types/node':
         specifier: ^16.0.0
         version: 16.18.126
-      '@types/prompts':
-        specifier: ^2.4.6
-        version: 2.4.9
       '@types/yargs':
         specifier: ^17.0.28
         version: 17.0.33
@@ -288,15 +270,9 @@ importers:
       axios:
         specifier: ^1.8.4
         version: 1.8.4
-      chalk:
-        specifier: ^5.3.0
-        version: 5.4.1
       lodash.curry:
         specifier: ^4.1.1
         version: 4.1.1
-      prompts:
-        specifier: ^2.4.2
-        version: 2.4.2
       yargs:
         specifier: ^17.7.2
         version: 17.7.2
@@ -310,9 +286,6 @@ importers:
       '@types/node':
         specifier: ^16.0.0
         version: 16.18.126
-      '@types/prompts':
-        specifier: ^2.4.6
-        version: 2.4.9
       '@types/yargs':
         specifier: ^17.0.28
         version: 17.0.33
@@ -334,12 +307,6 @@ importers:
       '@done-coding/cli-utils':
         specifier: workspace:^
         version: link:../utils
-      chalk:
-        specifier: ^5.3.0
-        version: 5.4.1
-      prompts:
-        specifier: ^2.4.2
-        version: 2.4.2
       yargs:
         specifier: ^17.7.2
         version: 17.7.2
@@ -350,9 +317,6 @@ importers:
       '@types/node':
         specifier: ^18.0.0
         version: 18.19.4
-      '@types/prompts':
-        specifier: ^2.4.6
-        version: 2.4.9
       '@types/yargs':
         specifier: ^17.0.28
         version: 17.0.33
@@ -371,18 +335,15 @@ importers:
 
   packages/inject:
     dependencies:
-      chalk:
-        specifier: ^5.3.0
-        version: 5.4.1
+      '@done-coding/cli-utils':
+        specifier: workspace:^
+        version: link:../utils
       lodash.get:
         specifier: ^4.4.2
         version: 4.4.2
       lodash.set:
         specifier: ^4.3.2
         version: 4.3.2
-      prompts:
-        specifier: ^2.4.2
-        version: 2.4.2
       yargs:
         specifier: ^17.7.2
         version: 17.7.2
@@ -396,9 +357,6 @@ importers:
       '@types/node':
         specifier: ^18.0.0
         version: 18.19.4
-      '@types/prompts':
-        specifier: ^2.4.6
-        version: 2.4.9
       '@types/yargs':
         specifier: ^17.0.28
         version: 17.0.33
@@ -420,15 +378,9 @@ importers:
       '@done-coding/cli-utils':
         specifier: workspace:^
         version: link:../utils
-      chalk:
-        specifier: ^5.3.0
-        version: 5.4.1
       pinyin:
         specifier: ^2.11.2
         version: 2.11.2(encoding@0.1.13)
-      prompts:
-        specifier: ^2.4.2
-        version: 2.4.2
       semver:
         specifier: ^7.5.4
         version: 7.5.4
@@ -445,9 +397,6 @@ importers:
       '@types/pinyin':
         specifier: ^2.10.0
         version: 2.10.2
-      '@types/prompts':
-        specifier: ^2.4.6
-        version: 2.4.9
       '@types/semver':
         specifier: ^7.5.3
         version: 7.5.3
@@ -472,9 +421,6 @@ importers:
       '@done-coding/cli-utils':
         specifier: workspace:^
         version: link:../utils
-      chalk:
-        specifier: ^5.3.0
-        version: 5.4.1
       lodash.assign:
         specifier: ^4.2.0
         version: 4.2.0
@@ -487,9 +433,6 @@ importers:
       lodash.template:
         specifier: ^4.5.0
         version: 4.5.0
-      prompts:
-        specifier: ^2.4.2
-        version: 2.4.2
       yargs:
         specifier: ^17.7.2
         version: 17.7.2
@@ -512,9 +455,6 @@ importers:
       '@types/node':
         specifier: ^18.0.0
         version: 18.19.4
-      '@types/prompts':
-        specifier: ^2.4.6
-        version: 2.4.9
       '@types/yargs':
         specifier: ^17.0.28
         version: 17.0.33

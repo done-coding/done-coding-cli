@@ -1,5 +1,7 @@
 import chalk from "chalk";
 
+export { chalk };
+
 /** 日志类型 */
 enum LogTypeEnum {
   /** 成功 */
@@ -12,6 +14,8 @@ enum LogTypeEnum {
   WARN = "yellow",
   /** 错误 */
   ERROR = "red",
+  /** 跳过 */
+  SKIP = "gray",
 }
 
 /** 日志 */
@@ -30,5 +34,7 @@ export const log = Object.assign(
     warn: (...messages: string[]) => log(LogTypeEnum.WARN, ...messages),
     /** 错误 */
     error: (...messages: string[]) => log(LogTypeEnum.ERROR, ...messages),
+    /** 跳过 */
+    skip: (...messages: string[]) => log(LogTypeEnum.SKIP, ...messages),
   },
 );
