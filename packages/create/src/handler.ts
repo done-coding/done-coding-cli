@@ -10,21 +10,20 @@ import {
   getGitCommitMessageForm,
 } from "@/utils";
 import type { ArgumentsCamelCase } from "yargs";
-import prompts from "prompts";
 import { execSync } from "node:child_process";
 import { rmSync, existsSync } from "node:fs";
 import path, { resolve } from "node:path";
 import chalk from "chalk";
 import { CUSTOM_TEMPLATE_NAME } from "@/utils";
 import { getConfigPath, batchHandler } from "@done-coding/cli-template";
-import { lookForParentTarget } from "@done-coding/cli-utils";
+import { lookForParentTarget, xPrompts } from "@done-coding/cli-utils";
 import { getTargetRepoUrl } from "@done-coding/cli-git";
 
 // eslint-disable-next-line complexity
 export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   const { projectName: projectNameInit } = argv;
   const projectNameNoTrim =
-    projectNameInit ?? (await prompts(projectNameForm)).projectName;
+    projectNameInit ?? (await xPrompts(projectNameForm)).projectName;
 
   const projectName = (projectNameNoTrim || "").trim();
 
@@ -45,7 +44,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   const projectNamePath = resolve(process.cwd(), projectName);
 
   if (existsSync(projectNamePath)) {
-    const { isRemove } = await prompts(getRemoveDirForm());
+    const { isRemove } = await xPrompts(getRemoveDirForm());
     if (isRemove === true) {
       rmSync(projectNamePath, { recursive: true, force: true });
     } else {
@@ -54,13 +53,13 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
     }
   }
 
-  const { template } = await prompts(await getTemplateForm());
+  const { template } = await xPrompts(await getTemplateForm());
 
   let remoteUrl = "";
   let templateBranch: string | undefined = "";
 
   if (template === CUSTOM_TEMPLATE_NAME) {
-    const { customUrl } = await prompts(customUrlForm);
+    const { customUrl } = await xPrompts(customUrlForm);
     remoteUrl = customUrl;
   } else if (template === SOMEONE_PUBLIC_REPO_NAME) {
     remoteUrl = await getTargetRepoUrl();
@@ -127,7 +126,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
   } else {
     // 如果项目不在git仓库中，则询问是否保存git历史记录
 
-    const saveGitHistory = (await prompts(saveGitHistoryForm)).saveGitHistory;
+    const saveGitHistory = (await xPrompts(saveGitHistoryForm)).saveGitHistory;
 
     if (saveGitHistory) {
       // 保存git记录则重命名origin为upstream 同时完整克隆仓库
@@ -155,7 +154,7 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
     }
   }
 
-  const { gitCommitMessage } = await prompts(
+  const { gitCommitMessage } = await xPrompts(
     getGitCommitMessageForm(projectName),
   );
 

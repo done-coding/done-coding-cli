@@ -5,7 +5,7 @@ import fs, { existsSync } from "node:fs";
 import { CONFIG_GIT_REPO, READ_CONFIG_TEMPORARY_DIRECTORY } from "./const";
 import injectInfo from "@/injectInfo.json";
 import { getRemoveDirForm, type TemplateChoiceItem } from "./question";
-import prompts from "prompts";
+import { xPrompts } from "@done-coding/cli-utils";
 
 /** 配置文件 */
 export interface ConfigJson {
@@ -30,7 +30,7 @@ export const readConfig = async (): Promise<ConfigJson> => {
 
   if (fs.existsSync(configDir)) {
     const removeMessage = `${configDir}目录已存在，是否删除？`;
-    const { isRemove } = await prompts(getRemoveDirForm(removeMessage));
+    const { isRemove } = await xPrompts(getRemoveDirForm(removeMessage));
     if (isRemove) {
       fs.rmSync(configDir, { recursive: true, force: true });
     } else {

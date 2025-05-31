@@ -1,7 +1,6 @@
-import type { PromptObject } from "prompts";
+import type { PromptObject } from "@done-coding/cli-utils";
 import { CUSTOM_TEMPLATE_NAME, SOMEONE_PUBLIC_REPO_NAME } from "./const";
 import { readConfig } from "./readConfig";
-import { onPromptFormStateForSigint } from "@done-coding/cli-utils";
 
 /** 模版选项 */
 export interface TemplateChoiceItem {
@@ -44,7 +43,6 @@ export const projectNameForm: PromptObject<string> = {
   message: "请输入项目名称",
   format: (value) => value.trim(),
   validate: (value) => value.length > 0 || "项目名称不能为空",
-  onState: onPromptFormStateForSigint,
 };
 
 export const getTemplateForm: () => Promise<
@@ -66,7 +64,6 @@ export const getTemplateForm: () => Promise<
         }` || undefined,
     })),
     validate: (value) => value.trim().length > 0 || "模板不能为空",
-    onState: onPromptFormStateForSigint,
   };
 };
 
@@ -75,7 +72,6 @@ export const saveGitHistoryForm = {
   name: "saveGitHistory",
   message: "是否保留git历史",
   initial: false,
-  onState: onPromptFormStateForSigint,
 };
 
 /*
@@ -91,7 +87,6 @@ export const getRemoveDirForm = (message = "项目已存在，是否删除") => 
   type: "confirm" as const,
   name: "isRemove",
   message,
-  onState: onPromptFormStateForSigint,
 });
 
 /** 自定义模板路径表单 */
@@ -100,7 +95,6 @@ export const customUrlForm: PromptObject<string> = {
   name: "customUrl",
   message: "请输入自定义模板路径",
   validate: (value) => value.trim().length > 0 || "路径不能为空",
-  onState: onPromptFormStateForSigint,
 };
 
 /** 获取git提交信息表单 */
@@ -113,6 +107,5 @@ export const getGitCommitMessageForm: (
     message: "请输入git提交信息",
     initial: `feat: 初始化项目${projectName}`,
     validate: (value) => value.trim().length > 0 || "提交信息不能为空",
-    onState: onPromptFormStateForSigint,
   };
 };
