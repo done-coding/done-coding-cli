@@ -4,8 +4,10 @@ import chalk from "chalk";
 enum LogTypeEnum {
   /** 成功 */
   SUCCESS = "green",
-  /** 主要的/步骤 */
-  PRIMARY = "blue",
+  /** 步骤 */
+  STAGE = "blue",
+  /** 提示信息 */
+  INFO = "cyan",
   /** 警告 */
   WARN = "yellow",
   /** 错误 */
@@ -20,8 +22,10 @@ export const log = Object.assign(
   {
     /** 成功 */
     success: (...messages: string[]) => log(LogTypeEnum.SUCCESS, ...messages),
-    /** 主要的/步骤 */
-    primary: (...messages: string[]) => log(LogTypeEnum.PRIMARY, ...messages),
+    /** /步骤 */
+    stage: (...messages: string[]) => log(LogTypeEnum.STAGE, ...messages),
+    /** 提示信息 */
+    info: (...messages: string[]) => log(LogTypeEnum.INFO, ...messages),
     /** 警告 */
     warn: (...messages: string[]) => log(LogTypeEnum.WARN, ...messages),
     /** 错误 */
