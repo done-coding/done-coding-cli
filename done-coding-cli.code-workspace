@@ -17,6 +17,10 @@
       "path": "packages/cli"
     },
     {
+      "name": "extract",
+      "path": "packages/extract"
+    },
+    {
       "name": "inject",
       "path": "packages/inject"
     },

@@ -4,6 +4,11 @@ export {
 } from "@done-coding/cli-init";
 
 export {
+  command as extractCommand,
+  handler as extractHandler,
+} from "@done-coding/cli-extract";
+
+export {
   command as injectCommand,
   handler as injectHandler,
 } from "@done-coding/cli-inject";

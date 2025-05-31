@@ -4,6 +4,7 @@ import { hideBin } from "yargs/helpers";
 import chalk from "chalk";
 import { command as initCommand } from "@done-coding/cli-init";
 import { command as injectCommand } from "@done-coding/cli-inject";
+import { command as extractCommand } from "@done-coding/cli-extract";
 import { command as gitCommand } from "@done-coding/cli-git";
 import { command as createCommand } from "create-done-coding";
 import { command as publishCommand } from "@done-coding/cli-publish";
@@ -36,6 +37,7 @@ export const createCli = () => {
     .command(createCommand as CommandModule)
     .command(initCommand as CommandModule)
     .command(injectCommand as CommandModule)
+    .command(extractCommand as CommandModule)
     .command(publishCommand as CommandModule)
     .command(templateCommand as CommandModule)
     .command(componentCommand as CommandModule)
