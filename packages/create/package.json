@@ -50,8 +50,9 @@
   },
   "dependencies": {
     "@done-coding/cli-git": "workspace:^",
+    "@done-coding/cli-inject": "workspace:^",
     "@done-coding/cli-template": "workspace:^",
-    "@done-coding/node-tools": "workspace:^",
+    "@done-coding/cli-utils": "workspace:^",
     "chalk": "^5.3.0",
     "prompts": "^2.4.2",
     "yargs": "^17.7.2"

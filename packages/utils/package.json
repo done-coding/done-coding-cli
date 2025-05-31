@@ -1,7 +1,7 @@
 {
-  "name": "@done-coding/node-tools",
+  "name": "@done-coding/cli-utils",
   "version": "0.2.0",
-  "description": "node 工具",
+  "description": "cli utils",
   "private": false,
   "module": "es/index.mjs",
   "type": "module",
@@ -28,7 +28,7 @@
   "repository": {
     "type": "git",
     "url": "https://gitee.com/justsosu/done-coding-cli.git",
-    "directory": "packages/tools"
+    "directory": "packages/utils"
   },
   "publishConfig": {
     "access": "public",

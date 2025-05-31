@@ -1,7 +1,7 @@
 import type { PromptObject } from "prompts";
 import { CUSTOM_TEMPLATE_NAME, SOMEONE_PUBLIC_REPO_NAME } from "./const";
 import { readConfig } from "./readConfig";
-import { onPromptFormStateForSigint } from "@done-coding/node-tools";
+import { onPromptFormStateForSigint } from "@done-coding/cli-utils";
 
 /** 模版选项 */
 export interface TemplateChoiceItem {

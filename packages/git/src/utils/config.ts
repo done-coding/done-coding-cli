@@ -2,7 +2,7 @@ import {
   lookForParentTarget,
   decryptAES,
   encryptAES,
-} from "@done-coding/node-tools";
+} from "@done-coding/cli-utils";
 import type { GitConfigInfo, GitPlatformEnum } from "./types";
 import injectInfo from "@/injectInfo.json";
 import fs from "node:fs";

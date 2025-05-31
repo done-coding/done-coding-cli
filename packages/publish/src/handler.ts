@@ -16,7 +16,7 @@ import pinyin from "pinyin";
 import { readFileSync, existsSync } from "node:fs";
 import chalk from "chalk";
 import prompts from "prompts";
-import { onPromptFormStateForSigint } from "@done-coding/node-tools";
+import { onPromptFormStateForSigint } from "@done-coding/cli-utils";
 
 const configPath = "/.dc/publish.json";
 

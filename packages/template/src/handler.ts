@@ -15,7 +15,7 @@ import chalk from "chalk";
 import _template from "lodash.template";
 import _assign from "lodash.assign";
 import prompts from "prompts";
-import { onPromptFormStateForSigint } from "@done-coding/node-tools";
+import { onPromptFormStateForSigint } from "@done-coding/cli-utils";
 
 /** 获取数据 */
 const getData = <

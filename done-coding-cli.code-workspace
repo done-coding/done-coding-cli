@@ -5,8 +5,8 @@
       "path": "."
     },
     {
-      "name": "tools",
-      "path": "packages/tools"
+      "name": "utils",
+      "path": "packages/utils"
     },
     {
       "name": "init",

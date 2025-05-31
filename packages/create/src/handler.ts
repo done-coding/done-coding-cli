@@ -17,7 +17,7 @@ import path, { resolve } from "node:path";
 import chalk from "chalk";
 import { CUSTOM_TEMPLATE_NAME } from "@/utils";
 import { getConfigPath, batchHandler } from "@done-coding/cli-template";
-import { lookForParentTarget } from "@done-coding/node-tools";
+import { lookForParentTarget } from "@done-coding/cli-utils";
 import { getTargetRepoUrl } from "@done-coding/cli-git";
 
 // eslint-disable-next-line complexity

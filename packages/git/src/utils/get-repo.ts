@@ -4,7 +4,7 @@ import { getGiteeUserAllRepos, getGiteeUserPublicRepos } from "@/api/gitee";
 import { getGithubUserPublicRepos } from "@/api/github";
 import prompts from "prompts";
 import { getGitConfigInfo } from "./config";
-import { onPromptFormStateForSigint } from "@done-coding/node-tools";
+import { onPromptFormStateForSigint } from "@done-coding/cli-utils";
 
 /** 获取目标仓库地址 */
 export const getTargetRepoUrl = async ({

@@ -2,7 +2,7 @@ import type { Options } from "@/utils";
 import type { ArgumentsCamelCase } from "yargs";
 import fs from "node:fs";
 import path from "node:path";
-import { lookForParentTarget } from "@done-coding/node-tools";
+import { lookForParentTarget } from "@done-coding/cli-utils";
 import chalk from "chalk";
 import injectInfo from "@/injectInfo.json";
 
