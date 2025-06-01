@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-publish",
-  "version": "0.4.6-alpha.0",
+  "version": "0.5.0-alpha.0",
   "description": "项目发布命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -43,9 +43,9 @@
   "devDependencies": {
     "@done-coding/cli-inject": "workspace:^",
     "@types/node": "^18.0.0",
-    "@types/yargs": "^17.0.28",
     "@types/pinyin": "^2.10.0",
     "@types/semver": "^7.5.3",
+    "@types/yargs": "^17.0.28",
     "rimraf": "^6.0.1",
     "typescript": "^5.2.2",
     "vite": "^4.4.11",
