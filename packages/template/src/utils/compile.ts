@@ -6,7 +6,7 @@ import {
   OutputModeEnum,
   completeDefaultOptions,
   getConfigPath,
-  type Options,
+  type CompileOptions,
 } from "@/utils";
 import type { CliHandlerArgv } from "@done-coding/cli-utils";
 import path from "node:path";
@@ -40,9 +40,9 @@ const getData = <
    */
   limitJson: J;
   /** 文件路径key */
-  filePathKey: keyof Options;
+  filePathKey: keyof CompileOptions;
   /** 初始数据key */
-  dataInitKey: keyof Options;
+  dataInitKey: keyof CompileOptions;
   /** (检测是markdown)是否处理(单个)代码块包裹 */
   dealMarkdown?: boolean;
 }): R => {
@@ -276,6 +276,7 @@ rollback: ${rollback}
   return outputContent;
 };
 
+/** 批量编译模板 */
 export const batchCompileHandler = async (
   {
     rootDir = process.cwd(),
@@ -308,7 +309,7 @@ export const batchCompileHandler = async (
   }
 
   const {
-    list: listInit,
+    list: listInit = [],
     globalEnvData = {},
     collectEnvDataForm = [],
   } = config;
@@ -388,7 +389,7 @@ export const batchCompileHandler = async (
 };
 
 /** 编译模板 */
-export const compileHandler = async (argv: CliHandlerArgv<Options>) => {
+export const compileHandler = async (argv: CliHandlerArgv<CompileOptions>) => {
   const {
     envData: envDataInit,
     env,

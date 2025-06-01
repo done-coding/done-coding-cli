@@ -1,8 +1,15 @@
-import { defaultOptions, OutputModeEnum, SubcommandEnum } from "@/utils";
-import { compileHandler } from "@/utils";
+import {
+  CONFIG_RELATIVE_PATH_DEFAULT,
+  defaultOptions,
+  OutputModeEnum,
+  SubcommandEnum,
+} from "@/utils";
+import { handler } from "@/handler";
 import injectInfo from "@/injectInfo.json";
+import _curry from "lodash.curry";
 import type { CliInfo, SubCliInfo } from "@done-coding/cli-utils";
 import { createMainCommand, createSubcommand } from "@done-coding/cli-utils";
+import path from "node:path";
 
 const {
   version,
@@ -10,9 +17,30 @@ const {
   cliConfig: { moduleName },
 } = injectInfo;
 
+const getInitOptions = (): CliInfo["options"] => {
+  return {
+    configPath: {
+      type: "string",
+      alias: "c",
+      describe: "配置文件路径",
+      default: path.join(process.cwd(), CONFIG_RELATIVE_PATH_DEFAULT),
+    },
+    rootDir: {
+      type: "string",
+      alias: "r",
+      describe: "编译阶段相对目录的根目录",
+      default: process.cwd(),
+    },
+  };
+};
+
 const initCommandCliInfo: SubCliInfo = {
   command: SubcommandEnum.INIT,
   describe: "初始化模板配置文件",
+  options: getInitOptions(),
+  handler: _curry(handler)(
+    SubcommandEnum.INIT,
+  ) as unknown as CliInfo["handler"],
 };
 
 const getCompileOptions = (): CliInfo["options"] => {
@@ -79,7 +107,9 @@ const compileCommandCliInfo: SubCliInfo = {
   command: SubcommandEnum.COMPILE,
   describe: "编译模板",
   options: getCompileOptions(),
-  handler: compileHandler as SubCliInfo["handler"],
+  handler: _curry(handler)(
+    SubcommandEnum.COMPILE,
+  ) as unknown as CliInfo["handler"],
 };
 
 const commandCliInfo: Omit<CliInfo, "usage"> = {

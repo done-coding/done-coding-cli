@@ -6,6 +6,28 @@ export enum SubcommandEnum {
   COMPILE = "compile",
 }
 
+export interface InitOptions {
+  /** 配置文件绝对路径 */
+  configPath: string;
+  /** 配置文件中编译文件相对目录运行根目录 */
+  rootDir: string;
+}
+/** 编辑器类型枚举 */
+export enum EditorTypeEnum {
+  /** vscode */
+  VSCODE = "VsCode",
+  /** cursor */
+  CURSOR = "Cursor",
+  /** 其他编辑器 */
+  OTHER = "其他",
+}
+
+/** 绑定的关键变量枚举 */
+export enum TemplateBindKeyEnum {
+  /** 远程仓库地址 */
+  REPOSITORY_URL = "REPOSITORY_URL",
+}
+
 /** 输出模式 */
 export enum OutputModeEnum {
   /** 覆盖模式 */
@@ -18,7 +40,7 @@ export enum OutputModeEnum {
   RETURN = "return",
 }
 
-export interface Options {
+export interface CompileOptions {
   /** 环境数据(json)文件(优先级高于 envData ) */
   env?: string;
   /** 环境变量数据(JSON字符串) */
@@ -40,7 +62,7 @@ export interface Options {
 }
 
 /** 编译模板配置选项 */
-export type CompileTemplateConfigListItem = Omit<Options, "envData"> & {
+export type CompileTemplateConfigListItem = Omit<CompileOptions, "envData"> & {
   /** 已经解析为对象的envData */
   envData: Record<string, any>;
 };
@@ -53,6 +75,8 @@ export interface CollectFormItem {
   label: string;
   /** 采集环境变量初始值 */
   initial?: string;
+  /** 绑定的关键变量 */
+  bindKey?: TemplateBindKeyEnum;
 }
 
 /** 编译模板配置 */
@@ -62,5 +86,5 @@ export interface CompileTemplateConfig {
   /** 采集环境变量表单配置 */
   collectEnvDataForm?: (CollectFormItem | string)[];
   /** 配置列表 */
-  list: CompileTemplateConfigListItem[];
+  list?: CompileOptions[];
 }

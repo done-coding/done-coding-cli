@@ -1,8 +1,8 @@
-import { OutputModeEnum, type Options } from "./types";
+import { OutputModeEnum, type CompileOptions } from "./types";
 
 /** 默认选项 */
 export const defaultOptions: Pick<
-  Options,
+  CompileOptions,
   "rollback" | "dealMarkdown" | "mode" | "batch"
 > = {
   rollback: false,
