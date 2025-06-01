@@ -43,7 +43,7 @@
   "devDependencies": {
     "@done-coding/cli-inject": "workspace:^",
     "@types/lodash.curry": "^4.1.8",
-    "@types/node": "^16.0.0",
+    "@types/node": "^18.0.0",
     "@types/yargs": "^17.0.28",
     "rimraf": "^6.0.1",
     "typescript": "^5.2.2",
@@ -51,7 +51,7 @@
     "vite-plugin-dts": "^3.6.0"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "@done-coding/cli-utils": "workspace:^",
