@@ -13,10 +13,6 @@
       "path": "packages/init"
     },
     {
-      "name": "cli",
-      "path": "packages/cli"
-    },
-    {
       "name": "extract",
       "path": "packages/extract"
     },
@@ -43,6 +39,10 @@
     {
       "name": "git",
       "path": "packages/git"
+    },
+    {
+      "name": "cli",
+      "path": "packages/cli"
     }
   ],
   "settings": {

@@ -3,20 +3,12 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { log } from "./log";
 
-/** 子命令 cli 信息 */
-export type SubcommandCliInfo = Pick<
-  CommandModule,
-  "command" | "describe" | "handler" | "builder"
->;
-
 /** cli 信息 */
 export interface CliInfo {
-  /**
-   * 命令用法
-   * --
-   * 不用带 Usage:
-   */
+  /** 命令 */
   command?: string;
+  /** 用法 */
+  usage?: string;
   /** 描述信息  */
   describe?: string;
   /** 版本号 */
@@ -27,9 +19,20 @@ export interface CliInfo {
   options?: {
     [key in string]: YargsOptions;
   };
-  handler?: CommandModule["handler"];
   /** 子命令 */
-  subcommands?: SubcommandCliInfo[];
+  subcommands?: CommandModule[];
+  /** 位置信息 */
+  positionals?: {
+    [key in string]: Parameters<typeof yargs.positional>[1];
+  };
+  /** 处理函数 */
+  handler?: CommandModule["handler"];
+}
+
+/** 子cli信息 */
+export interface SubCliInfo extends CliInfo {
+  /** 命令 */
+  command: string;
 }
 
 const failHandler = (msg: string, err: Error) => {
@@ -45,24 +48,26 @@ const failHandler = (msg: string, err: Error) => {
 };
 
 /** 创建 yargs */
-export const createYargs = () => {
+const createYargs = <O>() => {
   const argv = hideBin(process.argv);
-  return yargs(argv);
+  return yargs(argv) as yargs.Argv<O>;
 };
 
-/** 附加配置 */
-const attachConfig = (
+/** 添加 yargs 配置 */
+const addYargsConfig = (
   argv: yargs.Argv,
   {
-    command,
+    usage,
     version,
     demandCommandCount,
     options,
-  }: Omit<CliInfo, "handler" | "subcommands">,
+    positionals,
+    subcommands,
+  }: Omit<CliInfo, "handler">,
 ) => {
   let argvFinal = argv.strict();
-  if (command) {
-    argvFinal = argvFinal.usage(`Usage: ${command}`);
+  if (usage) {
+    argvFinal = argvFinal.usage(`Usage: ${usage}`);
   }
   if (demandCommandCount) {
     argvFinal = argvFinal.demandCommand(demandCommandCount);
@@ -82,38 +87,32 @@ const attachConfig = (
   if (options) {
     argvFinal = argvFinal.options(options);
   }
-  return argvFinal;
-};
-
-/** 附加子命令 */
-const attachSubcommands = (
-  argv: yargs.Argv,
-  subcommands?: CliInfo["subcommands"],
-) => {
-  if (Array.isArray(subcommands) && subcommands.length) {
-    return subcommands.reduce((preArgv, subcommand) => {
-      return preArgv.command(subcommand);
-    }, argv);
-  } else {
-    return argv;
+  if (positionals) {
+    argvFinal = Object.entries(positionals).reduce((acc, [name, options]) => {
+      return acc.positional(name, options);
+    }, argvFinal);
   }
+  if (subcommands) {
+    argvFinal = argvFinal.command(subcommands);
+  }
+  return argvFinal.fail(failHandler).argv;
 };
 
-/** 解析 argv */
-export const parseArgv = async ({
-  argv = createYargs(),
-  info: { handler, subcommands, ...config },
-}: {
-  argv?: yargs.Argv;
-  info: CliInfo;
-}) => {
-  const attachConfigFinal = attachConfig(argv, config);
-  const attachSubcommandsFinal = attachSubcommands(
-    attachConfigFinal,
-    subcommands,
-  );
+/** 创建主命令 */
+export const createMainCommand = async ({ handler, ...config }: CliInfo) => {
+  const argv = await addYargsConfig(createYargs(), config);
+  return handler ? handler(argv) : argv;
+};
 
-  const argvFinal = await attachSubcommandsFinal.fail(failHandler).argv;
-
-  return handler ? handler(argvFinal) : argvFinal;
+/** 创建子命令模块 */
+export const createSubcommand = (cliInfo: SubCliInfo): yargs.CommandModule => {
+  const { command, describe, handler = () => {}, ...config } = cliInfo;
+  return {
+    command,
+    describe,
+    builder(argv) {
+      return addYargsConfig(argv, config) as unknown as yargs.Argv;
+    },
+    handler,
+  };
 };
