@@ -1,14 +1,15 @@
-import type { CommandModule, Options as YargsOptions } from "yargs";
-import yargs from "yargs";
-import { hideBin } from "yargs/helpers";
-import type { Options } from "@/utils";
 import { handler } from "@/handler";
 import injectInfo from "@/injectInfo.json";
-import { log } from "@done-coding/cli-utils";
+import type { CliInfo, SubCliInfo } from "@done-coding/cli-utils";
+import { createMainCommand, createSubcommand } from "@done-coding/cli-utils";
 
-const getOptions = (): {
-  [key in keyof Options]: YargsOptions;
-} => {
+const {
+  version,
+  description: describe,
+  cliConfig: { moduleName },
+} = injectInfo;
+
+const getOptions = (): CliInfo["options"] => {
   return {
     check: {
       type: "boolean",
@@ -18,53 +19,32 @@ const getOptions = (): {
   };
 };
 
-const commandName = injectInfo.cliConfig.moduleName;
-
-const failHandler = (msg: string, err: Error) => {
-  if (msg) {
-    log.error(msg);
-  } else {
-    log.error(err.message);
-  }
-  process.exit(1);
+const commandCliInfo: Omit<CliInfo, "usage"> = {
+  describe,
+  version,
+  options: getOptions(),
+  handler: handler as CliInfo["handler"],
 };
 
-const commandDescription = injectInfo.description;
-
-const childCommandUsage = `Usage: $0 ${commandName} [options]`;
-
-const mainCommandUsage = `Usage: $0 [options]`;
-
-const getCli = (
-  cli: yargs.Argv<Options>,
-  usage: typeof mainCommandUsage | typeof childCommandUsage,
-) => {
-  const options = getOptions();
-  return cli
-    .strict()
-    .usage(usage)
-    .help("help")
-    .version(injectInfo.version)
-    .alias("v", "version")
-    .alias("h", "help")
-    .options(options)
-    .fail(failHandler).argv;
+/** 分发命令&步骤 */
+const dispatchCommandAndUsage = (asSubcommand = false) => {
+  const command = asSubcommand ? moduleName : undefined;
+  const usage = `$0${asSubcommand ? ` ${moduleName}` : ""} [options]`;
+  return { command, usage };
 };
 
-const builder = (cli: yargs.Argv<Options>) => {
-  return getCli(cli, childCommandUsage);
+/** 作为主命令创建 */
+export const createCommand = async () => {
+  return createMainCommand({
+    ...commandCliInfo,
+    ...dispatchCommandAndUsage(),
+  });
 };
 
-export const command = {
-  command: commandName,
-  describe: commandDescription,
-  builder,
-  handler,
-} as unknown as CommandModule<Options, Options>;
-
-export const createCli = async () => {
-  const cli = yargs(hideBin(process.argv));
-  const args = await getCli(cli as any, mainCommandUsage);
-
-  return handler(args as any);
+/** 作为子命令创建 */
+export const crateAsSubcommand = () => {
+  return createSubcommand({
+    ...commandCliInfo,
+    ...dispatchCommandAndUsage(true),
+  } as unknown as SubCliInfo);
 };

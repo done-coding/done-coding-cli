@@ -1,5 +1,5 @@
 import type { Options } from "@/utils";
-import type { ArgumentsCamelCase } from "yargs";
+import type { CliHandlerArgv } from "@done-coding/cli-utils";
 import fs from "node:fs";
 import path from "node:path";
 import { log, lookForParentTarget } from "@done-coding/cli-utils";
@@ -7,7 +7,7 @@ import injectInfo from "@/injectInfo.json";
 
 const NAMESPACE_DIR = injectInfo.cliConfig.namespaceDir;
 
-export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
+export const handler = async (argv: CliHandlerArgv<Options>) => {
   console.log(argv);
 
   const targetParentDir = lookForParentTarget(NAMESPACE_DIR);

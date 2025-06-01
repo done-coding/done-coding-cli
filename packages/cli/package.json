@@ -40,7 +40,6 @@
   "sideEffects": false,
   "devDependencies": {
     "@types/node": "^18.0.0",
-    "@types/yargs": "^17.0.28",
     "rimraf": "^6.0.1",
     "typescript": "^5.2.2",
     "vite": "^4.4.11",
@@ -58,7 +57,6 @@
     "@done-coding/cli-publish": "workspace:^",
     "@done-coding/cli-template": "workspace:^",
     "@done-coding/cli-utils": "workspace:^",
-    "create-done-coding": "workspace:^",
-    "yargs": "^17.7.2"
+    "create-done-coding": "workspace:^"
   }
 }

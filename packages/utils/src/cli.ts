@@ -1,7 +1,14 @@
-import type { CommandModule, Options as YargsOptions } from "yargs";
+import type {
+  ArgumentsCamelCase,
+  CommandModule,
+  Options as YargsOptions,
+  Argv as YargsArgv,
+} from "yargs";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { log } from "./log";
+
+export { ArgumentsCamelCase, CommandModule, YargsOptions, YargsArgv };
 
 /** cli 信息 */
 export interface CliInfo {
@@ -35,6 +42,9 @@ export interface SubCliInfo extends CliInfo {
   command: string;
 }
 
+/** 处理函数参数类型 */
+export type CliHandlerArgv<O> = ArgumentsCamelCase<O> | O;
+
 const failHandler = (msg: string, err: Error) => {
   if (msg) {
     log.error(msg);
@@ -50,12 +60,12 @@ const failHandler = (msg: string, err: Error) => {
 /** 创建 yargs */
 const createYargs = <O>() => {
   const argv = hideBin(process.argv);
-  return yargs(argv) as yargs.Argv<O>;
+  return yargs(argv) as YargsArgv<O>;
 };
 
 /** 添加 yargs 配置 */
 const addYargsConfig = (
-  argv: yargs.Argv,
+  argv: YargsArgv,
   {
     usage,
     version,
@@ -95,23 +105,24 @@ const addYargsConfig = (
   if (subcommands) {
     argvFinal = argvFinal.command(subcommands);
   }
-  return argvFinal.fail(failHandler).argv;
+  return argvFinal;
 };
 
 /** 创建主命令 */
 export const createMainCommand = async ({ handler, ...config }: CliInfo) => {
-  const argv = await addYargsConfig(createYargs(), config);
+  const argv = await addYargsConfig(createYargs(), config).fail(failHandler)
+    .argv;
   return handler ? handler(argv) : argv;
 };
 
 /** 创建子命令模块 */
-export const createSubcommand = (cliInfo: SubCliInfo): yargs.CommandModule => {
+export const createSubcommand = (cliInfo: SubCliInfo): CommandModule => {
   const { command, describe, handler = () => {}, ...config } = cliInfo;
   return {
     command,
     describe,
     builder(argv) {
-      return addYargsConfig(argv, config) as unknown as yargs.Argv;
+      return addYargsConfig(argv, config) as unknown as YargsArgv;
     },
     handler,
   };

@@ -1,5 +1,6 @@
 import type { Options } from "@/utils";
-import type { ArgumentsCamelCase } from "yargs";
-export const handler = async (argv: ArgumentsCamelCase<Options>) => {
+import type { CliHandlerArgv } from "@done-coding/cli-utils";
+
+export const handler = async (argv: CliHandlerArgv<Options>) => {
   console.log(argv);
 };

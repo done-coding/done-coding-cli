@@ -1,4 +1,3 @@
-import type { ArgumentsCamelCase } from "yargs";
 import { getEnvData } from "./env-data";
 import type { Config, TemplateConfigFull } from "./types";
 import { SubcommandEnum } from "./types";
@@ -48,7 +47,7 @@ export const operateComponent = async ({
         rollback: command === SubcommandEnum.REMOVE,
         dealMarkdown: true,
       };
-      await handlerTemplate(entryOptions as ArgumentsCamelCase<Options>);
+      await handlerTemplate(entryOptions);
     }
 
     if (index) {
@@ -66,7 +65,7 @@ export const operateComponent = async ({
         rollback: command === SubcommandEnum.REMOVE,
         dealMarkdown: true,
       };
-      await handlerTemplate(indexOptions as ArgumentsCamelCase<Options>);
+      await handlerTemplate(indexOptions);
     }
   }
 };

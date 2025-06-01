@@ -1,2 +1,2 @@
 export { handler } from "./handler";
-export { command } from "./main";
+export { crateAsSubcommand } from "./main";

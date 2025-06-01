@@ -1,105 +1,79 @@
-import type { CommandModule } from "yargs";
-import yargs from "yargs";
-import { hideBin } from "yargs/helpers";
-import { SubcommandEnum, type Options } from "@/utils";
-import { handler, subHandler } from "@/handler";
+import { SubcommandEnum } from "@/utils";
+import { handler } from "@/handler";
 import injectInfo from "@/injectInfo.json";
 import _curry from "lodash.curry";
-import { log } from "@done-coding/cli-utils";
+import type { CliInfo, SubCliInfo } from "@done-coding/cli-utils";
+import { createMainCommand, createSubcommand } from "@done-coding/cli-utils";
 
-const commandName = injectInfo.cliConfig.moduleName;
+const {
+  version,
+  description: describe,
+  cliConfig: { moduleName },
+} = injectInfo;
 
-const failHandler = (msg: string, err: Error) => {
-  if (msg) {
-    log.error(msg);
-  } else {
-    log.error(err.message);
-  }
-  process.exit(1);
+/** 新增组件cli信息 */
+const addCommandCliInfo: SubCliInfo = {
+  command: `${SubcommandEnum.ADD} <name>`,
+  describe: "新增一个组件",
+  positionals: {
+    name: {
+      describe: "组件名称",
+      type: "string",
+    },
+  },
+  handler: _curry(handler)(SubcommandEnum.ADD),
 };
 
-const commandDescription = injectInfo.description;
-
-const childCommandUsage = `Usage: $0 ${commandName} <command> [options]`;
-
-const mainCommandUsage = `Usage: $0 <command> [options]`;
-
-const addSubcommand = (cli: yargs.Argv<Options>) => {
-  return (
-    cli
-      /** @ts-ignore */
-      .command({
-        command: `${SubcommandEnum.ADD} <name>`,
-        describe: "新增一个组件",
-        builder: (subCli) => {
-          return subCli.positional("name", {
-            describe: "组件名称",
-            type: "string",
-          });
-        },
-        async handler(options) {
-          await _curry(subHandler)(SubcommandEnum.ADD)(options);
-          return process.exit(0);
-        },
-      })
-      /** @ts-ignore */
-      .command({
-        command: `${SubcommandEnum.REMOVE} [name]`,
-        describe: "删除一个组件",
-        builder: (subCli) => {
-          return subCli.positional("name", {
-            describe: "组件名称",
-            type: "string",
-          });
-        },
-        async handler(options) {
-          await _curry(subHandler)(SubcommandEnum.REMOVE)(options);
-          return process.exit(0);
-        },
-      })
-      /** @ts-ignore */
-      .command({
-        command: SubcommandEnum.LIST,
-        describe: "展示组件列表",
-        async handler(options) {
-          await _curry(subHandler)(SubcommandEnum.LIST)(options);
-          return process.exit(0);
-        },
-      })
-      .demandCommand(1)
-  );
+/** 删除组件cli信息 */
+const removeCommandCliInfo: SubCliInfo = {
+  command: `${SubcommandEnum.REMOVE} [name]`,
+  describe: "删除一个组件",
+  positionals: {
+    name: {
+      describe: "组件名称",
+      type: "string",
+    },
+  },
+  handler: _curry(handler)(SubcommandEnum.REMOVE),
 };
 
-const getCli = (cli: yargs.Argv<Options>, asSubcommand = false) => {
-  if (asSubcommand) {
-    return addSubcommand(cli.strict().usage(childCommandUsage));
-  } else {
-    return addSubcommand(
-      cli
-        .strict()
-        .usage(mainCommandUsage)
-        .help("help")
-        .version(injectInfo.version)
-        .alias("v", "version")
-        .alias("h", "help"),
-    ).fail(failHandler).argv;
-  }
+/** 展示组件列表cli信息 */
+const listCommandCliInfo: SubCliInfo = {
+  command: SubcommandEnum.LIST,
+  describe: "展示组件列表",
+  handler: _curry(handler)(SubcommandEnum.LIST),
 };
 
-const builder = (cli: yargs.Argv<Options>) => {
-  return getCli(cli, true);
+const commandCliInfo: Omit<CliInfo, "usage"> = {
+  describe,
+  version,
+  subcommands: [
+    addCommandCliInfo,
+    removeCommandCliInfo,
+    listCommandCliInfo,
+  ].map((item) => createSubcommand(item)),
+  demandCommandCount: 1,
 };
 
-export const command = {
-  command: commandName,
-  describe: commandDescription,
-  builder,
-  handler,
-} as unknown as CommandModule<Options, Options>;
+/** 分发命令&步骤 */
+const dispatchCommandAndUsage = (asSubcommand = false) => {
+  const command = asSubcommand ? moduleName : undefined;
+  const usage = `$0${asSubcommand ? ` ${moduleName}` : ""} <command> [options]`;
+  return { command, usage };
+};
 
-export const createCli = async () => {
-  const cli = yargs(hideBin(process.argv));
-  const args = await getCli(cli as any);
+/** 作为主命令创建 */
+export const createCommand = async () => {
+  return createMainCommand({
+    ...commandCliInfo,
+    ...dispatchCommandAndUsage(),
+  });
+};
 
-  return handler(args as any);
+/** 作为子命令创建 */
+export const crateAsSubcommand = () => {
+  return createSubcommand({
+    ...commandCliInfo,
+    ...dispatchCommandAndUsage(true),
+  } as unknown as SubCliInfo);
 };

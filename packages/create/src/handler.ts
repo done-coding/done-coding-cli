@@ -9,7 +9,7 @@ import {
   customUrlForm,
   getGitCommitMessageForm,
 } from "@/utils";
-import type { ArgumentsCamelCase } from "yargs";
+import type { CliHandlerArgv } from "@done-coding/cli-utils";
 import { execSync } from "node:child_process";
 import { rmSync, existsSync } from "node:fs";
 import path, { resolve } from "node:path";
@@ -19,7 +19,7 @@ import { log, lookForParentTarget, xPrompts } from "@done-coding/cli-utils";
 import { getTargetRepoUrl } from "@done-coding/cli-git";
 
 // eslint-disable-next-line complexity
-export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
+export const handler = async (argv: CliHandlerArgv<Options>) => {
   const { projectName: projectNameInit } = argv;
   const projectNameNoTrim =
     projectNameInit ?? (await xPrompts(projectNameForm)).projectName;

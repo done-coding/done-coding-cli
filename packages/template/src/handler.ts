@@ -8,7 +8,7 @@ import {
   getConfigPath,
   type Options,
 } from "@/utils";
-import type { ArgumentsCamelCase } from "yargs";
+import type { CliHandlerArgv } from "@done-coding/cli-utils";
 import path from "node:path";
 import fs from "node:fs";
 import _template from "lodash.template";
@@ -387,7 +387,7 @@ export const batchHandler = async (
   return listResult;
 };
 
-export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
+export const handler = async (argv: CliHandlerArgv<Options>) => {
   const {
     envData: envDataInit,
     env,

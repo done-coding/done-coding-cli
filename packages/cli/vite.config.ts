@@ -16,8 +16,6 @@ const build = {
       ...builtinModules,
       ...builtinModules.map((m) => `node:${m}`),
       ...Object.keys(pkg.dependencies || {}),
-      "create-done-coding/assets",
-      "yargs/helpers",
     ],
     input: ["src/index.ts", "src/cli.ts"],
     output: [

@@ -1,3 +1,3 @@
 export { handler } from "./handler";
-export { command, gitCloneCommand } from "./main";
+export { crateAsSubcommand } from "./main";
 export { getTargetRepoUrl, gitClone } from "./utils";

@@ -1,34 +1,34 @@
 export {
-  command as initCommand,
+  crateAsSubcommand as createInitCommand,
   handler as initHandler,
 } from "@done-coding/cli-init";
 
 export {
-  command as extractCommand,
+  crateAsSubcommand as createExtractCommand,
   handler as extractHandler,
 } from "@done-coding/cli-extract";
 
 export {
-  command as injectCommand,
+  crateAsSubcommand as createInjectCommand,
   handler as injectHandler,
 } from "@done-coding/cli-inject";
 
 export {
-  command as browserCommand,
-  handler as browserHandler,
+  crateAsSubcommand as createCreateCommand,
+  handler as createHandler,
 } from "create-done-coding";
 
 export {
-  command as publishCommand,
+  crateAsSubcommand as createPublishCommand,
   handler as publishHandler,
 } from "@done-coding/cli-publish";
 
 export {
-  command as templateCommand,
+  crateAsSubcommand as createTemplateCommand,
   handler as templateHandler,
 } from "@done-coding/cli-template";
 
 export {
-  command as componentCommand,
+  crateAsSubcommand as createComponentCommand,
   handler as componentHandler,
 } from "@done-coding/cli-component";

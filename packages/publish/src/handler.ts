@@ -1,4 +1,3 @@
-import type { ArgumentsCamelCase } from "yargs";
 import {
   type Options,
   type GitInfo,
@@ -8,6 +7,7 @@ import {
   PublishVersionTypeEnum,
   PublishTagEnum,
 } from "@/utils";
+import type { CliHandlerArgv } from "@done-coding/cli-utils";
 import type { ReleaseType } from "semver";
 import { inc, prerelease } from "semver";
 import { join } from "node:path";
@@ -164,7 +164,7 @@ const getConfig = (): ConfigInfo => {
   };
 };
 
-export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
+export const handler = async (argv: CliHandlerArgv<Options>) => {
   console.log(argv);
 
   const { mode, type: typeInit, push } = argv;

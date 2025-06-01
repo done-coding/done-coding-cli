@@ -51,7 +51,6 @@
     "@done-coding/cli-git": "workspace:^",
     "@done-coding/cli-inject": "workspace:^",
     "@done-coding/cli-template": "workspace:^",
-    "@done-coding/cli-utils": "workspace:^",
-    "yargs": "^17.7.2"
+    "@done-coding/cli-utils": "workspace:^"
   }
 }

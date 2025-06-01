@@ -1,92 +1,60 @@
-import type { ArgumentsCamelCase, CommandModule } from "yargs";
-import yargs from "yargs";
-import { hideBin } from "yargs/helpers";
-import { GitPlatformEnum, SubcommandEnum, type Options } from "@/utils";
-import { handler, subHandler } from "@/handler";
+import { SubcommandEnum, GitPlatformEnum } from "@/utils";
+import { handler } from "@/handler";
 import injectInfo from "@/injectInfo.json";
 import _curry from "lodash.curry";
-import { log } from "@done-coding/cli-utils";
+import type { CliInfo, SubCliInfo } from "@done-coding/cli-utils";
+import { createMainCommand, createSubcommand } from "@done-coding/cli-utils";
 
-const commandName = injectInfo.cliConfig.moduleName;
+const {
+  version,
+  description: describe,
+  cliConfig: { moduleName },
+} = injectInfo;
 
-const failHandler = (msg: string, err: Error) => {
-  if (msg) {
-    log.error(msg);
-  } else {
-    log.error(err.message);
-  }
-  process.exit(1);
-};
-
-const commandDescription = injectInfo.description;
-
-const childCommandUsage = `Usage: $0 ${commandName} <command> [options]`;
-
-const mainCommandUsage = `Usage: $0 <command> [options]`;
-
-export const gitCloneCommand: CommandModule = {
+/** clone cli信息 */
+const cloneCommandCliInfo: SubCliInfo = {
   command: `${SubcommandEnum.CLONE} <platform> <username>`,
   describe: "从选择的git平台克隆代码",
-  builder: (subCli) => {
-    return subCli
-      .positional("platform", {
-        describe: "选择git平台",
-        type: "string",
-        choices: [GitPlatformEnum.GITHUB, GitPlatformEnum.GITEE],
-      })
-      .positional("username", {
-        describe: "git平台用户名",
-        type: "string",
-      });
+  positionals: {
+    platform: {
+      describe: "选择git平台",
+      type: "string",
+      choices: [GitPlatformEnum.GITHUB, GitPlatformEnum.GITEE],
+    },
+    username: {
+      describe: "git平台用户名",
+      type: "string",
+    },
   },
-  /** @ts-ignore */
-  async handler(options) {
-    await _curry(subHandler)(SubcommandEnum.CLONE)(
-      options as ArgumentsCamelCase<Options>,
-    );
-    return process.exit(0);
-  },
+  handler: _curry(handler)(SubcommandEnum.CLONE),
 };
 
-const addSubcommand = (cli: yargs.Argv<Options>) => {
-  return (
-    cli
-      /** @ts-ignore */
-      .command(gitCloneCommand)
-      .demandCommand(1)
-  );
+const commandCliInfo: Omit<CliInfo, "usage"> = {
+  describe,
+  version,
+  subcommands: [cloneCommandCliInfo].map((item) => createSubcommand(item)),
+  demandCommandCount: 1,
 };
 
-const getCli = (cli: yargs.Argv<Options>, asSubcommand = false) => {
-  if (asSubcommand) {
-    return addSubcommand(cli.strict().usage(childCommandUsage));
-  } else {
-    return addSubcommand(
-      cli
-        .strict()
-        .usage(mainCommandUsage)
-        .help("help")
-        .version(injectInfo.version)
-        .alias("v", "version")
-        .alias("h", "help"),
-    ).fail(failHandler).argv;
-  }
+/** 分发命令&步骤 */
+const dispatchCommandAndUsage = (asSubcommand = false) => {
+  const command = asSubcommand ? moduleName : undefined;
+  const usage = `$0${asSubcommand ? ` ${moduleName}` : ""} <command> [options]`;
+  return { command, usage };
 };
 
-const builder = (cli: yargs.Argv<Options>) => {
-  return getCli(cli, true);
+/** 作为主命令创建 */
+export const createCommand = async () => {
+  return createMainCommand({
+    ...commandCliInfo,
+    ...dispatchCommandAndUsage(),
+  });
 };
 
-export const command = {
-  command: commandName,
-  describe: commandDescription,
-  builder,
-  handler,
-} as unknown as CommandModule<Options, Options>;
-
-export const createCli = async () => {
-  const cli = yargs(hideBin(process.argv));
-  const args = await getCli(cli as any);
-
-  return handler(args as any);
+/** 作为子命令创建 */
+export const crateAsSubcommand = () => {
+  return createSubcommand({
+    ...commandCliInfo,
+    ...dispatchCommandAndUsage(true),
+  } as unknown as SubCliInfo);
 };

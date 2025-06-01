@@ -1,13 +1,13 @@
 // 本文件会在vite.config.ts中vite启动前调用 此处不能用@开头的别名
 import { getKey, paramsResolve, type Options } from "./utils";
-import type { ArgumentsCamelCase } from "yargs";
+import type { CliHandlerArgv } from "@done-coding/cli-utils";
 import path from "node:path";
 import fs from "node:fs";
 import _get from "lodash.get";
 import _set from "lodash.set";
 import { log } from "@done-coding/cli-utils";
 
-export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
+export const handler = async (argv: CliHandlerArgv<Options>) => {
   // console.log(argv)
 
   const { sourceJsonFilePath, injectKeyPath, injectInfoFilePath } = argv;
@@ -74,5 +74,4 @@ export const handler = async (argv: ArgumentsCamelCase<Options> | Options) => {
     log.success(`文件注入成功: ${injectInfoFileFullPath}`),
     log.info(injectInfoJson),
   );
-  return injectInfo;
 };

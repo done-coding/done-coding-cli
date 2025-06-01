@@ -1,4 +1,4 @@
 #!/usr/bin/env node
-import { createCli } from "./main";
+import { createCommand } from "./main";
 
-createCli();
+createCommand();
