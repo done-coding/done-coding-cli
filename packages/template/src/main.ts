@@ -1,5 +1,5 @@
-import { defaultOptions, OutputModeEnum } from "@/utils";
-import { handler } from "@/handler";
+import { defaultOptions, OutputModeEnum, SubcommandEnum } from "@/utils";
+import { compileHandler } from "@/utils";
 import injectInfo from "@/injectInfo.json";
 import type { CliInfo, SubCliInfo } from "@done-coding/cli-utils";
 import { createMainCommand, createSubcommand } from "@done-coding/cli-utils";
@@ -10,7 +10,12 @@ const {
   cliConfig: { moduleName },
 } = injectInfo;
 
-const getOptions = (): CliInfo["options"] => {
+const initCommandCliInfo: SubCliInfo = {
+  command: SubcommandEnum.INIT,
+  describe: "初始化模板配置文件",
+};
+
+const getCompileOptions = (): CliInfo["options"] => {
   return {
     env: {
       alias: "e",
@@ -70,17 +75,26 @@ const getOptions = (): CliInfo["options"] => {
   };
 };
 
+const compileCommandCliInfo: SubCliInfo = {
+  command: SubcommandEnum.COMPILE,
+  describe: "编译模板",
+  options: getCompileOptions(),
+  handler: compileHandler as SubCliInfo["handler"],
+};
+
 const commandCliInfo: Omit<CliInfo, "usage"> = {
   describe,
   version,
-  options: getOptions(),
-  handler: handler as CliInfo["handler"],
+  subcommands: [initCommandCliInfo, compileCommandCliInfo].map((item) =>
+    createSubcommand(item),
+  ),
+  demandCommandCount: 1,
 };
 
 /** 分发命令&步骤 */
 const dispatchCommandAndUsage = (asSubcommand = false) => {
   const command = asSubcommand ? moduleName : undefined;
-  const usage = `$0${asSubcommand ? ` ${moduleName}` : ""} [options]`;
+  const usage = `$0${asSubcommand ? ` ${moduleName}` : ""} <command> [options]`;
   return { command, usage };
 };
 

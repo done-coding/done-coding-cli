@@ -1,3 +1,11 @@
+/** 子命令枚举 */
+export enum SubcommandEnum {
+  /** 初始化模板 */
+  INIT = "init",
+  /** 编译模板 */
+  COMPILE = "compile",
+}
+
 /** 输出模式 */
 export enum OutputModeEnum {
   /** 覆盖模式 */

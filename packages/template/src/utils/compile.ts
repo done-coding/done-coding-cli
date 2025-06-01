@@ -276,7 +276,7 @@ rollback: ${rollback}
   return outputContent;
 };
 
-export const batchHandler = async (
+export const batchCompileHandler = async (
   {
     rootDir = process.cwd(),
     itemDefaultRollback = false,
@@ -387,7 +387,8 @@ export const batchHandler = async (
   return listResult;
 };
 
-export const handler = async (argv: CliHandlerArgv<Options>) => {
+/** 编译模板 */
+export const compileHandler = async (argv: CliHandlerArgv<Options>) => {
   const {
     envData: envDataInit,
     env,
@@ -402,7 +403,7 @@ export const handler = async (argv: CliHandlerArgv<Options>) => {
 
   if (batch) {
     log.stage(`开始批量处理`);
-    return batchHandler({
+    return batchCompileHandler({
       // 回滚默认值 基于全局
       itemDefaultRollback: rollback,
     });

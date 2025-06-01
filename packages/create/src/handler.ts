@@ -14,7 +14,7 @@ import { execSync } from "node:child_process";
 import { rmSync, existsSync } from "node:fs";
 import path, { resolve } from "node:path";
 import { CUSTOM_TEMPLATE_NAME } from "@/utils";
-import { getConfigPath, batchHandler } from "@done-coding/cli-template";
+import { getConfigPath, batchCompileHandler } from "@done-coding/cli-template";
 import { log, lookForParentTarget, xPrompts } from "@done-coding/cli-utils";
 import { getTargetRepoUrl } from "@done-coding/cli-git";
 
@@ -93,7 +93,7 @@ export const handler = async (argv: CliHandlerArgv<Options>) => {
   const configPath = getConfigPath(projectNamePath);
 
   if (configPath) {
-    await batchHandler({
+    await batchCompileHandler({
       rootDir: projectNamePath,
       extraEnvData: {
         $projectName: projectName,
