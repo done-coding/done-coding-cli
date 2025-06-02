@@ -41,7 +41,6 @@
   "sideEffects": false,
   "devDependencies": {
     "@done-coding/cli-inject": "workspace:^",
-    "@types/lodash.curry": "^4.1.8",
     "@types/node": "^18.0.0",
     "@types/yargs": "^17.0.28",
     "rimraf": "^6.0.1",
@@ -55,7 +54,6 @@
   "dependencies": {
     "@done-coding/cli-utils": "workspace:^",
     "@done-coding/request-axios": "^1.1.1",
-    "axios": "^1.8.4",
-    "lodash.curry": "^4.1.1"
+    "axios": "^1.8.4"
   }
 }

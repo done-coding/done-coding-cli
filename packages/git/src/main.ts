@@ -1,9 +1,12 @@
 import { SubcommandEnum, GitPlatformEnum } from "@/utils";
 import { handler } from "@/handler";
 import injectInfo from "@/injectInfo.json";
-import _curry from "lodash.curry";
 import type { CliInfo, SubCliInfo } from "@done-coding/cli-utils";
-import { createMainCommand, createSubcommand } from "@done-coding/cli-utils";
+import {
+  createMainCommand,
+  createSubcommand,
+  _curry,
+} from "@done-coding/cli-utils";
 
 const {
   version,
@@ -26,13 +29,15 @@ const cloneCommandCliInfo: SubCliInfo = {
       type: "string",
     },
   },
-  handler: _curry(handler)(SubcommandEnum.CLONE),
+  handler: _curry(handler)(
+    SubcommandEnum.CLONE,
+  ) as unknown as CliInfo["handler"],
 };
 
 const commandCliInfo: Omit<CliInfo, "usage"> = {
   describe,
   version,
-  subcommands: [cloneCommandCliInfo].map((item) => createSubcommand(item)),
+  subcommands: [cloneCommandCliInfo].map(createSubcommand),
   demandCommandCount: 1,
 };
 
