@@ -3,6 +3,8 @@ import path from "node:path";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { getEditorType, openFileInEditor } from "./editor";
 import { xPrompts } from "./prompts";
+import { json5 } from "./json5";
+import { log } from "./log";
 
 /** 配置文件通用选项 */
 export interface ConfigFileCommonOptions {
@@ -58,9 +60,16 @@ export const initConfigFile = async <T>(
       recursive: true,
     });
   }
-  writeFileSync(configPathFinal, JSON.stringify(content, null, 2));
+  if (configPathFinal.endsWith(".json5")) {
+    log.info(`json5模式写入 ${configPathFinal}`);
+    writeFileSync(configPathFinal, json5.stringify(content, null, 2));
+    return configPathFinal;
+  } else {
+    log.info(`json模式写入 ${configPathFinal}`);
+    writeFileSync(configPathFinal, JSON.stringify(content, null, 2));
 
-  return configPathFinal;
+    return configPathFinal;
+  }
 };
 
 /** 初始化配置文件通用处理器 */
@@ -89,8 +98,13 @@ export const readConfigFile = async <T>(
   if (!existsSync(configPathFinal)) {
     return undefined;
   }
-  const content = JSON.parse(readFileSync(configPathFinal, "utf-8"));
-  return content;
+  if (configPathFinal.endsWith(".json5")) {
+    log.info(`json5模式解析 ${configPathFinal}`);
+    return json5.parse(readFileSync(configPathFinal, "utf8"));
+  } else {
+    log.info(`json模式解析 ${configPathFinal}`);
+    return JSON.parse(readFileSync(configPathFinal, "utf8"));
+  }
 };
 
 /** 获取是否使用默认配置 */
