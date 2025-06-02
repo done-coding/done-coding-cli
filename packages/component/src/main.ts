@@ -1,9 +1,12 @@
 import { SubcommandEnum } from "@/utils";
 import { handler } from "@/handler";
 import injectInfo from "@/injectInfo.json";
-import _curry from "lodash.curry";
 import type { CliInfo, SubCliInfo } from "@done-coding/cli-utils";
-import { createMainCommand, createSubcommand } from "@done-coding/cli-utils";
+import {
+  createMainCommand,
+  createSubcommand,
+  _curry,
+} from "@done-coding/cli-utils";
 
 const {
   version,
@@ -51,7 +54,7 @@ const commandCliInfo: Omit<CliInfo, "usage"> = {
     addCommandCliInfo,
     removeCommandCliInfo,
     listCommandCliInfo,
-  ].map((item) => createSubcommand(item)),
+  ].map(createSubcommand),
   demandCommandCount: 1,
 };
 

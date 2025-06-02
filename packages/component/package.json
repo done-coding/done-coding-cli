@@ -42,8 +42,6 @@
   "devDependencies": {
     "@done-coding/cli-inject": "workspace:^",
     "@types/lodash.camelcase": "^4.3.8",
-    "@types/lodash.curry": "^4.1.8",
-    "@types/lodash.get": "^4.4.8",
     "@types/lodash.kebabcase": "^4.1.8",
     "@types/lodash.lowerfirst": "^4.3.8",
     "@types/lodash.template": "^4.5.2",
@@ -62,8 +60,6 @@
     "@done-coding/cli-template": "workspace:^",
     "@done-coding/cli-utils": "workspace:^",
     "lodash.camelcase": "^4.3.0",
-    "lodash.curry": "^4.1.1",
-    "lodash.get": "^4.4.2",
     "lodash.kebabcase": "^4.1.1",
     "lodash.lowerfirst": "^4.3.1",
     "lodash.template": "^4.5.0",
