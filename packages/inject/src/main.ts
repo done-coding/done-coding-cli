@@ -1,7 +1,12 @@
+import { getGenerateOptions, getInitOptions, SubcommandEnum } from "@/utils";
 import { handler } from "@/handler";
 import injectInfo from "@/injectInfo.json";
 import type { CliInfo, SubCliInfo } from "@done-coding/cli-utils";
-import { createMainCommand, createSubcommand } from "@done-coding/cli-utils";
+import {
+  createMainCommand,
+  createSubcommand,
+  _curry,
+} from "@done-coding/cli-utils";
 
 const {
   version,
@@ -9,40 +14,37 @@ const {
   cliConfig: { moduleName },
 } = injectInfo;
 
-const getOptions = (): CliInfo["options"] => {
-  return {
-    sourceJsonFilePath: {
-      type: "string",
-      alias: "s",
-      describe: "信息源json文件相对路径",
-      default: "./package.json",
-    },
-    injectKeyPath: {
-      type: "array",
-      alias: "k",
-      describe: "需要注入的key路径",
-      default: ["name", "version", "description"],
-    },
-    injectInfoFilePath: {
-      type: "string",
-      alias: "i",
-      describe: "注入信息文件路径",
-      default: "./src/injectInfo.json",
-    },
-  };
+const initCommandCliInfo: SubCliInfo = {
+  command: SubcommandEnum.INIT,
+  describe: "初始化提取配置文件",
+  options: getInitOptions(),
+  handler: _curry(handler)(
+    SubcommandEnum.INIT,
+  ) as unknown as CliInfo["handler"],
+};
+
+const generateCommandCliInfo: SubCliInfo = {
+  command: SubcommandEnum.GENERATE,
+  describe: "提取信息",
+  options: getGenerateOptions(),
+  handler: _curry(handler)(
+    SubcommandEnum.GENERATE,
+  ) as unknown as CliInfo["handler"],
 };
 
 const commandCliInfo: Omit<CliInfo, "usage"> = {
   describe,
   version,
-  options: getOptions(),
-  handler: handler as CliInfo["handler"],
+  subcommands: [initCommandCliInfo, generateCommandCliInfo].map(
+    createSubcommand,
+  ),
+  demandCommandCount: 1,
 };
 
 /** 分发命令&步骤 */
 const dispatchCommandAndUsage = (asSubcommand = false) => {
   const command = asSubcommand ? moduleName : undefined;
-  const usage = `$0${asSubcommand ? ` ${moduleName}` : ""} [options]`;
+  const usage = `$0${asSubcommand ? ` ${moduleName}` : ""} <command> [options]`;
   return { command, usage };
 };
 

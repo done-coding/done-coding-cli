@@ -1,72 +1,48 @@
-import { log } from "@done-coding/cli-utils";
+import { _get, log } from "@done-coding/cli-utils";
+import type {
+  InjectKeyConfig,
+  InjectKeyConfigFixed,
+  InjectKeyConfigReg,
+} from "./types";
+import { ConfigTypeEnum } from "./types";
 
-/** 配置类型枚举 */
-export enum ConfigTypeEnum {
-  /**
-   * 正则表达式类型
-   * -----
-   * @example `${key}:${targetKey}:REG:${pattern}:${replaceValue}:${flags}`
-   */
-  REG = "REG",
-  /**
-   * 直接设置值类型
-   * -----
-   * @example `${key}:${targetKey}:VALUE:${value}`
-   */
-  VALUE = "VALUE",
-  /**
-   * 默认类型
-   * -----
-   * @example `${key}`
-   * @example `${key}:${targetKey}`
-   */
-  DEFAULT = "DEFAULT",
-}
-
-/** 切割正则 */
-const splitReg = /(?<!\/):/;
-
-/** 获取配置key及其参数 */
-export const getKey = (configStr: string) => {
-  const [key, targetKey = key, ...paramsList] = configStr.split(splitReg);
-  return {
-    key,
-    /** 目标key */
-    targetKey,
-    /** 参数列表 */
-    paramsList,
-  };
-};
-
-/** 参数解析-获取最终值 */
-export const paramsResolve = ({
-  valueInit,
-  paramsList,
+/** 配置解析-获取最终值 */
+export const configResolve = ({
+  sourceJson,
+  targetKey,
+  config,
 }: {
-  valueInit: any;
-  paramsList: string[];
+  sourceJson: Record<string, any>;
+  targetKey: string;
+  config: InjectKeyConfig;
 }) => {
-  const [type, ...otherParams] = paramsList;
+  const { type = ConfigTypeEnum.READ } = config;
 
   switch (type) {
     case ConfigTypeEnum.REG: {
-      const [pattern, replaceValue, flags] = otherParams;
+      const { sourceKey, pattern, replaceValue, flags } =
+        config as InjectKeyConfigReg;
       const reg = new RegExp(pattern, flags ?? undefined);
-      if (typeof valueInit === "string") {
-        return valueInit.replace(reg, replaceValue);
+      const sourceValue = _get(sourceJson, sourceKey);
+      if (typeof sourceValue === "string") {
+        return sourceValue.replace(reg, replaceValue);
       } else {
         log.warn(
-          `${valueInit}不是字符串类型，无法使用正则表达式进行替换，此处将直接返回原值`,
+          `${sourceValue}不是字符串类型，无法使用正则表达式进行替换，此处将直接返回原值`,
         );
-        return valueInit;
+        return sourceValue;
       }
     }
-    case ConfigTypeEnum.VALUE: {
-      const [value] = otherParams;
+    case ConfigTypeEnum.FIXED: {
+      const { value } = config as InjectKeyConfigFixed;
       return value;
     }
+    case ConfigTypeEnum.READ: {
+      return _get(sourceJson, targetKey);
+    }
     default: {
-      return valueInit;
+      log.warn(`未知的配置类型${type}`);
+      return undefined;
     }
   }
 };

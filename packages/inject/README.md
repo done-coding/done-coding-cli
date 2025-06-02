@@ -1,6 +1,6 @@
 # @done-coding/cli-inject
 
-done-coding注入信息文件命令行工具
+done-coding信息(JSON)注入命令行工具
 
 ## 使用
 

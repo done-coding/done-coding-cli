@@ -4,7 +4,8 @@ import path from "node:path";
 import dts from "vite-plugin-dts";
 import pkg from "./package.json";
 import { builtinModules } from "node:module";
-import { injectDoneCodingCliInfo } from "./src/use";
+import { doneCodingCliConfig } from "./src/helpers-assets/done-coding";
+import { generateFile } from "./src/utils/generate";
 
 const isPro = process.env.NODE_ENV === "production";
 
@@ -17,7 +18,7 @@ const build = {
       ...builtinModules.map((m) => `node:${m}`),
       ...Object.keys(pkg.dependencies || {}),
     ],
-    input: ["src/index.ts", "src/cli.ts", "src/use.ts"],
+    input: ["src/index.ts", "src/cli.ts", "src/helpers.ts"],
     output: [
       {
         format: "es",
@@ -30,11 +31,11 @@ const build = {
     ],
   },
   lib: {
-    entry: ["src/index.ts", "src/cli.ts", "src/use.ts"],
+    entry: ["src/index.ts", "src/cli.ts", "src/helpers.ts"],
   },
 } satisfies BuildOptions;
 
-injectDoneCodingCliInfo();
+generateFile({ content: doneCodingCliConfig });
 
 // https://vitejs.dev/config/
 export default defineConfig({

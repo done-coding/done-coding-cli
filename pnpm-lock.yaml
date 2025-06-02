@@ -108,9 +108,6 @@ importers:
       '@done-coding/cli-utils':
         specifier: workspace:^
         version: link:../utils
-      json5:
-        specifier: ^2.2.3
-        version: 2.2.3
       lodash.camelcase:
         specifier: ^4.3.0
         version: 4.3.0
@@ -136,9 +133,6 @@ importers:
       '@done-coding/cli-inject':
         specifier: workspace:^
         version: link:../inject
-      '@types/json5':
-        specifier: ^2.2.0
-        version: 2.2.0
       '@types/lodash.camelcase':
         specifier: ^4.3.8
         version: 4.3.9
@@ -221,22 +215,28 @@ importers:
       '@done-coding/cli-utils':
         specifier: workspace:^
         version: link:../utils
-      json5:
-        specifier: ^2.2.3
-        version: 2.2.3
       lodash.curry:
         specifier: ^4.1.1
         version: 4.1.1
+      lodash.get:
+        specifier: ^4.4.2
+        version: 4.4.2
+      lodash.set:
+        specifier: ^4.3.2
+        version: 4.3.2
     devDependencies:
       '@done-coding/cli-inject':
         specifier: workspace:^
         version: link:../inject
-      '@types/json5':
-        specifier: ^2.2.0
-        version: 2.2.0
       '@types/lodash.curry':
         specifier: ^4.1.8
         version: 4.1.9
+      '@types/lodash.get':
+        specifier: ^4.4.9
+        version: 4.4.9
+      '@types/lodash.set':
+        specifier: ^4.3.9
+        version: 4.3.9
       '@types/node':
         specifier: ^18.0.0
         version: 18.19.4
@@ -301,19 +301,7 @@ importers:
       '@done-coding/cli-utils':
         specifier: workspace:^
         version: link:../utils
-      lodash.get:
-        specifier: ^4.4.2
-        version: 4.4.2
-      lodash.set:
-        specifier: ^4.3.2
-        version: 4.3.2
     devDependencies:
-      '@types/lodash.get':
-        specifier: ^4.4.9
-        version: 4.4.9
-      '@types/lodash.set':
-        specifier: ^4.3.9
-        version: 4.3.9
       '@types/node':
         specifier: ^18.0.0
         version: 18.19.4
@@ -439,6 +427,15 @@ importers:
       json5:
         specifier: ^2.2.3
         version: 2.2.3
+      lodash.curry:
+        specifier: ^4.1.1
+        version: 4.1.1
+      lodash.get:
+        specifier: ^4.4.2
+        version: 4.4.2
+      lodash.set:
+        specifier: ^4.3.2
+        version: 4.3.2
       prompts:
         specifier: ^2.4.2
         version: 2.4.2
@@ -449,6 +446,15 @@ importers:
       '@types/json5':
         specifier: ^2.2.0
         version: 2.2.0
+      '@types/lodash.curry':
+        specifier: ^4.1.8
+        version: 4.1.9
+      '@types/lodash.get':
+        specifier: ^4.4.9
+        version: 4.4.9
+      '@types/lodash.set':
+        specifier: ^4.3.9
+        version: 4.3.9
       '@types/node':
         specifier: ^18.0.0
         version: 18.19.4
