@@ -26,7 +26,7 @@ export const getGenerateOptions = (): CliInfo["options"] => {
   };
 };
 
-/** 生成文件 */
+/** 生成注入信息文件 */
 export const generateFile = async ({
   rootDir = process.cwd(),
   config = configDefault,
