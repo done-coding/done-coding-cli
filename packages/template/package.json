@@ -42,9 +42,6 @@
   "devDependencies": {
     "@done-coding/cli-inject": "workspace:^",
     "@types/lodash.assign": "^4.2.9",
-    "@types/lodash.curry": "^4.1.8",
-    "@types/lodash.get": "^4.4.9",
-    "@types/lodash.set": "^4.3.9",
     "@types/lodash.template": "^4.5.3",
     "@types/node": "^18.0.0",
     "@types/yargs": "^17.0.28",
@@ -59,9 +56,6 @@
   "dependencies": {
     "@done-coding/cli-utils": "workspace:^",
     "lodash.assign": "^4.2.0",
-    "lodash.curry": "^4.1.1",
-    "lodash.get": "^4.4.2",
-    "lodash.set": "^4.3.2",
     "lodash.template": "^4.5.0"
   }
 }
