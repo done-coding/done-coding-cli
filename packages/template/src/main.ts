@@ -1,9 +1,4 @@
-import {
-  CONFIG_RELATIVE_PATH_DEFAULT,
-  defaultOptions,
-  OutputModeEnum,
-  SubcommandEnum,
-} from "@/utils";
+import { defaultOptions, OutputModeEnum, SubcommandEnum } from "@/utils";
 import { handler } from "@/handler";
 import injectInfo from "@/injectInfo.json";
 import _curry from "lodash.curry";
@@ -14,7 +9,7 @@ import path from "node:path";
 const {
   version,
   description: describe,
-  cliConfig: { moduleName },
+  cliConfig: { namespaceDir, moduleName },
 } = injectInfo;
 
 const getInitOptions = (): CliInfo["options"] => {
@@ -23,7 +18,7 @@ const getInitOptions = (): CliInfo["options"] => {
       type: "string",
       alias: "c",
       describe: "配置文件路径",
-      default: path.join(process.cwd(), CONFIG_RELATIVE_PATH_DEFAULT),
+      default: path.join(process.cwd(), `./${namespaceDir}/${moduleName}`),
     },
     rootDir: {
       type: "string",
