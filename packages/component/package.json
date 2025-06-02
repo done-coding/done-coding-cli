@@ -17,8 +17,7 @@
   "files": [
     "es",
     "lib",
-    "types",
-    "gif"
+    "types"
   ],
   "scripts": {
     "clean": "rimraf es lib types",
@@ -42,7 +41,6 @@
   "sideEffects": false,
   "devDependencies": {
     "@done-coding/cli-inject": "workspace:^",
-    "@types/json5": "^2.2.0",
     "@types/lodash.camelcase": "^4.3.8",
     "@types/lodash.curry": "^4.1.8",
     "@types/lodash.get": "^4.4.8",
@@ -63,7 +61,6 @@
   "dependencies": {
     "@done-coding/cli-template": "workspace:^",
     "@done-coding/cli-utils": "workspace:^",
-    "json5": "^2.2.3",
     "lodash.camelcase": "^4.3.0",
     "lodash.curry": "^4.1.1",
     "lodash.get": "^4.4.2",

@@ -1,4 +1,9 @@
-import { defaultOptions, OutputModeEnum, SubcommandEnum } from "@/utils";
+import {
+  defaultOptions,
+  OutputModeEnum,
+  SubcommandEnum,
+  MODULE_CONFIG_RELATIVE_PATH,
+} from "@/utils";
 import { handler } from "@/handler";
 import injectInfo from "@/injectInfo.json";
 import _curry from "lodash.curry";
@@ -8,7 +13,7 @@ import { createMainCommand, createSubcommand } from "@done-coding/cli-utils";
 const {
   version,
   description: describe,
-  cliConfig: { namespaceDir, moduleName },
+  cliConfig: { moduleName },
 } = injectInfo;
 
 const getInitOptions = (): CliInfo["options"] => {
@@ -23,7 +28,7 @@ const getInitOptions = (): CliInfo["options"] => {
       type: "string",
       alias: "c",
       describe: "配置文件相对路径",
-      default: `./${namespaceDir}/${moduleName}.json`,
+      default: `${MODULE_CONFIG_RELATIVE_PATH}.json`,
     },
   };
 };

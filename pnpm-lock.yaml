@@ -215,9 +215,15 @@ importers:
 
   packages/extract:
     dependencies:
+      '@done-coding/cli-template':
+        specifier: workspace:0.7.1-alpha.0
+        version: link:../template
       '@done-coding/cli-utils':
         specifier: workspace:^
         version: link:../utils
+      json5:
+        specifier: ^2.2.3
+        version: 2.2.3
       lodash.curry:
         specifier: ^4.1.1
         version: 4.1.1
@@ -225,6 +231,9 @@ importers:
       '@done-coding/cli-inject':
         specifier: workspace:^
         version: link:../inject
+      '@types/json5':
+        specifier: ^2.2.0
+        version: 2.2.0
       '@types/lodash.curry':
         specifier: ^4.1.8
         version: 4.1.9
@@ -427,6 +436,9 @@ importers:
       chalk:
         specifier: ^5.3.0
         version: 5.4.1
+      json5:
+        specifier: ^2.2.3
+        version: 2.2.3
       prompts:
         specifier: ^2.4.2
         version: 2.4.2
@@ -434,6 +446,9 @@ importers:
         specifier: ^17.7.2
         version: 17.7.2
     devDependencies:
+      '@types/json5':
+        specifier: ^2.2.0
+        version: 2.2.0
       '@types/node':
         specifier: ^18.0.0
         version: 18.19.4

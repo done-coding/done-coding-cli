@@ -15,8 +15,7 @@
   "files": [
     "es",
     "lib",
-    "types",
-    "gif"
+    "types"
   ],
   "scripts": {
     "clean": "rimraf es lib types",
