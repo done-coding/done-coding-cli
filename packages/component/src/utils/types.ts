@@ -1,4 +1,4 @@
-import type { Options as TemplateOptions } from "@done-coding/cli-template";
+import type { CompileOptions } from "@done-coding/cli-template";
 
 /** 子命令枚举 */
 export enum SubcommandEnum {
@@ -21,13 +21,13 @@ export interface Options {
 
 /** 模版配置输入路径 */
 export type TemplateConfigInputByPath = Pick<
-  TemplateOptions,
+  CompileOptions,
   "input" | "output"
 >;
 
 /** 模版配置输入数据 */
 export type TemplateConfigInputByData = Pick<
-  TemplateOptions,
+  CompileOptions,
   "inputData" | "output"
 >;
 
@@ -38,15 +38,15 @@ export type TemplateConfig =
 
 /** 模版配置完整 */
 export type TemplateConfigFull = Pick<
-  TemplateOptions,
+  CompileOptions,
   "input" | "inputData" | "output"
 >;
 
 /** 列表item */
 export interface ConfigListItem {
-  /** 组件逻辑文件 */
+  /** 入口文件 */
   entry: TemplateConfig;
-  /** 组件逻辑文件 */
+  /** 索引文件 */
   index?: TemplateConfig;
 }
 

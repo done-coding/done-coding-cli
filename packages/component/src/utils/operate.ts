@@ -1,11 +1,8 @@
 import { getEnvData } from "./env-data";
 import type { Config, TemplateConfigFull } from "./types";
 import { SubcommandEnum } from "./types";
-import type { Options } from "@done-coding/cli-template";
-import {
-  handler as handlerTemplate,
-  OutputModeEnum,
-} from "@done-coding/cli-template";
+import type { CompileOptions } from "@done-coding/cli-template";
+import { compileHandler, OutputModeEnum } from "@done-coding/cli-template";
 import _template from "lodash.template";
 import { log } from "@done-coding/cli-utils";
 
@@ -28,6 +25,8 @@ export const operateComponent = async ({
     name,
   });
 
+  const rootDir = process.cwd();
+
   const envDataStr = JSON.stringify(envData);
 
   for (const { entry, index } of config.list) {
@@ -40,14 +39,18 @@ export const operateComponent = async ({
       if (entryAssert?.output) {
         entryAssert.output = _template(entryAssert.output)(envData);
       }
-      const entryOptions: Options = {
+      const entryOptions: CompileOptions = {
         ...entry,
         envData: envDataStr,
         mode: OutputModeEnum.APPEND,
         rollback: command === SubcommandEnum.REMOVE,
+        /** 回滚时可以删除空文件 */
+        rollbackDelNullFile: true,
         dealMarkdown: true,
+        batch: false,
+        rootDir,
       };
-      await handlerTemplate(entryOptions);
+      await compileHandler(entryOptions);
     }
 
     if (index) {
@@ -58,14 +61,16 @@ export const operateComponent = async ({
       if (indexAssert?.output) {
         indexAssert.output = _template(indexAssert.output)(envData);
       }
-      const indexOptions: Options = {
+      const indexOptions: CompileOptions = {
         ...index,
         envData: envDataStr,
         mode: OutputModeEnum.OVERWRITE,
         rollback: command === SubcommandEnum.REMOVE,
         dealMarkdown: true,
+        batch: false,
+        rootDir,
       };
-      await handlerTemplate(indexOptions);
+      await compileHandler(indexOptions);
     }
   }
 };
