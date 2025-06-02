@@ -2,13 +2,13 @@
 /** 考虑本包会使用当前文件源码 避免不识别@ 此处用相对路径 */
 /** 考虑本包会使用当前文件源码 避免不识别@ 此处用相对路径 */
 
-import type { InjectConfig } from "../utils/types";
-import { ConfigTypeEnum } from "../utils/types";
+import type { InjectConfig } from "../utils";
+import { ConfigTypeEnum } from "../utils";
 
 /** done-coding-cli 注入配置 */
 export const doneCodingCliConfig: InjectConfig = {
   sourceFilePath: "./package.json",
-  injectConfig: {
+  keyConfig: {
     name: {
       type: ConfigTypeEnum.READ,
     },

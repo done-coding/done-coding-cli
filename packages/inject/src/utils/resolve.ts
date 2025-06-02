@@ -10,12 +10,22 @@ import { ConfigTypeEnum } from "./types";
 export const configResolve = ({
   sourceJson,
   targetKey,
-  config,
+  config: configInit,
 }: {
   sourceJson: Record<string, any>;
   targetKey: string;
   config: InjectKeyConfig;
 }) => {
+  let config: Exclude<InjectKeyConfig, string>;
+  if (typeof configInit === "string") {
+    config = {
+      type: ConfigTypeEnum.FIXED,
+      value: configInit,
+    };
+  } else {
+    config = configInit;
+  }
+
   const { type = ConfigTypeEnum.READ } = config;
 
   switch (type) {

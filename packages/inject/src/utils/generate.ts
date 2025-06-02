@@ -1,3 +1,7 @@
+/** 考虑本包会使用当前文件源码 避免不识别@ 此处用相对路径 */
+/** 考虑本包会使用当前文件源码 避免不识别@ 此处用相对路径 */
+/** 考虑本包会使用当前文件源码 避免不识别@ 此处用相对路径 */
+
 import {
   readConfigFile,
   getConfigFileCommonOptions,
@@ -11,6 +15,7 @@ import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "./path";
 import path from "node:path";
 import fs from "node:fs";
 import { configResolve } from "./resolve";
+import configDefault from "../json/default";
 
 /** 获取生成命令选项 */
 export const getGenerateOptions = (): CliInfo["options"] => {
@@ -24,12 +29,23 @@ export const getGenerateOptions = (): CliInfo["options"] => {
 /** 生成文件 */
 export const generateFile = async ({
   rootDir = process.cwd(),
-  content,
+  config = configDefault,
+  keyConfig: extractKeyConfig = {},
 }: {
   rootDir?: string;
-  content: InjectConfig;
-}) => {
-  const { sourceFilePath, injectConfig, injectFilePath } = content;
+  config?: InjectConfig;
+  keyConfig?: InjectConfig["keyConfig"];
+} = {}) => {
+  const {
+    sourceFilePath,
+    keyConfig: defaultKeyConfig,
+    injectFilePath,
+  } = config;
+
+  const keyConfig: InjectConfig["keyConfig"] = {
+    ...defaultKeyConfig,
+    ...extractKeyConfig,
+  };
 
   if (!sourceFilePath.endsWith(".json")) {
     log.error("源文件必须是json");
@@ -48,7 +64,7 @@ export const generateFile = async ({
 
   const sourceJson = JSON.parse(sourceStr);
 
-  const injectInfo = Object.entries(injectConfig).reduce(
+  const injectInfo = Object.entries(keyConfig).reduce(
     (acc, [targetKey, config]) => {
       const value = configResolve({ sourceJson, targetKey, config });
       _set(acc, targetKey, value);
@@ -89,13 +105,13 @@ export const generateHandler = async (
   argv: CliHandlerArgv<GenerateOptions>,
 ) => {
   console.log(argv);
-  const content = await readConfigFile<InjectConfig>(argv);
-  if (!content) {
+  const config = await readConfigFile<InjectConfig>(argv);
+  if (!config) {
     log.error(`配置文件为空`);
     return process.exit(1);
   }
 
   const { rootDir } = argv;
 
-  await generateFile({ rootDir, content });
+  await generateFile({ rootDir, config });
 };

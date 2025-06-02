@@ -69,10 +69,15 @@ export interface InjectKeyConfigFixed
 /** 注入配置-读取类型 */
 export type InjectKeyConfigRead = InjectKeyConfigBase<ConfigTypeEnum.READ>;
 
-/** 注入配置 */
+/**
+ * 注入配置
+ * ---
+ * 为 string 时 解析为 InjectKeyConfigFixed, 其中InjectKeyConfigFixed.value = string
+ */
 export type InjectKeyConfig =
   | InjectKeyConfigReg
   | InjectKeyConfigFixed
+  | string
   | InjectKeyConfigRead;
 
 /** @deprecated */
@@ -90,7 +95,7 @@ export interface InjectConfig {
   /** json文件相对路径 */
   sourceFilePath: string;
   /** 注入的key路径 */
-  injectConfig: Record<string, InjectKeyConfig>;
+  keyConfig: Record<string, InjectKeyConfig>;
   /** 注入信息文件路径 */
   injectFilePath: string;
 }

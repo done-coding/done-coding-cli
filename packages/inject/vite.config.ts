@@ -35,7 +35,7 @@ const build = {
   },
 } satisfies BuildOptions;
 
-generateFile({ content: doneCodingCliConfig });
+generateFile({ config: doneCodingCliConfig });
 
 // https://vitejs.dev/config/
 export default defineConfig({
