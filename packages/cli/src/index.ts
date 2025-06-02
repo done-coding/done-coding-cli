@@ -1,9 +1,4 @@
 export {
-  crateAsSubcommand as createInitCommand,
-  handler as initHandler,
-} from "@done-coding/cli-init";
-
-export {
   crateAsSubcommand as createExtractCommand,
   handler as extractHandler,
 } from "@done-coding/cli-extract";

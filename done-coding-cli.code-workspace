@@ -9,10 +9,6 @@
       "path": "packages/utils"
     },
     {
-      "name": "init",
-      "path": "packages/init"
-    },
-    {
       "name": "extract",
       "path": "packages/extract"
     },

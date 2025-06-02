@@ -1,4 +1,3 @@
-import { crateAsSubcommand as createInitCommand } from "@done-coding/cli-init";
 import { crateAsSubcommand as createInjectCommand } from "@done-coding/cli-inject";
 import { crateAsSubcommand as createExtractCommand } from "@done-coding/cli-extract";
 import { crateAsSubcommand as createGitCommand } from "@done-coding/cli-git";
@@ -20,7 +19,6 @@ const commandCliInfo: CliInfo = {
   subcommands: [
     createGitCommand(),
     createCreateCommand(),
-    createInitCommand(),
     createInjectCommand(),
     createExtractCommand(),
     createPublishCommand(),

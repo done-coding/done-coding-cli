@@ -52,7 +52,6 @@
     "@done-coding/cli-component": "workspace:^",
     "@done-coding/cli-extract": "workspace:^",
     "@done-coding/cli-git": "workspace:^",
-    "@done-coding/cli-init": "workspace:^",
     "@done-coding/cli-inject": "workspace:^",
     "@done-coding/cli-publish": "workspace:^",
     "@done-coding/cli-template": "workspace:^",
