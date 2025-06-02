@@ -1,4 +1,4 @@
-import type { CliHandlerArgv, CliInfo } from "./cli";
+import type { CliHandlerArgv, YargsOptions } from "./cli";
 import path from "node:path";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { getEditorType, openFileInEditor } from "./editor";
@@ -29,18 +29,22 @@ export const getConfigFileCommonOptions = ({
   configPathDefault,
 }: {
   configPathDefault: string;
-}): CliInfo["options"] => {
+}): Record<keyof ConfigFileCommonOptions, YargsOptions> => {
   return {
+    /** 必须保留 */
     rootDir: {
       type: "string",
       alias: "r",
       describe: "运行目录",
+      /** 必须设置默认值 */
       default: process.cwd(),
     },
+    /** 必须保留 */
     configPath: {
       type: "string",
       alias: "c",
       describe: "配置文件相对路径",
+      /** 必须设置默认值 */
       default: configPathDefault,
     },
   };
@@ -96,6 +100,7 @@ export const readConfigFile = async <T>(
   const { configPath, rootDir } = argv;
   const configPathFinal = path.resolve(rootDir, configPath);
   if (!existsSync(configPathFinal)) {
+    log.warn(`配置文件不存在 ${configPathFinal}`);
     return undefined;
   }
   if (configPathFinal.endsWith(".json5")) {
