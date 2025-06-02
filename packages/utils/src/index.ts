@@ -5,3 +5,4 @@ export * from "./prompts";
 export * from "./cli";
 export * from "./editor";
 export * from "./config-file";
+export * from "./json5";

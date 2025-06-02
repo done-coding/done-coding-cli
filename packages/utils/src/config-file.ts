@@ -22,8 +22,8 @@ export type InitConfigFileOptions = ConfigFileCommonOptions;
 /** 读取配置文件选项 */
 export type ReadConfigFileOptions = ConfigFileCommonOptions;
 
-/** 获取配置文件初始化选项 */
-export const getConfigFileInitOptions = ({
+/** 获取配置文件通用选项 */
+export const getConfigFileCommonOptions = ({
   configPathDefault,
 }: {
   configPathDefault: string;
