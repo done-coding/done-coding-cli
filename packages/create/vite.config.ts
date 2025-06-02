@@ -37,7 +37,7 @@ const build = {
 
 generateFile({
   config: doneCodingCliConfig,
-  keyConfig: {
+  keyConfigMap: {
     "cliConfig.moduleName": "create",
   },
 });
