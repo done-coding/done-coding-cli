@@ -17,7 +17,7 @@ const build = {
       ...builtinModules.map((m) => `node:${m}`),
       ...Object.keys(pkg.dependencies || {}),
     ],
-    input: ["src/index.ts", "src/cli.ts"],
+    input: ["src/index.ts", "src/cli.ts", "src/helpers.ts"],
     output: [
       {
         format: "es",
@@ -30,7 +30,7 @@ const build = {
     ],
   },
   lib: {
-    entry: ["src/index.ts", "src/cli.ts"],
+    entry: ["src/index.ts", "src/cli.ts", "src/helpers.ts"],
   },
 } satisfies BuildOptions;
 

@@ -1,20 +1,16 @@
 import type { CliHandlerArgv } from "@done-coding/cli-utils";
-import injectInfo from "@/injectInfo.json";
 import type { InitOptions } from "./types";
 import {
-  getConfigFileInitOptions,
+  getConfigFileCommonOptions,
   initHandlerCommon,
 } from "@done-coding/cli-utils";
-import configDefault from "@/json/default.json";
-
-const {
-  cliConfig: { namespaceDir, moduleName },
-} = injectInfo;
+import { config as configDefault } from "@/json/default";
+import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "./path";
 
 /** 获取初始化选项 */
 export const getInitOptions = () =>
-  getConfigFileInitOptions({
-    configPathDefault: `./${namespaceDir}/${moduleName}.json`,
+  getConfigFileCommonOptions({
+    configPathDefault: MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
   });
 
 /** 初始化命令处理器 */
