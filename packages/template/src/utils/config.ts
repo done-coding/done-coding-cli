@@ -1,20 +1,18 @@
-import injectInfo from "@/injectInfo.json";
 import path from "node:path";
-import fs from "node:fs";
+import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "./path";
+import { existsSync } from "node:fs";
+import type { ReadConfigFileOptions } from "@done-coding/cli-utils";
 
 /** 获取配置文件路径 */
-export const getConfigPath = (rootDir?: string) => {
-  const { namespaceDir, moduleName } = injectInfo.cliConfig;
+export const getConfigPath = ({
+  rootDir,
+  configPath = MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
+}: ReadConfigFileOptions) => {
+  const configPathFinal = path.resolve(rootDir, configPath);
 
-  const resolveParams = [namespaceDir, `${moduleName}.json`];
-  if (rootDir) {
-    resolveParams.unshift(rootDir);
-  }
-  const configPath = path.resolve(...resolveParams);
-
-  if (!fs.existsSync(configPath)) {
-    return undefined;
+  if (existsSync(configPathFinal)) {
+    return configPathFinal;
   } else {
-    return configPath;
+    return;
   }
 };

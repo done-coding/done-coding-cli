@@ -1,4 +1,7 @@
-import type { InitConfigFileOptions } from "@done-coding/cli-utils";
+import type {
+  InitConfigFileOptions,
+  ReadConfigFileOptions,
+} from "@done-coding/cli-utils";
 
 /** 子命令枚举 */
 export enum SubcommandEnum {
@@ -29,6 +32,10 @@ export enum OutputModeEnum {
 }
 
 export interface CompileOptions {
+  /** 项目根目录 */
+  rootDir: string;
+  /** 配置文件路径 */
+  configPath?: string;
   /** 环境数据(json)文件(优先级高于 envData ) */
   env?: string;
   /** 环境变量数据(JSON字符串) */
@@ -43,14 +50,25 @@ export interface CompileOptions {
   mode: OutputModeEnum;
   /** 是否回滚 @default false */
   rollback?: boolean;
+  /**
+   * 回滚删除空文件
+   * ---
+   * 只限 OutputModeEnum.APPEND 模式下生效
+   */
+  rollbackDelNullFile?: boolean;
   /** (检测是markdown)是否处理(单个)代码块包裹 */
   dealMarkdown?: boolean;
   /** 是否批量处理 */
   batch?: boolean;
 }
 
-/** 编译模板配置选项 */
-export type CompileTemplateConfigListItem = Omit<CompileOptions, "envData"> & {
+/**
+ * 编译模板配置选项
+ */
+export type CompileTemplateConfigListItem = Omit<
+  CompileOptions,
+  "envData" | keyof ReadConfigFileOptions
+> & {
   /** 已经解析为对象的envData */
   envData: Record<string, any>;
 };
@@ -74,5 +92,5 @@ export interface CompileTemplateConfig {
   /** 采集环境变量表单配置 */
   collectEnvDataForm?: (CollectFormItem | string)[];
   /** 配置列表 */
-  list?: CompileOptions[];
+  list?: Omit<CompileOptions, keyof ReadConfigFileOptions>[];
 }

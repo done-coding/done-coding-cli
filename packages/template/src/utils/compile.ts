@@ -3,9 +3,9 @@ import type {
   CompileTemplateConfig,
 } from "@/utils";
 import {
+  MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
   OutputModeEnum,
-  completeDefaultOptions,
-  getConfigPath,
+  completeDefaultCompileOptions,
   type CompileOptions,
 } from "@/utils";
 import type { CliHandlerArgv } from "@done-coding/cli-utils";
@@ -13,7 +13,7 @@ import path from "node:path";
 import fs from "node:fs";
 import _template from "lodash.template";
 import _assign from "lodash.assign";
-import { log, xPrompts } from "@done-coding/cli-utils";
+import { log, readConfigFile, xPrompts } from "@done-coding/cli-utils";
 
 /** 获取数据 */
 const getData = <
@@ -22,6 +22,7 @@ const getData = <
     ? Record<string, any>
     : string,
 >({
+  rootDir,
   filePath,
   dataInit,
   limitJson,
@@ -29,6 +30,8 @@ const getData = <
   dataInitKey,
   dealMarkdown = false,
 }: {
+  /** 运行目录/根目录 */
+  rootDir: string;
   /** 文件相对路径 */
   filePath?: string;
   /** 初始数据 */
@@ -54,7 +57,10 @@ const getData = <
       }
     }
 
-    const fileContentInit = fs.readFileSync(path.resolve(filePath), "utf-8");
+    const fileContentInit = fs.readFileSync(
+      path.resolve(rootDir, filePath),
+      "utf-8",
+    );
 
     let fileContent = fileContentInit;
     if (dealMarkdown && filePath.endsWith(".md")) {
@@ -117,11 +123,13 @@ const compileTemplate = async (
       | (() => CompileTemplateConfigListItem["envData"]);
   },
   {
+    rootDir,
     rollbackDelFileAgree = false,
   }: {
+    rootDir: string;
     /** 回滚遇到删除文件是否同意 */
     rollbackDelFileAgree?: boolean;
-  } = {},
+  },
 ) => {
   const {
     env,
@@ -130,6 +138,7 @@ const compileTemplate = async (
     output,
     mode,
     rollback,
+    rollbackDelNullFile,
     dealMarkdown,
     envData: envDataInit,
   } = completeOptions;
@@ -151,6 +160,7 @@ rollback: ${rollback}
 
   /** 模板内容 */
   const templateContent = getData({
+    rootDir,
     filePath: input,
     dataInit: inputData,
     limitJson: false,
@@ -169,7 +179,7 @@ rollback: ${rollback}
       ensureOutputNotNull(mode, output);
       ensureOutputNotEqualsInput(output, input);
       // 上面两个确保后，output一定不为空
-      const outputPath = path.resolve(output!);
+      const outputPath = path.resolve(rootDir, output!);
       fs.mkdirSync(path.dirname(outputPath), { recursive: true });
       if (fs.existsSync(outputPath)) {
         if (rollback) {
@@ -208,16 +218,20 @@ rollback: ${rollback}
       ensureOutputNotNull(mode, output);
       ensureOutputNotEqualsInput(output, input);
       // 上面两个确保后，output一定不为空
-      const outputPath = path.resolve(output!);
+      const outputPath = path.resolve(rootDir, output!);
       fs.mkdirSync(path.dirname(outputPath), { recursive: true });
       if (fs.existsSync(outputPath)) {
         const oldContent = fs.readFileSync(outputPath, "utf-8");
         if (rollback) {
-          fs.writeFileSync(
-            outputPath,
-            oldContent.replace(outputContent, ""),
-            "utf-8",
-          );
+          const newContent = oldContent.replace(outputContent, "");
+
+          if (newContent || !rollbackDelNullFile) {
+            fs.writeFileSync(outputPath, newContent, "utf-8");
+          } else {
+            log.stage(`${mode}模式下 文件为空 删除`);
+            fs.unlinkSync(outputPath);
+          }
+
           log.success(`${mode}模式下${outputPath}回滚完成`);
           return;
         }
@@ -245,18 +259,16 @@ rollback: ${rollback}
         log.error(`env 与 input 不能相同`);
         return process.exit(1);
       }
-      const inputPathInit = path.resolve(input!);
+      const inputPathInit = path.resolve(rootDir, input!);
       let inputPath = inputPathInit;
 
-      // 输入文件-不包含运行目录部分
-      const inputRawFilePath = input!.replace(`${process.cwd()}/`, "");
       // 输入文件路径编译
-      const inputCompileFilePath = _template(inputRawFilePath)(envData);
-      if (inputCompileFilePath !== inputRawFilePath) {
+      const inputCompileFilePath = _template(inputPathInit)(envData);
+      if (inputCompileFilePath !== inputPathInit) {
         log.success(`检测输入文件名也需要替换
-            ./${inputRawFilePath} => ./${inputCompileFilePath} `);
+            ${inputPathInit} => ${inputCompileFilePath}`);
         fs.rmSync(inputPathInit);
-        inputPath = path.resolve(`./${inputCompileFilePath}`);
+        inputPath = inputCompileFilePath;
       }
       fs.mkdirSync(path.dirname(inputPath), { recursive: true });
       fs.writeFileSync(inputPath, outputContent, "utf-8");
@@ -279,33 +291,38 @@ rollback: ${rollback}
 /** 批量编译模板 */
 export const batchCompileHandler = async (
   {
-    rootDir = process.cwd(),
+    rootDir,
+    configPath = MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
     itemDefaultRollback = false,
     extraEnvData = {},
   }: {
-    /** 根目录 */
-    rootDir?: string;
+    /** 项目更目录 */
+    rootDir: string;
+    /** 配置文件路径 */
+    configPath?: string;
     /** item默认回滚? */
     itemDefaultRollback?: boolean;
     /** 额外环境变量 */
     extraEnvData?: object;
-  } = {},
+  },
   paramsConfig?: CompileTemplateConfig,
 ) => {
-  let config: CompileTemplateConfig;
+  let config: CompileTemplateConfig | undefined;
+
+  /** 获得配置 */
+
   if (paramsConfig) {
     config = paramsConfig;
   } else {
-    const configPath = getConfigPath(rootDir);
+    config = await readConfigFile({
+      rootDir,
+      configPath,
+    });
+  }
 
-    if (!configPath) {
-      log.error(`配置文件${configPath}不存在`);
-      return process.exit(1);
-    }
-
-    const configStr = fs.readFileSync(configPath, "utf-8");
-
-    config = JSON.parse(configStr) as CompileTemplateConfig;
+  if (!config) {
+    log.error(`读取配置文件失败`);
+    return process.exit(1);
   }
 
   const {
@@ -355,17 +372,17 @@ export const batchCompileHandler = async (
       input,
       output,
       ...rest
-    } = completeDefaultOptions(item);
+    } = completeDefaultCompileOptions(item);
 
     if (env) {
-      log.warn(`批量处理中 env:${env} 将被忽略，只读envData`);
+      log.warn(`批量处理中 env:${env} 将被忽略, 只读envData`);
     }
 
     return {
       ...rest,
       env,
-      input: rootDir && input ? path.resolve(rootDir, input) : input,
-      output: rootDir && output ? path.resolve(rootDir, output) : output,
+      input,
+      output,
       envData: _assign(
         {},
         extraEnvData,
@@ -381,6 +398,7 @@ export const batchCompileHandler = async (
   for (const item of list) {
     const result = await compileTemplate(item, {
       rollbackDelFileAgree: true,
+      rootDir,
     });
     listResult.push(result);
   }
@@ -398,21 +416,27 @@ export const compileHandler = async (argv: CliHandlerArgv<CompileOptions>) => {
     output,
     mode,
     rollback,
+    rollbackDelNullFile,
     dealMarkdown,
     batch,
-  } = completeDefaultOptions(argv);
+    rootDir,
+    configPath,
+  } = completeDefaultCompileOptions(argv);
 
   if (batch) {
     log.stage(`开始批量处理`);
     return batchCompileHandler({
       // 回滚默认值 基于全局
       itemDefaultRollback: rollback,
+      rootDir,
+      configPath,
     });
   }
   log.stage(`开始单个处理`);
 
   /** 环境变量 */
   const envData = getData({
+    rootDir,
     filePath: env,
     dataInit: envDataInit,
     limitJson: true,
@@ -421,13 +445,19 @@ export const compileHandler = async (argv: CliHandlerArgv<CompileOptions>) => {
     dealMarkdown,
   });
 
-  return compileTemplate({
-    input,
-    inputData,
-    output,
-    mode,
-    rollback,
-    dealMarkdown,
-    envData,
-  });
+  return compileTemplate(
+    {
+      input,
+      inputData,
+      output,
+      mode,
+      rollback,
+      rollbackDelNullFile,
+      dealMarkdown,
+      envData,
+    },
+    {
+      rootDir,
+    },
+  );
 };

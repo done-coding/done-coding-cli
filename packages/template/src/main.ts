@@ -1,9 +1,4 @@
-import {
-  defaultOptions,
-  OutputModeEnum,
-  SubcommandEnum,
-  MODULE_CONFIG_RELATIVE_PATH,
-} from "@/utils";
+import { SubcommandEnum, getCompileOptions, getInitOptions } from "@/utils";
 import { handler } from "@/handler";
 import injectInfo from "@/injectInfo.json";
 import _curry from "lodash.curry";
@@ -16,23 +11,6 @@ const {
   cliConfig: { moduleName },
 } = injectInfo;
 
-const getInitOptions = (): CliInfo["options"] => {
-  return {
-    rootDir: {
-      type: "string",
-      alias: "r",
-      describe: "运行目录",
-      default: process.cwd(),
-    },
-    configPath: {
-      type: "string",
-      alias: "c",
-      describe: "配置文件相对路径",
-      default: `${MODULE_CONFIG_RELATIVE_PATH}.json`,
-    },
-  };
-};
-
 const initCommandCliInfo: SubCliInfo = {
   command: SubcommandEnum.INIT,
   describe: "初始化模板配置文件",
@@ -40,66 +18,6 @@ const initCommandCliInfo: SubCliInfo = {
   handler: _curry(handler)(
     SubcommandEnum.INIT,
   ) as unknown as CliInfo["handler"],
-};
-
-const getCompileOptions = (): CliInfo["options"] => {
-  return {
-    env: {
-      alias: "e",
-      describe: "环境数据文件JSON文件相对路径(优先级高于envData)",
-      type: "string",
-    },
-    envData: {
-      alias: "E",
-      describe: "环境变量数据(JSON字符串)",
-      type: "string",
-    },
-    input: {
-      alias: "i",
-      describe: "模板文件相对路径(优先级高于inputTemplate)",
-      type: "string",
-    },
-    inputData: {
-      alias: "I",
-      describe: "模板数据",
-      type: "string",
-    },
-    mode: {
-      alias: "m",
-      describe: "输出模式",
-      type: "string",
-      choices: [
-        OutputModeEnum.OVERWRITE,
-        OutputModeEnum.APPEND,
-        OutputModeEnum.REPLACE,
-        OutputModeEnum.RETURN,
-      ],
-      default: defaultOptions.mode,
-    },
-    output: {
-      alias: "o",
-      describe: "输出文件路径",
-      type: "string",
-    },
-    rollback: {
-      alias: "r",
-      describe: "是否回滚",
-      type: "boolean",
-      default: defaultOptions.rollback,
-    },
-    dealMarkdown: {
-      alias: "d",
-      describe: "(检测是markdown)是否处理(单个)代码块包裹",
-      type: "boolean",
-      default: defaultOptions.dealMarkdown,
-    },
-    batch: {
-      alias: "b",
-      describe: "是否批量处理",
-      type: "boolean",
-      default: defaultOptions.batch,
-    },
-  };
 };
 
 const compileCommandCliInfo: SubCliInfo = {

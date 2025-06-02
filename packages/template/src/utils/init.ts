@@ -1,4 +1,5 @@
 import {
+  MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
   OutputModeEnum,
   type CompileTemplateConfig,
   type InitOptions,
@@ -9,8 +10,14 @@ import {
   type CliHandlerArgv,
   initHandlerCommon,
   getUseDefaultConfig,
+  getConfigFileCommonOptions,
 } from "@done-coding/cli-utils";
 import configDefault from "@/json/default.json";
+
+export const getInitOptions = () =>
+  getConfigFileCommonOptions({
+    configPathDefault: MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
+  });
 
 /** 获取初始化模板内容 */
 const getContent = async (useDefaultConfig: boolean) => {
