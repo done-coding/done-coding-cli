@@ -52,7 +52,6 @@
   "sideEffects": false,
   "devDependencies": {
     "@done-coding/cli-inject": "workspace:^",
-    "@types/lodash.curry": "^4.1.8",
     "@types/node": "^18.0.0",
     "@types/yargs": "^17.0.28",
     "rimraf": "^6.0.1",
@@ -65,7 +64,6 @@
   },
   "dependencies": {
     "@done-coding/cli-template": "workspace:0.7.1-alpha.0",
-    "@done-coding/cli-utils": "workspace:^",
-    "lodash.curry": "^4.1.1"
+    "@done-coding/cli-utils": "workspace:^"
   }
 }

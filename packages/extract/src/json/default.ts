@@ -1,17 +1,45 @@
 import { ExtractTypeEnum, type ExtractConfig } from "@/utils";
+import { InjectTypeEnum } from "@done-coding/cli-inject";
 import { OutputModeEnum } from "@done-coding/cli-template";
+
+const inputData = {
+  name: `\${name}`,
+  version: `\${version}`,
+  description: `\${description}`,
+};
 
 export const config: ExtractConfig = {
   extractInput: {
-    "./packages.json": {
+    "./package.json": {
       name: {
-        type: ExtractTypeEnum.READ,
+        type: ExtractTypeEnum.JSON_INJECT,
+        inject: {
+          type: InjectTypeEnum.READ,
+        },
       },
       description: {
-        type: ExtractTypeEnum.READ,
+        type: ExtractTypeEnum.JSON_INJECT,
+        inject: {
+          type: InjectTypeEnum.READ,
+        },
       },
       version: {
-        type: ExtractTypeEnum.READ,
+        type: ExtractTypeEnum.JSON_INJECT,
+        inject: {
+          type: InjectTypeEnum.READ,
+        },
+      },
+    },
+    "./README.md": {
+      docDescription: {
+        type: ExtractTypeEnum.REG,
+        pattern: /#\s*([^`])+```([^`]+)```/.source,
+        replaceValue: "",
+      },
+      usage: {
+        type: ExtractTypeEnum.REG,
+        pattern: /##\s*使用\s*```([^`]+)```/.source,
+        replaceValue: "$1",
       },
     },
   },
@@ -19,12 +47,8 @@ export const config: ExtractConfig = {
     list: [
       {
         mode: OutputModeEnum.OVERWRITE,
-        inputData: `{
-  "version": "\${version}",
-  "name": "\${name}",
-  "description": "\${description}"
-}`,
-        output: "./src/injectInfo.json",
+        inputData: JSON.stringify(inputData, null, 2),
+        output: "./src/extractInfo.json",
       },
     ],
   },

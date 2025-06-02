@@ -3,6 +3,7 @@ import type { InitOptions } from "./types";
 import {
   getConfigFileCommonOptions,
   initHandlerCommon,
+  log,
 } from "@done-coding/cli-utils";
 import configDefault from "@/json/default";
 import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "./path";
@@ -17,7 +18,7 @@ export const getInitOptions = () =>
 export const initHandler = async (argv: CliHandlerArgv<InitOptions>) => {
   return initHandlerCommon(configDefault, argv, {
     onFileGenerated: () => {
-      console.log(`文件生成成功`);
+      log.info(`文件生成成功`);
     },
   });
 };

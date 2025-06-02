@@ -94,17 +94,14 @@ export const generateFile = async ({
   }
 
   fs.writeFileSync(injectInfoFileFullPath, injectInfoJson);
-  console.log(
-    log.success(`文件注入成功: ${injectInfoFileFullPath}`),
-    log.info(injectInfoJson),
-  );
+  log.success(`文件注入成功: ${injectInfoFileFullPath}`);
+  log.info(injectInfoJson);
 };
 
 /** 提取文件命令处理器 */
 export const generateHandler = async (
   argv: CliHandlerArgv<GenerateOptions>,
 ) => {
-  console.log(argv);
   const config = await readConfigFile<InjectConfig>(argv);
   if (!config) {
     log.error(`配置文件为空`);

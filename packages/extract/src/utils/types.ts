@@ -3,6 +3,10 @@ import type {
   ReadConfigFileOptions,
 } from "@done-coding/cli-utils";
 import type { CompileTemplateConfig } from "@done-coding/cli-template";
+import type {
+  InjectKeyConfig,
+  InjectKeyConfigReg,
+} from "@done-coding/cli-inject";
 
 /** 子命令枚举 */
 export enum SubcommandEnum {
@@ -15,17 +19,19 @@ export enum SubcommandEnum {
 /** 提取方式枚举 */
 export enum ExtractTypeEnum {
   /**
-   * 正则表达式
+   * 正则 类型
    * ---
    * 通过正则匹配后 replace 替换
    */
   REG = "reg",
   /**
-   * 直接读取
+   * json注入 类型
    * ---
-   * 只限于读取json文件
+   * 只限于读取json文件 input\output 均为json文件
+   * ---
+   * 内部直接调用 @done-coding/cli-inject
    */
-  READ = "read",
+  JSON_INJECT = "json-inject",
 }
 
 /** 初始化选项 */
@@ -41,40 +47,19 @@ export interface ExtractInputKeyConfigBase<T extends ExtractTypeEnum> {
 
 /** 提取配置正则表达式 */
 export interface ExtractInputKeyConfigReg
-  extends ExtractInputKeyConfigBase<ExtractTypeEnum.REG> {
-  /**
-   * 源key
-   * ---
-   * 不指定则与targetKey相同
-   */
-  sourceKey?: string;
-  /**
-   * 正则表达式字符串
-   * ----
-   * 不带flags
-   */
-  pattern: string;
-  /** 正则匹配的 flags */
-  flags?: string;
-  /** 替换值 */
-  replaceValue: string;
-}
+  extends ExtractInputKeyConfigBase<ExtractTypeEnum.REG>,
+    Omit<InjectKeyConfigReg, "type" | "sourceKey"> {}
 
 /** 提取配置直接读取 */
-export interface ExtractInputKeyConfigRead
-  extends ExtractInputKeyConfigBase<ExtractTypeEnum.READ> {
-  /**
-   * 源key
-   * ---
-   * 不指定则与targetKey相同
-   */
-  sourceKey?: string;
+export interface ExtractInputKeyConfigJsonInject
+  extends ExtractInputKeyConfigBase<ExtractTypeEnum.JSON_INJECT> {
+  inject: InjectKeyConfig;
 }
 
 /** 提取配置 */
 export type ExtractInputKeyConfig =
   | ExtractInputKeyConfigReg
-  | ExtractInputKeyConfigRead;
+  | ExtractInputKeyConfigJsonInject;
 
 /** 提取输入配置 */
 export interface ExtractInputConfig {
