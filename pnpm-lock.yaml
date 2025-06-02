@@ -111,12 +111,6 @@ importers:
       lodash.camelcase:
         specifier: ^4.3.0
         version: 4.3.0
-      lodash.curry:
-        specifier: ^4.1.1
-        version: 4.1.1
-      lodash.get:
-        specifier: ^4.4.2
-        version: 4.4.2
       lodash.kebabcase:
         specifier: ^4.1.1
         version: 4.1.1
@@ -136,12 +130,6 @@ importers:
       '@types/lodash.camelcase':
         specifier: ^4.3.8
         version: 4.3.9
-      '@types/lodash.curry':
-        specifier: ^4.1.8
-        version: 4.1.9
-      '@types/lodash.get':
-        specifier: ^4.4.8
-        version: 4.4.9
       '@types/lodash.kebabcase':
         specifier: ^4.1.8
         version: 4.1.9
@@ -215,28 +203,10 @@ importers:
       '@done-coding/cli-utils':
         specifier: workspace:^
         version: link:../utils
-      lodash.curry:
-        specifier: ^4.1.1
-        version: 4.1.1
-      lodash.get:
-        specifier: ^4.4.2
-        version: 4.4.2
-      lodash.set:
-        specifier: ^4.3.2
-        version: 4.3.2
     devDependencies:
       '@done-coding/cli-inject':
         specifier: workspace:^
         version: link:../inject
-      '@types/lodash.curry':
-        specifier: ^4.1.8
-        version: 4.1.9
-      '@types/lodash.get':
-        specifier: ^4.4.9
-        version: 4.4.9
-      '@types/lodash.set':
-        specifier: ^4.3.9
-        version: 4.3.9
       '@types/node':
         specifier: ^18.0.0
         version: 18.19.4
@@ -267,16 +237,10 @@ importers:
       axios:
         specifier: ^1.8.4
         version: 1.8.4
-      lodash.curry:
-        specifier: ^4.1.1
-        version: 4.1.1
     devDependencies:
       '@done-coding/cli-inject':
         specifier: workspace:^
         version: link:../inject
-      '@types/lodash.curry':
-        specifier: ^4.1.8
-        version: 4.1.9
       '@types/node':
         specifier: ^18.0.0
         version: 18.19.4
@@ -369,15 +333,6 @@ importers:
       lodash.assign:
         specifier: ^4.2.0
         version: 4.2.0
-      lodash.curry:
-        specifier: ^4.1.1
-        version: 4.1.1
-      lodash.get:
-        specifier: ^4.4.2
-        version: 4.4.2
-      lodash.set:
-        specifier: ^4.3.2
-        version: 4.3.2
       lodash.template:
         specifier: ^4.5.0
         version: 4.5.0
@@ -388,15 +343,6 @@ importers:
       '@types/lodash.assign':
         specifier: ^4.2.9
         version: 4.2.9
-      '@types/lodash.curry':
-        specifier: ^4.1.8
-        version: 4.1.9
-      '@types/lodash.get':
-        specifier: ^4.4.9
-        version: 4.4.9
-      '@types/lodash.set':
-        specifier: ^4.3.9
-        version: 4.3.9
       '@types/lodash.template':
         specifier: ^4.5.3
         version: 4.5.3
