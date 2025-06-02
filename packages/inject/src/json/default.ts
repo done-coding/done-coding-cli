@@ -3,19 +3,19 @@
 /** 考虑本包会使用当前文件源码 避免不识别@ 此处用相对路径 */
 
 import type { InjectConfig } from "../utils";
-import { ConfigTypeEnum } from "../utils";
+import { InjectTypeEnum } from "../utils";
 
 const config: InjectConfig = {
   sourceFilePath: "./package.json",
-  keyConfig: {
+  keyConfigMap: {
     name: {
-      type: ConfigTypeEnum.READ,
+      type: InjectTypeEnum.READ,
     },
     version: {
-      type: ConfigTypeEnum.READ,
+      type: InjectTypeEnum.READ,
     },
     description: {
-      type: ConfigTypeEnum.READ,
+      type: InjectTypeEnum.READ,
     },
   },
   injectFilePath: "./src/injectInfo.json",

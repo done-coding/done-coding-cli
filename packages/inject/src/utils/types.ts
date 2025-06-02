@@ -12,7 +12,7 @@ export enum SubcommandEnum {
 }
 
 /** 配置类型枚举 */
-export enum ConfigTypeEnum {
+export enum InjectTypeEnum {
   /**
    * 正则表达式 类型
    */
@@ -31,7 +31,7 @@ export enum ConfigTypeEnum {
 export type InitOptions = InitConfigFileOptions;
 
 /** 注入配置基础 */
-export interface InjectKeyConfigBase<T extends ConfigTypeEnum> {
+export interface InjectKeyConfigBase<T extends InjectTypeEnum> {
   /**
    * 提取类型
    */
@@ -40,7 +40,7 @@ export interface InjectKeyConfigBase<T extends ConfigTypeEnum> {
 
 /** 注入配置-正则类型 */
 export interface InjectKeyConfigReg
-  extends InjectKeyConfigBase<ConfigTypeEnum.REG> {
+  extends InjectKeyConfigBase<InjectTypeEnum.REG> {
   /**
    * 正则表达式字符串
    * ----
@@ -61,13 +61,13 @@ export interface InjectKeyConfigReg
 
 /** 注入配置-固定值类型  */
 export interface InjectKeyConfigFixed
-  extends InjectKeyConfigBase<ConfigTypeEnum.FIXED> {
+  extends InjectKeyConfigBase<InjectTypeEnum.FIXED> {
   /** 值 */
   value: string;
 }
 
 /** 注入配置-读取类型 */
-export type InjectKeyConfigRead = InjectKeyConfigBase<ConfigTypeEnum.READ>;
+export type InjectKeyConfigRead = InjectKeyConfigBase<InjectTypeEnum.READ>;
 
 /**
  * 注入配置
@@ -95,7 +95,7 @@ export interface InjectConfig {
   /** json文件相对路径 */
   sourceFilePath: string;
   /** 注入的key路径 */
-  keyConfig: Record<string, InjectKeyConfig>;
+  keyConfigMap: Record<string, InjectKeyConfig>;
   /** 注入信息文件路径 */
   injectFilePath: string;
 }

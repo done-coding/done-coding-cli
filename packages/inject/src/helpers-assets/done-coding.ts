@@ -3,27 +3,27 @@
 /** 考虑本包会使用当前文件源码 避免不识别@ 此处用相对路径 */
 
 import type { InjectConfig } from "../utils";
-import { ConfigTypeEnum } from "../utils";
+import { InjectTypeEnum } from "../utils";
 
 /** done-coding-cli 注入配置 */
 export const doneCodingCliConfig: InjectConfig = {
   sourceFilePath: "./package.json",
-  keyConfig: {
+  keyConfigMap: {
     name: {
-      type: ConfigTypeEnum.READ,
+      type: InjectTypeEnum.READ,
     },
     version: {
-      type: ConfigTypeEnum.READ,
+      type: InjectTypeEnum.READ,
     },
     description: {
-      type: ConfigTypeEnum.READ,
+      type: InjectTypeEnum.READ,
     },
     "cliConfig.namespaceDir": {
-      type: ConfigTypeEnum.FIXED,
+      type: InjectTypeEnum.FIXED,
       value: ".done-coding",
     },
     "cliConfig.moduleName": {
-      type: ConfigTypeEnum.REG,
+      type: InjectTypeEnum.REG,
       sourceKey: "name",
       pattern: /@done-coding\/cli-([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*)/.source,
       replaceValue: "$1",

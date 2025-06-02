@@ -4,34 +4,34 @@ import type {
   InjectKeyConfigFixed,
   InjectKeyConfigReg,
 } from "./types";
-import { ConfigTypeEnum } from "./types";
+import { InjectTypeEnum } from "./types";
 
-/** 配置解析-获取最终值 */
-export const configResolve = ({
+/** key配置解析-获取最终值 */
+export const keyConfigResolve = ({
   sourceJson,
   targetKey,
-  config: configInit,
+  keyConfig: keyConfigInit,
 }: {
   sourceJson: Record<string, any>;
   targetKey: string;
-  config: InjectKeyConfig;
+  keyConfig: InjectKeyConfig;
 }) => {
-  let config: Exclude<InjectKeyConfig, string>;
-  if (typeof configInit === "string") {
-    config = {
-      type: ConfigTypeEnum.FIXED,
-      value: configInit,
+  let keyConfig: Exclude<InjectKeyConfig, string>;
+  if (typeof keyConfigInit === "string") {
+    keyConfig = {
+      type: InjectTypeEnum.FIXED,
+      value: keyConfigInit,
     };
   } else {
-    config = configInit;
+    keyConfig = keyConfigInit;
   }
 
-  const { type = ConfigTypeEnum.READ } = config;
+  const { type = InjectTypeEnum.READ } = keyConfig;
 
   switch (type) {
-    case ConfigTypeEnum.REG: {
+    case InjectTypeEnum.REG: {
       const { sourceKey, pattern, replaceValue, flags } =
-        config as InjectKeyConfigReg;
+        keyConfig as InjectKeyConfigReg;
       const reg = new RegExp(pattern, flags ?? undefined);
       const sourceValue = _get(sourceJson, sourceKey);
       if (typeof sourceValue === "string") {
@@ -43,11 +43,11 @@ export const configResolve = ({
         return sourceValue;
       }
     }
-    case ConfigTypeEnum.FIXED: {
-      const { value } = config as InjectKeyConfigFixed;
+    case InjectTypeEnum.FIXED: {
+      const { value } = keyConfig as InjectKeyConfigFixed;
       return value;
     }
-    case ConfigTypeEnum.READ: {
+    case InjectTypeEnum.READ: {
       return _get(sourceJson, targetKey);
     }
     default: {

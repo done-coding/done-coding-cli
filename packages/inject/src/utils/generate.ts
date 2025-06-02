@@ -14,7 +14,7 @@ import type { InjectConfig, GenerateOptions } from "./types";
 import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "./path";
 import path from "node:path";
 import fs from "node:fs";
-import { configResolve } from "./resolve";
+import { keyConfigResolve } from "./resolve";
 import configDefault from "../json/default";
 
 /** 获取生成命令选项 */
@@ -30,21 +30,21 @@ export const getGenerateOptions = (): CliInfo["options"] => {
 export const generateFile = async ({
   rootDir = process.cwd(),
   config = configDefault,
-  keyConfig: extractKeyConfig = {},
+  keyConfigMap: extractKeyConfigMap = {},
 }: {
   rootDir?: string;
   config?: InjectConfig;
-  keyConfig?: InjectConfig["keyConfig"];
+  keyConfigMap?: InjectConfig["keyConfigMap"];
 } = {}) => {
   const {
     sourceFilePath,
-    keyConfig: defaultKeyConfig,
+    keyConfigMap: defaultKeyConfigMap,
     injectFilePath,
   } = config;
 
-  const keyConfig: InjectConfig["keyConfig"] = {
-    ...defaultKeyConfig,
-    ...extractKeyConfig,
+  const keyConfigMap: InjectConfig["keyConfigMap"] = {
+    ...defaultKeyConfigMap,
+    ...extractKeyConfigMap,
   };
 
   if (!sourceFilePath.endsWith(".json")) {
@@ -64,9 +64,9 @@ export const generateFile = async ({
 
   const sourceJson = JSON.parse(sourceStr);
 
-  const injectInfo = Object.entries(keyConfig).reduce(
-    (acc, [targetKey, config]) => {
-      const value = configResolve({ sourceJson, targetKey, config });
+  const injectInfo = Object.entries(keyConfigMap).reduce(
+    (acc, [targetKey, keyConfig]) => {
+      const value = keyConfigResolve({ sourceJson, targetKey, keyConfig });
       _set(acc, targetKey, value);
       return acc;
     },
