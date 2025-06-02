@@ -4,7 +4,6 @@ import injectInfo from "@/injectInfo.json";
 import _curry from "lodash.curry";
 import type { CliInfo, SubCliInfo } from "@done-coding/cli-utils";
 import { createMainCommand, createSubcommand } from "@done-coding/cli-utils";
-import path from "node:path";
 
 const {
   version,
@@ -14,17 +13,17 @@ const {
 
 const getInitOptions = (): CliInfo["options"] => {
   return {
-    configPath: {
-      type: "string",
-      alias: "c",
-      describe: "配置文件路径",
-      default: path.join(process.cwd(), `./${namespaceDir}/${moduleName}`),
-    },
     rootDir: {
       type: "string",
       alias: "r",
-      describe: "编译阶段相对目录的根目录",
+      describe: "运行目录",
       default: process.cwd(),
+    },
+    configPath: {
+      type: "string",
+      alias: "c",
+      describe: "配置文件相对路径",
+      default: `./${namespaceDir}/${moduleName}.json`,
     },
   };
 };

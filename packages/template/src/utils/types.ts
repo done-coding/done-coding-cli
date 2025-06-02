@@ -1,3 +1,5 @@
+import type { InitConfigFileOptions } from "@done-coding/cli-utils";
+
 /** 子命令枚举 */
 export enum SubcommandEnum {
   /** 初始化模板 */
@@ -6,21 +8,7 @@ export enum SubcommandEnum {
   COMPILE = "compile",
 }
 
-export interface InitOptions {
-  /** 配置文件绝对路径 */
-  configPath: string;
-  /** 配置文件中编译文件相对目录运行根目录 */
-  rootDir: string;
-}
-/** 编辑器类型枚举 */
-export enum EditorTypeEnum {
-  /** vscode */
-  VSCODE = "VsCode",
-  /** cursor */
-  CURSOR = "Cursor",
-  /** 其他编辑器 */
-  OTHER = "其他",
-}
+export type InitOptions = InitConfigFileOptions;
 
 /** 绑定的关键变量枚举 */
 export enum TemplateBindKeyEnum {
