@@ -1,0 +1,36 @@
+{
+  "globalEnvData": {},
+  "collectEnvDataForm": [
+    {
+      "key": "name",
+      "label": "项目名"
+    },
+    {
+      "key": "chineseName",
+      "label": "项目中文名"
+    },
+    {
+      "key": "description",
+      "label": "描述",
+      "initial": "这是一个描述"
+    },
+    {
+      "key": "repositoryUrl",
+      "label": "仓库地址",
+      "initial": "",
+      "bindKey": "REPOSITORY_URL"
+    }
+  ],
+  "list": [
+    {
+      "input": "./package.json",
+      "output": "./package.json",
+      "mode": "replace"
+    },
+    {
+      "input": "./README.md",
+      "output": "./README.md",
+      "mode": "replace"
+    }
+  ]
+}
