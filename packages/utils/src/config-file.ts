@@ -24,12 +24,10 @@ export type InitConfigFileOptions = ConfigFileCommonOptions;
 /** 读取配置文件选项 */
 export type ReadConfigFileOptions = ConfigFileCommonOptions;
 
-/** 获取配置文件通用选项 */
-export const getConfigFileCommonOptions = ({
-  configPathDefault,
-}: {
-  configPathDefault: string;
-}): Record<keyof ConfigFileCommonOptions, YargsOptions> => {
+/** 获取 rootDir 选项 */
+export const getRootDirOptions = (): {
+  rootDir: YargsOptions;
+} => {
   return {
     /** 必须保留 */
     rootDir: {
@@ -39,6 +37,18 @@ export const getConfigFileCommonOptions = ({
       /** 必须设置默认值 */
       default: process.cwd(),
     },
+  };
+};
+
+/** 获取配置文件通用选项 */
+export const getConfigFileCommonOptions = ({
+  configPathDefault,
+}: {
+  configPathDefault: string;
+}): Record<keyof ConfigFileCommonOptions, YargsOptions> => {
+  return {
+    /** 必须保留 */
+    ...getRootDirOptions(),
     /** 必须保留 */
     configPath: {
       type: "string",
