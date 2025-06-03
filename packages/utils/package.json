@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-utils",
-  "version": "0.3.2-alpha.0",
+  "version": "0.3.2",
   "description": "cli utils",
   "private": false,
   "module": "es/index.mjs",
