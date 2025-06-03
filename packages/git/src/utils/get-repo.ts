@@ -3,7 +3,7 @@ import { getGiteeUserAllRepos, getGiteeUserPublicRepos } from "@/api/gitee";
 import { getGithubUserAllRepos, getGithubUserPublicRepos } from "@/api/github";
 import { getGitConfigInfo } from "./config";
 import { log, xPrompts } from "@done-coding/cli-utils";
-import { gitUsernameForm, platformForm } from "./question";
+import { getGitUsernameForm, getPlatformForm } from "./question";
 
 /** 获取目标仓库地址 */
 export const getTargetRepoUrl = async ({
@@ -15,11 +15,11 @@ export const getTargetRepoUrl = async ({
     username: usernameInit!,
   };
   if (!platformInit) {
-    options.platform = (await xPrompts(platformForm))
+    options.platform = (await xPrompts(getPlatformForm()))
       .platform as GitPlatformEnum;
   }
   if (!usernameInit) {
-    options.username = (await xPrompts(gitUsernameForm)).username;
+    options.username = (await xPrompts(getGitUsernameForm())).username;
   }
 
   const { platform, username } = options;

@@ -1,4 +1,9 @@
-import { SubcommandEnum, getClonePositionals, getInitOptions } from "@/utils";
+import {
+  SubcommandEnum,
+  getCloneOptions,
+  getClonePositionals,
+  getInitOptions,
+} from "@/utils";
 import { handler } from "@/handler";
 import injectInfo from "@/injectInfo.json";
 import type { CliInfo, SubCliInfo } from "@done-coding/cli-utils";
@@ -27,6 +32,7 @@ const initCommandCliInfo: SubCliInfo = {
 const cloneCommandCliInfo: SubCliInfo = {
   command: `${SubcommandEnum.CLONE} <platform> <username>`,
   describe: "从选择的git平台克隆代码",
+  options: getCloneOptions(),
   positionals: getClonePositionals(),
   handler: _curry(handler)(
     SubcommandEnum.CLONE,

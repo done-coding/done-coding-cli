@@ -25,6 +25,8 @@ export interface GitParamsInfo {
   platform: GitPlatformEnum;
   /** 用户名 */
   username: string;
+  /** 项目名称 */
+  projectName?: string;
 }
 
 /** 可控选项 */

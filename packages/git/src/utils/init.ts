@@ -1,7 +1,11 @@
 import type { CliHandlerArgv } from "@done-coding/cli-utils";
 import type { InitOptions } from "./types";
 import { getRootDirOptions, xPrompts } from "@done-coding/cli-utils";
-import { gitAccessTokenForm, gitUsernameForm, platformForm } from "./question";
+import {
+  gitAccessTokenForm,
+  getGitUsernameForm,
+  getPlatformForm,
+} from "./question";
 import { setGitConfigInfo } from "./config";
 import os from "node:os";
 
@@ -11,8 +15,8 @@ export const getInitOptions = () => getRootDirOptions(os.homedir());
 /** 初始化命令处理器 */
 export const initHandler = async (argv: CliHandlerArgv<InitOptions>) => {
   const { rootDir } = argv;
-  const { platform } = await xPrompts(platformForm);
-  const { username } = await xPrompts(gitUsernameForm);
+  const { platform } = await xPrompts(getPlatformForm());
+  const { username } = await xPrompts(getGitUsernameForm());
   const { accessToken } = await xPrompts(gitAccessTokenForm);
 
   await setGitConfigInfo({

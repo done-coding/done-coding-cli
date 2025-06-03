@@ -12,6 +12,17 @@
   "exports": {
     ".": {
       "import": "./es/index.mjs"
+    },
+    "./helpers": {
+      "import": "./es/helpers.mjs",
+      "types": "./types/helpers.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "helpers": [
+        "./types/helpers.d.ts"
+      ]
     }
   },
   "files": [

@@ -4,6 +4,16 @@ import { execSync } from "node:child_process";
 import type { CliInfo } from "@done-coding/cli-utils";
 import { log } from "@done-coding/cli-utils";
 
+export const getCloneOptions = (): CliInfo["options"] => {
+  return {
+    projectName: {
+      type: "string",
+      alias: "p",
+      describe: "项目名称",
+    },
+  };
+};
+
 /** 获取克隆命令的位置参数 */
 export const getClonePositionals = (): CliInfo["positionals"] => {
   return {
@@ -23,9 +33,12 @@ export const getClonePositionals = (): CliInfo["positionals"] => {
 export const cloneHandler = async (options: CloneOptions) => {
   const repoUrl = await getTargetRepoUrl(options);
 
-  execSync(`git clone ${repoUrl}`, {
-    stdio: "inherit",
-  });
+  const { projectName } = options;
+
+  execSync(
+    `git clone ${repoUrl} ${projectName ? `${projectName} ` : ""}--depth=1`,
+    { stdio: "inherit" },
+  );
 
   log.success(`克隆${repoUrl}成功`);
 };
