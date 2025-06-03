@@ -87,8 +87,6 @@ const getNpmInfo = (
   let version = "";
   let tag: NpmInfo["tag"];
 
-  // console.log(84, type);
-
   const { version: currentVersion } = pkg;
 
   if (
@@ -108,8 +106,6 @@ const getNpmInfo = (
     ].includes(type)
   ) {
     const prereleaseRes = prerelease(currentVersion);
-
-    // console.log(94, prereleaseRes);
 
     if (prereleaseRes) {
       log.warn("当前版本已经是预发布版本，将会在当前版本基础上进行发布");
@@ -165,20 +161,15 @@ const getConfig = (): ConfigInfo => {
 };
 
 export const handler = async (argv: CliHandlerArgv<Options>) => {
-  console.log(argv);
-
   const { mode, type: typeInit, push } = argv;
 
   const configInfo = getConfig();
 
   const gitInfo = getGitInfo(configInfo);
 
-  console.log("gitInfo:", gitInfo);
-
   let type = typeInit;
   let npmInfo: NpmInfo;
   if (type) {
-    console.log("type:", type);
     npmInfo = await getNpmInfo(type!);
   } else {
     const pkg = JSON.parse(readFileSync(join(process.cwd(), pkgPath), "utf-8"));
@@ -267,20 +258,22 @@ export const handler = async (argv: CliHandlerArgv<Options>) => {
 
   const { version } = npmInfo;
 
-  console.log("npmInfo:", npmInfo);
-
-  execSync(`npm version ${version} 1>&2`);
-
-  // console.log("138, configInfo:", configInfo);
+  execSync(`npm version ${version}`, {
+    stdio: "inherit",
+  });
 
   try {
     if (mode === PublishModeEnum.NPM) {
       const { tag } = npmInfo;
-      execSync(`npm publish --tag ${tag} 1>&2`);
+      execSync(`npm publish --tag ${tag}`, {
+        stdio: "inherit",
+      });
     } else if (mode === PublishModeEnum.WEB) {
       const { webBuild } = configInfo;
       if (webBuild) {
-        execSync(`${webBuild} 1>&2`);
+        execSync(`${webBuild}`, {
+          stdio: "inherit",
+        });
       } else {
         log.warn("webBuild为空，不执行web构建");
       }
@@ -293,9 +286,13 @@ export const handler = async (argv: CliHandlerArgv<Options>) => {
     try {
       log.info(`回滚本地版本到发布前的版本：${gitInfo.lastHash}`);
       const { lastHash } = gitInfo;
-      execSync(`git reset --hard ${lastHash} 1>&2`);
+      execSync(`git reset --hard ${lastHash}`, {
+        stdio: "inherit",
+      });
       log.info(`删除本次发布时生成的tag：v${npmInfo.version}`);
-      execSync(`git tag -d v${npmInfo.version} 1>&2`);
+      execSync(`git tag -d v${npmInfo.version}`, {
+        stdio: "inherit",
+      });
     } catch (error: any) {
       log.error(`回滚失败, error: ${error.message}`);
     }
@@ -304,8 +301,12 @@ export const handler = async (argv: CliHandlerArgv<Options>) => {
 
   // 是否推送到远程仓库
   if (push) {
-    execSync(`git push ${configInfo.gitOriginName} v${npmInfo.version} 1>&2`);
-    execSync(`git push ${configInfo.gitOriginName} ${gitInfo.branchName} 1>&2`);
+    execSync(`git push ${configInfo.gitOriginName} v${npmInfo.version}`, {
+      stdio: "inherit",
+    });
+    execSync(`git push ${configInfo.gitOriginName} ${gitInfo.branchName}`, {
+      stdio: "inherit",
+    });
   }
 
   log.success(`发布成功，版本号：${version}`);

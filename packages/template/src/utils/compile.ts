@@ -361,8 +361,6 @@ export const batchCompileHandler = async (
     )[keyName];
   }
 
-  // console.log(140, collectEnvData);
-
   const list = listInit.map((item) => {
     /** 使用item的rollback，否则使用globalRollback */
     const { rollback = itemDefaultRollback } = item;

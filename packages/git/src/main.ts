@@ -1,4 +1,4 @@
-import { SubcommandEnum, GitPlatformEnum } from "@/utils";
+import { SubcommandEnum, getClonePositionals, getInitOptions } from "@/utils";
 import { handler } from "@/handler";
 import injectInfo from "@/injectInfo.json";
 import type { CliInfo, SubCliInfo } from "@done-coding/cli-utils";
@@ -14,21 +14,20 @@ const {
   cliConfig: { moduleName },
 } = injectInfo;
 
+const initCommandCliInfo: SubCliInfo = {
+  command: SubcommandEnum.INIT,
+  describe: "初始化git配置文件",
+  options: getInitOptions(),
+  handler: _curry(handler)(
+    SubcommandEnum.INIT,
+  ) as unknown as CliInfo["handler"],
+};
+
 /** clone cli信息 */
 const cloneCommandCliInfo: SubCliInfo = {
   command: `${SubcommandEnum.CLONE} <platform> <username>`,
   describe: "从选择的git平台克隆代码",
-  positionals: {
-    platform: {
-      describe: "选择git平台",
-      type: "string",
-      choices: [GitPlatformEnum.GITHUB, GitPlatformEnum.GITEE],
-    },
-    username: {
-      describe: "git平台用户名",
-      type: "string",
-    },
-  },
+  positionals: getClonePositionals(),
   handler: _curry(handler)(
     SubcommandEnum.CLONE,
   ) as unknown as CliInfo["handler"],
@@ -37,7 +36,7 @@ const cloneCommandCliInfo: SubCliInfo = {
 const commandCliInfo: Omit<CliInfo, "usage"> = {
   describe,
   version,
-  subcommands: [cloneCommandCliInfo].map(createSubcommand),
+  subcommands: [initCommandCliInfo, cloneCommandCliInfo].map(createSubcommand),
   demandCommandCount: 1,
 };
 

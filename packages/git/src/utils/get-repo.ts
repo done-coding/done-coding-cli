@@ -1,43 +1,25 @@
-import { GitPlatformEnum, type Options } from "./types";
+import { GitPlatformEnum, type GitParamsInfo } from "./types";
 import { getGiteeUserAllRepos, getGiteeUserPublicRepos } from "@/api/gitee";
-import { getGithubUserPublicRepos } from "@/api/github";
+import { getGithubUserAllRepos, getGithubUserPublicRepos } from "@/api/github";
 import { getGitConfigInfo } from "./config";
 import { log, xPrompts } from "@done-coding/cli-utils";
+import { gitUsernameForm, platformForm } from "./question";
 
 /** 获取目标仓库地址 */
 export const getTargetRepoUrl = async ({
   platform: platformInit,
   username: usernameInit,
-}: Partial<Options> = {}) => {
-  const options: Options = {
+}: Partial<GitParamsInfo> = {}) => {
+  const options: GitParamsInfo = {
     platform: platformInit!,
     username: usernameInit!,
   };
   if (!platformInit) {
-    /** git平台选择 */
-    const gitPlatformChoices = [
-      { title: "GitHub", value: GitPlatformEnum.GITHUB },
-      { title: "Gitee", value: GitPlatformEnum.GITEE },
-    ];
-    options.platform = (
-      await xPrompts({
-        type: "select",
-        name: "platform",
-        message: "选择git平台",
-        choices: gitPlatformChoices,
-      })
-    ).platform as GitPlatformEnum;
+    options.platform = (await xPrompts(platformForm))
+      .platform as GitPlatformEnum;
   }
   if (!usernameInit) {
-    options.username = (
-      await xPrompts({
-        type: "text",
-        name: "username",
-        message: "请输入用户名",
-        format: (value) => value.trim(),
-        validate: (value) => value.length > 0 || "用户名不能为空",
-      })
-    ).username;
+    options.username = (await xPrompts(gitUsernameForm)).username;
   }
 
   const { platform, username } = options;
@@ -50,7 +32,7 @@ export const getTargetRepoUrl = async ({
   }[] = [];
 
   const gitInfo = getGitConfigInfo({
-    secretKey: username,
+    username,
     platform,
   });
 
@@ -64,7 +46,11 @@ export const getTargetRepoUrl = async ({
   };
   switch (options.platform) {
     case GitPlatformEnum.GITHUB: {
-      repos = (await getGithubUserPublicRepos(params)).data.map((item) => {
+      repos = (
+        await (params.accessToken
+          ? getGithubUserAllRepos
+          : getGithubUserPublicRepos)(params)
+      ).data.map((item) => {
         return {
           name: item.name,
           httpUrl: item.clone_url,
@@ -96,7 +82,6 @@ export const getTargetRepoUrl = async ({
   }
 
   log.success(`获取${username}的${platform}仓库列表成功`);
-  // console.log(repos.map((item) => item.name));
 
   if (repos.length === 0) {
     log.warn(`${username} 可获取${platform}仓库列表为空`);

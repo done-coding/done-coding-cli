@@ -2,7 +2,7 @@ import { createRequest } from "@done-coding/request-axios";
 import axios from "axios";
 
 /** 超时时间 */
-const TIMEOUT = 10000;
+const TIMEOUT = 30000;
 
 /** 业务成功代码 */
 const BUSINESS_SUCCESS_CODE = Math.random();

@@ -1,5 +1,17 @@
 import { giteeRequest } from "./_request";
 
+/** 获取 gitee 仓库信息 */
+export interface GiteeRepoInfo {
+  /** 仓库名 */
+  name: string;
+  /** ssh */
+  ssh_url: string;
+  /** https */
+  html_url: string;
+  /** 描述 */
+  description?: string | null;
+}
+
 /** 获取 gitee 用户公开的仓库列表 */
 export const getGiteeUserPublicRepos = ({
   username,
@@ -7,18 +19,7 @@ export const getGiteeUserPublicRepos = ({
   username: string;
   accessToken?: string;
 }) => {
-  return giteeRequest<
-    {
-      /** 仓库名 */
-      name: string;
-      /** ssh */
-      ssh_url: string;
-      /** https */
-      html_url: string;
-      /** 描述 */
-      description?: string | null;
-    }[]
-  >({
+  return giteeRequest<GiteeRepoInfo[]>({
     url: `/api/v5/users/${username}/repos`,
     method: "GET",
   });
@@ -31,18 +32,7 @@ export const getGiteeUserAllRepos = ({
   username: string;
   accessToken?: string;
 }) => {
-  return giteeRequest<
-    {
-      /** 仓库名 */
-      name: string;
-      /** ssh */
-      ssh_url: string;
-      /** https */
-      html_url: string;
-      /** 描述 */
-      description?: string | null;
-    }[]
-  >({
+  return giteeRequest<GiteeRepoInfo[]>({
     url: `/api/v5/user/repos`,
     method: "GET",
     params: {
