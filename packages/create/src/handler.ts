@@ -21,10 +21,11 @@ import {
 } from "@done-coding/cli-template";
 import { log, lookForParentTarget, xPrompts } from "@done-coding/cli-utils";
 import { getTargetRepoUrl } from "@done-coding/cli-git";
+import { cloneDoneCodingSeries } from "@done-coding/cli-git/helpers";
 
 // eslint-disable-next-line complexity
 export const handler = async (argv: CliHandlerArgv<Options>) => {
-  const { projectName: projectNameInit } = argv;
+  const { projectName: projectNameInit, justCloneFromDoneCoding = true } = argv;
   const projectNameNoTrim =
     projectNameInit ?? (await xPrompts(projectNameForm)).projectName;
 
@@ -54,6 +55,12 @@ export const handler = async (argv: CliHandlerArgv<Options>) => {
       log.error(`项目${projectName}已存在`);
       return process.exit(1);
     }
+  }
+
+  if (justCloneFromDoneCoding) {
+    log.info(`仅仅(从done-coding系列项目列表中)克隆远程仓库`);
+    await cloneDoneCodingSeries(projectName);
+    return;
   }
 
   const { template } = await xPrompts(await getTemplateForm());

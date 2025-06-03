@@ -12,6 +12,14 @@ const {
 const commandCliInfo: Omit<CliInfo, "usage"> = {
   describe,
   version,
+  options: {
+    justCloneFromDoneCoding: {
+      alias: "c",
+      type: "boolean",
+      describe: "是否仅仅(从done-coding系列项目列表中)克隆远程仓库",
+      default: false,
+    },
+  },
   positionals: {
     projectName: {
       describe: "项目名称",
