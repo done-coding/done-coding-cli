@@ -1,15 +1,22 @@
 import path from "node:path";
 import fs from "node:fs";
+// import { log } from "./log";
 
 /**
  * 查找目标文件或目录
- * @param target 目标文件或目录
- * @param currentDir 当前目录
- * @returns 目标文件或目录路径
  */
 export const lookForParentTarget = (
+  /** 目标文件或目录 */
   target: string,
-  currentDir: string = process.cwd(),
+  {
+    /** 当前目录 */
+    currentDir = process.cwd(),
+    /** 优先找最远的父目录 */
+    isFindFarthest = true,
+  }: {
+    currentDir?: string;
+    isFindFarthest?: boolean;
+  } = {},
 ): string | undefined => {
   const dirList = path
     .resolve(currentDir)
@@ -23,10 +30,13 @@ export const lookForParentTarget = (
     });
 
   while (dirList.length) {
-    const dir = dirList.pop()!;
+    const dir = isFindFarthest ? dirList.shift()! : dirList.pop()!;
     const currentNamespaceDir = path.join(dir, target);
     if (fs.existsSync(currentNamespaceDir)) {
+      // log.info(`${currentNamespaceDir}存在`);
       return dir;
+      // } else {
+      // log.info(`${currentNamespaceDir}不存在`)
     }
   }
 
