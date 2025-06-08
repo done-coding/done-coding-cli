@@ -6,6 +6,9 @@ import {
 } from "@/types";
 
 const config: EnginConfig = {
+  [EnginConfigKeyEnum.SCRIPTS]: {
+    prepare: "husky install",
+  },
   [EnginConfigKeyEnum.DEV_DEPENDENCIES]: {
     "@commitlint/cli": "^16.3.0",
     "@commitlint/config-conventional": "^16.2.4",

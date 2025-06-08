@@ -33,12 +33,21 @@ export enum LintStagedKeyEnum {
 
 /** 工程化配置 key */
 export enum EnginConfigKeyEnum {
+  SCRIPTS = "scripts",
   DEV_DEPENDENCIES = "devDependencies",
   LINT_STAGED = "lint-staged",
 }
 
+/** 工程化配置 scripts key */
+export enum EnginConfigScriptsEnum {
+  PREPARE = "prepare",
+}
+
 /** 工程化配置 */
 export interface EnginConfig {
+  [EnginConfigKeyEnum.SCRIPTS]: {
+    [EnginConfigScriptsEnum.PREPARE]: string;
+  };
   [EnginConfigKeyEnum.DEV_DEPENDENCIES]: {
     "@commitlint/cli": string;
     "@commitlint/config-conventional": string;
@@ -59,8 +68,8 @@ export interface EnginConfig {
     [EnginPackageEnum.LINT_STAGED]: string;
   };
   [EnginConfigKeyEnum.LINT_STAGED]: {
-    [LintStagedKeyEnum.MONOREPO_LINT_STAGED]: ["ls-lint"];
-    [LintStagedKeyEnum.SINGLE_LINT_STAGED]: ["ls-lint"];
-    [LintStagedKeyEnum.FILE_LINT_STAGED]: ["eslint --fix", "prettier --write"];
+    [LintStagedKeyEnum.MONOREPO_LINT_STAGED]: string[];
+    [LintStagedKeyEnum.SINGLE_LINT_STAGED]: string[];
+    [LintStagedKeyEnum.FILE_LINT_STAGED]: string[];
   };
 }
