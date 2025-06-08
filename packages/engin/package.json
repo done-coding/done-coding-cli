@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-engin",
-  "version": "0.0.0",
+  "version": "0.1.0-alpha.0",
   "description": "项目工程化命令行工具",
   "private": false,
   "module": "es/index.mjs",
