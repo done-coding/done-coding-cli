@@ -1,0 +1,57 @@
+{
+  "name": "@done-coding/cli-engin",
+  "version": "0.0.0",
+  "description": "项目工程化命令行工具",
+  "private": false,
+  "module": "es/index.mjs",
+  "type": "module",
+  "types": "types/index.d.ts",
+  "bin": {
+    "dc-engin": "es/cli.mjs"
+  },
+  "exports": {
+    ".": {
+      "import": "./es/index.mjs"
+    }
+  },
+  "files": [
+    "es",
+    "lib",
+    "types"
+  ],
+  "scripts": {
+    "clean": "rimraf es lib types",
+    "predev": "pnpm run clean",
+    "dev": "vite build --watch",
+    "prebuild": "pnpm run clean",
+    "build": "vite build",
+    "prepack": "pnpm build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/justsosu/done-coding-cli.git",
+    "directory": "packages/engin"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "author": "JustSoSu",
+  "license": "MIT",
+  "sideEffects": false,
+  "devDependencies": {
+    "@done-coding/cli-inject": "workspace:^",
+    "@types/node": "^18.0.0",
+    "@types/yargs": "^17.0.28",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.2.2",
+    "vite": "^4.4.11",
+    "vite-plugin-dts": "^3.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@done-coding/cli-utils": "workspace:^"
+  }
+}
