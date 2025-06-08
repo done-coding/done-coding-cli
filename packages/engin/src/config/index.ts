@@ -16,7 +16,7 @@ const config: EnginConfig = {
     "eslint-config-alloy": "^5.1.2",
     "eslint-plugin-regexp": "^2.7.0",
     [EnginPackageEnum.HUSKY]: "^8.0.3",
-    [EnginPackageEnum.PRETTIER]: "^5.2.2",
+    [EnginPackageEnum.PRETTIER]: "^3.0.3",
     [EnginPackageEnum.LINT_STAGED]: "^12.5.0",
   },
   [EnginConfigKeyEnum.LINT_STAGED]: {

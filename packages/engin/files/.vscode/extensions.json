@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "Vue.volar",
+    "streetsidesoftware.code-spell-checker",
+    "editorconfig.editorconfig",
+    "esbenp.prettier-vscode",
+    "wayou.vscode-todo-highlight",
+    "dbaeumer.vscode-eslint",
+    "usernamehw.errorlens",
+    "shd101wyy.markdown-preview-enhanced"
+  ]
+}
