@@ -1,6 +1,7 @@
 import type { CliInfo } from "@done-coding/cli-utils";
 import {
   getConfigFileCommonOptions,
+  log,
   readConfigFile,
   type CliHandlerArgv,
   type SubCliInfo,
@@ -11,6 +12,7 @@ import { fileURLToPath } from "node:url";
 import { cpSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "@/utils";
+import configDefault from "@/config";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -25,20 +27,23 @@ export const addOptions = (): CliInfo["options"] => {
 
 /** 添加工程化配置命令处理器 */
 export const addHandler = async (argv: CliHandlerArgv<InitOptions>) => {
-  console.log(16, argv);
+  let config = await readConfigFile<EnginConfig>(argv);
+
+  if (!config) {
+    log.info("未找到工程化配置文件，使用默认配置");
+    config = configDefault;
+  }
 
   const {
     [EnginConfigKeyEnum.DEV_DEPENDENCIES]: devDependencies,
     [EnginConfigKeyEnum.LINT_STAGED]: lintStaged,
-  } = (await readConfigFile(argv)) as EnginConfig;
+  } = config;
 
   const { rootDir } = argv;
 
   const packagePath = path.resolve(rootDir, "package.json");
 
   const projectPackagesStr = readFileSync(packagePath, "utf-8");
-
-  console.log(16, projectPackagesStr);
 
   const projectPackages = JSON.parse(projectPackagesStr) as EnginConfig;
 
@@ -54,10 +59,13 @@ export const addHandler = async (argv: CliHandlerArgv<InitOptions>) => {
 
   writeFileSync(packagePath, JSON.stringify(projectPackages, null, 2));
 
+  log.success("工程化包添加成功");
+
   cpSync(path.join(__dirname, "../files"), rootDir, {
     recursive: true,
     force: true,
   });
+  log.success("工程化各包配置添加成功");
 };
 
 export const addCommandCliInfo: SubCliInfo = {

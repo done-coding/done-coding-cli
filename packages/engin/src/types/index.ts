@@ -15,8 +15,6 @@ export type InitOptions = InitConfigFileOptions;
 
 export interface AddOptions extends ReadConfigFileOptions {}
 
-export interface UpdateOptions extends ReadConfigFileOptions {}
-
 /** 工程化包枚举 */
 export enum EnginPackageEnum {
   LS_LINT = "@ls-lint/ls-lint",
