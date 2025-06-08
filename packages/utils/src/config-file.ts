@@ -34,7 +34,7 @@ export const getRootDirOptions = (
     /** 必须保留 */
     rootDir: {
       type: "string",
-      alias: "r",
+      alias: "R",
       describe: "运行目录",
       /** 必须设置默认值 */
       default: rootDirDefault,
@@ -56,7 +56,7 @@ export const getConfigFileCommonOptions = ({
     /** 必须保留 */
     configPath: {
       type: "string",
-      alias: "c",
+      alias: "C",
       describe: "配置文件相对路径",
       /** 必须设置默认值 */
       default: configPathDefault,
