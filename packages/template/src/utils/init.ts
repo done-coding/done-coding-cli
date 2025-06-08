@@ -96,6 +96,7 @@ export const initHandler = async (argv: CliHandlerArgv<InitOptions>) => {
   const content = await getContent(useDefaultConfig);
 
   await initHandlerCommon(content, argv, {
+    edit: true,
     onFileGenerated(filePath) {
       if (!useDefaultConfig) {
         log.success(`配置文件已生成：${filePath}

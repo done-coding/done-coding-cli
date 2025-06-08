@@ -15,6 +15,7 @@
     }
   },
   "files": [
+    "files",
     "es",
     "lib",
     "types"

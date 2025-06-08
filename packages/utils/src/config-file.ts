@@ -96,15 +96,19 @@ export const initHandlerCommon = async <T>(
   argv: CliHandlerArgv<InitConfigFileOptions>,
   {
     onFileGenerated,
+    edit = false,
   }: {
     /** 文件已生成 */
     onFileGenerated?: (path: string) => void;
+    edit?: boolean;
   } = {},
 ) => {
   const configPathFinal = await initConfigFile(content, argv);
   onFileGenerated?.(configPathFinal);
-  const editorType = await getEditorType();
-  openFileInEditor(argv.configPath, editorType);
+  if (edit) {
+    const editorType = await getEditorType();
+    openFileInEditor(argv.configPath, editorType);
+  }
 };
 
 /** 读取配置文件 */

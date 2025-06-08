@@ -1,27 +1,34 @@
-import type { Options } from "@/types";
+import { SubcommandEnum } from "@/types";
+import type { CliInfo } from "@done-coding/cli-utils";
+import { createSubcommand, type CliHandlerArgv } from "@done-coding/cli-utils";
+import { initCommandCliInfo, initHandler } from "./init";
+import { addCommandCliInfo, addHandler } from "./add";
 import injectInfo from "@/injectInfo.json";
-import type { CliHandlerArgv, CliInfo } from "@done-coding/cli-utils";
+
+export { initHandler, initCommandCliInfo, addHandler, addCommandCliInfo };
+
+export const handler = async (
+  command: SubcommandEnum,
+  argv: CliHandlerArgv<any>,
+) => {
+  switch (command) {
+    case SubcommandEnum.INIT: {
+      return initHandler(argv);
+    }
+    case SubcommandEnum.ADD: {
+      return addHandler(argv);
+    }
+    default: {
+      throw new Error(`不支持的命令 ${command}`);
+    }
+  }
+};
 
 const { version, description: describe } = injectInfo;
-
-const getOptions = (): CliInfo["options"] => {
-  return {
-    xx: {
-      alias: "x",
-      describe: "模版测试",
-      type: "string",
-      demandOption: true,
-    },
-  };
-};
-
-export const handler = async (argv: CliHandlerArgv<Options>) => {
-  console.log(argv);
-};
 
 export const commandCliInfo: Omit<CliInfo, "usage"> = {
   describe,
   version,
-  options: getOptions(),
-  handler: handler as CliInfo["handler"],
+  subcommands: [initCommandCliInfo, addCommandCliInfo].map(createSubcommand),
+  demandCommandCount: 1,
 };
