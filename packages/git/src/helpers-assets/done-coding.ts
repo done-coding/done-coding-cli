@@ -7,7 +7,7 @@ import {
 import { xPrompts } from "@done-coding/cli-utils";
 
 /** 克隆done-coding系列项目 */
-export const cloneDoneCodingSeries = async (projectName: string) => {
+export const cloneDoneCodingSeries = async (projectName?: string) => {
   console.log("克隆done-coding系列项目");
 
   console.log("选择平台:");
