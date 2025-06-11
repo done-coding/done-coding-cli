@@ -228,7 +228,7 @@ importers:
   packages/extract:
     dependencies:
       "@done-coding/cli-template":
-        specifier: workspace:0.7.5
+        specifier: workspace:0.7.6
         version: link:../template
       "@done-coding/cli-utils":
         specifier: workspace:^
