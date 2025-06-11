@@ -117,7 +117,7 @@ export const handler = async (argv: CliHandlerArgv<Options>) => {
         $projectName: projectName,
       },
     });
-    rmSync(configPath, { force: true });
+    rmSync(configPathFinal, { force: true });
 
     log.stage("模板项目配置注入成功, 模版项目配置文件已删除");
   }
