@@ -22,9 +22,12 @@ import {
 import { log, lookForParentTarget, xPrompts } from "@done-coding/cli-utils";
 import { getTargetRepoUrl } from "@done-coding/cli-git";
 import { cloneDoneCodingSeries } from "@done-coding/cli-git/helpers";
+import injectInfo from "@/injectInfo.json";
 
 // eslint-disable-next-line complexity
 export const handler = async (argv: CliHandlerArgv<Options>) => {
+  log.info(`版本: ${injectInfo.version}`);
+
   const { projectName: projectNameInit, justCloneFromDoneCoding = true } = argv;
 
   if (justCloneFromDoneCoding) {
