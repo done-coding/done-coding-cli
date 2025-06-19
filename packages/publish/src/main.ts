@@ -1,51 +1,11 @@
-import { handler } from "@/handler";
+import { commandCliInfo } from "@/handlers";
 import injectInfo from "@/injectInfo.json";
-import type { CliInfo, SubCliInfo } from "@done-coding/cli-utils";
+import type { SubCliInfo } from "@done-coding/cli-utils";
 import { createMainCommand, createSubcommand } from "@done-coding/cli-utils";
-import { PublishModeEnum, PublishVersionTypeEnum } from "@/utils";
 
 const {
-  version,
-  description: describe,
   cliConfig: { moduleName },
 } = injectInfo;
-
-const getOptions = (): CliInfo["options"] => {
-  return {
-    mode: {
-      alias: "m",
-      describe: "发布模式",
-      choices: [PublishModeEnum.NPM, PublishModeEnum.WEB],
-      default: PublishModeEnum.NPM,
-    },
-    type: {
-      alias: "t",
-      describe: "发布类型",
-      choices: [
-        PublishVersionTypeEnum.MAJOR,
-        PublishVersionTypeEnum.MINOR,
-        PublishVersionTypeEnum.PATCH,
-        PublishVersionTypeEnum.PREMAJOR,
-        PublishVersionTypeEnum.PREMINOR,
-        PublishVersionTypeEnum.PREPATCH,
-        PublishVersionTypeEnum.PRERELEASE,
-      ],
-    },
-    push: {
-      alias: "p",
-      describe: "是否推送至远程仓库",
-      type: "boolean",
-      default: true,
-    },
-  };
-};
-
-const commandCliInfo: Omit<CliInfo, "usage"> = {
-  describe,
-  version,
-  options: getOptions(),
-  handler: handler as CliInfo["handler"],
-};
 
 /** 分发命令&步骤 */
 const dispatchCommandAndUsage = (asSubcommand = false) => {

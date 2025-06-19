@@ -1,31 +1,70 @@
 import {
-  type Options,
+  type ExecOptions,
   type GitInfo,
   type NpmInfo,
   type ConfigInfo,
   PublishModeEnum,
   PublishVersionTypeEnum,
   PublishTagEnum,
-} from "@/utils";
-import type { CliHandlerArgv } from "@done-coding/cli-utils";
+} from "@/types";
+import type {
+  CliHandlerArgv,
+  CliInfo,
+  PackageJson,
+  SubCliInfo,
+} from "@done-coding/cli-utils";
 import type { ReleaseType } from "semver";
 import { inc, prerelease } from "semver";
-import { join } from "node:path";
 import { execSync } from "node:child_process";
 import pinyin from "pinyin";
-import { readFileSync, existsSync } from "node:fs";
-import { log, xPrompts } from "@done-coding/cli-utils";
+import {
+  getConfigFileCommonOptions,
+  getPackageJson,
+  log,
+  readConfigFile,
+  xPrompts,
+} from "@done-coding/cli-utils";
+import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "@/utils";
 
-const configPath = "/.dc/publish.json";
-
-const pkgPath = "/package.json";
+export const getExecOptions = (): CliInfo["options"] => {
+  return {
+    ...getConfigFileCommonOptions({
+      configPathDefault: MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
+    }),
+    mode: {
+      alias: "m",
+      describe: "发布模式",
+      choices: [PublishModeEnum.NPM, PublishModeEnum.WEB],
+      default: PublishModeEnum.NPM,
+    },
+    type: {
+      alias: "t",
+      describe: "发布类型",
+      choices: [
+        PublishVersionTypeEnum.MAJOR,
+        PublishVersionTypeEnum.MINOR,
+        PublishVersionTypeEnum.PATCH,
+        PublishVersionTypeEnum.PREMAJOR,
+        PublishVersionTypeEnum.PREMINOR,
+        PublishVersionTypeEnum.PREPATCH,
+        PublishVersionTypeEnum.PRERELEASE,
+      ],
+    },
+    push: {
+      alias: "p",
+      describe: "是否推送至远程仓库",
+      type: "boolean",
+      default: true,
+    },
+  };
+};
 
 export type ChildCmd = "npm" | "web";
 
 /**
  * 获取git信息
  */
-const getGitInfo = ({ gitOriginName = "origin" }: ConfigInfo): GitInfo => {
+const getGitInfo = ({ gitOriginName }: ConfigInfo): GitInfo => {
   try {
     const lastHash = execSync(`git rev-parse HEAD`).toString().trim();
     const lastCommitter = execSync('git log -1 --pretty=format:"%an"')
@@ -79,15 +118,22 @@ const getGitInfo = ({ gitOriginName = "origin" }: ConfigInfo): GitInfo => {
 /**
  * 获取npmInfo
  */
-const getNpmInfo = (
-  type: PublishVersionTypeEnum,
-  pkg = JSON.parse(readFileSync(join(process.cwd(), pkgPath), "utf-8")),
-): NpmInfo => {
-  let name = pkg.name;
+const getNpmInfo = ({
+  packageJson,
+  type,
+}: {
+  type: PublishVersionTypeEnum;
+  packageJson: PackageJson;
+}): NpmInfo => {
+  let name = packageJson.name;
   let version = "";
   let tag: NpmInfo["tag"];
 
-  const { version: currentVersion } = pkg;
+  const { version: currentVersion } = packageJson;
+
+  if (!currentVersion) {
+    throw new Error("当前版本号为空");
+  }
 
   if (
     [
@@ -140,71 +186,43 @@ const getNpmInfo = (
   };
 };
 
-/**
- * 获取配置信息
- */
-const getConfig = (): ConfigInfo => {
-  let cfg;
-  const path = join(process.cwd(), configPath);
-  if (existsSync(path)) {
-    const cfgStr = readFileSync(path, "utf-8");
-    cfg = JSON.parse(cfgStr);
-  } else {
-    log.warn(`未找到配置文件，将使用默认配置
-      { gitOriginName: "origin" }
-    `);
-  }
-  return {
-    gitOriginName: "origin",
-    ...(cfg || {}),
-  };
-};
+export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
+  const { mode, type: typeInit, push, rootDir } = argv;
 
-export const handler = async (argv: CliHandlerArgv<Options>) => {
-  const { mode, type: typeInit, push } = argv;
-
-  const configInfo = getConfig();
+  const configInfo = await readConfigFile<ConfigInfo>(argv, () => {
+    return {
+      gitOriginName: "origin",
+    };
+  });
 
   const gitInfo = getGitInfo(configInfo);
+
+  const packageJson = getPackageJson({ rootDir });
 
   let type = typeInit;
   let npmInfo: NpmInfo;
   if (type) {
-    npmInfo = await getNpmInfo(type!);
+    npmInfo = await getNpmInfo({
+      packageJson,
+      type,
+    });
   } else {
-    const pkg = JSON.parse(readFileSync(join(process.cwd(), pkgPath), "utf-8"));
-    const versionMap: {
-      [key in PublishVersionTypeEnum]: NpmInfo;
-    } = {
-      [PublishVersionTypeEnum.MAJOR]: getNpmInfo(
-        PublishVersionTypeEnum.MAJOR,
-        pkg,
-      ),
-      [PublishVersionTypeEnum.MINOR]: getNpmInfo(
-        PublishVersionTypeEnum.MINOR,
-        pkg,
-      ),
-      [PublishVersionTypeEnum.PATCH]: getNpmInfo(
-        PublishVersionTypeEnum.PATCH,
-        pkg,
-      ),
-      [PublishVersionTypeEnum.PREMAJOR]: getNpmInfo(
-        PublishVersionTypeEnum.PREMAJOR,
-        pkg,
-      ),
-      [PublishVersionTypeEnum.PREMINOR]: getNpmInfo(
-        PublishVersionTypeEnum.PREMINOR,
-        pkg,
-      ),
-      [PublishVersionTypeEnum.PREPATCH]: getNpmInfo(
-        PublishVersionTypeEnum.PREPATCH,
-        pkg,
-      ),
-      [PublishVersionTypeEnum.PRERELEASE]: getNpmInfo(
-        PublishVersionTypeEnum.PRERELEASE,
-        pkg,
-      ),
-    };
+    const keys = Object.values(PublishVersionTypeEnum).filter(
+      (item) => item.toUpperCase() !== item,
+    ) as PublishVersionTypeEnum[];
+
+    const versionMap = keys.reduce(
+      (acc, type) => {
+        acc[type] = getNpmInfo({
+          packageJson,
+          type,
+        });
+        return acc;
+      },
+      {} as unknown as {
+        [key in PublishVersionTypeEnum]: NpmInfo;
+      },
+    );
     /** 版本选项 */
     const choices = [
       {
@@ -249,7 +267,7 @@ export const handler = async (argv: CliHandlerArgv<Options>) => {
       await xPrompts({
         type: "select",
         name: "type",
-        message: `请选择发布类型，当前版本：${pkg.version}`,
+        message: `请选择发布类型，当前版本：${packageJson.version}`,
         choices,
       })
     ).type;
@@ -310,4 +328,11 @@ export const handler = async (argv: CliHandlerArgv<Options>) => {
   }
 
   log.success(`发布成功，版本号：${version}`);
+};
+
+export const execCommandCliInfo: SubCliInfo = {
+  command: `$0`,
+  describe: "执行发布命令",
+  options: getExecOptions(),
+  handler: execHandler as SubCliInfo["handler"],
 };

@@ -1,4 +1,70 @@
-import type { PublishTagEnum, PublishVersionTypeEnum } from "./enums";
+import type {
+  InitConfigFileOptions,
+  ReadConfigFileOptions,
+} from "@done-coding/cli-utils";
+
+/** 子命令枚举 */
+export enum SubcommandEnum {
+  /** 初始化发布配置文件 */
+  INIT = "init",
+  /** 发布执行 */
+  EXEC = "exec",
+}
+
+export type InitOptions = InitConfigFileOptions;
+
+/**
+ * 发布版本类型
+ */
+export enum PublishVersionTypeEnum {
+  /**
+   * 主版本号
+   */
+  MAJOR = "major",
+  /**
+   * 次版本号
+   */
+  MINOR = "minor",
+  /**
+   * 修订版本号
+   */
+  PATCH = "patch",
+  /**
+   * 预发布版本号
+   */
+  PREMAJOR = "premajor",
+  /**
+   * 预发布次版本号
+   */
+  PREMINOR = "preminor",
+  /**
+   * 预发布修订版本号
+   */
+  PREPATCH = "prepatch",
+  /**
+   * 预发布版本号
+   */
+  PRERELEASE = "prerelease",
+}
+
+/**
+ * 发布标签类型
+ */
+export enum PublishTagEnum {
+  /**
+   * 最新版本
+   */
+  LATEST = "latest",
+  /**
+   * next版本
+   */
+  NEXT = "next",
+  /**
+   * alpha版本
+   */
+  ALPHA = "alpha",
+}
+
 /**
  * git仓库信息
  */
@@ -70,7 +136,7 @@ export interface ConfigInfo {
   /**
    * web构建命令
    */
-  webBuild: string;
+  webBuild?: string;
   /**
    * git远程仓库名
    */
@@ -85,7 +151,7 @@ export enum PublishModeEnum {
   WEB = "web",
 }
 
-export interface Options {
+export interface ExecOptions extends ReadConfigFileOptions {
   /** 发布模式 */
   mode: PublishModeEnum;
   /**

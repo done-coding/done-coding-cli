@@ -1,0 +1,37 @@
+import { initHandler, initCommandCliInfo } from "./init";
+import { execHandler, execCommandCliInfo } from "./exec";
+import injectInfo from "@/injectInfo.json";
+import { SubcommandEnum } from "@/types";
+import {
+  createSubcommand,
+  type CliHandlerArgv,
+  type CliInfo,
+} from "@done-coding/cli-utils";
+
+export { initHandler, initCommandCliInfo, execHandler, execCommandCliInfo };
+
+export const handler = async (
+  command: SubcommandEnum,
+  argv: CliHandlerArgv<any>,
+) => {
+  switch (command) {
+    case SubcommandEnum.INIT: {
+      return initHandler(argv);
+    }
+    case SubcommandEnum.EXEC: {
+      return execHandler(argv);
+    }
+    default: {
+      throw new Error(`不支持的命令 ${command}`);
+    }
+  }
+};
+
+const { version, description: describe } = injectInfo;
+
+export const commandCliInfo: Omit<CliInfo, "usage"> = {
+  describe,
+  version,
+  subcommands: [initCommandCliInfo, execCommandCliInfo].map(createSubcommand),
+  demandCommandCount: 1,
+};
