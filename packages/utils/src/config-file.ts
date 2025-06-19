@@ -113,13 +113,19 @@ export const initHandlerCommon = async <T>(
 
 /** 读取配置文件 */
 export const readConfigFile = async <T>(
-  argv: CliHandlerArgv<ReadConfigFileOptions>,
-): Promise<T | undefined> => {
-  const { configPath, rootDir } = argv;
+  options: ReadConfigFileOptions,
+  onNotExists?: () => T,
+): Promise<T> => {
+  const { configPath, rootDir } = options;
   const configPathFinal = path.resolve(rootDir, configPath);
+
   if (!existsSync(configPathFinal)) {
-    log.warn(`配置文件不存在 ${configPathFinal}`);
-    return undefined;
+    if (onNotExists) {
+      log.info(`配置文件不存在，使用onNotExists返回值`);
+      return onNotExists();
+    }
+    const errorMsg = `配置文件不存在 ${configPathFinal}`;
+    throw new Error(errorMsg);
   }
   if (configPathFinal.endsWith(".json5")) {
     log.info(`json5模式解析 ${configPathFinal}`);
