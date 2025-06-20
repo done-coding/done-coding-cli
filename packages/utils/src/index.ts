@@ -8,3 +8,4 @@ export * from "./config-file";
 export * from "./json5";
 export * from "./lodash";
 export * from "./package-json";
+export * from "./git";
