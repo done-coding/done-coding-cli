@@ -9,3 +9,6 @@ export * from "./json5";
 export * from "./lodash";
 export * from "./package-json";
 export * from "./git";
+export * from "./husky";
+export * from "./file-operate";
+export * from "./cli-config";

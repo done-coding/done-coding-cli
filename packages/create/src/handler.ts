@@ -4,7 +4,6 @@ import {
   saveGitHistoryForm,
   getTemplateChoices,
   getTemplateForm,
-  type Options,
   SOMEONE_PUBLIC_REPO_NAME,
   customUrlForm,
   getGitCommitMessageForm,
@@ -23,6 +22,7 @@ import { log, lookForParentTarget, xPrompts } from "@done-coding/cli-utils";
 import { getTargetRepoUrl } from "@done-coding/cli-git";
 import { cloneDoneCodingSeries } from "@done-coding/cli-git/helpers";
 import injectInfo from "@/injectInfo.json";
+import type { Options } from "./types";
 
 // eslint-disable-next-line complexity
 export const handler = async (argv: CliHandlerArgv<Options>) => {

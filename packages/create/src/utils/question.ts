@@ -1,27 +1,23 @@
-import type { PromptObject } from "@done-coding/cli-utils";
+import { log, readCliConfig, type PromptObject } from "@done-coding/cli-utils";
 import { CUSTOM_TEMPLATE_NAME, SOMEONE_PUBLIC_REPO_NAME } from "./const";
-import { readConfig } from "./readConfig";
+import type { CreateConfigJson, CreateTemplateChoiceItem } from "@/types";
+import injectInfo from "@/injectInfo.json";
 
-/** 模版选项 */
-export interface TemplateChoiceItem {
-  /** 模板名 */
-  name: string;
-  /** 仓库地址 */
-  url?: string;
-  /** 描述 */
-  description?: string;
-  /** 目标分支 */
-  branch?: string;
-  /** 应用实例 */
-  instances?: string[];
-}
-
-let templateList: TemplateChoiceItem[];
+let templateList: CreateTemplateChoiceItem[];
 
 /** 获取模版选项 */
 export const getTemplateList = async () => {
   if (!templateList) {
-    const config = await readConfig();
+    const config = await readCliConfig<CreateConfigJson>({
+      moduleName: injectInfo.cliConfig.moduleName,
+      onSuccess({ config, cliConfigFileRelativePath, repoUrl }) {
+        if (!Array.isArray(config.templateList)) {
+          const errorMsg = `远程配置文件出错, templateList 不是数组, 请检查 ${repoUrl} ${cliConfigFileRelativePath}`;
+          throw new Error(errorMsg);
+        }
+        log.success(`模板列表拉取成功！`);
+      },
+    });
     templateList = config.templateList;
   }
   return templateList;
