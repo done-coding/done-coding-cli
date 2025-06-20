@@ -320,9 +320,6 @@ importers:
       "@done-coding/cli-utils":
         specifier: workspace:^
         version: link:../utils
-      pinyin:
-        specifier: ^2.11.2
-        version: 2.11.2(encoding@0.1.13)
       semver:
         specifier: ^7.5.4
         version: 7.5.4
@@ -333,9 +330,6 @@ importers:
       "@types/node":
         specifier: ^18.0.0
         version: 18.19.4
-      "@types/pinyin":
-        specifier: ^2.10.0
-        version: 2.10.2
       "@types/semver":
         specifier: ^7.5.3
         version: 7.5.3
@@ -412,6 +406,9 @@ importers:
       lodash.set:
         specifier: ^4.3.2
         version: 4.3.2
+      pinyin:
+        specifier: ^2.11.2
+        version: 2.11.2(encoding@0.1.13)
       prompts:
         specifier: ^2.4.2
         version: 2.4.2
@@ -434,6 +431,9 @@ importers:
       "@types/node":
         specifier: ^18.0.0
         version: 18.19.4
+      "@types/pinyin":
+        specifier: ^2.10.0
+        version: 2.10.2
       "@types/prompts":
         specifier: ^2.4.6
         version: 2.4.9
@@ -988,7 +988,6 @@ packages:
       {
         integrity: sha512-ekM12jNm/7O2I/hsRv9HvYkRdfrHpiV1epVuI2NP+eTIcEgdIdKkKCs9KgQydu/8R5YXTov9aHdOgplmCHLupw==,
       }
-    cpu: [x64, arm64, s390x]
     os: [darwin, linux, win32]
     hasBin: true
 

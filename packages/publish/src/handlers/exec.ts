@@ -1,11 +1,8 @@
+import type { ConfigInfo, ConfigInfoWeb, ExecOptions, NpmInfo } from "@/types";
 import {
-  type ExecOptions,
-  type GitInfo,
-  type NpmInfo,
-  type ConfigInfo,
   PublishModeEnum,
-  PublishVersionTypeEnum,
   PublishTagEnum,
+  PublishVersionTypeEnum,
 } from "@/types";
 import type {
   CliHandlerArgv,
@@ -13,17 +10,18 @@ import type {
   PackageJson,
   SubCliInfo,
 } from "@done-coding/cli-utils";
-import type { ReleaseType } from "semver";
-import { inc, prerelease } from "semver";
-import { execSync } from "node:child_process";
-import pinyin from "pinyin";
 import {
   getConfigFileCommonOptions,
+  getGitLastCommitInfo,
   getPackageJson,
   log,
+  pushGitPublishInfoToRemote,
   readConfigFile,
   xPrompts,
 } from "@done-coding/cli-utils";
+import { execSync } from "node:child_process";
+import type { ReleaseType } from "semver";
+import { inc, prerelease } from "semver";
 import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "@/utils";
 
 export const getExecOptions = (): CliInfo["options"] => {
@@ -57,62 +55,6 @@ export const getExecOptions = (): CliInfo["options"] => {
       default: true,
     },
   };
-};
-
-export type ChildCmd = "npm" | "web";
-
-/**
- * 获取git信息
- */
-const getGitInfo = ({ gitOriginName }: ConfigInfo): GitInfo => {
-  try {
-    const lastHash = execSync(`git rev-parse HEAD`).toString().trim();
-    const lastCommitter = execSync('git log -1 --pretty=format:"%an"')
-      .toString()
-      .trim();
-    const lastCommitEmail = execSync('git log -1 --pretty=format:"%ae"')
-      .toString()
-      .trim();
-    const lastCommitMsg = execSync('git log -1 --pretty=format:"%s"')
-      .toString()
-      .trim();
-    const userName = execSync("git config user.name").toString().trim();
-    const userEmail = execSync("git config user.email").toString().trim();
-    const branchName = execSync("git rev-parse --abbrev-ref HEAD")
-      .toString()
-      .trim();
-    let remoteUrl = "";
-    try {
-      remoteUrl = execSync(`git config --get remote.${gitOriginName}.url`)
-        .toString()
-        .trim();
-    } catch (e) {
-      // 如果git remote ${gitOriginName} 不存在，则可能会出现错误
-      throw new Error(`git remote ${gitOriginName} 不存在`);
-    }
-
-    return {
-      lastHash,
-      lastCommitter,
-      lastCommitterPinYin: pinyin(lastCommitter, {
-        style: pinyin.STYLE_NORMAL,
-        heteronym: false,
-      }).join(""),
-      lastCommitEmail,
-      lastCommitMsg,
-      userName,
-      userNamePinYin: pinyin(userName, {
-        style: pinyin.STYLE_NORMAL,
-        heteronym: false,
-      }).join(""),
-      userEmail,
-      branchName,
-      remoteUrl,
-    };
-  } catch (err) {
-    console.error("Error fetching git information:", err);
-    throw err;
-  }
 };
 
 /**
@@ -186,23 +128,16 @@ const getNpmInfo = ({
   };
 };
 
-export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
-  const { mode, type: typeInit, push, rootDir } = argv;
-
-  const configInfo = await readConfigFile<ConfigInfo>(argv, () => {
-    return {
-      gitOriginName: "origin",
-    };
-  });
-
-  const gitInfo = getGitInfo(configInfo);
-
-  const packageJson = getPackageJson({ rootDir });
-
-  let type = typeInit;
-  let npmInfo: NpmInfo;
+/** 分发npmInfo */
+const dispatchNpmInfo = async ({
+  type,
+  packageJson,
+}: {
+  type?: PublishVersionTypeEnum;
+  packageJson: PackageJson;
+}) => {
   if (type) {
-    npmInfo = await getNpmInfo({
+    return await getNpmInfo({
       packageJson,
       type,
     });
@@ -263,47 +198,73 @@ export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
       },
     ];
 
-    type = (
-      await xPrompts({
-        type: "select",
-        name: "type",
-        message: `请选择发布类型，当前版本：${packageJson.version}`,
-        choices,
-      })
-    ).type;
-    npmInfo = versionMap[type!];
+    const { type } = await xPrompts({
+      type: "select",
+      name: "type",
+      message: `请选择发布类型，当前版本：${packageJson.version}`,
+      choices,
+    });
+    return versionMap[type as PublishVersionTypeEnum];
   }
+};
+
+export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
+  const { mode, type, push, rootDir } = argv;
+
+  const configInfo = await readConfigFile<ConfigInfo>(argv, () => {
+    return {};
+  });
+
+  const modeConfigInfo = configInfo[mode];
+
+  const lastCommitInfo = await getGitLastCommitInfo(modeConfigInfo);
+
+  const packageJson = getPackageJson({ rootDir });
+
+  const npmInfo = await dispatchNpmInfo({
+    type,
+    packageJson,
+  });
 
   const { version } = npmInfo;
 
   execSync(`npm version ${version}`, {
+    cwd: rootDir,
     stdio: "inherit",
   });
 
+  const { tag } = npmInfo;
   try {
-    if (mode === PublishModeEnum.NPM) {
-      const { tag } = npmInfo;
-      execSync(`npm publish --tag ${tag}`, {
-        stdio: "inherit",
-      });
-    } else if (mode === PublishModeEnum.WEB) {
-      const { webBuild } = configInfo;
-      if (webBuild) {
-        execSync(`${webBuild}`, {
+    switch (mode) {
+      case PublishModeEnum.WEB: {
+        const { build } = modeConfigInfo as ConfigInfoWeb;
+        if (build) {
+          execSync(`${build}`, {
+            stdio: "inherit",
+            cwd: rootDir,
+          });
+        } else {
+          throw new Error("未配置build命令");
+        }
+        break;
+      }
+      case PublishModeEnum.NPM: {
+        execSync(`npm publish --tag ${tag}`, {
+          cwd: rootDir,
           stdio: "inherit",
         });
-      } else {
-        log.warn("webBuild为空，不执行web构建");
+        break;
       }
-    } else {
-      throw new Error("未知命令");
+      default: {
+        throw new Error(`未知发布模式：${mode}`);
+      }
     }
   } catch (error: any) {
     log.error(`发布失败, error: ${error.message}`);
 
     try {
-      log.info(`回滚本地版本到发布前的版本：${gitInfo.lastHash}`);
-      const { lastHash } = gitInfo;
+      log.info(`回滚本地版本到发布前的版本：${lastCommitInfo.lastHash}`);
+      const { lastHash } = lastCommitInfo;
       execSync(`git reset --hard ${lastHash}`, {
         stdio: "inherit",
       });
@@ -319,11 +280,10 @@ export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
 
   // 是否推送到远程仓库
   if (push) {
-    execSync(`git push ${configInfo.gitOriginName} v${npmInfo.version}`, {
-      stdio: "inherit",
-    });
-    execSync(`git push ${configInfo.gitOriginName} ${gitInfo.branchName}`, {
-      stdio: "inherit",
+    pushGitPublishInfoToRemote({
+      branchName: lastCommitInfo.branchName,
+      version: npmInfo.version,
+      remoteInfo: lastCommitInfo.remoteInfo,
     });
   }
 
