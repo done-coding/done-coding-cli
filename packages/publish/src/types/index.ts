@@ -10,6 +10,8 @@ export enum SubcommandEnum {
   INIT = "init",
   /** 发布执行 */
   EXEC = "exec",
+  /** 发布别名 */
+  ALIAS = "alias",
 }
 
 export type InitOptions = InitConfigFileOptions;
@@ -100,8 +102,14 @@ export interface ConfigInfoWeb extends GetGitLastCommitParams {
   build?: string;
 }
 
+/** 发布配置- npm模式-别名信息 */
+export interface ConfigInfoNpmAliasInfo {}
+
 /** 发布配置- npm模式 */
-export interface ConfigInfoNpm extends GetGitLastCommitParams {}
+export interface ConfigInfoNpm extends GetGitLastCommitParams {
+  /** 别名信息 */
+  aliasInfo?: ConfigInfoNpmAliasInfo[];
+}
 
 /**
  * 配置信息
@@ -123,3 +131,5 @@ export interface ExecOptions extends ReadConfigFileOptions {
   /** (发布成功后)是否推送至远程仓库 */
   push: boolean;
 }
+
+export interface AliasOptions extends ReadConfigFileOptions {}
