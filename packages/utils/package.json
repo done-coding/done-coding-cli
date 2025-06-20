@@ -40,10 +40,12 @@
     "@types/json5": "^2.2.0",
     "@types/lodash.curry": "^4.1.8",
     "@types/lodash.get": "^4.4.9",
+    "@types/lodash.merge": "^4.6.9",
     "@types/lodash.set": "^4.3.9",
     "@types/node": "^18.0.0",
     "@types/pinyin": "^2.10.0",
     "@types/prompts": "^2.4.6",
+    "@types/semver": "^7.5.3",
     "@types/yargs": "^17.0.28",
     "rimraf": "^6.0.1",
     "typescript": "^5.2.2",
@@ -58,9 +60,11 @@
     "json5": "^2.2.3",
     "lodash.curry": "^4.1.1",
     "lodash.get": "^4.4.2",
+    "lodash.merge": "^4.6.2",
     "lodash.set": "^4.3.2",
     "pinyin": "^2.11.2",
     "prompts": "^2.4.2",
+    "semver": "^7.5.4",
     "yargs": "^17.7.2"
   }
 }
