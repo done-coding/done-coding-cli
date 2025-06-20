@@ -228,7 +228,7 @@ importers:
   packages/extract:
     dependencies:
       "@done-coding/cli-template":
-        specifier: workspace:0.7.7-alpha.0
+        specifier: workspace:0.7.8-alpha.0
         version: link:../template
       "@done-coding/cli-utils":
         specifier: workspace:^
@@ -988,6 +988,7 @@ packages:
       {
         integrity: sha512-ekM12jNm/7O2I/hsRv9HvYkRdfrHpiV1epVuI2NP+eTIcEgdIdKkKCs9KgQydu/8R5YXTov9aHdOgplmCHLupw==,
       }
+    cpu: [x64, arm64, s390x]
     os: [darwin, linux, win32]
     hasBin: true
 
