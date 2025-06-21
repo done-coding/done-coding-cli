@@ -1,5 +1,5 @@
 import type { PromptObject } from "@done-coding/cli-utils";
-import { GitPlatformEnum } from "./types";
+import { GitPlatformEnum } from "@/types";
 
 /** git平台选择 */
 const gitPlatformChoices = [

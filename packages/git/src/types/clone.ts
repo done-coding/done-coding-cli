@@ -1,16 +1,3 @@
-import type { InitConfigFileOptions } from "@done-coding/cli-utils";
-
-/** 子命令枚举 */
-export enum SubcommandEnum {
-  /** 初始化配置文件 */
-  INIT = "init",
-  /** 克隆 */
-  CLONE = "clone",
-}
-
-/** 初始化选项 */
-export type InitOptions = Pick<InitConfigFileOptions, "rootDir">;
-
 /** Git 平台枚举 */
 export enum GitPlatformEnum {
   /** GitHub */

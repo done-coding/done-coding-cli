@@ -4,7 +4,7 @@ import {
   encryptAES,
   log,
 } from "@done-coding/cli-utils";
-import type { GitConfigInfo, GitParamsInfo, GitPlatformEnum } from "./types";
+import type { GitConfigInfo, GitParamsInfo, GitPlatformEnum } from "@/types";
 import fs from "node:fs";
 import path from "node:path";
 import { MODULE_CONFIG_RELATIVE_PATH } from "./path";

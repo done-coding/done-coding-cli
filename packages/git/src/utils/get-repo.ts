@@ -1,4 +1,4 @@
-import { GitPlatformEnum, type GitParamsInfo } from "./types";
+import { GitPlatformEnum, type GitParamsInfo } from "@/types";
 import { getGiteeUserAllRepos, getGiteeUserPublicRepos } from "@/api/gitee";
 import { getGithubUserAllRepos, getGithubUserPublicRepos } from "@/api/github";
 import { getGitConfigInfo } from "./config";

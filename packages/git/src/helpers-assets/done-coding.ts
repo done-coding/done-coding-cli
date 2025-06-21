@@ -1,9 +1,6 @@
-import {
-  cloneHandler,
-  GitPlatformEnum,
-  getGitUsernameForm,
-  getPlatformForm,
-} from "@/utils";
+import { cloneHandler } from "@/handlers";
+import { GitPlatformEnum } from "@/types";
+import { getGitUsernameForm, getPlatformForm } from "@/utils";
 import { xPrompts } from "@done-coding/cli-utils";
 
 /** 克隆done-coding系列项目 */
