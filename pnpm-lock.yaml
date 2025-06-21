@@ -317,6 +317,9 @@ importers:
 
   packages/publish:
     dependencies:
+      "@done-coding/cli-extract":
+        specifier: workspace:0.1.7-alpha.0
+        version: link:../extract
       "@done-coding/cli-utils":
         specifier: workspace:^
         version: link:../utils

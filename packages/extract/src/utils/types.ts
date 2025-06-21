@@ -5,6 +5,7 @@ import type {
 import type { CompileTemplateConfig } from "@done-coding/cli-template";
 import type {
   InjectKeyConfig,
+  InjectKeyConfigFixed,
   InjectKeyConfigReg,
 } from "@done-coding/cli-inject";
 
@@ -32,6 +33,8 @@ export enum ExtractTypeEnum {
    * 内部直接调用 @done-coding/cli-inject
    */
   JSON_INJECT = "json-inject",
+  /** 固定值 类型 */
+  FIXED = "fixed",
 }
 
 /** 初始化选项 */
@@ -56,10 +59,16 @@ export interface ExtractInputKeyConfigJsonInject
   inject: InjectKeyConfig;
 }
 
+/** 提取配置固定值 */
+export type ExtractInputKeyConfigFixed =
+  ExtractInputKeyConfigBase<ExtractTypeEnum.FIXED> &
+    Omit<InjectKeyConfigFixed, "type">;
+
 /** 提取配置 */
 export type ExtractInputKeyConfig =
   | ExtractInputKeyConfigReg
-  | ExtractInputKeyConfigJsonInject;
+  | ExtractInputKeyConfigJsonInject
+  | ExtractInputKeyConfigFixed;
 
 /** 提取输入配置 */
 export interface ExtractInputConfig {

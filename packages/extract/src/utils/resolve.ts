@@ -1,4 +1,7 @@
-import type { ExtractInputKeyConfigReg } from "./types";
+import type {
+  ExtractInputKeyConfigFixed,
+  ExtractInputKeyConfigReg,
+} from "./types";
 import { ExtractTypeEnum, type ExtractInputKeyConfig } from "./types";
 import path from "node:path";
 import fs from "node:fs";
@@ -70,6 +73,16 @@ export const keyConfigResolve = ({
         sourceJson: content,
         targetKey,
         keyConfig: keyConfig.inject,
+      });
+    }
+    case ExtractTypeEnum.FIXED: {
+      return injectKeyConfigResolve({
+        sourceJson: {},
+        targetKey,
+        keyConfig: {
+          ...(noTypeKeyConfig as Omit<ExtractInputKeyConfigFixed, "type">),
+          type: InjectTypeEnum.FIXED,
+        },
       });
     }
     default: {
