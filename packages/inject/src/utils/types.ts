@@ -80,7 +80,7 @@ export interface InjectKeyConfigRead
  */
 export type InjectKeyConfig =
   | InjectKeyConfigReg
-  | InjectKeyConfigFixed
+  | (InjectKeyConfigFixed | string)
   | InjectKeyConfigRead;
 
 /** @deprecated */
