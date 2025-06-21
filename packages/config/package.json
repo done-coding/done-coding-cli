@@ -1,29 +1,17 @@
 {
-  "name": "@done-coding/cli-extract",
-  "version": "0.1.8-alpha.0",
-  "description": "信息提取命令行工具",
+  "name": "@done-coding/cli-config",
+  "version": "0.0.0",
+  "description": "工程化配置命令行工具",
   "private": false,
   "module": "es/index.mjs",
   "type": "module",
   "types": "types/index.d.ts",
   "bin": {
-    "dc-extract": "es/cli.mjs"
+    "dc-config": "es/cli.mjs"
   },
   "exports": {
     ".": {
-      "import": "./es/index.mjs",
-      "types": "./types/index.d.ts"
-    },
-    "./helpers": {
-      "import": "./es/helpers.mjs",
-      "types": "./types/helpers.d.ts"
-    }
-  },
-  "typesVersions": {
-    "*": {
-      "helpers": [
-        "./types/helpers.d.ts"
-      ]
+      "import": "./es/index.mjs"
     }
   },
   "files": [
@@ -42,7 +30,7 @@
   "repository": {
     "type": "git",
     "url": "https://gitee.com/justsosu/done-coding-cli.git",
-    "directory": "packages/extract"
+    "directory": "packages/config"
   },
   "publishConfig": {
     "access": "public",
@@ -64,7 +52,6 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@done-coding/cli-template": "workspace:0.7.8-alpha.1",
     "@done-coding/cli-utils": "workspace:^"
   }
 }
