@@ -67,7 +67,11 @@ export interface InjectKeyConfigFixed
 }
 
 /** 注入配置-读取类型 */
-export type InjectKeyConfigRead = InjectKeyConfigBase<InjectTypeEnum.READ>;
+export interface InjectKeyConfigRead
+  extends InjectKeyConfigBase<InjectTypeEnum.READ> {
+  /** 源key */
+  sourceKey?: string;
+}
 
 /**
  * 注入配置
@@ -77,7 +81,6 @@ export type InjectKeyConfigRead = InjectKeyConfigBase<InjectTypeEnum.READ>;
 export type InjectKeyConfig =
   | InjectKeyConfigReg
   | InjectKeyConfigFixed
-  | string
   | InjectKeyConfigRead;
 
 /** @deprecated */

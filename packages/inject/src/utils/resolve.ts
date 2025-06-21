@@ -2,6 +2,7 @@ import { _get, log } from "@done-coding/cli-utils";
 import type {
   InjectKeyConfig,
   InjectKeyConfigFixed,
+  InjectKeyConfigRead,
   InjectKeyConfigReg,
 } from "./types";
 import { InjectTypeEnum } from "./types";
@@ -48,7 +49,8 @@ export const keyConfigResolve = ({
       return value;
     }
     case InjectTypeEnum.READ: {
-      return _get(sourceJson, targetKey);
+      const { sourceKey = targetKey } = keyConfig as InjectKeyConfigRead;
+      return _get(sourceJson, sourceKey);
     }
     default: {
       log.warn(`未知的配置类型${type}`);
