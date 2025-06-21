@@ -37,10 +37,6 @@
       "path": "packages/git"
     },
     {
-      "name": "engin",
-      "path": "packages/engin"
-    },
-    {
       "name": "cli",
       "path": "packages/cli"
     }

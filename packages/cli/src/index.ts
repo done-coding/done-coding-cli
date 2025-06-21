@@ -27,8 +27,3 @@ export {
   crateAsSubcommand as createComponentCommand,
   handler as componentHandler,
 } from "@done-coding/cli-component";
-
-export {
-  crateAsSubcommand as createEngineCommand,
-  handler as engineHandler,
-} from "@done-coding/cli-engin";
