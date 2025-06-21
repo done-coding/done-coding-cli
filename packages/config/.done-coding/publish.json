@@ -3,13 +3,6 @@
     "aliasInfo": [
       {
         "packageJson": {
-          "name": "dc-config",
-          "bin": "es/cli.mjs",
-          "scripts": {}
-        }
-      },
-      {
-        "packageJson": {
           "name": "done-coding-config",
           "bin": "es/cli.mjs",
           "scripts": {}
