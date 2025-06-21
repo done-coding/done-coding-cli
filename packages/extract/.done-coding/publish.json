@@ -8,6 +8,13 @@
           "bin": "es/cli.mjs",
           "scripts": {}
         }
+      },
+      {
+        "packageJson": {
+          "name": "done-coding-extract",
+          "bin": "es/cli.mjs",
+          "scripts": {}
+        }
       }
     ]
   }

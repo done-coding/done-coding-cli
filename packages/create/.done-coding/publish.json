@@ -8,6 +8,13 @@
           "bin": "es/cli.mjs",
           "scripts": {}
         }
+      },
+      {
+        "packageJson": {
+          "name": "done-coding-create",
+          "bin": "es/cli.mjs",
+          "scripts": {}
+        }
       }
     ]
   }
