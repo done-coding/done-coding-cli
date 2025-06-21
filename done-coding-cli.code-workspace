@@ -37,6 +37,10 @@
       "path": "packages/git"
     },
     {
+      "name": "config",
+      "path": "packages/config"
+    },
+    {
       "name": "cli",
       "path": "packages/cli"
     }
