@@ -82,10 +82,13 @@
       "GITEE",
       "kebabcase",
       "lowerfirst",
+      "LSLINT",
+      "MERGELINT",
       "preinstall",
       "PREMAJOR",
       "PREMINOR",
       "PREPATCH",
+      "Reflog",
       "unplugin",
       "upperfirst",
       "VITE"

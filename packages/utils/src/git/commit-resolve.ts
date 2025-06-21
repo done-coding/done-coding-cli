@@ -1,26 +1,45 @@
-import pinyin from "pinyin";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { getGitProjectDir } from "./base-info-resolve";
+import { HooksNameEnum } from "@/husky";
+import type { GitRemoteInfo } from "./remote-operate";
 import { execSync } from "node:child_process";
-import { log } from "./log";
+import { log } from "@/log";
+import pinyin from "pinyin";
 
-/** 获取git最好提交信息参数 */
-export interface GetGitLastCommitParams {
-  /**
-   * 远程仓库别名
-   */
-  remoteAlias?: string;
-}
+/** 支持通过提交钩子获取提交信息的 */
+export const SUPPORT_GET_COMMIT_BY_HOOKS_NAMES = [
+  // HooksNameEnum.PRE_MERGE_COMMIT,
+  HooksNameEnum.PREPARE_COMMIT_MSG,
+  HooksNameEnum.COMMIT_MSG,
+] as const;
 
-/** 远程仓库信息 */
-export interface GitRemoteInfo {
-  /**
-   * 远程仓库别名
-   */
-  alias?: GetGitLastCommitParams["remoteAlias"];
-  /**
-   * 仓库地址
-   */
-  url?: string;
-}
+// 获取数组中单项的联合类型
+export type SupportGetCommitByHookName =
+  (typeof SUPPORT_GET_COMMIT_BY_HOOKS_NAMES)[number];
+
+/** 根据hookName获取(将)提交的信息 */
+export const getCommitByHookName = ({
+  hookName,
+  rootDir,
+}: {
+  hookName: SupportGetCommitByHookName;
+  rootDir: string;
+}): string => {
+  const projectDir = getGitProjectDir(rootDir);
+  const gitDir = path.resolve(projectDir, ".git");
+  switch (hookName) {
+    case HooksNameEnum.PREPARE_COMMIT_MSG:
+    case HooksNameEnum.COMMIT_MSG: {
+      const filePath = path.resolve(gitDir, "MERGE_MSG");
+      if (existsSync(filePath)) {
+        return readFileSync(filePath, "utf-8");
+      }
+    }
+  }
+
+  return "";
+};
 
 /**
  * git最后提交信息
@@ -66,19 +85,13 @@ export interface GitLastCommitInfo {
   remoteInfo?: GitRemoteInfo;
 }
 
-/** 获取git项目目录 */
-export const getGitProjectDir = (rootDir: string) => {
-  const bufferRes = execSync("git rev-parse --show-toplevel", {
-    cwd: rootDir,
-  });
-  const strRes = bufferRes.toString();
-
-  if (!strRes) {
-    throw new Error("获取git根目录失败");
-  }
-
-  return strRes.trim();
-};
+/** 获取git最好提交信息参数 */
+export interface GetGitLastCommitParams {
+  /**
+   * 远程仓库别名
+   */
+  remoteAlias?: GitRemoteInfo["alias"];
+}
 
 /**
  * 获取git 最后提交信息
@@ -137,25 +150,5 @@ export const getGitLastCommitInfo = ({
   } catch (err) {
     log.error(`获取git最后提交信息失败`);
     throw err;
-  }
-};
-
-/** 推送git发布信息到远程仓库 */
-export const pushGitPublishInfoToRemote = ({
-  branchName,
-  version,
-  remoteInfo,
-}: {
-  branchName: string;
-  version: string;
-  remoteInfo?: GitRemoteInfo;
-}) => {
-  if (remoteInfo) {
-    execSync(`git push ${remoteInfo.alias} v${version}`, {
-      stdio: "inherit",
-    });
-    execSync(`git push ${remoteInfo.alias} ${branchName}`, {
-      stdio: "inherit",
-    });
   }
 };

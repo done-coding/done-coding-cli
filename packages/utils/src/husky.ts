@@ -4,6 +4,26 @@ import fs from "node:fs";
 import chalk from "chalk";
 import { getPackageJson, getRelyPkgVersion } from "./package-json";
 import semver from "semver";
+import { getGitProjectDir } from "./git";
+
+export enum HooksNameEnum {
+  /** 预提交 */
+  PRE_COMMIT = "pre-commit",
+  /** 预合并提交 */
+  PRE_MERGE_COMMIT = "pre-merge-commit",
+  /** 准备提交信息 */
+  PREPARE_COMMIT_MSG = "prepare-commit-msg",
+  /** 提交消息 */
+  COMMIT_MSG = "commit-msg",
+  /** 变基前 */
+  PRE_REBASE = "pre-rebase",
+  /** 提交后 */
+  POST_COMMIT = "post-commit",
+  /** 合并后 */
+  POST_MERGE = "post-merge",
+  /** 推送前 */
+  PRE_PUSH = "pre-push",
+}
 
 /** husky包名 */
 const HUSKY_PKG_NAME = "husky";
@@ -12,11 +32,8 @@ const HUSKY_PKG_NAME = "husky";
 const HUSKY_DIR = ".husky";
 
 /** 获取husky引导代码 */
-export const getHuskyBootCode = ({
-  projectRootDir,
-}: {
-  projectRootDir: string;
-}) => {
+const getHuskyBootCode = ({ rootDir }: { rootDir: string }) => {
+  const projectRootDir = getGitProjectDir(rootDir);
   const versionInit = getRelyPkgVersion({
     rootDir: projectRootDir,
     pkgJson: getPackageJson({ rootDir: projectRootDir }),
@@ -43,27 +60,24 @@ export const getHuskyBootCode = ({
 };
 
 /** 获取husky根目录 */
-export const getHuskyRootDir = ({
-  projectRootDir,
-}: {
-  projectRootDir: string;
-}) => {
+const getHuskyRootDir = ({ rootDir }: { rootDir: string }) => {
+  const projectRootDir = getGitProjectDir(rootDir);
   return path.resolve(projectRootDir, HUSKY_DIR);
 };
 
 /** 添加 husky hooks */
 export const addHuskyHooks = <H extends string>({
   hookNames,
-  projectRootDir,
+  rootDir,
   getCode,
 }: {
   hookNames: H[];
-  /** 项目根目录 */
-  projectRootDir: string;
+  /** 运行目录 */
+  rootDir: string;
   /** 获取husky hooks 添加的代码 */
   getCode: (hook: string) => string;
 }) => {
-  const huskyRootDir = getHuskyRootDir({ projectRootDir });
+  const huskyRootDir = getHuskyRootDir({ rootDir });
   if (!fs.existsSync(huskyRootDir)) {
     fs.mkdirSync(huskyRootDir, { recursive: true });
   }
@@ -91,7 +105,7 @@ ${code}
       }
     } else {
       const bootCode = getHuskyBootCode({
-        projectRootDir,
+        rootDir,
       });
       fs.writeFileSync(
         hooksFilePath,
