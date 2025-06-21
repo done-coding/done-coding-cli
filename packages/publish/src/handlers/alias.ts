@@ -7,12 +7,14 @@ import {
   log,
   readConfigFile,
 } from "@done-coding/cli-utils";
-import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "@/utils";
+import {
+  MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
+  PUBLISH_ALIAS_TEMP_DIR,
+} from "@/utils";
 import { v4 } from "uuid";
 import path from "node:path";
 import fs, { rmSync } from "node:fs";
 import { execSync } from "node:child_process";
-import { homedir } from "node:os";
 
 /** 获取别名发布选项 */
 export const getAliasOptions = () =>
@@ -45,10 +47,8 @@ export const aliasHandler = async (argv: CliHandlerArgv<AliasOptions>) => {
 
   const { name, version } = packageJson;
 
-  const nodeModulesDir = `${homedir()}/.DONE_CODING_CLI_PUBLISH_ALIAS`;
-
   // 构造新包的临时目录
-  const tempDir = path.resolve(nodeModulesDir, v4());
+  const tempDir = path.resolve(PUBLISH_ALIAS_TEMP_DIR, v4());
 
   fs.mkdirSync(tempDir, { recursive: true });
 

@@ -10,7 +10,7 @@ const CONFIG_GIT_REPO =
 
 /** 获取读取配置临时(git)目录 */
 const getReadConfigTemporaryDirectory = (moduleName: string) => {
-  return `./.DONE_CODING_CLI_CONFIG_TEMPORARY_DIRECTORY_FOR_${moduleName}`;
+  return `./.DONE_CODING_CLI/CONFIG_TEMP_DIR_FOR_${moduleName}`;
 };
 
 /** 获取模块 cli 配置目录相对路径 */

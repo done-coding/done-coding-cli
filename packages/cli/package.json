@@ -6,7 +6,9 @@
   "module": "es/cli.mjs",
   "type": "module",
   "types": "types/cli.d.ts",
-  "bin": "es/cli.mjs",
+  "bin": {
+    "done-coding": "es/cli.mjs"
+  },
   "exports": {
     ".": {
       "import": "./es/cli.mjs"
