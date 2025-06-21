@@ -1,0 +1,14 @@
+{
+  "web": {},
+  "npm": {
+    "aliasInfo": [
+      {
+        "packageJson": {
+          "name": "dc-extract",
+          "bin": "es/cli.mjs",
+          "scripts": {}
+        }
+      }
+    ]
+  }
+}

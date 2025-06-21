@@ -52,7 +52,7 @@ export const aliasHandler = async (argv: CliHandlerArgv<AliasOptions>) => {
 
   fs.mkdirSync(tempDir, { recursive: true });
 
-  execSync(`npm install ${name}@${version}`, {
+  execSync(`pnpm add ${name}@${version}`, {
     stdio: "inherit",
     cwd: tempDir,
   });
@@ -95,7 +95,7 @@ export const aliasHandler = async (argv: CliHandlerArgv<AliasOptions>) => {
       JSON.stringify(newPackageJson, null, 2),
     );
 
-    execSync(`npm publish --tag ${distTag}`, {
+    execSync(`pnpm publish --tag ${distTag}`, {
       stdio: "inherit",
       cwd: sourcePck,
     });
