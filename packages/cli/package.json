@@ -51,6 +51,7 @@
   },
   "dependencies": {
     "@done-coding/cli-component": "workspace:^",
+    "@done-coding/cli-config": "workspace:^",
     "@done-coding/cli-extract": "workspace:^",
     "@done-coding/cli-git": "workspace:^",
     "@done-coding/cli-inject": "workspace:^",

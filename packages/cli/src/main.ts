@@ -5,6 +5,7 @@ import { crateAsSubcommand as createCreateCommand } from "create-done-coding";
 import { crateAsSubcommand as createPublishCommand } from "@done-coding/cli-publish";
 import { crateAsSubcommand as createTemplateCommand } from "@done-coding/cli-template";
 import { crateAsSubcommand as createComponentCommand } from "@done-coding/cli-component";
+import { crateAsSubcommand as createConfigCommand } from "@done-coding/cli-config";
 
 import injectInfo from "@/injectInfo.json";
 import type { CliInfo } from "@done-coding/cli-utils";
@@ -24,6 +25,7 @@ const commandCliInfo: CliInfo = {
     createPublishCommand(),
     createTemplateCommand(),
     createComponentCommand(),
+    createConfigCommand(),
   ],
   demandCommandCount: 1,
 };

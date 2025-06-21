@@ -61,6 +61,9 @@ importers:
       "@done-coding/cli-component":
         specifier: workspace:^
         version: link:../component
+      "@done-coding/cli-config":
+        specifier: workspace:^
+        version: link:../config
       "@done-coding/cli-extract":
         specifier: workspace:^
         version: link:../extract
@@ -1003,6 +1006,7 @@ packages:
       {
         integrity: sha512-ekM12jNm/7O2I/hsRv9HvYkRdfrHpiV1epVuI2NP+eTIcEgdIdKkKCs9KgQydu/8R5YXTov9aHdOgplmCHLupw==,
       }
+    cpu: [x64, arm64, s390x]
     os: [darwin, linux, win32]
     hasBin: true
 
