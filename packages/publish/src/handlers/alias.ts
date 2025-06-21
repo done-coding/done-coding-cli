@@ -99,9 +99,8 @@ export const aliasHandler = async (argv: CliHandlerArgv<AliasOptions>) => {
       stdio: "inherit",
       cwd: sourcePck,
     });
-
-    rmSync(tempDir, { recursive: true, force: true });
   }
+  rmSync(tempDir, { recursive: true, force: true });
 };
 
 export const aliasCommandCliInfo: SubCliInfo = {
