@@ -20,13 +20,22 @@ export const getAliasOptions = () =>
     configPathDefault: MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
   });
 
+/** 获取别名发布信息列表 */
+export const getAliasInfoList = (configInfo: ConfigInfo) => {
+  const aliasInfoList = configInfo[PublishModeEnum.NPM]?.aliasInfo || [];
+  if (!aliasInfoList.length) {
+    return;
+  }
+  return aliasInfoList;
+};
+
 /** 别名发布命令处理器 */
 export const aliasHandler = async (argv: CliHandlerArgv<AliasOptions>) => {
   const configInfo = await readConfigFile<ConfigInfo>(argv, () => {
     return {};
   });
-  const aliasInfoList = configInfo[PublishModeEnum.NPM]?.aliasInfo || [];
-  if (!aliasInfoList.length) {
+  const aliasInfoList = getAliasInfoList(configInfo);
+  if (!aliasInfoList) {
     log.warn("没有配置别名发布信息");
     return;
   }

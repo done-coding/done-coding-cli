@@ -317,9 +317,6 @@ importers:
 
   packages/publish:
     dependencies:
-      "@done-coding/cli-extract":
-        specifier: workspace:0.1.7-alpha.0
-        version: link:../extract
       "@done-coding/cli-utils":
         specifier: workspace:^
         version: link:../utils
@@ -1009,7 +1006,6 @@ packages:
       {
         integrity: sha512-ekM12jNm/7O2I/hsRv9HvYkRdfrHpiV1epVuI2NP+eTIcEgdIdKkKCs9KgQydu/8R5YXTov9aHdOgplmCHLupw==,
       }
-    cpu: [x64, arm64, s390x]
     os: [darwin, linux, win32]
     hasBin: true
 

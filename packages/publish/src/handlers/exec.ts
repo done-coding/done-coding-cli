@@ -23,6 +23,7 @@ import { execSync } from "node:child_process";
 import type { ReleaseType } from "semver";
 import { inc, prerelease } from "semver";
 import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "@/utils";
+import { aliasHandler, getAliasInfoList } from "./alias";
 
 export const getExecOptions = (): CliInfo["options"] => {
   return {
@@ -288,6 +289,10 @@ export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
   }
 
   log.success(`发布成功，版本号：${version}`);
+
+  if (mode === PublishModeEnum.NPM && getAliasInfoList(configInfo)) {
+    aliasHandler(argv);
+  }
 };
 
 export const execCommandCliInfo: SubCliInfo = {
