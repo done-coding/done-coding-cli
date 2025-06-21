@@ -6,17 +6,19 @@ import _merge from "lodash.merge";
 const PACKAGE_JSON_PATH = "package.json";
 
 /** package.json文件内容 */
-export interface PackageInfo {
+export interface PackageJson {
   name: string;
   version?: string;
   bin?: Record<string, string> | string;
+  scripts?: Record<string, string>;
+  files?: string[];
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
   peerDependencies?: Record<string, string>;
 }
 
 /** 获取package.json文件内容 */
-export const getPackageJson = <R extends PackageInfo>({
+export const getPackageJson = <R extends PackageJson>({
   rootDir,
 }: {
   rootDir: string;
@@ -32,7 +34,7 @@ export const getPackageJson = <R extends PackageInfo>({
 };
 
 /** 获取依赖包版本 */
-export const getRelyPkgVersion = <R extends PackageInfo>({
+export const getRelyPkgVersion = <R extends PackageJson>({
   rootDir,
   pkgJson,
   pkgName,

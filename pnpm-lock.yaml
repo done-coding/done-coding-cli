@@ -323,6 +323,9 @@ importers:
       semver:
         specifier: ^7.5.4
         version: 7.5.4
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
     devDependencies:
       "@done-coding/cli-inject":
         specifier: workspace:^
@@ -333,6 +336,9 @@ importers:
       "@types/semver":
         specifier: ^7.5.3
         version: 7.5.3
+      "@types/uuid":
+        specifier: ^10.0.0
+        version: 10.0.0
       "@types/yargs":
         specifier: ^17.0.28
         version: 17.0.33
@@ -1709,6 +1715,12 @@ packages:
     resolution:
       {
         integrity: sha512-OxepLK9EuNEIPxWNME+C6WwbRAOOI2o2BaQEGzz5Lu2e4Z5eDnEo+/aVEDMIXywoJitJ7xWd641wrGLZdtwRyw==,
+      }
+
+  "@types/uuid@10.0.0":
+    resolution:
+      {
+        integrity: sha512-7gqG38EyHgyP1S+7+xomFtL+ZNHcKv6DwNaCZmJmo1vgMugyF3TCnXVg4t1uk89mLNwnLtnY3TpOpCOyp1/xHQ==,
       }
 
   "@types/yargs-parser@21.0.3":
@@ -6355,6 +6367,13 @@ packages:
         integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==,
       }
 
+  uuid@11.1.0:
+    resolution:
+      {
+        integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==,
+      }
+    hasBin: true
+
   uuid@9.0.1:
     resolution:
       {
@@ -7469,6 +7488,8 @@ snapshots:
       kleur: 3.0.3
 
   "@types/semver@7.5.3": {}
+
+  "@types/uuid@10.0.0": {}
 
   "@types/yargs-parser@21.0.3": {}
 
@@ -10400,6 +10421,8 @@ snapshots:
       punycode: 2.3.0
 
   util-deprecate@1.0.2: {}
+
+  uuid@11.1.0: {}
 
   uuid@9.0.1: {}
 

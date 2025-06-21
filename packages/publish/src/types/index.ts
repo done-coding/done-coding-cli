@@ -1,6 +1,7 @@
 import type {
   GetGitLastCommitParams,
   InitConfigFileOptions,
+  PackageJson,
   ReadConfigFileOptions,
 } from "@done-coding/cli-utils";
 
@@ -103,7 +104,11 @@ export interface ConfigInfoWeb extends GetGitLastCommitParams {
 }
 
 /** 发布配置- npm模式-别名信息 */
-export interface ConfigInfoNpmAliasInfo {}
+export interface ConfigInfoNpmAliasInfo {
+  packageJson: Partial<Omit<PackageJson, "name">> & {
+    name: string;
+  };
+}
 
 /** 发布配置- npm模式 */
 export interface ConfigInfoNpm extends GetGitLastCommitParams {
