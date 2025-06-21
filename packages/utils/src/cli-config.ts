@@ -2,7 +2,7 @@ import chalk from "chalk";
 import { execSync } from "node:child_process";
 import fs, { existsSync, rmSync } from "node:fs";
 import path from "node:path";
-import { homedir } from "node:os";
+import { tmpdir } from "node:os";
 
 /** cli 配置仓库地址 */
 const CONFIG_GIT_REPO =
@@ -47,7 +47,7 @@ export const readCliConfig = async <R>({
     getReadConfigTemporaryDirectory(moduleName);
 
   const configTemporaryDir = path.resolve(
-    homedir(),
+    tmpdir(),
     READ_CONFIG_TEMPORARY_DIRECTORY,
   );
 
