@@ -2,6 +2,7 @@
 /** 考虑本包会使用当前文件源码 避免不识别@ 此处用相对路径 */
 /** 考虑本包会使用当前文件源码 避免不识别@ 此处用相对路径 */
 
+import type { SubCliInfo } from "@done-coding/cli-utils";
 import {
   readConfigFile,
   getConfigFileCommonOptions,
@@ -10,15 +11,18 @@ import {
   log,
   _set,
 } from "@done-coding/cli-utils";
-import type { InjectConfig, GenerateOptions } from "./types";
-import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "./path";
 import path from "node:path";
 import fs from "node:fs";
-import { keyConfigResolve } from "./resolve";
-import configDefault from "../json/default";
+import {
+  keyConfigResolve,
+  MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
+} from "../utils";
+import configDefault from "../config";
+import type { GenerateOptions, InjectConfig } from "../types";
+import { SubcommandEnum } from "../types";
 
 /** 获取生成命令选项 */
-export const getGenerateOptions = (): CliInfo["options"] => {
+export const getOptions = (): CliInfo["options"] => {
   return {
     ...getConfigFileCommonOptions({
       configPathDefault: MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
@@ -99,9 +103,7 @@ export const generateFile = async ({
 };
 
 /** 提取文件命令处理器 */
-export const generateHandler = async (
-  argv: CliHandlerArgv<GenerateOptions>,
-) => {
+export const handler = async (argv: CliHandlerArgv<GenerateOptions>) => {
   const config = await readConfigFile<InjectConfig>(argv);
   if (!config) {
     log.error(`配置文件为空`);
@@ -111,4 +113,11 @@ export const generateHandler = async (
   const { rootDir } = argv;
 
   await generateFile({ rootDir, config });
+};
+
+export const commandCliInfo: SubCliInfo = {
+  command: SubcommandEnum.GENERATE,
+  describe: "生成文件",
+  options: getOptions(),
+  handler: handler as SubCliInfo["handler"],
 };

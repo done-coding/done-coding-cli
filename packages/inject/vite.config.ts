@@ -5,7 +5,7 @@ import dts from "vite-plugin-dts";
 import pkg from "./package.json";
 import { builtinModules } from "node:module";
 import { doneCodingCliConfig } from "./src/helpers-assets/done-coding";
-import { generateFile } from "./src/utils/generate";
+import { generateFile } from "./src/handlers/generate";
 
 const isPro = process.env.NODE_ENV === "production";
 

@@ -32,9 +32,10 @@
   ],
   "scripts": {
     "clean": "rimraf es lib types",
-    "predev": "pnpm run clean",
+    "local:init": "node ./scripts/local-init-inject.mjs",
+    "predev": "pnpm run clean && pnpm run local:init",
     "dev": "vite build --watch",
-    "prebuild": "pnpm run clean",
+    "prebuild": "pnpm run clean && pnpm run local:init",
     "build": "vite build",
     "prepack": "pnpm build"
   },
