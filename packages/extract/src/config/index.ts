@@ -1,4 +1,4 @@
-import { ExtractTypeEnum, type ExtractConfig } from "@/utils";
+import { ExtractTypeEnum, type ExtractConfig } from "@/types";
 import { InjectTypeEnum } from "@done-coding/cli-inject";
 import { OutputModeEnum } from "@done-coding/cli-template";
 
@@ -8,7 +8,7 @@ const inputData = {
   description: `\${description}`,
 };
 
-export const config: ExtractConfig = {
+const config: ExtractConfig = {
   extractInput: {
     "./package.json": {
       name: {
@@ -53,3 +53,5 @@ export const config: ExtractConfig = {
     ],
   },
 };
+
+export default config;
