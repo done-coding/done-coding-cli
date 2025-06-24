@@ -7,6 +7,8 @@
   "type": "module",
   "types": "types/cli.d.ts",
   "bin": {
+    "DC": "es/cli.mjs",
+    "dc-cli": "es/cli.mjs",
     "done-coding": "es/cli.mjs"
   },
   "exports": {
@@ -25,6 +27,7 @@
     "dev": "vite build --watch",
     "prebuild": "pnpm run clean",
     "build": "vite build",
+    "postinstall": "node es/postinstall.mjs",
     "prepack": "pnpm build"
   },
   "repository": {
