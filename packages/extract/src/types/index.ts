@@ -85,5 +85,15 @@ export interface ExtractConfig {
   extractOutput: CompileTemplateConfig;
 }
 
+/** 生成模式枚举 */
+export enum GenerateModeEnum {
+  /** 提取出结果 */
+  RESULT = "result",
+  /** 提取出模板 */
+  TEMPLATE = "template",
+}
 /** 生成选项 */
-export type GenerateOptions = ReadConfigFileOptions;
+export interface GenerateOptions extends ReadConfigFileOptions {
+  /** 生成模式 */
+  mode?: GenerateModeEnum;
+}

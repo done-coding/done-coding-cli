@@ -7,6 +7,7 @@ import {
   log,
 } from "@done-coding/cli-utils";
 import {
+  GenerateModeEnum,
   SubcommandEnum,
   type ExtractConfig,
   type GenerateOptions,
@@ -24,6 +25,13 @@ export const getOptions = (): CliInfo["options"] => {
     ...getConfigFileCommonOptions({
       configPathDefault: MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
     }),
+    mode: {
+      type: "string",
+      alias: "m",
+      choices: Object.values(GenerateModeEnum),
+      default: GenerateModeEnum.RESULT,
+      describe: "生成模式",
+    },
   };
 };
 
