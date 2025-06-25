@@ -50,6 +50,7 @@ export default defineConfig({
         "./src/**/*.json",
       ],
       outDir: "./types",
+      rollupTypes: true,
     }),
   ],
   resolve: {

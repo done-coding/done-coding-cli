@@ -48,7 +48,9 @@ export default defineConfig({
         "./src/**/*.d.ts",
         "./src/**/*.json",
       ],
+      exclude: ["./src/postinstall.ts"],
       outDir: "./types",
+      rollupTypes: true,
     }),
   ],
   resolve: {
