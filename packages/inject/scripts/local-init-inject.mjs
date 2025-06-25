@@ -1,8 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 
-console.log(4, 5, 6);
-
 /**
  * 初始化本包injectInfo.json文件
  * --

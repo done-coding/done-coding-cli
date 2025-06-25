@@ -18,6 +18,7 @@ import {
   MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
 } from "@/utils";
 import { batchCompileHandler } from "@done-coding/cli-template";
+import configDefault from "@/config";
 
 /** 获取生成命令选项 */
 export const getOptions = (): CliInfo["options"] => {
@@ -81,7 +82,10 @@ export const generateFile = async ({
 
 /** 提取文件命令处理器 */
 export const handler = async (argv: CliHandlerArgv<GenerateOptions>) => {
-  const config = await readConfigFile<ExtractConfig>(argv);
+  const config = await readConfigFile<ExtractConfig>(argv, () => {
+    log.info(`配置文件为空，使用默认配置`);
+    return configDefault;
+  });
   if (!config) {
     log.error(`配置文件为空`);
     return process.exit(1);

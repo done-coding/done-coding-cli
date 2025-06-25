@@ -104,7 +104,10 @@ export const generateFile = async ({
 
 /** 提取文件命令处理器 */
 export const handler = async (argv: CliHandlerArgv<GenerateOptions>) => {
-  const config = await readConfigFile<InjectConfig>(argv);
+  const config = await readConfigFile<InjectConfig>(argv, () => {
+    log.info(`配置文件为空，使用默认配置`);
+    return configDefault;
+  });
   if (!config) {
     log.error(`配置文件为空`);
     return process.exit(1);
