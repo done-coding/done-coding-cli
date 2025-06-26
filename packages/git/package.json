@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-git",
-  "version": "0.6.3-alpha.0",
+  "version": "0.6.3",
   "description": "git跨平台操作命令行工具",
   "private": false,
   "module": "es/index.mjs",
