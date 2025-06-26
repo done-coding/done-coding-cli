@@ -97,7 +97,7 @@ export interface GetGitLastCommitParams {
  * 获取git 最后提交信息
  */
 export const getGitLastCommitInfo = ({
-  remoteAlias,
+  remoteAlias = "origin",
 }: GetGitLastCommitParams = {}): GitLastCommitInfo => {
   try {
     const lastHash = execSync(`git rev-parse HEAD`).toString().trim();

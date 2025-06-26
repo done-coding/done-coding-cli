@@ -8,7 +8,6 @@ import {
 } from "@done-coding/cli-utils";
 import {
   GenerateModeEnum,
-  SubcommandEnum,
   type ExtractConfig,
   type GenerateOptions,
 } from "@/types";
@@ -97,7 +96,7 @@ export const handler = async (argv: CliHandlerArgv<GenerateOptions>) => {
 };
 
 export const commandCliInfo: SubCliInfo = {
-  command: SubcommandEnum.GENERATE,
+  command: "$0",
   describe: "生成文件",
   options: getOptions(),
   handler: handler as SubCliInfo["handler"],

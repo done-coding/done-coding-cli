@@ -19,7 +19,6 @@ import {
 } from "../utils";
 import configDefault from "../config";
 import type { GenerateOptions, InjectConfig } from "../types";
-import { SubcommandEnum } from "../types";
 
 /** 获取生成命令选项 */
 export const getOptions = (): CliInfo["options"] => {
@@ -119,7 +118,7 @@ export const handler = async (argv: CliHandlerArgv<GenerateOptions>) => {
 };
 
 export const commandCliInfo: SubCliInfo = {
-  command: SubcommandEnum.GENERATE,
+  command: "$0",
   describe: "生成文件",
   options: getOptions(),
   handler: handler as SubCliInfo["handler"],
