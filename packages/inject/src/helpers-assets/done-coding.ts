@@ -18,6 +18,9 @@ export const doneCodingCliConfig: InjectConfig = {
     description: {
       type: InjectTypeEnum.READ,
     },
+    bin: {
+      type: InjectTypeEnum.READ,
+    },
     "cliConfig.namespaceDir": {
       type: InjectTypeEnum.FIXED,
       value: ".done-coding",

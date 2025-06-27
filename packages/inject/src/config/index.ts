@@ -17,6 +17,9 @@ const config: InjectConfig = {
     description: {
       type: InjectTypeEnum.READ,
     },
+    bin: {
+      type: InjectTypeEnum.READ,
+    },
   },
   injectFilePath: "./src/injectInfo.json",
 };
