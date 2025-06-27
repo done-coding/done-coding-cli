@@ -1,33 +1,11 @@
-import { handler } from "@/handler";
+import { commandCliInfo } from "@/handlers";
 import injectInfo from "@/injectInfo.json";
-import type { CliInfo, SubCliInfo } from "@done-coding/cli-utils";
+import type { SubCliInfo } from "@done-coding/cli-utils";
 import { createMainCommand, createSubcommand } from "@done-coding/cli-utils";
 
 const {
-  version,
-  description: describe,
   cliConfig: { moduleName },
 } = injectInfo;
-
-const commandCliInfo: Omit<CliInfo, "usage"> = {
-  describe,
-  version,
-  options: {
-    justCloneFromDoneCoding: {
-      alias: "c",
-      type: "boolean",
-      describe: "是否仅仅(从done-coding系列项目列表中)克隆远程仓库",
-      default: false,
-    },
-  },
-  positionals: {
-    projectName: {
-      describe: "项目名称",
-      type: "string",
-    },
-  },
-  handler: handler as CliInfo["handler"],
-};
 
 /** 分发命令&步骤 */
 const dispatchCommandAndUsage = (asSubcommand = false) => {

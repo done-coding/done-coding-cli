@@ -8,7 +8,11 @@ import {
   customUrlForm,
   getGitCommitMessageForm,
 } from "@/utils";
-import type { CliHandlerArgv } from "@done-coding/cli-utils";
+import type {
+  CliHandlerArgv,
+  CliInfo,
+  SubCliInfo,
+} from "@done-coding/cli-utils";
 import { execSync } from "node:child_process";
 import { rmSync, existsSync } from "node:fs";
 import path, { resolve } from "node:path";
@@ -22,10 +26,30 @@ import { log, lookForParentTarget, xPrompts } from "@done-coding/cli-utils";
 import { getTargetRepoUrl } from "@done-coding/cli-git";
 import { cloneDoneCodingSeries } from "@done-coding/cli-git/helpers";
 import injectInfo from "@/injectInfo.json";
-import type { Options } from "./types";
+import type { CreateOptions } from "@/types";
+
+const getOptions = (): CliInfo["options"] => {
+  return {
+    justCloneFromDoneCoding: {
+      alias: "c",
+      type: "boolean",
+      describe: "是否仅仅(从done-coding系列项目列表中)克隆远程仓库",
+      default: false,
+    },
+  };
+};
+
+const getPositionals = (): CliInfo["positionals"] => {
+  return {
+    projectName: {
+      describe: "项目名称",
+      type: "string",
+    },
+  };
+};
 
 // eslint-disable-next-line complexity
-export const handler = async (argv: CliHandlerArgv<Options>) => {
+export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   log.info(`版本: ${injectInfo.version}`);
 
   const { projectName: projectNameInit, justCloneFromDoneCoding = true } = argv;
@@ -188,4 +212,12 @@ export const handler = async (argv: CliHandlerArgv<Options>) => {
   2. pnpm install
   3. pnpm run dev
   `);
+};
+
+export const commandCliInfo: SubCliInfo = {
+  command: `$0`,
+  describe: injectInfo.description,
+  options: getOptions(),
+  positionals: getPositionals(),
+  handler,
 };

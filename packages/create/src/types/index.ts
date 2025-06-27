@@ -1,4 +1,8 @@
-export interface Options {
+export enum SubcommandEnum {
+  CREATE = "create",
+}
+
+export interface CreateOptions {
   /** 项目名称 */
   projectName?: string;
   /** 是否仅仅(从done-coding系列项目列表中)克隆远程仓库 */
