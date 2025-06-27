@@ -5,6 +5,7 @@ import injectInfo from "@/injectInfo.json";
 import { SubcommandEnum } from "@/types";
 import {
   createSubcommand,
+  getRootScriptName,
   type CliHandlerArgv,
   type CliInfo,
 } from "@done-coding/cli-utils";
@@ -49,4 +50,5 @@ export const commandCliInfo: Omit<CliInfo, "usage"> = {
     aliasCommandCliInfo,
   ].map(createSubcommand),
   demandCommandCount: 1,
+  rootScriptName: getRootScriptName({ packageJson: injectInfo }),
 };

@@ -6,10 +6,9 @@ import { crateAsSubcommand as createPublishCommand } from "@done-coding/cli-publ
 import { crateAsSubcommand as createTemplateCommand } from "@done-coding/cli-template";
 import { crateAsSubcommand as createComponentCommand } from "@done-coding/cli-component";
 import { crateAsSubcommand as createConfigCommand } from "@done-coding/cli-config";
-
 import injectInfo from "@/injectInfo.json";
 import type { CliInfo } from "@done-coding/cli-utils";
-import { createMainCommand } from "@done-coding/cli-utils";
+import { createMainCommand, getRootScriptName } from "@done-coding/cli-utils";
 
 const { version, description: describe } = injectInfo;
 
@@ -28,6 +27,7 @@ const commandCliInfo: CliInfo = {
     createConfigCommand(),
   ],
   demandCommandCount: 1,
+  rootScriptName: getRootScriptName({ packageJson: injectInfo }),
 };
 
 /** 作为主命令创建 */

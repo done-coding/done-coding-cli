@@ -8,8 +8,8 @@
   "types": "types/cli.d.ts",
   "bin": {
     "DC": "es/cli.mjs",
-    "dc-cli": "es/cli.mjs",
-    "done-coding": "es/cli.mjs"
+    "dc-cli": "es/dc-cli.mjs",
+    "done-coding": "es/done-coding.mjs"
   },
   "exports": {
     ".": {
@@ -23,10 +23,11 @@
   ],
   "scripts": {
     "clean": "rimraf es lib types",
+    "moreCli": "node ./scripts/more-cli.mjs",
     "predev": "pnpm run clean",
     "dev": "vite build --watch",
     "prebuild": "pnpm run clean",
-    "build": "vite build",
+    "build": "vite build && pnpm run moreCli",
     "postinstall": "node es/postinstall.mjs",
     "prepack": "pnpm build"
   },
