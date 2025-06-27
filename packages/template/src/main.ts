@@ -6,6 +6,7 @@ import {
   createMainCommand,
   createSubcommand,
   _curry,
+  getRootScriptName,
 } from "@done-coding/cli-utils";
 
 const {
@@ -39,6 +40,7 @@ const commandCliInfo: Omit<CliInfo, "usage"> = {
     createSubcommand,
   ),
   demandCommandCount: 1,
+  rootScriptName: getRootScriptName({ packageJson: injectInfo }),
 };
 
 /** 分发命令&步骤 */
