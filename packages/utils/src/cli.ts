@@ -7,6 +7,7 @@ import type {
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { log } from "./log";
+import type { PackageJson } from "./package-json";
 
 export { ArgumentsCamelCase, CommandModule, YargsOptions, YargsArgv };
 
@@ -34,6 +35,8 @@ export interface CliInfo {
   };
   /** 处理函数 */
   handler?: CommandModule["handler"];
+  /** 根命令 */
+  rootScriptName?: string;
 }
 
 /** 子cli信息 */
@@ -63,6 +66,50 @@ const createYargs = <O>() => {
   return yargs(argv) as YargsArgv<O>;
 };
 
+/** 获取根命令名称 */
+export const getRootScriptName = ({
+  rootScriptName,
+  packageJson,
+}: {
+  rootScriptName?: string;
+  packageJson?: Pick<PackageJson, "name" | "bin">;
+}): string | undefined => {
+  if (rootScriptName) {
+    return rootScriptName;
+  }
+
+  if (!packageJson) {
+    // console.log('packageJson is undefined')
+    return;
+  }
+  const { bin, name } = packageJson;
+  if (!bin) {
+    // console.log('bin is undefined', bin)
+    return;
+  }
+  if (typeof bin === "string") {
+    if (name.includes("/")) {
+      // console.log('带/', name)
+      return;
+    }
+    return name;
+  }
+  if (typeof bin === "object") {
+    const binList = Object.entries(bin);
+    const execFile = process.argv[1];
+    // console.log(100, process.argv[1], execFile, bin)
+    const resList = binList.filter(([, value]) => execFile?.endsWith(value));
+    // 未找到匹配执行文件 或者 匹配到多个执行文件 无法区分调用命令
+    if (resList.length !== 1) {
+      // console.log('匹配不到执行文件', resList)
+      return;
+    }
+    const [binNme] = resList[0];
+    // windows下不存在大写命令 所以需要转小写
+    return process.platform === "win32" ? binNme.toLowerCase() : binNme;
+  }
+};
+
 /** 添加 yargs 配置 */
 const addYargsConfig = (
   argv: YargsArgv,
@@ -73,7 +120,9 @@ const addYargsConfig = (
     options,
     positionals,
     subcommands,
+    rootScriptName,
   }: Omit<CliInfo, "handler">,
+  isRootCommand: boolean,
 ) => {
   let argvFinal = argv.strict();
   if (usage) {
@@ -102,27 +151,38 @@ const addYargsConfig = (
       return acc.positional(name, options);
     }, argvFinal);
   }
+  // 有子命令
   if (subcommands) {
     argvFinal = argvFinal.command(subcommands);
+  }
+
+  // console.log(154, isRootCommand, rootScriptName)
+
+  if (isRootCommand) {
+    if (rootScriptName) {
+      argvFinal = argvFinal.scriptName(rootScriptName);
+    }
   }
   return argvFinal;
 };
 
 /** 创建主命令 */
 export const createMainCommand = async ({ handler, ...config }: CliInfo) => {
-  const argv = await addYargsConfig(createYargs(), config).fail(failHandler)
-    .argv;
+  const argv = await addYargsConfig(createYargs(), config, true).fail(
+    failHandler,
+  ).argv;
   return handler ? handler(argv) : argv;
 };
 
 /** 创建子命令模块 */
 export const createSubcommand = (cliInfo: SubCliInfo): CommandModule => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { command, describe, handler = () => {}, ...config } = cliInfo;
   return {
     command,
     describe,
     builder(argv) {
-      return addYargsConfig(argv, config) as unknown as YargsArgv;
+      return addYargsConfig(argv, config, false) as unknown as YargsArgv;
     },
     handler,
   };
