@@ -11,8 +11,21 @@ import type { PackageJson } from "./package-json";
 
 export { ArgumentsCamelCase, CommandModule, YargsOptions, YargsArgv };
 
+/** yargs options 记录 */
+export type YargsOptionsRecord<T extends Record<string, any>> = {
+  [key in keyof T]: YargsOptions;
+};
+
+/** yargs 位置参数 */
+export type YargsPositionalsRecord<T extends Record<string, any>> = {
+  [key in keyof T]: Parameters<typeof yargs.positional>[1];
+};
+
 /** cli 信息 */
-export interface CliInfo {
+export interface CliInfo<
+  O extends Record<string, any> = Record<string, any>,
+  P extends Record<string, any> = Record<string, any>,
+> {
   /** 命令 */
   command?: string;
   /** 用法 */
@@ -24,15 +37,11 @@ export interface CliInfo {
   /** 必传命令数 */
   demandCommandCount?: number;
   /** 选项 */
-  options?: {
-    [key in string]: YargsOptions;
-  };
+  options?: YargsOptionsRecord<O>;
   /** 子命令 */
   subcommands?: CommandModule[];
   /** 位置信息 */
-  positionals?: {
-    [key in string]: Parameters<typeof yargs.positional>[1];
-  };
+  positionals?: YargsPositionalsRecord<P>;
   /** 处理函数 */
   handler?: CommandModule["handler"];
   /** 根命令 */
