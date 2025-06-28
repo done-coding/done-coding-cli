@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-extract",
-  "version": "0.1.12-alpha.0",
+  "version": "0.1.13-alpha.0",
   "description": "信息提取命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -64,7 +64,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@done-coding/cli-template": "workspace:0.7.12-alpha.0",
+    "@done-coding/cli-template": "workspace:0.8.0-alpha.0",
     "@done-coding/cli-utils": "workspace:^"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-inject",
-  "version": "0.5.12-alpha.0",
+  "version": "0.5.13-alpha.0",
   "description": "信息(JSON)注入命令行工具",
   "private": false,
   "module": "es/index.mjs",
