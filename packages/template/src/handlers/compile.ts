@@ -1,19 +1,20 @@
-import type {
-  CompileTemplateConfigListItem,
-  CompileTemplateConfig,
-} from "@/utils";
 import {
   MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
-  OutputModeEnum,
   completeDefaultCompileOptions,
-  type CompileOptions,
+  getCompileOptions,
 } from "@/utils";
-import type { CliHandlerArgv } from "@done-coding/cli-utils";
+import type { CliHandlerArgv, SubCliInfo } from "@done-coding/cli-utils";
 import path from "node:path";
 import fs from "node:fs";
 import _template from "lodash.template";
 import _assign from "lodash.assign";
 import { log, readConfigFile, xPrompts } from "@done-coding/cli-utils";
+import type {
+  CompileOptions,
+  CompileTemplateConfig,
+  CompileTemplateConfigListItem,
+} from "@/types";
+import { OutputModeEnum, SubcommandEnum } from "@/types";
 
 /** 获取数据 */
 const getData = <
@@ -405,7 +406,7 @@ export const batchCompileHandler = async (
 };
 
 /** 编译模板 */
-export const compileHandler = async (argv: CliHandlerArgv<CompileOptions>) => {
+export const handler = async (argv: CliHandlerArgv<CompileOptions>) => {
   const {
     envData: envDataInit,
     env,
@@ -458,4 +459,11 @@ export const compileHandler = async (argv: CliHandlerArgv<CompileOptions>) => {
       rootDir,
     },
   );
+};
+
+export const commandCliInfo: SubCliInfo = {
+  command: SubcommandEnum.INIT,
+  describe: "编译模板",
+  options: getCompileOptions(),
+  handler: handler as SubCliInfo["handler"],
 };

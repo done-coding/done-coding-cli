@@ -3,7 +3,7 @@ import {
   type CliInfo,
 } from "@done-coding/cli-utils";
 import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "./path";
-import { OutputModeEnum, type CompileOptions } from "./types";
+import { OutputModeEnum, type CompileOptions } from "@/types";
 
 /** 编译默认选项 */
 export const defaultCompileOptions: Pick<

@@ -1,10 +1,5 @@
-export { handler } from "@/handler";
-export {
-  initHandler,
-  compileHandler,
-  batchCompileHandler,
-  MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
-} from "@/utils";
+export { handler, compileHandler, batchCompileHandler } from "@/handlers";
 export { crateAsSubcommand } from "./main";
-export * from "@/utils/types";
-export * from "@/utils/config";
+export * from "@/types";
+export * from "@/utils/path";
+export { getConfigPath } from "@/utils/config";

@@ -1,9 +1,5 @@
-import {
-  MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
-  OutputModeEnum,
-  type CompileTemplateConfig,
-  type InitOptions,
-} from "@/utils";
+import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "@/utils";
+import type { SubCliInfo } from "@done-coding/cli-utils";
 import {
   log,
   xPrompts,
@@ -13,8 +9,14 @@ import {
   getConfigFileCommonOptions,
 } from "@done-coding/cli-utils";
 import configDefault from "@/json/default.json";
+import type { InitOptions } from "@/types";
+import {
+  OutputModeEnum,
+  SubcommandEnum,
+  type CompileTemplateConfig,
+} from "@/types";
 
-export const getInitOptions = () =>
+const getOptions = () =>
   getConfigFileCommonOptions({
     configPathDefault: MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
   });
@@ -90,7 +92,7 @@ const getContent = async (useDefaultConfig: boolean) => {
 };
 
 /** 初始化模板 */
-export const initHandler = async (argv: CliHandlerArgv<InitOptions>) => {
+export const handler = async (argv: CliHandlerArgv<InitOptions>) => {
   const useDefaultConfig = await getUseDefaultConfig();
 
   const content = await getContent(useDefaultConfig);
@@ -108,4 +110,11 @@ export const initHandler = async (argv: CliHandlerArgv<InitOptions>) => {
       }
     },
   });
+};
+
+export const commandCliInfo: SubCliInfo = {
+  command: SubcommandEnum.INIT,
+  describe: "初始化配置文件",
+  options: getOptions(),
+  handler: handler as SubCliInfo["handler"],
 };

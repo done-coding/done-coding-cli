@@ -1,47 +1,11 @@
-import { SubcommandEnum, getCompileOptions, getInitOptions } from "@/utils";
-import { handler } from "@/handler";
+import { commandCliInfo } from "@/handlers";
 import injectInfo from "@/injectInfo.json";
-import type { CliInfo, SubCliInfo } from "@done-coding/cli-utils";
-import {
-  createMainCommand,
-  createSubcommand,
-  _curry,
-  getRootScriptName,
-} from "@done-coding/cli-utils";
+import type { SubCliInfo } from "@done-coding/cli-utils";
+import { createMainCommand, createSubcommand } from "@done-coding/cli-utils";
 
 const {
-  version,
-  description: describe,
   cliConfig: { moduleName },
 } = injectInfo;
-
-const initCommandCliInfo: SubCliInfo = {
-  command: SubcommandEnum.INIT,
-  describe: "初始化模板配置文件",
-  options: getInitOptions(),
-  handler: _curry(handler)(
-    SubcommandEnum.INIT,
-  ) as unknown as CliInfo["handler"],
-};
-
-const compileCommandCliInfo: SubCliInfo = {
-  command: SubcommandEnum.COMPILE,
-  describe: "编译模板",
-  options: getCompileOptions(),
-  handler: _curry(handler)(
-    SubcommandEnum.COMPILE,
-  ) as unknown as CliInfo["handler"],
-};
-
-const commandCliInfo: Omit<CliInfo, "usage"> = {
-  describe,
-  version,
-  subcommands: [initCommandCliInfo, compileCommandCliInfo].map(
-    createSubcommand,
-  ),
-  demandCommandCount: 1,
-  rootScriptName: getRootScriptName({ packageJson: injectInfo }),
-};
 
 /** 分发命令&步骤 */
 const dispatchCommandAndUsage = (asSubcommand = false) => {
