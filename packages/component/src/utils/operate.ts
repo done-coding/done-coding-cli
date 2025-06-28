@@ -30,6 +30,16 @@ export const operateComponent = async ({
   const envDataStr = JSON.stringify(envData);
 
   for (const { entry, index } of config.list) {
+    const publicOptions = {
+      envData: envDataStr,
+      rollback: command === SubcommandEnum.REMOVE,
+      /** 回滚时可以删除空文件 */
+      rollbackDelNullFile: true,
+      rollbackDelAskAsYes: true,
+      dealMarkdown: true,
+      batch: false,
+      rootDir,
+    };
     if (entry) {
       const entryAssert = entry as unknown as TemplateConfigFull;
 
@@ -41,14 +51,8 @@ export const operateComponent = async ({
       }
       const entryOptions: CompileOptions = {
         ...entry,
-        envData: envDataStr,
         mode: OutputModeEnum.APPEND,
-        rollback: command === SubcommandEnum.REMOVE,
-        /** 回滚时可以删除空文件 */
-        rollbackDelNullFile: true,
-        dealMarkdown: true,
-        batch: false,
-        rootDir,
+        ...publicOptions,
       };
       await compileHandler(entryOptions);
     }
@@ -63,12 +67,8 @@ export const operateComponent = async ({
       }
       const indexOptions: CompileOptions = {
         ...index,
-        envData: envDataStr,
         mode: OutputModeEnum.OVERWRITE,
-        rollback: command === SubcommandEnum.REMOVE,
-        dealMarkdown: true,
-        batch: false,
-        rootDir,
+        ...publicOptions,
       };
       await compileHandler(indexOptions);
     }
