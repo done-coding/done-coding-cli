@@ -1,5 +1,5 @@
 import { log } from "@done-coding/cli-utils";
-import type { Config } from "./types";
+import type { Config } from "@/types";
 /**
  * 组件名检测
  * ---

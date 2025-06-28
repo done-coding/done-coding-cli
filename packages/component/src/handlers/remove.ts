@@ -1,15 +1,25 @@
-import type { Options } from "./types";
-import { SubcommandEnum } from "./types";
-import { getConfig } from "./config";
-import { operateComponent } from "./operate";
+import type { RemoveOptions } from "@/types";
+import { SubcommandEnum } from "@/types";
 import { getComponentList } from "./list";
-import { getComponentEnvData } from "./env-data";
 import fs from "node:fs";
 import path from "node:path";
+import type { CliHandlerArgv, SubCliInfo } from "@done-coding/cli-utils";
 import { log, xPrompts } from "@done-coding/cli-utils";
+import { getComponentEnvData, getConfig, operateComponent } from "@/utils";
+
+const getPositionals = (): SubCliInfo["positionals"] => {
+  return {
+    name: {
+      describe: "组件名称",
+      type: "string",
+    },
+  };
+};
 
 /** 新增组件 */
-export const removeComponent = async ({ name: nameInit }: Options) => {
+export const handler = async ({
+  name: nameInit,
+}: CliHandlerArgv<RemoveOptions>) => {
   log.stage("移除组件");
   const config = getConfig();
   const list = await getComponentList(config);
@@ -52,4 +62,12 @@ export const removeComponent = async ({ name: nameInit }: Options) => {
 
   log.error(`组件${name}不存在`);
   return process.exit(1);
+};
+
+/** 删除组件cli信息 */
+export const commandCliInfo: SubCliInfo = {
+  command: `${SubcommandEnum.REMOVE} [name]`,
+  describe: "删除一个组件",
+  positionals: getPositionals(),
+  handler: handler as SubCliInfo["handler"],
 };

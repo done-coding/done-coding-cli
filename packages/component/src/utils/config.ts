@@ -1,9 +1,9 @@
 import path from "node:path";
 import fs from "node:fs";
-import type { Config } from "./types";
 import { getPathEnvData, getTemplateDirAbsolutePath } from "./env-data";
 import _template from "lodash.template";
 import { log, json5 } from "@done-coding/cli-utils";
+import type { Config } from "@/types";
 
 /** 获取配置 */
 export const getConfig = () => {

@@ -10,11 +10,16 @@ export enum SubcommandEnum {
   LIST = "list",
 }
 
-export interface Options {
+export interface AddOptions {
   /**
    * 组件名
-   * ---
-   * 新增时必传
+   */
+  name: string;
+}
+
+export interface RemoveOptions {
+  /**
+   * 组件名
    */
   name?: string;
 }

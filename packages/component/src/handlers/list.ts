@@ -1,9 +1,9 @@
 import path from "node:path";
 import fs from "node:fs";
-import { getConfig } from "./config";
-import { getComponentEnvData } from "./env-data";
-import type { Config } from "./types";
+import type { SubCliInfo } from "@done-coding/cli-utils";
 import { chalk, log } from "@done-coding/cli-utils";
+import { SubcommandEnum, type Config } from "@/types";
+import { getComponentEnvData, getConfig } from "@/utils";
 
 /**
  * 获取组件列表
@@ -45,7 +45,7 @@ export const getComponentList = (config: Config): string[] => {
   }
 };
 
-export const listComponent = async () => {
+export const handler = async () => {
   log.stage("展示列表");
   const config = getConfig();
   const list = getComponentList(config);
@@ -63,4 +63,11 @@ export const listComponent = async () => {
       };
     }),
   );
+};
+
+/** 展示组件列表cli信息 */
+export const commandCliInfo: SubCliInfo = {
+  command: SubcommandEnum.LIST,
+  describe: "展示组件列表",
+  handler: handler as SubCliInfo["handler"],
 };

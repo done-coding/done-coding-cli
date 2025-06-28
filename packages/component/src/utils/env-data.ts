@@ -3,7 +3,7 @@ import _camelCase from "lodash.camelcase";
 import _kebabCase from "lodash.kebabcase";
 import _lowerFirst from "lodash.lowerfirst";
 import path from "node:path";
-import type { Config, Options } from "./types";
+import type { Config, Options } from "@/types";
 import injectInfo from "@/injectInfo.json";
 const { namespaceDir, moduleName } = injectInfo.cliConfig;
 

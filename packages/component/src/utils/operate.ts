@@ -1,6 +1,6 @@
 import { getEnvData } from "./env-data";
-import type { Config, TemplateConfigFull } from "./types";
-import { SubcommandEnum } from "./types";
+import type { Config, TemplateConfigFull } from "@/types";
+import { SubcommandEnum } from "@/types";
 import type { CompileOptions } from "@done-coding/cli-template";
 import { compileHandler, OutputModeEnum } from "@done-coding/cli-template";
 import _template from "lodash.template";
