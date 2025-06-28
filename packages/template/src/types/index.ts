@@ -9,6 +9,8 @@ export enum SubcommandEnum {
   INIT = "init",
   /** 编译模板 */
   COMPILE = "compile",
+  /** 批量编译模板 */
+  BATCH = "batch",
 }
 
 export type InitOptions = InitConfigFileOptions;
@@ -31,34 +33,59 @@ export enum OutputModeEnum {
   RETURN = "return",
 }
 
-export interface CompileOptions {
-  /** 项目根目录 */
-  rootDir: string;
-  /** 配置文件路径 */
-  configPath?: string;
+/** 编译模板配置项(原始的) */
+export interface CompileTemplateConfigListItemRaw {
   /** 环境数据(json)文件(优先级高于 envData ) */
   env?: string;
   /** 环境变量数据(JSON字符串) */
   envData?: string;
   /** 模板文件相对路径(优先级高于 inputData ) */
   input?: string;
-  /** 模板数据 */
+  /** 模板数据(JSON字符串) */
   inputData?: string;
   /** 输出文件相对路径 */
   output?: string;
   /** 输出模式 @default OutputModeEnum.OVERWRITE */
   mode: OutputModeEnum;
-  /** 是否回滚 @default false */
-  rollback?: boolean;
+}
+
+/** 编译公共选项 */
+export interface CompilePublicConfig {
+  /** 项目根目录 */
+  rootDir: string;
+  /**
+   * 配置文件路径
+   * ---
+   * 不传拿默认值
+   */
+  configPath?: string;
   /**
    * 回滚删除空文件
    * ---
    * 只限 OutputModeEnum.APPEND 模式下生效
    */
   rollbackDelNullFile?: boolean;
+  /** 回滚删除询问默认yes(即不再额外询问，直接认为同意) */
+  rollbackDelAskAsYes?: boolean;
   /** (检测是markdown)是否处理(单个)代码块包裹 */
   dealMarkdown?: boolean;
-  /** 是否批量处理 */
+  /** 是否回滚 */
+  rollback?: boolean;
+}
+
+/** 批量模板编译配置项 */
+
+export interface CompileBatchOptions extends CompilePublicConfig {}
+
+/** 编译模板配置项 */
+export interface CompileOptions
+  extends CompilePublicConfig,
+    CompileTemplateConfigListItemRaw {
+  /**
+   * 是否批量处理
+   * --
+   * 为true 走批量编译，此时configPath为批量编译配置文件路径 且必须
+   */
   batch?: boolean;
 }
 
@@ -66,8 +93,9 @@ export interface CompileOptions {
  * 编译模板配置选项
  */
 export type CompileTemplateConfigListItem = Omit<
-  CompileOptions,
-  "envData" | keyof ReadConfigFileOptions
+  CompileTemplateConfigListItemRaw &
+    Omit<CompilePublicConfig, keyof ReadConfigFileOptions>,
+  "envData" | "rollback"
 > & {
   /** 已经解析为对象的envData */
   envData: Record<string, any>;
@@ -92,5 +120,5 @@ export interface CompileTemplateConfig {
   /** 采集环境变量表单配置 */
   collectEnvDataForm?: (CollectFormItem | string)[];
   /** 配置列表 */
-  list?: Omit<CompileOptions, keyof ReadConfigFileOptions>[];
+  list?: CompileTemplateConfigListItemRaw[];
 }
