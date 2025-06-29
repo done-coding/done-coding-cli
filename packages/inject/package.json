@@ -11,7 +11,8 @@
   },
   "exports": {
     ".": {
-      "import": "./es/index.mjs"
+      "import": "./es/index.mjs",
+      "types": "./types/index.d.ts"
     },
     "./helpers": {
       "import": "./es/helpers.mjs",

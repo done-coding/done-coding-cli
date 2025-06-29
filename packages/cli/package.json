@@ -13,7 +13,8 @@
   },
   "exports": {
     ".": {
-      "import": "./es/cli.mjs"
+      "import": "./es/index.mjs",
+      "types": "./types/index.d.ts"
     }
   },
   "files": [
