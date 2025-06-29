@@ -22,11 +22,11 @@ export const lookForParentTarget = (
     .resolve(currentDir)
     .split(path.sep)
     .map((dir, index, arr) => {
-      if (index) {
-        return path.join(arr.slice(0, index).join(path.sep), dir);
-      } else {
-        return dir;
-      }
+      const preDirList = arr.slice(0, index);
+      const currentDirList = preDirList.concat(dir);
+      const currentDirPath = currentDirList.join(path.sep);
+      const res = currentDirPath || path.sep;
+      return res;
     });
 
   while (dirList.length) {
