@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-config",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "工程化配置命令行工具",
   "private": false,
   "module": "es/index.mjs",
