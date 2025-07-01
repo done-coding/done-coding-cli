@@ -6,9 +6,9 @@ import {
 } from "@/types";
 import type {
   CliHandlerArgv,
-  CliInfo,
   PackageJson,
   SubCliInfo,
+  YargsOptionsRecord,
 } from "@done-coding/cli-utils";
 import {
   getConfigFileCommonOptions,
@@ -21,11 +21,11 @@ import {
 } from "@done-coding/cli-utils";
 import { execSync } from "node:child_process";
 import type { ReleaseType } from "semver";
-import { inc, prerelease } from "semver";
+import { inc } from "semver";
 import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "@/utils";
 import { aliasHandler, getAliasInfoList } from "./alias";
 
-export const getExecOptions = (): CliInfo["options"] => {
+export const getExecOptions = (): YargsOptionsRecord<ExecOptions> => {
   return {
     ...getConfigFileCommonOptions({
       configPathDefault: MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
@@ -39,15 +39,7 @@ export const getExecOptions = (): CliInfo["options"] => {
     type: {
       alias: "t",
       describe: "发布类型",
-      choices: [
-        PublishVersionTypeEnum.MAJOR,
-        PublishVersionTypeEnum.MINOR,
-        PublishVersionTypeEnum.PATCH,
-        PublishVersionTypeEnum.PREMAJOR,
-        PublishVersionTypeEnum.PREMINOR,
-        PublishVersionTypeEnum.PREPATCH,
-        PublishVersionTypeEnum.PRERELEASE,
-      ],
+      choices: Object.values(PublishVersionTypeEnum),
     },
     push: {
       alias: "p",
@@ -55,19 +47,26 @@ export const getExecOptions = (): CliInfo["options"] => {
       type: "boolean",
       default: true,
     },
+    distTag: {
+      alias: "d",
+      describe: "发布标签",
+      choices: Object.values(PublishTagEnum),
+    },
   };
 };
 
 /**
  * 获取npmInfo
  */
-const getNpmInfo = ({
+const getNpmInfo = async ({
   packageJson,
   type,
+  distTag,
 }: {
   type: PublishVersionTypeEnum;
   packageJson: PackageJson;
-}): NpmInfo => {
+  distTag?: PublishTagEnum;
+}): Promise<NpmInfo> => {
   let name = packageJson.name;
   let version = "";
   let tag: NpmInfo["tag"];
@@ -78,50 +77,51 @@ const getNpmInfo = ({
     throw new Error("当前版本号为空");
   }
 
-  if (
-    [
-      PublishVersionTypeEnum.MAJOR as ReleaseType,
-      PublishVersionTypeEnum.MINOR as ReleaseType,
-      PublishVersionTypeEnum.PATCH as ReleaseType,
-    ].includes(type)
-  ) {
-    version = inc(currentVersion, type as ReleaseType)!;
-    tag = PublishTagEnum.LATEST;
-  } else if (
-    [
-      PublishVersionTypeEnum.PREMAJOR as ReleaseType,
-      PublishVersionTypeEnum.PREMINOR as ReleaseType,
-      PublishVersionTypeEnum.PREPATCH as ReleaseType,
-    ].includes(type)
-  ) {
-    const prereleaseRes = prerelease(currentVersion);
-
-    if (prereleaseRes) {
-      log.warn("当前版本已经是预发布版本，将会在当前版本基础上进行发布");
-      if (prereleaseRes.length === 1 && typeof prereleaseRes[0] === "number") {
-        version = inc(
-          currentVersion,
-          PublishVersionTypeEnum.PRERELEASE as ReleaseType,
-        )!;
-      } else {
-        // version = inc(currentVersion.split("-")[0], type)!;
-        version = currentVersion.split("-")[0] + "-0";
-      }
-    } else {
+  switch (type) {
+    case PublishVersionTypeEnum.PATCH:
+    case PublishVersionTypeEnum.MINOR:
+    case PublishVersionTypeEnum.MAJOR: {
       version = inc(currentVersion, type as ReleaseType)!;
+      tag = distTag || PublishTagEnum.LATEST;
+      break;
     }
-    tag = PublishTagEnum.NEXT;
-  } else {
-    tag = PublishTagEnum.ALPHA;
-    version = inc(
-      currentVersion,
-      PublishVersionTypeEnum.PRERELEASE as ReleaseType,
-      tag,
-    )!;
+    case PublishVersionTypeEnum.PREPATCH:
+    case PublishVersionTypeEnum.PREMINOR:
+    case PublishVersionTypeEnum.PREMAJOR: {
+      version = inc(currentVersion, type as ReleaseType, PublishTagEnum.ALPHA)!;
+      tag = distTag || PublishTagEnum.ALPHA;
+      break;
+    }
+    case PublishVersionTypeEnum.PRERELEASE: {
+      const identifier = (
+        await xPrompts({
+          type: "text",
+          name: "identifier",
+          message: "请输入修饰符",
+          initial: PublishTagEnum.ALPHA,
+        })
+      ).identifier;
+
+      version = inc(currentVersion, type as ReleaseType, identifier)!;
+      tag = distTag || identifier;
+      break;
+    }
+    default: {
+      version = (
+        await xPrompts({
+          type: "text",
+          name: "customVersion",
+          message: "请输入自定义版本号",
+        })
+      ).customVersion;
+      tag = distTag || PublishTagEnum.LATEST;
+    }
   }
+
   if (!version) {
     throw new Error("version is empty");
   }
+
   return {
     name,
     version,
@@ -133,84 +133,83 @@ const getNpmInfo = ({
 const dispatchNpmInfo = async ({
   type,
   packageJson,
+  distTag,
 }: {
   type?: PublishVersionTypeEnum;
   packageJson: PackageJson;
-}) => {
+  distTag?: PublishTagEnum;
+}): Promise<NpmInfo> => {
   if (type) {
     return await getNpmInfo({
       packageJson,
       type,
+      distTag,
     });
   } else {
-    const keys = Object.values(PublishVersionTypeEnum).filter(
-      (item) => item.toUpperCase() !== item,
-    ) as PublishVersionTypeEnum[];
+    const versionMap = {} as unknown as {
+      [key in PublishVersionTypeEnum]: NpmInfo;
+    };
 
-    const versionMap = keys.reduce(
-      (acc, type) => {
-        acc[type] = getNpmInfo({
-          packageJson,
-          type,
-        });
-        return acc;
-      },
-      {} as unknown as {
-        [key in PublishVersionTypeEnum]: NpmInfo;
-      },
-    );
-    /** 版本选项 */
-    const choices = [
-      {
-        title: `主版本(${versionMap[PublishVersionTypeEnum.MAJOR].version})`,
-        value: PublishVersionTypeEnum.MAJOR,
-      },
-      {
-        title: `次版本(${versionMap[PublishVersionTypeEnum.MINOR].version})`,
-        value: PublishVersionTypeEnum.MINOR,
-      },
-      {
-        title: `修订版本(${versionMap[PublishVersionTypeEnum.PATCH].version})`,
-        value: PublishVersionTypeEnum.PATCH,
-      },
-      {
-        title: `预发布主版本(${
-          versionMap[PublishVersionTypeEnum.PREMAJOR].version
-        })`,
-        value: PublishVersionTypeEnum.PREMAJOR,
-      },
-      {
-        title: `预发布次版本(${
-          versionMap[PublishVersionTypeEnum.PREMINOR].version
-        })`,
-        value: PublishVersionTypeEnum.PREMINOR,
-      },
-      {
-        title: `预发布修订版本(${
-          versionMap[PublishVersionTypeEnum.PREPATCH].version
-        })`,
-        value: PublishVersionTypeEnum.PREPATCH,
-      },
-      {
-        title: `alpha版本(${
-          versionMap[PublishVersionTypeEnum.PRERELEASE].version
-        })`,
-        value: PublishVersionTypeEnum.PRERELEASE,
-      },
+    /** 可以计算版本号的类型 */
+    const canExecVersionTypeList = [
+      PublishVersionTypeEnum.PATCH,
+      PublishVersionTypeEnum.MINOR,
+      PublishVersionTypeEnum.MAJOR,
+      PublishVersionTypeEnum.PREPATCH,
+      PublishVersionTypeEnum.PREMINOR,
+      PublishVersionTypeEnum.PREMAJOR,
     ];
 
-    const { type } = await xPrompts({
-      type: "select",
-      name: "type",
-      message: `请选择发布类型，当前版本：${packageJson.version}`,
-      choices,
-    });
-    return versionMap[type as PublishVersionTypeEnum];
+    for (let type of canExecVersionTypeList) {
+      versionMap[type] = await getNpmInfo({
+        packageJson,
+        type,
+        distTag,
+      });
+    }
+
+    /** 版本选项 */
+    const choices = [
+      ...canExecVersionTypeList.map((type) => {
+        return {
+          title: `${type} (${versionMap[type].version})`,
+          value: type,
+        };
+      }),
+      ...[
+        PublishVersionTypeEnum.PRERELEASE,
+        PublishVersionTypeEnum.CUSTOM_VERSION,
+      ].map((type) => {
+        return {
+          title: type,
+          value: type,
+        };
+      }),
+    ];
+
+    const selectType = (
+      await xPrompts({
+        type: "select",
+        name: "selectType",
+        message: `请选择发布类型，当前版本：${packageJson.version}`,
+        choices,
+      })
+    ).selectType as PublishVersionTypeEnum;
+
+    if (canExecVersionTypeList.includes(selectType)) {
+      return versionMap[selectType];
+    } else {
+      return getNpmInfo({
+        packageJson,
+        type: selectType,
+        distTag,
+      });
+    }
   }
 };
 
 export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
-  const { mode, type, push, rootDir } = argv;
+  const { mode, type, push, rootDir, distTag } = argv;
 
   const configInfo = await readConfigFile<ConfigInfo>(argv, () => {
     return {};
@@ -225,6 +224,7 @@ export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
   const npmInfo = await dispatchNpmInfo({
     type,
     packageJson,
+    distTag,
   });
 
   const { version } = npmInfo;

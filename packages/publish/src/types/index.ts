@@ -45,10 +45,10 @@ export enum PublishVersionTypeEnum {
    * 预发布修订版本号
    */
   PREPATCH = "prepatch",
-  /**
-   * 预发布版本号
-   */
+  /** 自定义预发布修饰符 */
   PRERELEASE = "prerelease",
+  /** 自定义版本号 */
+  CUSTOM_VERSION = "custom version",
 }
 
 /**
@@ -67,6 +67,14 @@ export enum PublishTagEnum {
    * alpha版本
    */
   ALPHA = "alpha",
+  /**
+   * beta版本
+   */
+  BETA = "beta",
+  /**
+   * rc版本
+   */
+  RC = "rc",
 }
 
 /**
@@ -135,6 +143,8 @@ export interface ExecOptions extends ReadConfigFileOptions {
   type?: PublishVersionTypeEnum;
   /** (发布成功后)是否推送至远程仓库 */
   push: boolean;
+  /** 发布标签 */
+  distTag: PublishTagEnum;
 }
 
 export interface AliasOptions extends ReadConfigFileOptions {}
