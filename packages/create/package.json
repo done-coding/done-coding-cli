@@ -49,9 +49,9 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@done-coding/cli-git": "workspace:^",
-    "@done-coding/cli-inject": "workspace:^",
-    "@done-coding/cli-template": "workspace:^",
-    "@done-coding/cli-utils": "workspace:^"
+    "@done-coding/cli-git": "workspace:0.6.8",
+    "@done-coding/cli-inject": "workspace:0.5.16",
+    "@done-coding/cli-template": "workspace:0.8.3",
+    "@done-coding/cli-utils": "workspace:0.7.7"
   }
 }

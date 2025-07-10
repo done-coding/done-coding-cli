@@ -64,6 +64,6 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@done-coding/cli-utils": "workspace:^"
+    "@done-coding/cli-utils": "workspace:0.7.7"
   }
 }
