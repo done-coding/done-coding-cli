@@ -42,7 +42,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://gitee.com/justsosu/done-coding-cli.git",
+    "url": "https://gitee.com/done-coding/done-coding-cli.git",
     "directory": "packages/inject"
   },
   "publishConfig": {
