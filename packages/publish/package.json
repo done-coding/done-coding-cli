@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-publish",
-  "version": "0.7.8",
+  "version": "0.7.9",
   "description": "项目发布命令行工具",
   "private": false,
   "module": "es/index.mjs",
