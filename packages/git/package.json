@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-git",
-  "version": "0.6.8",
+  "version": "0.6.9",
   "description": "git跨平台操作命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -52,7 +52,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:0.5.16",
+    "@done-coding/cli-inject": "workspace:0.5.17",
     "@types/node": "^18.0.0",
     "@types/yargs": "^17.0.28",
     "rimraf": "^6.0.1",

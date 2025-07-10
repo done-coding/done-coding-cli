@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-component",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "组件命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -41,7 +41,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:0.5.16",
+    "@done-coding/cli-inject": "workspace:0.5.17",
     "@types/lodash.camelcase": "^4.3.8",
     "@types/lodash.kebabcase": "^4.1.8",
     "@types/lodash.lowerfirst": "^4.3.8",
@@ -58,7 +58,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@done-coding/cli-template": "workspace:0.8.3",
+    "@done-coding/cli-template": "workspace:0.8.4",
     "@done-coding/cli-utils": "workspace:0.7.7",
     "lodash.camelcase": "^4.3.0",
     "lodash.kebabcase": "^4.1.1",

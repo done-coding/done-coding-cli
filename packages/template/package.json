@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-template",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "description": "预编译命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -41,7 +41,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:0.5.16",
+    "@done-coding/cli-inject": "workspace:0.5.17",
     "@types/lodash.assign": "^4.2.9",
     "@types/lodash.template": "^4.5.3",
     "@types/node": "^18.0.0",
