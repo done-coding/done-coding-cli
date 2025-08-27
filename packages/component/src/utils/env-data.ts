@@ -3,7 +3,7 @@ import _camelCase from "lodash.camelcase";
 import _kebabCase from "lodash.kebabcase";
 import _lowerFirst from "lodash.lowerfirst";
 import path from "node:path";
-import type { Config, Options } from "@/types";
+import type { Config, CommonOptions } from "@/types";
 import injectInfo from "@/injectInfo.json";
 const { namespaceDir, moduleName } = injectInfo.cliConfig;
 
@@ -48,7 +48,7 @@ export interface ComponentEnvData {
 
 /** 获取环境变量 */
 export const getComponentEnvData = (
-  data: Pick<Config, "series"> & Required<Options>,
+  data: Required<Pick<Config, "series"> & Pick<CommonOptions, "name">>,
 ): ComponentEnvData => {
   const { series: seriesInit, name: nameInit } = data;
 
@@ -86,7 +86,7 @@ export interface EnvData extends PathEnvData, ComponentEnvData {
 
 /** 获取环境变量 */
 export const getEnvData = (
-  data: Pick<Config, "series"> & Required<Options>,
+  data: Required<Pick<Config, "series"> & Pick<CommonOptions, "name">>,
 ): EnvData => {
   const res: EnvData = {
     $: "$",

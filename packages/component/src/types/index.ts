@@ -10,19 +10,17 @@ export enum SubcommandEnum {
   LIST = "list",
 }
 
-export interface AddOptions {
+/** 组件通用选项 */
+export interface CommonOptions {
   /**
    * 组件名
    */
   name: string;
 }
 
-export interface RemoveOptions {
-  /**
-   * 组件名
-   */
-  name?: string;
-}
+export interface AddOptions extends CommonOptions {}
+
+export interface RemoveOptions extends Partial<CommonOptions> {}
 
 /** 模版配置输入路径 */
 export type TemplateConfigInputByPath = Pick<
