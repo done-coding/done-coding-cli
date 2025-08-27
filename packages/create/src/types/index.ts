@@ -9,6 +9,14 @@ export interface CreateOptions {
   justCloneFromDoneCoding?: boolean;
 }
 
+/** 创建模板-分支信息 */
+export interface CreateTemplateBranchInfo {
+  /** 分支名 */
+  name: string;
+  /** 描述 */
+  description: string;
+}
+
 /** 模版选项 */
 export interface CreateTemplateChoiceItem {
   /** 模板名 */
@@ -18,7 +26,7 @@ export interface CreateTemplateChoiceItem {
   /** 描述 */
   description?: string;
   /** 目标分支 */
-  branch?: string;
+  branch?: string | CreateTemplateBranchInfo[];
   /** 应用实例 */
   instances?: string[];
 }

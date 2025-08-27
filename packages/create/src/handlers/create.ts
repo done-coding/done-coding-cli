@@ -114,7 +114,24 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
       return process.exit(1);
     }
     remoteUrl = target.url;
-    templateBranch = target.branch;
+    if (typeof target.branch === "string") {
+      templateBranch = target.branch;
+    } else if (Array.isArray(target.branch) && target.branch.length > 0) {
+      const { targetBranch } = await xPrompts({
+        type: "select",
+        name: "targetBranch",
+        message: "请选择模板分支",
+        choices: target.branch.map((item) => {
+          return {
+            title: item.name,
+            value: item.name,
+            description: item.description,
+          };
+        }),
+        // initial: 0,
+      });
+      templateBranch = targetBranch;
+    }
   }
 
   /** 父级git目录 */

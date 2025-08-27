@@ -41,6 +41,19 @@ export const projectNameForm: PromptObject<string> = {
   validate: (value) => value.length > 0 || "项目名称不能为空",
 };
 
+/** 获取模板标题 */
+export const getTemplateTitle = ({
+  name,
+  branch,
+}: CreateTemplateChoiceItem) => {
+  const branchConfigType = typeof branch;
+  if (branchConfigType === "string") {
+    return `${name}(${branch})`;
+  } else {
+    return name;
+  }
+};
+
 export const getTemplateForm: () => Promise<
   PromptObject<string>
 > = async () => {
@@ -50,7 +63,7 @@ export const getTemplateForm: () => Promise<
     name: "template",
     message: "请选择模板",
     choices: templateChoices.map((item) => ({
-      title: item.branch ? `${item.name}(${item.branch})` : item.name,
+      title: getTemplateTitle(item),
       value: item.name,
       description:
         `${item.description || ""}${
