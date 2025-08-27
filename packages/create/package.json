@@ -1,6 +1,6 @@
 {
   "name": "create-done-coding",
-  "version": "0.11.16",
+  "version": "0.11.17",
   "description": "项目创建命令行工具",
   "module": "es/index.mjs",
   "type": "module",
