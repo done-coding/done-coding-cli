@@ -137,11 +137,23 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   /** 父级git目录 */
   const parentGitDir = lookForParentTarget(".git");
 
+  /** 如果有没有父级仓库 且知名了克隆的远程分支 则询问克隆到本地后的分支名 */
+  let localBranch: string | undefined = "";
+  if (!parentGitDir && templateBranch) {
+    const { localBranchName } = await xPrompts({
+      type: "text",
+      name: "localBranchName",
+      message: "请输入克隆到本地后的分支名",
+      initial: "master",
+    });
+    localBranch = localBranchName;
+  }
+
   log.stage("正在初始化项目，请稍等...");
 
   execSync(
     `git clone${
-      templateBranch ? ` -b ${templateBranch}` : ""
+      templateBranch ? ` -b ${templateBranch} ${localBranch}` : ""
     } ${remoteUrl} ${projectName} --depth=1`,
     { stdio: "inherit" },
   );
