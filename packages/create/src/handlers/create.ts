@@ -162,7 +162,10 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
         message: "请输入克隆到本地后的分支名",
         initial: "master",
       });
-      execSync(`git branch -m ${localBranchName}`);
+      execSync(`git branch -m ${localBranchName}`, {
+        cwd: projectNamePath,
+        stdio: "inherit",
+      });
     }
   }
 
