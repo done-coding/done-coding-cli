@@ -137,26 +137,34 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   /** 父级git目录 */
   const parentGitDir = lookForParentTarget(".git");
 
-  /** 如果有没有父级仓库 且知名了克隆的远程分支 则询问克隆到本地后的分支名 */
-  let localBranch: string | undefined = "";
-  if (!parentGitDir && templateBranch) {
-    const { localBranchName } = await xPrompts({
-      type: "text",
-      name: "localBranchName",
-      message: "请输入克隆到本地后的分支名",
-      initial: "master",
-    });
-    localBranch = localBranchName;
-  }
-
   log.stage("正在初始化项目，请稍等...");
 
   execSync(
     `git clone${
-      templateBranch ? ` -b ${templateBranch} ${localBranch}` : ""
+      templateBranch ? ` -b ${templateBranch}` : ""
     } ${remoteUrl} ${projectName} --depth=1`,
     { stdio: "inherit" },
   );
+
+  /** 如果有没有父级仓库 且知名了克隆的远程分支 则询问是否需要更改本地分支名 */
+  if (!parentGitDir && templateBranch) {
+    const { isChangeBranchName } = await xPrompts({
+      type: "confirm",
+      name: "isChangeBranchName",
+      message: `是否要重命名指定克隆分支名(${templateBranch})在本地的分支名`,
+      initial: false,
+    });
+
+    if (isChangeBranchName) {
+      const { localBranchName } = await xPrompts({
+        type: "text",
+        name: "localBranchName",
+        message: "请输入克隆到本地后的分支名",
+        initial: "master",
+      });
+      execSync(`git branch -m ${localBranchName}`);
+    }
+  }
 
   const configPath = MODULE_DEFAULT_CONFIG_RELATIVE_PATH;
 
