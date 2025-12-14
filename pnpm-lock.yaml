@@ -59,7 +59,7 @@ importers:
   packages/cli:
     dependencies:
       "@done-coding/cli-component":
-        specifier: workspace:0.4.5
+        specifier: workspace:0.4.6
         version: link:../component
       "@done-coding/cli-config":
         specifier: workspace:0.1.9
