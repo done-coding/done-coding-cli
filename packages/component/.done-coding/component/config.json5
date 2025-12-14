@@ -2,46 +2,40 @@
   /** 组件系列 */
   series: "Dc",
   /** 组件名排除列表 */
-  nameExcludes: [
-    "index",
-    "components",
-    "styles",
-    "types",
-    "examples",
-    "docs",
-    "utils",
-    "_utils",
-    "hooks",
-    "locales",
-    "handlers",
-  ],
+  nameExcludes: ["index"],
   /** 组件目录 */
-  componentDir: "${execDir}/src",
+  componentDir: "${execDir}/src/components",
   /** 配置列表 */
   list: [
     /** 组件逻辑文件 */
     {
       entry: {
         inputData: '\n\
-export { default as ${name} } from "./${nameKebab}";\n\
-export type * from "./${nameKebab}";',
-        output: "${execDir}/src/components.ts",
+export { default as ${name} } from "./${nameKebab}"',
+        output: "${execDir}/src/components/index.ts",
       },
       index: {
-        input: "${templateDir}/template/component.tsx.md",
-        output: "${execDir}/src/${nameKebab}/index.tsx",
+        input: "${templateDir}/template/component.vue.md",
+        output: "${execDir}/src/components/${nameKebab}/Component.vue",
+      },
+    },
+    /** 组件入口主体文件 */
+    {
+      index: {
+        input: "${templateDir}/template/index.ts.md",
+        output: "${execDir}/src/components/${nameKebab}/index.ts",
       },
     },
     /** 组件样式文件 */
     {
       entry: {
         inputData: '\n\
-@import "./${nameKebab}.less";',
+@import "../components/${nameKebab}/style.less";',
         output: "${execDir}/src/styles/index.less",
       },
       index: {
         input: "${templateDir}/template/style.less.md",
-        output: "${execDir}/src/styles/${nameKebab}.less",
+        output: "${execDir}/src/components/${nameKebab}/style.less",
       },
     },
     /** 样式变量文件 */
@@ -54,29 +48,42 @@ export type * from "./${nameKebab}";',
         output: "./src/styles/var.less",
       },
     },
+    /** 组件示例 */
+    {
+      entry: {
+        inputData: '\n\
+export { default as ${name} } from "@/components/${nameKebab}/Example.vue";',
+        output: "${execDir}/src/examples/components.ts",
+      },
+      index: {
+        input: "${templateDir}/template/example.vue.md",
+        output: "${execDir}/src/components/${nameKebab}/Example.vue",
+      },
+    },
     /** 组件类型文件 */
     {
       entry: {
         inputData: '\n\
-export * from "./${nameKebab}";',
+export * from "@/components/${nameKebab}/type";',
         output: "${execDir}/src/types/index.ts",
       },
       index: {
-        input: "${templateDir}/template/type.tsx.md",
-        output: "${execDir}/src/types/${nameKebab}.ts",
+        input: "${templateDir}/template/type.ts.md",
+        output: "${execDir}/src/components/${nameKebab}/type.ts",
       },
     },
-    /** 组件调用示例文件 */
+    /** 语言文件 */
     {
       entry: {
         inputData: '\n\
-export { default as ${name} } from "./${nameKebab}"',
-        output: "${execDir}/src/examples/components.ts",
+export { default as ${nameLowerFirst} } from "@/components/${nameKebab}/locale";',
+        output: "${execDir}/src/locales/index.ts",
       },
       index: {
-        input: "${templateDir}/template/example.tsx.md",
-        output: "${execDir}/src/examples/${nameKebab}.tsx",
+        input: "${templateDir}/template/locale.ts.md",
+        output: "${execDir}/src/components/${nameKebab}/locale.ts",
       },
     },
   ],
+  nameListJsonOutputPath: "./src/vite/component-name-list.json",
 }

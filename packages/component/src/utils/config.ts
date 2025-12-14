@@ -40,5 +40,11 @@ export const getConfig = () => {
   /** 组件目录-绝对路径 */
   config.componentDir = _template(config.componentDir)(pathEnvData);
 
+  if (!fs.existsSync(config.componentDir)) {
+    fs.mkdirSync(config.componentDir, {
+      recursive: true,
+    });
+  }
+
   return config;
 };

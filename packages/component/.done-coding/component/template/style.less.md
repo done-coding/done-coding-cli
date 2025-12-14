@@ -1,5 +1,5 @@
 ```less
-@import "./var.less";
+@import "../../styles/var.less";
 .@{prefix}-${nameKebab} {
 }
 ```

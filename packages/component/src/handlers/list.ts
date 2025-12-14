@@ -1,9 +1,31 @@
 import path from "node:path";
 import fs from "node:fs";
-import type { SubCliInfo } from "@done-coding/cli-utils";
+import type {
+  CliHandlerArgv,
+  SubCliInfo,
+  YargsOptionsRecord,
+} from "@done-coding/cli-utils";
 import { chalk, log } from "@done-coding/cli-utils";
+import type { ListOptions } from "@/types";
 import { SubcommandEnum, type Config } from "@/types";
 import { getComponentEnvData, getConfig } from "@/utils";
+
+/** 获取列表选项 */
+const getOptions = (): YargsOptionsRecord<ListOptions> => {
+  return {
+    outputJson: {
+      alias: "o",
+      describe: "是否输出组件名列表json",
+      type: "boolean",
+      default: false,
+    },
+    outputPath: {
+      alias: "p",
+      describe: "输入路径",
+      type: "string",
+    },
+  };
+};
 
 /**
  * 获取组件列表
@@ -45,17 +67,31 @@ export const getComponentList = (config: Config): string[] => {
   }
 };
 
-export const handler = async () => {
+export const handler = async ({
+  outputJson,
+  outputPath: outputPathInit,
+}: CliHandlerArgv<ListOptions>) => {
   log.stage("展示列表");
   const config = getConfig();
   const list = getComponentList(config);
 
+  const outputPath = outputPathInit || config.nameListJsonOutputPath;
+
+  const listInfo = list.map((nameKebab) => {
+    const { name, fullName } = getComponentEnvData({
+      ...config,
+      name: nameKebab,
+    });
+
+    return {
+      name,
+      nameKebab,
+      fullName,
+    };
+  });
+
   console.table(
-    list.map((nameKebab) => {
-      const { name, fullName } = getComponentEnvData({
-        ...config,
-        name: nameKebab,
-      });
+    listInfo.map(({ name, fullName, nameKebab }) => {
       return {
         [chalk.green("名称")]: name,
         [chalk.green("带系列名称")]: fullName,
@@ -63,11 +99,22 @@ export const handler = async () => {
       };
     }),
   );
+
+  if (outputJson && outputPath) {
+    const outputAbsolutePath = path.resolve(outputPath);
+    const outputDir = path.dirname(outputAbsolutePath);
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+    console.log(chalk.blue(`输出组件名列表到${outputAbsolutePath}`));
+    fs.writeFileSync(outputAbsolutePath, JSON.stringify(listInfo, null, 2));
+  }
 };
 
 /** 展示组件列表cli信息 */
 export const commandCliInfo: SubCliInfo = {
   command: SubcommandEnum.LIST,
   describe: "展示组件列表",
+  options: getOptions(),
   handler: handler as SubCliInfo["handler"],
 };

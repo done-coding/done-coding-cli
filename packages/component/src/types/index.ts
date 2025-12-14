@@ -22,6 +22,17 @@ export interface AddOptions extends CommonOptions {}
 
 export interface RemoveOptions extends Partial<CommonOptions> {}
 
+export interface ListOptions {
+  /** 输出(组件名列表)json */
+  outputJson?: boolean;
+  /**
+   * 输出路径
+   * ---
+   * @default './component-name-list.json'
+   */
+  outputPath?: string;
+}
+
 /** 模版配置输入路径 */
 export type TemplateConfigInputByPath = Pick<
   CompileOptions,
@@ -63,4 +74,12 @@ export interface Config {
   componentDir: string;
   /** 配置列表 */
   list: ConfigListItem[];
+  /**
+   * 组件名列表json 输出相对路径 (.json)
+   * ----
+   * 基于运行目录
+   * ---
+   * 该功能应用场景， 用于生成组件名列表 来用在vite按需加载组件判断
+   */
+  nameListJsonOutputPath?: string;
 }
