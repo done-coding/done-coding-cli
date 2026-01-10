@@ -7,6 +7,8 @@ import {
   SOMEONE_PUBLIC_REPO_NAME,
   customUrlForm,
   getGitCommitMessageForm,
+  transHttp2SshUrlForm,
+  FormNameEnum,
 } from "@/utils";
 import type {
   CliHandlerArgv,
@@ -22,11 +24,17 @@ import {
   batchCompileHandler,
   MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
 } from "@done-coding/cli-template";
-import { log, lookForParentTarget, xPrompts } from "@done-coding/cli-utils";
+import {
+  http2sshGitUrl,
+  isHttpGitUrl,
+  log,
+  lookForParentTarget,
+  xPrompts,
+} from "@done-coding/cli-utils";
 import { getTargetRepoUrl } from "@done-coding/cli-git";
 import { cloneDoneCodingSeries } from "@done-coding/cli-git/helpers";
 import injectInfo from "@/injectInfo.json";
-import type { CreateOptions } from "@/types";
+import { GitRemoteRepoAliasNameEnum, type CreateOptions } from "@/types";
 
 const getOptions = (): CliInfo["options"] => {
   return {
@@ -61,7 +69,8 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   }
 
   const projectNameNoTrim =
-    projectNameInit ?? (await xPrompts(projectNameForm)).projectName;
+    projectNameInit ??
+    (await xPrompts(projectNameForm))[FormNameEnum.PROJECT_NAME];
 
   const projectName = (projectNameNoTrim || "").trim();
 
@@ -82,7 +91,9 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   const projectNamePath = resolve(process.cwd(), projectName);
 
   if (existsSync(projectNamePath)) {
-    const { isRemove } = await xPrompts(getRemoveDirForm());
+    const { [FormNameEnum.IS_REMOVE_SAME_NAME_DIR]: isRemove } = await xPrompts(
+      getRemoveDirForm(),
+    );
     if (isRemove === true) {
       rmSync(projectNamePath, { recursive: true, force: true });
     } else {
@@ -91,13 +102,16 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     }
   }
 
-  const { template } = await xPrompts(await getTemplateForm());
+  const { [FormNameEnum.TEMPLATE]: template } = await xPrompts(
+    await getTemplateForm(),
+  );
 
   let remoteUrl = "";
   let templateBranch: string | undefined = "";
 
   if (template === CUSTOM_TEMPLATE_NAME) {
-    const { customUrl } = await xPrompts(customUrlForm);
+    const { [FormNameEnum.CUSTOM_GIT_URL_INPUT]: customUrl } =
+      await xPrompts(customUrlForm);
     remoteUrl = customUrl;
   } else if (template === SOMEONE_PUBLIC_REPO_NAME) {
     remoteUrl = await getTargetRepoUrl();
@@ -152,7 +166,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
       type: "confirm",
       name: "isChangeBranchName",
       message: `是否要重命名指定克隆分支名(${templateBranch})在本地的分支名`,
-      initial: false,
+      initial: true,
     });
 
     if (isChangeBranchName) {
@@ -208,20 +222,47 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   } else {
     // 如果项目不在git仓库中，则询问是否保存git历史记录
 
-    const saveGitHistory = (await xPrompts(saveGitHistoryForm)).saveGitHistory;
+    const saveGitHistory = (await xPrompts(saveGitHistoryForm))[
+      FormNameEnum.IS_SAVE_GIT_HISTORY
+    ];
 
     if (saveGitHistory) {
       // 保存git记录则重命名origin为upstream 同时完整克隆仓库
-      execSync(`git remote rename origin upstream && git fetch --unshallow`, {
-        cwd: projectNamePath,
-        stdio: "inherit",
-      });
+      execSync(
+        `git remote rename ${GitRemoteRepoAliasNameEnum.ORIGIN} ${GitRemoteRepoAliasNameEnum.UPSTREAM} && git fetch --unshallow`,
+        {
+          cwd: projectNamePath,
+          stdio: "inherit",
+        },
+      );
 
       log.stage(
         `已经将origin重命名为upstream，后续可以与模板git仓库有完整的交互`,
       );
 
       log.success(`已保存git历史记录`);
+
+      if (isHttpGitUrl(remoteUrl)) {
+        const sshUrl = http2sshGitUrl(remoteUrl);
+        const isTransToSshUrl = (
+          await xPrompts(
+            transHttp2SshUrlForm({
+              httpUrl: remoteUrl,
+              sshUrl,
+            }),
+          )
+        )[FormNameEnum.IS_TRANS_HTTP_URL_TO_SSH_URL];
+        if (isTransToSshUrl) {
+          execSync(
+            `git remote set-url ${GitRemoteRepoAliasNameEnum.UPSTREAM} ${sshUrl}`,
+            {
+              cwd: projectNamePath,
+              stdio: "inherit",
+            },
+          );
+        }
+        log.success(`已将模板远程仓库地址更换为${sshUrl}`);
+      }
     } else {
       // 项目git目录
       const projectNameGitPath = path.resolve(projectNamePath, ".git");
@@ -234,9 +275,8 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     }
   }
 
-  const { gitCommitMessage } = await xPrompts(
-    getGitCommitMessageForm(projectName),
-  );
+  const { [FormNameEnum.GIT_COMMIT_MESSAGE]: gitCommitMessage } =
+    await xPrompts(getGitCommitMessageForm(projectName));
 
   // 提交代码
   execSync(`git add . && git commit -m '${gitCommitMessage}'`, {

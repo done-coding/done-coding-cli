@@ -13,7 +13,9 @@ export type {
 } from "prompts";
 
 /** prompts 拓展 */
-export const xPrompts = (...args: Parameters<typeof prompts>) => {
+export const xPrompts = <T extends string = string>(
+  ...args: Parameters<typeof prompts<T>>
+) => {
   const [questions, options = {}] = args;
   return prompts(questions, {
     onCancel(params) {

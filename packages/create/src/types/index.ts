@@ -34,3 +34,11 @@ export interface CreateTemplateChoiceItem {
 export interface CreateConfigJson {
   templateList: CreateTemplateChoiceItem[];
 }
+
+/** 远程仓库别名枚举 */
+export enum GitRemoteRepoAliasNameEnum {
+  /** 默认 */
+  ORIGIN = "origin",
+  /** 模板仓库 */
+  UPSTREAM = "upstream",
+}
