@@ -2,19 +2,18 @@ import type { CliHandlerArgv, SubCliInfo } from "@done-coding/cli-utils";
 import type { AliasOptions, ConfigInfo } from "@/types";
 import { PublishModeEnum, SubcommandEnum } from "@/types";
 import {
+  applyUseTempDir,
   getConfigFileCommonOptions,
   getPackageJson,
+  getCliModuleTempDir,
   log,
   readConfigFile,
 } from "@done-coding/cli-utils";
-import {
-  MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
-  PUBLISH_ALIAS_TEMP_DIR,
-} from "@/utils";
-import { v4 } from "uuid";
+import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "@/utils";
 import path from "node:path";
 import fs, { rmSync } from "node:fs";
 import { execSync } from "node:child_process";
+import injectInfo from "@/injectInfo.json";
 
 /** 获取别名发布选项 */
 export const getAliasOptions = () =>
@@ -47,60 +46,62 @@ export const aliasHandler = async (argv: CliHandlerArgv<AliasOptions>) => {
 
   const { name, version } = packageJson;
 
-  // 构造新包的临时目录
-  const tempDir = path.resolve(PUBLISH_ALIAS_TEMP_DIR, v4());
+  return applyUseTempDir({
+    dir: getCliModuleTempDir(injectInfo.cliConfig.moduleName),
+    fn: async (tempDir) => {
+      fs.mkdirSync(tempDir, { recursive: true });
 
-  fs.mkdirSync(tempDir, { recursive: true });
+      execSync(`pnpm add ${name}@${version}`, {
+        stdio: "inherit",
+        cwd: tempDir,
+      });
 
-  execSync(`pnpm add ${name}@${version}`, {
-    stdio: "inherit",
-    cwd: tempDir,
+      const distTagListBuffer = execSync(`npm dist-tag ${name}`);
+
+      const distTagListStr = distTagListBuffer.toString().trim();
+      const distTagList = distTagListStr
+        .split("\n")
+        .map((item) => item.split(":").map((item) => item.trim()));
+      const distTag = distTagList.find(
+        ([, tagVersion]) => tagVersion === version,
+      )?.[0];
+
+      if (!distTag) {
+        return log.warn(`没有找到 ${name}@${version} 对应的dist-tag`);
+      }
+
+      // console.log(distTag)
+
+      const sourcePck = path.resolve(tempDir, "node_modules", name);
+
+      const sourcePackageJson = getPackageJson({
+        rootDir: sourcePck,
+      });
+
+      // console.log(aliasInfoList);
+      for (let aliasInfo of aliasInfoList) {
+        const { packageJson: patchPackageJson } = aliasInfo;
+
+        const newPackageJson = {
+          ...sourcePackageJson,
+          ...patchPackageJson,
+        };
+
+        const newPackageJsonPath = `${sourcePck}/package.json`;
+
+        fs.writeFileSync(
+          newPackageJsonPath,
+          JSON.stringify(newPackageJson, null, 2),
+        );
+
+        execSync(`pnpm publish --tag ${distTag}`, {
+          stdio: "inherit",
+          cwd: sourcePck,
+        });
+      }
+      rmSync(tempDir, { recursive: true, force: true });
+    },
   });
-
-  const distTagListBuffer = execSync(`npm dist-tag ${name}`);
-
-  const distTagListStr = distTagListBuffer.toString().trim();
-  const distTagList = distTagListStr
-    .split("\n")
-    .map((item) => item.split(":").map((item) => item.trim()));
-  const distTag = distTagList.find(
-    ([, tagVersion]) => tagVersion === version,
-  )?.[0];
-
-  if (!distTag) {
-    return log.warn(`没有找到 ${name}@${version} 对应的dist-tag`);
-  }
-
-  // console.log(distTag)
-
-  const sourcePck = path.resolve(tempDir, "node_modules", name);
-
-  const sourcePackageJson = getPackageJson({
-    rootDir: sourcePck,
-  });
-
-  // console.log(aliasInfoList);
-  for (let aliasInfo of aliasInfoList) {
-    const { packageJson: patchPackageJson } = aliasInfo;
-
-    const newPackageJson = {
-      ...sourcePackageJson,
-      ...patchPackageJson,
-    };
-
-    const newPackageJsonPath = `${sourcePck}/package.json`;
-
-    fs.writeFileSync(
-      newPackageJsonPath,
-      JSON.stringify(newPackageJson, null, 2),
-    );
-
-    execSync(`pnpm publish --tag ${distTag}`, {
-      stdio: "inherit",
-      cwd: sourcePck,
-    });
-  }
-  rmSync(tempDir, { recursive: true, force: true });
 };
 
 export const aliasCommandCliInfo: SubCliInfo = {

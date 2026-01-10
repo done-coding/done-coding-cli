@@ -15,7 +15,7 @@ import {
   addHuskyHooks,
   addPackageConfig,
   log,
-  readCliConfig,
+  readCliModuleAssetsConfig,
   xPrompts,
 } from "@done-coding/cli-utils";
 import { adjustModuleList, configModulePkgNameMap } from "@/utils";
@@ -265,12 +265,14 @@ export const handler = async (argv: ArgumentsCamelCase<AddConfigOptions>) => {
     return;
   }
 
-  await readCliConfig<ConfigConfigJson>({
+  await readCliModuleAssetsConfig<ConfigConfigJson>({
     moduleName,
     onSuccess: async ({
       config: cliConfig,
-      configTemporaryDir,
-      cliConfigDirRelativePath,
+      // configTemporaryDir,
+      // cliConfigDirRelativePath,
+      assetsConfigRepoTempDir,
+      moduleEntryFileRelativePath,
     }) => {
       if (!cliConfig?.project) {
         throw new Error("项目工程化预设不存在");
@@ -293,9 +295,8 @@ export const handler = async (argv: ArgumentsCamelCase<AddConfigOptions>) => {
       for (let moduleName of needAddModuleList) {
         // 模块对应目录
         const moduleDir = path.resolve(
-          configTemporaryDir,
-          cliConfigDirRelativePath,
-          moduleName,
+          assetsConfigRepoTempDir,
+          moduleEntryFileRelativePath,
         );
 
         const moduleConfigList = resolveModuleConfigList({

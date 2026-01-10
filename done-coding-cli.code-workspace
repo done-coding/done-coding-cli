@@ -33,6 +33,10 @@
       "path": "packages/component"
     },
     {
+      "name": "pump",
+      "path": "packages/pump"
+    },
+    {
       "name": "git",
       "path": "packages/git"
     },
@@ -91,6 +95,7 @@
       "Reflog",
       "unplugin",
       "upperfirst",
+      "uuidv",
       "VITE"
     ],
     "[ignore]": {

@@ -1,4 +1,8 @@
-import { log, readCliConfig, type PromptObject } from "@done-coding/cli-utils";
+import {
+  log,
+  readCliModuleAssetsConfig,
+  type PromptObject,
+} from "@done-coding/cli-utils";
 import { CUSTOM_TEMPLATE_NAME, SOMEONE_PUBLIC_REPO_NAME } from "./const";
 import type { CreateConfigJson, CreateTemplateChoiceItem } from "@/types";
 import injectInfo from "@/injectInfo.json";
@@ -28,11 +32,11 @@ export enum FormNameEnum {
 /** 获取模版选项 */
 export const getTemplateList = async () => {
   if (!templateList) {
-    const config = await readCliConfig<CreateConfigJson>({
+    const config = await readCliModuleAssetsConfig<CreateConfigJson>({
       moduleName: injectInfo.cliConfig.moduleName,
-      onSuccess({ config, cliConfigFileRelativePath, repoUrl }) {
+      onSuccess({ config, moduleEntryFileRelativePath, repoUrl }) {
         if (!Array.isArray(config.templateList)) {
-          const errorMsg = `远程配置文件出错, templateList 不是数组, 请检查 ${repoUrl} ${cliConfigFileRelativePath}`;
+          const errorMsg = `配置文件出错, templateList 不是数组, 请检查 ${repoUrl} ${moduleEntryFileRelativePath}`;
           throw new Error(errorMsg);
         }
         log.success(`模板列表拉取成功！`);

@@ -323,9 +323,6 @@ importers:
       semver:
         specifier: ^7.5.4
         version: 7.5.4
-      uuid:
-        specifier: ^11.1.0
-        version: 11.1.0
     devDependencies:
       "@done-coding/cli-inject":
         specifier: workspace:0.5.18
@@ -336,9 +333,6 @@ importers:
       "@types/semver":
         specifier: ^7.5.3
         version: 7.5.3
-      "@types/uuid":
-        specifier: ^10.0.0
-        version: 10.0.0
       "@types/yargs":
         specifier: ^17.0.28
         version: 17.0.33
@@ -424,6 +418,9 @@ importers:
       semver:
         specifier: ^7.5.4
         version: 7.5.4
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
       yargs:
         specifier: ^17.7.2
         version: 17.7.2
@@ -455,6 +452,9 @@ importers:
       "@types/semver":
         specifier: ^7.5.3
         version: 7.5.3
+      "@types/uuid":
+        specifier: ^10.0.0
+        version: 10.0.0
       "@types/yargs":
         specifier: ^17.0.28
         version: 17.0.33
