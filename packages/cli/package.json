@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli",
-  "version": "0.15.16",
+  "version": "0.15.17",
   "description": "done-coding命令行工具",
   "private": false,
   "module": "es/cli.mjs",
@@ -55,14 +55,14 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@done-coding/cli-component": "workspace:0.4.6",
-    "@done-coding/cli-config": "workspace:0.1.9",
-    "@done-coding/cli-extract": "workspace:0.1.17",
-    "@done-coding/cli-git": "workspace:0.6.9",
-    "@done-coding/cli-inject": "workspace:0.5.17",
-    "@done-coding/cli-publish": "workspace:0.7.10",
-    "@done-coding/cli-template": "workspace:0.8.4",
-    "@done-coding/cli-utils": "workspace:0.7.7",
-    "create-done-coding": "workspace:0.11.19"
+    "@done-coding/cli-component": "workspace:0.4.7",
+    "@done-coding/cli-config": "workspace:0.1.10",
+    "@done-coding/cli-extract": "workspace:0.1.18",
+    "@done-coding/cli-git": "workspace:0.6.10",
+    "@done-coding/cli-inject": "workspace:0.5.18",
+    "@done-coding/cli-publish": "workspace:0.7.11",
+    "@done-coding/cli-template": "workspace:0.8.5",
+    "@done-coding/cli-utils": "workspace:0.7.8",
+    "create-done-coding": "workspace:0.11.20"
   }
 }
