@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-publish",
-  "version": "0.7.12",
+  "version": "0.7.13",
   "description": "项目发布命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -41,7 +41,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:0.5.19",
+    "@done-coding/cli-inject": "workspace:0.5.20",
     "@types/node": "^18.0.0",
     "@types/semver": "^7.5.3",
     "@types/yargs": "^17.0.28",
@@ -54,7 +54,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@done-coding/cli-utils": "workspace:0.8.0",
+    "@done-coding/cli-utils": "workspace:0.8.1",
     "semver": "^7.5.4"
   }
 }
