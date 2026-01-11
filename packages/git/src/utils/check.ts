@@ -70,13 +70,10 @@ export const checkIsReverseMerge = ({
   currentBranch?: string;
 }) => {
   if (!mergeInfo) {
-    // console.log(chalk.gray("未检测到合并信息 跳过"));
     return;
   }
 
   const { fromBranch, toBranch = currentBranch } = mergeInfo;
-
-  // console.log(chalk.cyan(`检测到合并: ${fromBranch} => ${toBranch}`));
 
   if (fromBranch === currentBranch) {
     log.skip(`跳过: 允许远程${fromBranch} => 本地${toBranch}`);

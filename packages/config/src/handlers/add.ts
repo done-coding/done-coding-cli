@@ -220,7 +220,6 @@ export const resolveModuleConfigList = ({
   moduleName: ConfigModuleEnum;
 }) => {
   if (typeof listConfig === "string") {
-    console.log(listConfig);
     const presetListJsonFile = path.resolve(moduleDir, listConfig);
     if (!existsSync(presetListJsonFile)) {
       throw new Error(
@@ -310,7 +309,6 @@ export const handler = async (argv: ArgumentsCamelCase<AddConfigOptions>) => {
         }
         log.stage(`开始添加 ${moduleName} 配置`);
 
-        // console.log(moduleConfigList);
         const res = await resolveModuleConfig({
           moduleName,
           moduleConfigList,

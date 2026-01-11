@@ -1,5 +1,5 @@
-import chalk from "chalk";
 import fs from "node:fs";
+import { log } from "./log";
 
 // 定义执行权限的掩码
 const EXEC_PERMISSIONS = 0o111;
@@ -14,7 +14,7 @@ export const fileAddX = (filePath: string) => {
   if ((currentMode & EXEC_PERMISSIONS) === EXEC_PERMISSIONS) {
     return;
   }
-  console.log(chalk.blue(`${filePath} 没有执行权限 添加... `));
+  log.stage(`${filePath} 没有执行权限 添加... `);
 
   // 添加执行权限
   const newMode = currentMode | EXEC_PERMISSIONS;
@@ -22,7 +22,7 @@ export const fileAddX = (filePath: string) => {
   // 修改文件权限
   fs.chmodSync(filePath, newMode);
 
-  console.log(chalk.green(`${filePath} 添加执行权限成功`));
+  log.success(`${filePath} 添加执行权限成功`);
 };
 
 /** 文件或文件夹是否存在(同步) */

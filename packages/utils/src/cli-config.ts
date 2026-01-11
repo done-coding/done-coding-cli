@@ -1,4 +1,3 @@
-import chalk from "chalk";
 import { execSync } from "node:child_process";
 import path from "node:path";
 import fs from "node:fs";
@@ -14,6 +13,7 @@ import {
 import { isHttpGitUrl, isSshGitUrl } from "./git";
 import { applyUseTempDir } from "./temp-dir";
 import { uuidv4 } from "./uuid";
+import { log } from "./log";
 
 /** done-coding-cli 全局配置 key 枚举 */
 export enum DoneCodingCliGlobalConfigKeyEnum {
@@ -49,8 +49,6 @@ const getGlobalConfigJsonFilePath = () => {
 const getGlobalConfig = async (): Promise<DoneCodingCliGlobalConfig> => {
   const filePath = getGlobalConfigJsonFilePath();
 
-  console.log("读取全局配置：", filePath);
-
   const config: DoneCodingCliGlobalConfig = {
     [DoneCodingCliGlobalConfigKeyEnum.ASSETS_CONFIG_REPO_URL]:
       ASSETS_CONFIG_REPO_URL_DEFAULT,
@@ -66,17 +64,13 @@ const getGlobalConfig = async (): Promise<DoneCodingCliGlobalConfig> => {
     }
   } catch (error) {}
 
-  console.log("done-coding-cli 全局配置：", config);
   return config;
 };
 
 /** 创建本地资产配置临时仓库 */
 const createLocalAssetsConfigTempRepo = async (configTemporaryDir: string) => {
-  console.log("资产配置仓库临时目录：", configTemporaryDir);
   if (await assetIsExitsAsync(configTemporaryDir)) {
-    console.log(
-      chalk.red(`${configTemporaryDir} 已存在，请手动删除该目录再试`),
-    );
+    log.error(`${configTemporaryDir} 已存在，请手动删除该目录再试`);
     return process.exit(1);
   }
 
@@ -85,7 +79,6 @@ const createLocalAssetsConfigTempRepo = async (configTemporaryDir: string) => {
       assetConfigRepoUrl,
   } = await getGlobalConfig();
   if (isSshGitUrl(assetConfigRepoUrl) || isHttpGitUrl(assetConfigRepoUrl)) {
-    console.log("远程仓库拉取配置...", assetConfigRepoUrl);
     execSync(`git clone ${assetConfigRepoUrl} ${configTemporaryDir} --depth=1`);
   } else {
     fs.mkdirSync(configTemporaryDir, { recursive: true });
@@ -120,7 +113,7 @@ export const readCliModuleAssetsConfig = async <R>({
     config: R;
   }) => void | Promise<void>;
 }): Promise<R> => {
-  console.log(chalk.blue(`拉取${moduleName}配置，请稍等...`));
+  log.stage(`拉取${moduleName}配置，请稍等...`);
 
   return applyUseTempDir({
     // 资源配置仓库临时文件夹

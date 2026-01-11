@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import chalk from "chalk";
 import _merge from "lodash.merge";
+import { log } from "./log";
 
 const PACKAGE_JSON_PATH = "package.json";
 
@@ -57,19 +57,17 @@ export const getRelyPkgVersion = <R extends PackageJson>({
       : pkgInfo.devDependencies;
     version = pkgDepsMaybe?.[pkgName];
     if (version) {
-      console.log(
-        chalk.yellow(
-          `${isDevPkg ? "开发" : "生产"}依赖包${pkgName}可能错误的安装在${
-            isDevPkg ? "dependencies" : "devDependencies"
-          }`,
-        ),
+      log.warn(
+        `${isDevPkg ? "开发" : "生产"}依赖包${pkgName}可能错误的安装在${
+          isDevPkg ? "dependencies" : "devDependencies"
+        }`,
       );
     }
     return;
   }
 
   if (!version) {
-    console.log(chalk.cyan(`依赖包${pkgName}未安装`));
+    log.info(`依赖包${pkgName}未安装`);
   }
 
   return version;

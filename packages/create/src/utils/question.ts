@@ -1,4 +1,5 @@
 import {
+  getLogText,
   log,
   readCliModuleAssetsConfig,
   type PromptObject,
@@ -72,9 +73,13 @@ export const getTemplateTitle = ({
 }: CreateTemplateChoiceItem) => {
   const branchConfigType = typeof branch;
   if (branchConfigType === "string") {
-    return `${name}(${branch})`;
+    return `${name}(${getLogText.info(branch)})`;
   } else {
-    return name;
+    return `${name}(${
+      Array.isArray(branch) && branch.length
+        ? getLogText.success(`${branch.length}个细分分支`)
+        : getLogText.info(`默认分支`)
+    })`;
   }
 };
 

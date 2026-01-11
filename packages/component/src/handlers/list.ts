@@ -5,7 +5,7 @@ import type {
   SubCliInfo,
   YargsOptionsRecord,
 } from "@done-coding/cli-utils";
-import { chalk, log } from "@done-coding/cli-utils";
+import { getLogText, log } from "@done-coding/cli-utils";
 import type { ListOptions } from "@/types";
 import { SubcommandEnum, type Config } from "@/types";
 import { getComponentEnvData, getConfig } from "@/utils";
@@ -42,7 +42,7 @@ export const getComponentList = (config: Config): string[] => {
         const filePath = path.join(componentDirAbsolutePath, file);
         const stats = fs.statSync(filePath);
         if (stats.isDirectory()) {
-          console.log("filePath:", filePath, path.basename(filePath));
+          log.info("filePath:", filePath, path.basename(filePath));
           return path.basename(filePath);
         } else {
           return "";
@@ -93,9 +93,12 @@ export const handler = async ({
   console.table(
     listInfo.map(({ name, fullName, nameKebab }) => {
       return {
-        [chalk.green("名称")]: name,
-        [chalk.green("带系列名称")]: fullName,
-        [chalk.green("绝对路径")]: path.resolve(config.componentDir, nameKebab),
+        [getLogText.success("名称")]: name,
+        [getLogText.success("带系列名称")]: fullName,
+        [getLogText.success("绝对路径")]: path.resolve(
+          config.componentDir,
+          nameKebab,
+        ),
       };
     }),
   );
@@ -106,7 +109,7 @@ export const handler = async ({
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
-    console.log(chalk.blue(`输出组件名列表到${outputAbsolutePath}`));
+    log.stage(`输出组件名列表到${outputAbsolutePath}`);
     fs.writeFileSync(outputAbsolutePath, JSON.stringify(listInfo, null, 2));
   }
 };

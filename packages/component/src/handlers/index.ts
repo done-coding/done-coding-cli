@@ -40,7 +40,7 @@ export const handler = async (
       return removeHandler(argv);
     }
     case SubcommandEnum.LIST: {
-      return listHandler();
+      return listHandler(argv);
     }
     default: {
       throw new Error(`不支持的命令 ${command}`);

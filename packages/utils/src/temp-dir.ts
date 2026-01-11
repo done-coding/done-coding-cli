@@ -1,5 +1,5 @@
-import chalk from "chalk";
 import { assetIsExits, removeAsset } from "./file-operate";
+import { log } from "./log";
 
 /**
  * 申请使用临时目录
@@ -21,20 +21,20 @@ export const applyUseTempDir = <T>({
 }): T => {
   /** 文件存在直接提示 并退出 */
   if (assetIsExits(dir)) {
-    console.log(chalk.red(`${dir} 已存在，请手动删除该目录再试`));
+    log.error(`${dir} 已存在，请手动删除该目录再试`);
     return process.exit(1);
   }
 
   // 清除临时文件夹
   const clear = () => {
-    console.log("正在清理临时目录...", dir);
+    log.stage("正在清理临时目录...", dir);
     removeAsset(dir);
   };
 
   // 退出信号 清除
   if (exitClear) {
     process.once("exit", () => {
-      console.log("发现进程退出，正在清理临时目录...", dir);
+      log.stage("发现进程退出，正在清理临时目录...", dir);
       clear();
     });
   }

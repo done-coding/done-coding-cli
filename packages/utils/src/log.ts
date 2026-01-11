@@ -1,6 +1,5 @@
+// !!! 不对外导出  打印日志使用 log， 获取彩色文字 使用 getLogText
 import chalk from "chalk";
-
-export { chalk };
 
 /** 日志类型 */
 enum LogTypeEnum {
@@ -18,23 +17,32 @@ enum LogTypeEnum {
   SKIP = "gray",
 }
 
-/** 日志 */
-export const log = Object.assign(
-  (type: LogTypeEnum, ...messages: string[]) => {
-    return console.log(...messages.map((item) => chalk[type](item)));
-  },
-  {
+export type LogParams = [type: LogTypeEnum, ...messages: unknown[]];
+
+/** chalk结果使用 */
+const chalkUse = <T>(fn: (res: string) => T) => {
+  const baseFn = (...[type, ...messages]: LogParams) => {
+    return fn(chalk[type](...messages));
+  };
+  return Object.assign(baseFn, {
     /** 成功 */
-    success: (...messages: string[]) => log(LogTypeEnum.SUCCESS, ...messages),
+    success: (...messages: unknown[]) =>
+      baseFn(LogTypeEnum.SUCCESS, ...messages),
     /** /步骤 */
-    stage: (...messages: string[]) => log(LogTypeEnum.STAGE, ...messages),
+    stage: (...messages: unknown[]) => baseFn(LogTypeEnum.STAGE, ...messages),
     /** 提示信息 */
-    info: (...messages: string[]) => log(LogTypeEnum.INFO, ...messages),
+    info: (...messages: unknown[]) => baseFn(LogTypeEnum.INFO, ...messages),
     /** 警告 */
-    warn: (...messages: string[]) => log(LogTypeEnum.WARN, ...messages),
+    warn: (...messages: unknown[]) => baseFn(LogTypeEnum.WARN, ...messages),
     /** 错误 */
-    error: (...messages: string[]) => log(LogTypeEnum.ERROR, ...messages),
+    error: (...messages: unknown[]) => baseFn(LogTypeEnum.ERROR, ...messages),
     /** 跳过 */
-    skip: (...messages: string[]) => log(LogTypeEnum.SKIP, ...messages),
-  },
-);
+    skip: (...messages: unknown[]) => baseFn(LogTypeEnum.SKIP, ...messages),
+  });
+};
+
+/** 日志 */
+export const log = chalkUse(console.log);
+
+/** 获取输出文字 */
+export const getLogText = chalkUse((res) => res);

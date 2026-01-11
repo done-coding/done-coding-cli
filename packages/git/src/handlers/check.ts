@@ -104,7 +104,6 @@ export const checkReverseMergeByCommitMsg = ({
   if (checkCurrentIsRebasing(rootDir)) {
     return log.skip(`当前在变基中, 不通过提交信息检测合并`);
   }
-  // console.log(chalk.cyan("提交信息", commitMsg));
 
   const mergeInfo = resolveMergeInfoByCommitMsg(commitMsg);
 

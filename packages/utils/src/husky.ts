@@ -1,10 +1,10 @@
 import { fileAddX } from "./file-operate";
 import path from "node:path";
 import fs from "node:fs";
-import chalk from "chalk";
 import { getPackageJson, getRelyPkgVersion } from "./package-json";
 import semver from "semver";
 import { getGitProjectDir } from "./git";
+import { log } from "./log";
 
 export enum HooksNameEnum {
   /** 预提交 */
@@ -50,11 +50,11 @@ const getHuskyBootCode = ({ rootDir }: { rootDir: string }) => {
   const needRootCodeVersionRange = "<9.0.0";
   // 小于9.0.0版本
   if (semver.satisfies(version, needRootCodeVersionRange)) {
-    console.log(chalk.cyan(`${version}符合${needRootCodeVersionRange}`));
+    log.info(`${version}符合${needRootCodeVersionRange}`);
     return `#!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"`;
   } else {
-    console.log(chalk.cyan(`${version}不符合${needRootCodeVersionRange}`));
+    log.info(`${version}不符合${needRootCodeVersionRange}`);
   }
   return "";
 };
@@ -97,11 +97,9 @@ export const addHuskyHooks = <H extends string>({
 ${code}
 `,
         );
-        console.log(chalk.green(`${hooksFilePath} 添加 ${name}相关调用成功`));
+        log.success(`${hooksFilePath} 添加 ${name}相关调用成功`);
       } else {
-        console.log(
-          chalk.gray(`${hooksFilePath} ${name}相关调用 ${code} 已存在 跳过`),
-        );
+        log.skip(`${hooksFilePath} ${name}相关调用 ${code} 已存在 跳过`);
       }
     } else {
       const bootCode = getHuskyBootCode({
@@ -115,7 +113,7 @@ ${code}
 `,
         "utf-8",
       );
-      console.log(chalk.green(`${hooksFilePath} 添加 ${name}相关调用成功`));
+      log.success(`${hooksFilePath} 添加 ${name}相关调用成功`);
     }
     fileAddX(hooksFilePath);
   });
