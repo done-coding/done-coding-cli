@@ -1,0 +1,153 @@
+{
+  "templateList": [
+    {
+      "name": "template-npm-common",
+      "description": "通用的npm工具包ts模板",
+      "url": "https://gitee.com/justsosu/template-npm-common.git",
+      "branch": [
+        {
+          "name": "template/standalone",
+          "description": "独立项目(自带工程化配置)"
+        },
+        {
+          "name": "template/workspace",
+          "description": "workspace项目(不带工程化配置)"
+        }
+      ]
+    },
+    {
+      "name": "template-npm-node-common",
+      "description": "node环境运行通用的npm工具包ts模板",
+      "url": "https://gitee.com/justsosu/template-npm-node-common.git",
+      "branch": [
+        {
+          "name": "template/standalone",
+          "description": "独立项目(自带工程化配置)"
+        },
+        {
+          "name": "template/workspace",
+          "description": "workspace项目(不带工程化配置)"
+        }
+      ]
+    },
+    {
+      "name": "template-npm-node-cli",
+      "description": "node环境运行的npm cli工具包ts模板",
+      "url": "https://gitee.com/justsosu/template-npm-node-cli.git",
+      "branch": [
+        {
+          "name": "template/standalone",
+          "description": "独立项目(自带工程化配置)"
+        },
+        {
+          "name": "template/workspace",
+          "description": "workspace项目(不带工程化配置)"
+        }
+      ]
+    },
+    {
+      "name": "template-node-server",
+      "description": "node环境服务ts模板",
+      "url": "https://gitee.com/justsosu/template-node-server.git",
+      "branch": [
+        {
+          "name": "template/standalone",
+          "description": "独立项目(自带工程化配置)"
+        },
+        {
+          "name": "template/workspace",
+          "description": "workspace项目(不带工程化配置)"
+        }
+      ]
+    },
+    {
+      "name": "template-web-admin-vue3",
+      "description": "web后台管理系统vue3项目模板",
+      "instances": [],
+      "url": "https://gitee.com/justsosu/template-web-pc-vue3.git",
+      "branch": [
+        {
+          "name": "master",
+          "description": "后台管理系统项目-独立项目"
+        },
+        {
+          "name": "subpackage",
+          "description": "后台管理系统项目-lerna管理的monorepo子项目"
+        }
+      ]
+    },
+    {
+      "name": "template-web-mobile-vue3",
+      "description": "web移动端vue3项目",
+      "instances": [],
+      "url": "https://gitee.com/justsosu/template-web-m-vue3.git"
+    },
+    {
+      "name": "template-uni-mobile-vue3",
+      "description": "uni移动端vue3项目",
+      "instances": [],
+      "url": "https://gitee.com/justsosu/template-uni-m-vue3.git"
+    },
+    {
+      "name": "template-web-mobile-react",
+      "description": "web移动端react项目",
+      "instances": [],
+      "url": "https://gitee.com/justsosu/template-web-m-react.git"
+    },
+    {
+      "name": "template-node-express",
+      "description": "node express项目模板",
+      "instances": [],
+      "url": "https://gitee.com/justsosu/template-node-express.git"
+    },
+    {
+      "name": "template-monorepo",
+      "description": "lerna管理的monorepo项目模板",
+      "instances": [
+        "done-coding-request",
+        "done-coding-cli",
+        "done-coding-x"
+      ],
+      "url": "https://gitee.com/justsosu/template-monorepo.git",
+      "branch": [
+        {
+          "name": "master",
+          "description": "lerna管理的通用monorepo项目"
+        },
+        {
+          "name": "components",
+          "description": "lerna管理的vue3 monorepo项目"
+        }
+      ]
+    },
+    {
+      "name": "template-web-site-vue3",
+      "description": "web网站vue3项目模板",
+      "instances": [],
+      "url": "https://gitee.com/justsosu/template-web-site-vue3.git"
+    },
+    {
+      "name": "template-components-vue3",
+      "description": "vue3组件库项目模板",
+      "instances": [],
+      "url": "https://gitee.com/justsosu/template-components-vue3.git",
+      "branch": [
+        {
+          "name": "master",
+          "description": "vue3组件库项目-独立项目"
+        },
+        {
+          "name": "subpackage",
+          "description": "vue3组件库项目-lerna管理的monorepo子项目"
+        }
+      ]
+    },
+    {
+      "name": "template-micro-app-vue3",
+      "description": "微前端框架(micro-app[京东])项目模板",
+      "instances": [],
+      "url": "https://gitee.com/justsosu/template-micro-app.git",
+      "branch": "vue3"
+    }
+  ]
+}

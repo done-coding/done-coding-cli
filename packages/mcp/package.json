@@ -1,11 +1,14 @@
 {
-  "name": "@done-coding/cli-mcp",
+  "name": "dc-cli-mcp",
   "version": "0.0.0",
   "description": "调用done-coding命令行的mcp服务",
   "private": false,
   "module": "es/index.mjs",
   "types": "types/index.d.ts",
   "type": "module",
+  "bin": {
+    "dc-cli-mcp": "./es/index.mjs"
+  },
   "exports": {
     ".": {
       "import": "./es/index.mjs",
@@ -53,6 +56,8 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@done-coding/cli-component": "workspace:0.4.9",
+    "@done-coding/cli-utils": "workspace:0.8.1",
     "@modelcontextprotocol/sdk": "^1.25.2",
     "create-done-coding": "workspace:0.11.22",
     "zod": "^4.3.5"
