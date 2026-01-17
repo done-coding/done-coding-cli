@@ -337,8 +337,8 @@ importers:
         version: 4.3.5
     devDependencies:
       "@done-coding/cli-inject":
-        specifier: ^0.5.17
-        version: 0.5.20(encoding@0.1.13)
+        specifier: workspace:0.5.20
+        version: link:../inject
       "@types/node":
         specifier: ^18.0.0
         version: 18.19.4
@@ -823,21 +823,6 @@ packages:
         integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==,
       }
     engines: { node: ">=12" }
-
-  "@done-coding/cli-inject@0.5.20":
-    resolution:
-      {
-        integrity: sha512-eynxBI6AUGF55cxSQUGur099l+2Yv7mMDnfjCPbeLWqB8UZr/xz6oVgA1SooFEl3ln4CN0ZOdeFyL/OIUAwpFg==,
-      }
-    engines: { node: ">=18.0.0" }
-    hasBin: true
-
-  "@done-coding/cli-utils@0.8.1":
-    resolution:
-      {
-        integrity: sha512-qCyMjoqA05/2/Lm7ucxKnuQzSRANC6xYCOZnxhmvziChyks3lrD4gopmS1W6KTqAFKuBy3g8P1ik6suH8DzQsg==,
-      }
-    engines: { node: ">=18.0.0" }
 
   "@done-coding/request-axios@1.2.2":
     resolution:
@@ -9131,30 +9116,6 @@ snapshots:
   "@cspotcode/source-map-support@0.8.1":
     dependencies:
       "@jridgewell/trace-mapping": 0.3.9
-
-  "@done-coding/cli-inject@0.5.20(encoding@0.1.13)":
-    dependencies:
-      "@done-coding/cli-utils": 0.8.1(encoding@0.1.13)
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
-
-  "@done-coding/cli-utils@0.8.1(encoding@0.1.13)":
-    dependencies:
-      chalk: 5.4.1
-      json5: 2.2.3
-      lodash.curry: 4.1.1
-      lodash.get: 4.4.2
-      lodash.merge: 4.6.2
-      lodash.set: 4.3.2
-      pinyin: 2.11.2(encoding@0.1.13)
-      prompts: 2.4.2
-      semver: 7.7.3
-      uuid: 11.1.0
-      yargs: 17.7.2
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
 
   "@done-coding/request-axios@1.2.2(axios@1.8.4)":
     dependencies:

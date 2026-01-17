@@ -43,7 +43,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "^0.5.17",
+    "@done-coding/cli-inject": "workspace:0.5.20",
     "@types/node": "^18.0.0",
     "@vitest/coverage-istanbul": "^1.1.1",
     "rimraf": "^6.0.1",
