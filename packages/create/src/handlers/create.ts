@@ -8,7 +8,10 @@ import {
   customUrlForm,
   getGitCommitMessageForm,
   transHttp2SshUrlForm,
-  FormNameEnum,
+  CUSTOM_TEMPLATE_NAME,
+  getIsChangeBranchName,
+  localBranchNameForm,
+  getTemplateGitBranchForm,
 } from "@/utils";
 import type {
   CliHandlerArgv,
@@ -18,7 +21,6 @@ import type {
 import { execSync } from "node:child_process";
 import { rmSync, existsSync } from "node:fs";
 import path, { resolve } from "node:path";
-import { CUSTOM_TEMPLATE_NAME } from "@/utils";
 import {
   getConfigPath,
   batchCompileHandler,
@@ -29,12 +31,18 @@ import {
   isHttpGitUrl,
   log,
   lookForParentTarget,
-  xPrompts,
+  getAnswerWithMCP,
+  rmGitCtrlAsync,
+  getAnswerSwift,
 } from "@done-coding/cli-utils";
 import { getTargetRepoUrl } from "@done-coding/cli-git";
 import { cloneDoneCodingSeries } from "@done-coding/cli-git/helpers";
 import injectInfo from "@/injectInfo.json";
-import { GitRemoteRepoAliasNameEnum, type CreateOptions } from "@/types";
+import {
+  FormNameEnum,
+  GitRemoteRepoAliasNameEnum,
+  type CreateOptions,
+} from "@/types";
 
 const getOptions = (): CliInfo["options"] => {
   return {
@@ -49,7 +57,7 @@ const getOptions = (): CliInfo["options"] => {
 
 const getPositionals = (): CliInfo["positionals"] => {
   return {
-    projectName: {
+    [FormNameEnum.PROJECT_NAME]: {
       describe: "项目名称",
       type: "string",
     },
@@ -60,7 +68,15 @@ const getPositionals = (): CliInfo["positionals"] => {
 export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   log.info(`版本: ${injectInfo.version}`);
 
-  const { projectName: projectNameInit, justCloneFromDoneCoding = true } = argv;
+  /** mcp预设答案 */
+  const mcpPresetAnswer = argv._mcp;
+  // 是否mcp场景
+  const isMCP = !!mcpPresetAnswer;
+
+  const {
+    [FormNameEnum.PROJECT_NAME]: projectNameInit,
+    justCloneFromDoneCoding = true,
+  } = argv;
 
   if (justCloneFromDoneCoding) {
     log.info(`仅仅(从done-coding系列项目列表中)克隆远程仓库`);
@@ -68,17 +84,23 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     return;
   }
 
-  const projectNameNoTrim =
-    projectNameInit ??
-    (await xPrompts(projectNameForm))[FormNameEnum.PROJECT_NAME];
+  // const projectNameNoTrim = projectNameInit ?? (await xPrompts(projectNameForm))[FormNameEnum.PROJECT_NAME]
+  const projectNameNoTrim = await getAnswerWithMCP({
+    key: FormNameEnum.PROJECT_NAME,
+    defaultValue: projectNameInit,
+    presetAnswer: mcpPresetAnswer,
+    questionConfig: projectNameForm,
+    isMCP,
+  });
 
-  const projectName = (projectNameNoTrim || "").trim();
+  const projectName = projectNameNoTrim?.trim();
 
   if (!projectName) {
     log.error(`项目名称不能为空`);
     return process.exit(1);
   }
 
+  // 检测与层级冲突的符号
   if (
     projectName.includes(" ") ||
     projectName.includes("\\") ||
@@ -90,10 +112,20 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
 
   const projectNamePath = resolve(process.cwd(), projectName);
 
+  // 检测是否同名文件存在
   if (existsSync(projectNamePath)) {
-    const { [FormNameEnum.IS_REMOVE_SAME_NAME_DIR]: isRemove } = await xPrompts(
+    // !!! mcp直接报错 不替用户决定删除与不删除
+    if (isMCP) {
+      log.error(`项目${projectName}已存在`);
+      return process.exit(1);
+    }
+
+    // const isRemove = (await xPrompts(getRemoveDirForm()))[FormNameEnum.IS_REMOVE_SAME_NAME_DIR]
+    const isRemove = await getAnswerSwift<boolean>(
+      FormNameEnum.IS_REMOVE_SAME_NAME_DIR,
       getRemoveDirForm(),
     );
+
     if (isRemove === true) {
       rmSync(projectNamePath, { recursive: true, force: true });
     } else {
@@ -102,50 +134,62 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     }
   }
 
-  const { [FormNameEnum.TEMPLATE]: template } = await xPrompts(
-    await getTemplateForm(),
-  );
-
-  let remoteUrl = "";
+  // 获取远程地址/分支
+  let remoteUrl: string | undefined = "";
   let templateBranch: string | undefined = "";
-
-  if (template === CUSTOM_TEMPLATE_NAME) {
-    const { [FormNameEnum.CUSTOM_GIT_URL_INPUT]: customUrl } =
-      await xPrompts(customUrlForm);
-    remoteUrl = customUrl;
-  } else if (template === SOMEONE_PUBLIC_REPO_NAME) {
-    remoteUrl = await getTargetRepoUrl();
+  // !!! mcp专用逻辑
+  if (isMCP) {
+    remoteUrl = mcpPresetAnswer[FormNameEnum.TEMPLATE_GIT_PATH];
+    templateBranch = mcpPresetAnswer[FormNameEnum.TEMPLATE_GIT_BRANCH];
+    // !!! 非mcp逻辑
   } else {
-    const target = (await getTemplateChoices()).find(
-      (item) => item.name === template,
+    // const template = (await xPrompts(
+    //   await getTemplateForm(),
+    // ))[FormNameEnum.TEMPLATE];
+    const template = await getAnswerSwift<string>(
+      FormNameEnum.TEMPLATE,
+      await getTemplateForm(),
     );
-    if (!target) {
-      log.error(`模板${template}不存在`);
-      return process.exit(1);
+
+    // 获取最终 模板仓库地址及分支名
+    if (template === CUSTOM_TEMPLATE_NAME) {
+      // remoteUrl =
+      //   (await xPrompts(customUrlForm))[FormNameEnum.CUSTOM_GIT_URL_INPUT];
+
+      remoteUrl = await getAnswerSwift<string>(
+        FormNameEnum.CUSTOM_GIT_URL_INPUT,
+        customUrlForm,
+      );
+    } else if (template === SOMEONE_PUBLIC_REPO_NAME) {
+      remoteUrl = await getTargetRepoUrl();
+    } else {
+      const target = (await getTemplateChoices()).find(
+        (item) => item.name === template,
+      );
+      if (!target) {
+        log.error(`模板${template}不存在`);
+        return process.exit(1);
+      }
+      if (!target.url) {
+        log.error(`模板${template}仓库地址不存在`);
+        return process.exit(1);
+      }
+      remoteUrl = target.url;
+      if (typeof target.branch === "string") {
+        templateBranch = target.branch;
+      } else if (Array.isArray(target.branch) && target.branch.length > 0) {
+        // templateBranch = (await xPrompts(getTemplateGitBranchForm(target.branch)))[FormNameEnum.TEMPLATE_GIT_BRANCH];
+        templateBranch = await getAnswerSwift(
+          FormNameEnum.TEMPLATE_GIT_BRANCH,
+          getTemplateGitBranchForm(target.branch),
+        );
+      }
     }
-    if (!target.url) {
-      log.error(`模板${template}仓库地址不存在`);
-      return process.exit(1);
-    }
-    remoteUrl = target.url;
-    if (typeof target.branch === "string") {
-      templateBranch = target.branch;
-    } else if (Array.isArray(target.branch) && target.branch.length > 0) {
-      const { targetBranch } = await xPrompts({
-        type: "select",
-        name: "targetBranch",
-        message: "请选择模板分支",
-        choices: target.branch.map((item) => {
-          return {
-            title: item.name,
-            value: item.name,
-            description: item.description,
-          };
-        }),
-        // initial: 0,
-      });
-      templateBranch = targetBranch;
-    }
+  }
+
+  if (!remoteUrl) {
+    log.error(`模板仓库地址不存在`);
+    return process.exit(1);
   }
 
   /** 父级git目录 */
@@ -160,22 +204,28 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     { stdio: "inherit" },
   );
 
+  // !!! mcp到此步骤直接退出
+  if (isMCP) {
+    log.stage(`移除克隆仓库的git控制`);
+    await rmGitCtrlAsync(projectNamePath);
+    return process.exit(0);
+  }
+
   /** 如果有没有父级仓库 且知名了克隆的远程分支 则询问是否需要更改本地分支名 */
   if (!parentGitDir && templateBranch) {
-    const { isChangeBranchName } = await xPrompts({
-      type: "confirm",
-      name: "isChangeBranchName",
-      message: `是否要重命名指定克隆分支名(${templateBranch})在本地的分支名`,
-      initial: true,
-    });
+    // const isChangeBranchName = (await xPrompts(getIsChangeBranchName(templateBranch)))[FormNameEnum.IS_CHANGE_BRANCH_NAME];
+    const isChangeBranchName = await getAnswerSwift<boolean>(
+      FormNameEnum.IS_CHANGE_BRANCH_NAME,
+      getIsChangeBranchName(templateBranch),
+    );
 
     if (isChangeBranchName) {
-      const { localBranchName } = await xPrompts({
-        type: "text",
-        name: "localBranchName",
-        message: "请输入克隆到本地后的分支名",
-        initial: "master",
-      });
+      // const { localBranchName } = (await xPrompts(localBranchNameForm))[FormNameEnum.LOCAL_BRANCH_NAME];
+      const localBranchName = await getAnswerSwift<string>(
+        FormNameEnum.LOCAL_BRANCH_NAME,
+        localBranchNameForm,
+      );
+
       execSync(`git branch -m ${localBranchName}`, {
         cwd: projectNamePath,
         stdio: "inherit",
@@ -222,9 +272,14 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   } else {
     // 如果项目不在git仓库中，则询问是否保存git历史记录
 
-    const saveGitHistory = (await xPrompts(saveGitHistoryForm))[
-      FormNameEnum.IS_SAVE_GIT_HISTORY
-    ];
+    // const saveGitHistory = (await xPrompts(saveGitHistoryForm))[
+    //   FormNameEnum.IS_SAVE_GIT_HISTORY
+    // ];
+
+    const saveGitHistory = await getAnswerSwift<boolean>(
+      FormNameEnum.IS_SAVE_GIT_HISTORY,
+      saveGitHistoryForm,
+    );
 
     if (saveGitHistory) {
       // 保存git记录则重命名origin为upstream 同时完整克隆仓库
@@ -244,14 +299,21 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
 
       if (isHttpGitUrl(remoteUrl)) {
         const sshUrl = http2sshGitUrl(remoteUrl);
-        const isTransToSshUrl = (
-          await xPrompts(
-            transHttp2SshUrlForm({
-              httpUrl: remoteUrl,
-              sshUrl,
-            }),
-          )
-        )[FormNameEnum.IS_TRANS_HTTP_URL_TO_SSH_URL];
+        // const isTransToSshUrl = (
+        //   await xPrompts(
+        //     transHttp2SshUrlForm({
+        //       httpUrl: remoteUrl,
+        //       sshUrl,
+        //     }),
+        //   )
+        // )[FormNameEnum.IS_TRANS_HTTP_URL_TO_SSH_URL];
+        const isTransToSshUrl = await getAnswerSwift<boolean>(
+          FormNameEnum.IS_TRANS_HTTP_URL_TO_SSH_URL,
+          transHttp2SshUrlForm({
+            httpUrl: remoteUrl,
+            sshUrl,
+          }),
+        );
         if (isTransToSshUrl) {
           execSync(
             `git remote set-url ${GitRemoteRepoAliasNameEnum.UPSTREAM} ${sshUrl}`,
@@ -265,8 +327,10 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
       }
     } else {
       // 项目git目录
-      const projectNameGitPath = path.resolve(projectNamePath, ".git");
-      rmSync(projectNameGitPath, { recursive: true, force: true });
+      // const projectNameGitPath = path.resolve(projectNamePath, ".git");
+      // rmSync(projectNameGitPath, { recursive: true, force: true });
+
+      await rmGitCtrlAsync(projectNamePath);
 
       execSync(`git init`, {
         cwd: projectNamePath,
@@ -275,8 +339,12 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     }
   }
 
-  const { [FormNameEnum.GIT_COMMIT_MESSAGE]: gitCommitMessage } =
-    await xPrompts(getGitCommitMessageForm(projectName));
+  // const gitCommitMessage =
+  //   (await xPrompts(getGitCommitMessageForm(projectName)))[FormNameEnum.GIT_COMMIT_MESSAGE];
+  const gitCommitMessage = await getAnswerSwift<string>(
+    FormNameEnum.GIT_COMMIT_MESSAGE,
+    getGitCommitMessageForm(projectName),
+  );
 
   // 提交代码
   execSync(`git add . && git commit -m '${gitCommitMessage}'`, {

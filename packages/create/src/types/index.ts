@@ -1,12 +1,27 @@
+import { FormNameEnum } from "./formNameEnum";
+import { McpCreateAnswerPreset } from "./mcp";
+
+export * from "./formNameEnum";
+
+export { FormNameEnum };
+
+export type { McpCreateAnswerPreset };
+
 export enum SubcommandEnum {
   CREATE = "create",
 }
 
 export interface CreateOptions {
   /** 项目名称 */
-  projectName?: string;
+  [FormNameEnum.PROJECT_NAME]?: string;
   /** 是否仅仅(从done-coding系列项目列表中)克隆远程仓库 */
   justCloneFromDoneCoding?: boolean;
+  /**
+   *  mcp所有问题答案预设
+   * ----
+   * 为mcp预留的选项，不会被命令行使用
+   */
+  _mcp?: McpCreateAnswerPreset;
 }
 
 /** 创建模板-分支信息 */

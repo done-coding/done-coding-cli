@@ -5,30 +5,15 @@ import {
   type PromptObject,
 } from "@done-coding/cli-utils";
 import { CUSTOM_TEMPLATE_NAME, SOMEONE_PUBLIC_REPO_NAME } from "./const";
-import type { CreateConfigJson, CreateTemplateChoiceItem } from "@/types";
+import type {
+  CreateConfigJson,
+  CreateTemplateBranchInfo,
+  CreateTemplateChoiceItem,
+} from "@/types";
 import injectInfo from "@/injectInfo.json";
+import { FormNameEnum } from "@/types";
 
 let templateList: CreateTemplateChoiceItem[];
-
-/** 表单name枚举 */
-export enum FormNameEnum {
-  /** 项目名称选择 */
-  PROJECT_NAME = "projectName",
-  /** 模板选择 */
-  TEMPLATE = "template",
-  /** 是否保留git记录 */
-  IS_SAVE_GIT_HISTORY = "saveGitHistory",
-  /** 转换为ssh url */
-  IS_TRANS_HTTP_URL_TO_SSH_URL = "isTransToSshUrl",
-  /** 是否移除同名目录 */
-  IS_REMOVE_SAME_NAME_DIR = "isRemove",
-  /** 是否浅克隆 */
-  IS_SHALLOW_CLONE = "shallowClone",
-  /** 自定义模板路径 */
-  CUSTOM_GIT_URL_INPUT = "customUrl",
-  /** git的提交信息 */
-  GIT_COMMIT_MESSAGE = "gitCommitMessage",
-}
 
 /** 获取模版选项 */
 export const getTemplateList = async () => {
@@ -163,5 +148,45 @@ export const getGitCommitMessageForm: (
     message: "请输入git提交信息",
     initial: `feat: 初始化项目${projectName}`,
     validate: (value) => value.trim().length > 0 || "提交信息不能为空",
+  };
+};
+
+/** 是否更改分支名-当指定模板分支时(即本地是否需要重命名分支名) */
+export const getIsChangeBranchName = (
+  templateBranch: string,
+): PromptObject<FormNameEnum.IS_CHANGE_BRANCH_NAME> => {
+  return {
+    type: "confirm",
+    name: FormNameEnum.IS_CHANGE_BRANCH_NAME,
+    message: `是否要重命名指定克隆分支名(${templateBranch})在本地的分支名`,
+    initial: true,
+  };
+};
+
+/** （如果要改分支名）本地分支名 */
+export const localBranchNameForm: PromptObject<FormNameEnum.LOCAL_BRANCH_NAME> =
+  {
+    type: "text",
+    name: FormNameEnum.LOCAL_BRANCH_NAME,
+    message: "请输入克隆到本地后的分支名",
+    initial: "master",
+    validate: (value) => value?.trim().length > 0 || "分支名不能为空", // ✅ 添加验证
+  };
+
+/** 获取模板项目git分支 */
+export const getTemplateGitBranchForm = (
+  branchList: CreateTemplateBranchInfo[],
+): PromptObject<FormNameEnum.TEMPLATE_GIT_BRANCH> => {
+  return {
+    type: "select",
+    name: FormNameEnum.TEMPLATE_GIT_BRANCH,
+    message: "请选择模板分支",
+    choices: branchList.map((item) => {
+      return {
+        title: item.name,
+        value: item.name,
+        description: item.description,
+      };
+    }),
   };
 };

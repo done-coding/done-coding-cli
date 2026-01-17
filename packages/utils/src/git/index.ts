@@ -7,3 +7,4 @@ export * from "./merge-resolve";
 export * from "./rebase-resolve";
 export * from "./remote-operate";
 export * from "./url";
+export * from "./git-ctrl";

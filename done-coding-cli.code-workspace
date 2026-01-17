@@ -88,6 +88,7 @@
       "lowerfirst",
       "LSLINT",
       "MERGELINT",
+      "modelcontextprotocol",
       "preinstall",
       "PREMAJOR",
       "PREMINOR",
