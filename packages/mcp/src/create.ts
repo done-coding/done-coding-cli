@@ -24,7 +24,9 @@ export const addTool = (server: McpServer) => {
     },
     async (input: McpCreateAnswerPreset) => {
       try {
-        await createHandler(input);
+        await createHandler({
+          _mcp: input,
+        });
         return {
           content: [
             {
