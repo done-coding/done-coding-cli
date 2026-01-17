@@ -33,10 +33,6 @@
       "path": "packages/component"
     },
     {
-      "name": "pump",
-      "path": "packages/pump"
-    },
-    {
       "name": "git",
       "path": "packages/git"
     },
@@ -47,7 +43,11 @@
     {
       "name": "cli",
       "path": "packages/cli"
-    }
+    },
+    {
+      "name": "mcp",
+      "path": "packages/mcp"
+    },
   ],
   "settings": {
     "files.eol": "\n",
