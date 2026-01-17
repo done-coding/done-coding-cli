@@ -51,5 +51,10 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.2",
+    "create-done-coding": "workspace:0.11.22",
+    "zod": "^4.3.5"
   }
 }
