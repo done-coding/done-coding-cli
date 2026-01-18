@@ -1,3 +1,4 @@
+export * from "./env-config";
 export * from "./log";
 export * from "./look-for";
 export * from "./aes";
@@ -14,3 +15,5 @@ export * from "./file-operate";
 export * from "./cli-config";
 export * from "./temp-dir";
 export * from "./uuid";
+export * from "./time";
+export * from "./path";

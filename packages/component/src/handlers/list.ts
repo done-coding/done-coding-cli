@@ -6,8 +6,8 @@ import type {
   YargsOptionsRecord,
 } from "@done-coding/cli-utils";
 import { getLogText, log } from "@done-coding/cli-utils";
-import type { ListOptions } from "@/types";
-import { SubcommandEnum, type Config } from "@/types";
+import type { ListOptions, Config } from "@/types";
+import { SubcommandEnum } from "@/types";
 import { getComponentEnvData, getConfig } from "@/utils";
 
 /** 获取列表选项 */
@@ -90,7 +90,7 @@ export const handler = async ({
     };
   });
 
-  console.table(
+  log.table(
     listInfo.map(({ name, fullName, nameKebab }) => {
       return {
         [getLogText.success("名称")]: name,

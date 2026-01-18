@@ -29,7 +29,26 @@ module.exports = {
     "regexp/no-useless-escape": "warn",
     "regexp/no-useless-character-class": "warn"
   },
-  overrides: [],
+  overrides: [
+    {
+      // 仅针对源代码目录下的 ts/js 文件生效
+      files: ['packages/**/src/**/*.{ts,tsx,js,jsx}'],
+      rules: {
+        // 1. 显式关闭插件可能自带的 no-console
+        "no-console": "off",
+        // 2. 强制应用自定义的报错提示
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "Identifier[name='console'][parent.type='MemberExpression']",
+            "message": `❌ 请从utils包导出 log 代替 console, 
+-------
+即需要考虑MCP服务环境额外输出问题`
+          }
+        ]
+      }
+    }
+  ],
   // 合并了两个数组，确保所有目录都被忽略
   ignorePatterns: [
     "node_modules",
