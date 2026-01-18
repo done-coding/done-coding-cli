@@ -8,11 +8,11 @@ import {
   getCliModuleTempDir,
   log,
   readConfigFile,
+  execSyncWithLogDispatch,
 } from "@done-coding/cli-utils";
 import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "@/utils";
 import path from "node:path";
 import fs, { rmSync } from "node:fs";
-import { execSync } from "node:child_process";
 import injectInfo from "@/injectInfo.json";
 
 /** 获取别名发布选项 */
@@ -51,12 +51,12 @@ export const aliasHandler = async (argv: CliHandlerArgv<AliasOptions>) => {
     fn: async (tempDir) => {
       fs.mkdirSync(tempDir, { recursive: true });
 
-      execSync(`pnpm add ${name}@${version}`, {
+      execSyncWithLogDispatch(`pnpm add ${name}@${version}`, {
         stdio: "inherit",
         cwd: tempDir,
       });
 
-      const distTagListBuffer = execSync(`npm dist-tag ${name}`);
+      const distTagListBuffer = execSyncWithLogDispatch(`npm dist-tag ${name}`);
 
       const distTagListStr = distTagListBuffer.toString().trim();
       const distTagList = distTagListStr
@@ -94,7 +94,7 @@ export const aliasHandler = async (argv: CliHandlerArgv<AliasOptions>) => {
           JSON.stringify(newPackageJson, null, 2),
         );
 
-        execSync(`pnpm publish --tag ${distTag}`, {
+        execSyncWithLogDispatch(`pnpm publish --tag ${distTag}`, {
           stdio: "inherit",
           cwd: sourcePck,
         });

@@ -14,12 +14,12 @@ import type { SubCliInfo } from "@done-coding/cli-utils";
 import {
   addHuskyHooks,
   addPackageConfig,
+  execSyncWithLogDispatch,
   log,
   readCliModuleAssetsConfig,
   xPrompts,
 } from "@done-coding/cli-utils";
 import { adjustModuleList, configModulePkgNameMap } from "@/utils";
-import { execSync } from "node:child_process";
 import fs, { existsSync } from "node:fs";
 import path from "node:path";
 import type yargs from "yargs";
@@ -122,10 +122,13 @@ const addPkg = ({ rootDir, list }: { rootDir: string; list: string[] }) => {
   log.stage(`开始安装依赖包: ${JSON.stringify(list, null, 2)}`);
   const pnpmWorkspaceFilePath = path.resolve(rootDir, "pnpm-workspace.yaml");
   const isPnpmWorkspace = existsSync(pnpmWorkspaceFilePath);
-  execSync(`pnpm add -D ${isPnpmWorkspace ? "-w" : ""} ${list.join(" ")}`, {
-    cwd: rootDir,
-    stdio: "inherit",
-  });
+  execSyncWithLogDispatch(
+    `pnpm add -D ${isPnpmWorkspace ? "-w" : ""} ${list.join(" ")}`,
+    {
+      cwd: rootDir,
+      stdio: "inherit",
+    },
+  );
 };
 
 /** 添加husky配置 */
@@ -349,7 +352,7 @@ export const handler = async (argv: ArgumentsCamelCase<AddConfigOptions>) => {
 
       for (let cmd of waitRunScripts) {
         log.stage(`运行脚本: ${cmd}`);
-        execSync(cmd, { cwd: rootDir, stdio: "inherit" });
+        execSyncWithLogDispatch(cmd, { cwd: rootDir, stdio: "inherit" });
       }
 
       await Promise.all(waitAddHuskyConfigFns.map((fn) => fn()));
@@ -365,8 +368,8 @@ export const handler = async (argv: ArgumentsCamelCase<AddConfigOptions>) => {
       message: "请输入提交信息",
       initial: `chore: 添加 ${needAddModuleList.join(", ")} 工程化配置`,
     });
-    execSync(`git add .`, { cwd: rootDir, stdio: "inherit" });
-    execSync(`git commit -m "${commitMsg}"`, {
+    execSyncWithLogDispatch(`git add .`, { cwd: rootDir, stdio: "inherit" });
+    execSyncWithLogDispatch(`git commit -m "${commitMsg}"`, {
       cwd: rootDir,
       stdio: "inherit",
     });

@@ -5,33 +5,68 @@ import {
   getLogOutputDir,
   getCurrentProcessLogFileName,
   getParentProcessLogFileName,
+  getCallMode,
 } from "@/env-config";
-import { getLogTime } from "@/time";
 import path from "node:path";
 import { getLogStream } from "./stream";
-
-/** 日志类型 */
-enum LogTypeEnum {
-  /** 成功 */
-  SUCCESS = "green",
-  /** 步骤 */
-  STAGE = "blue",
-  /** 提示信息 */
-  INFO = "cyan",
-  /** 警告 */
-  WARN = "yellow",
-  /** 错误 */
-  ERROR = "red",
-  /** 跳过 */
-  SKIP = "gray",
-  /** ---- 表格 ---- */
-  TABLE = "table",
-}
+import { formatLogSteamWrite } from "./format";
+import { LogTypeEnum } from "./utils";
 
 export type LogParams = [type: LogTypeEnum, ...messages: unknown[]];
 
 /** 标记当前进程是否已写入过文件头 */
 let isHeaderWritten = false;
+
+/** 获取当前进程对应的日志流 */
+export const getProcessLogStream = () => {
+  const dir = getLogOutputDir();
+  const filePath = path.resolve(dir, getCurrentProcessLogFileName());
+  const stream = getLogStream(filePath);
+
+  // --- 关键逻辑：首次写入时添加父进程溯源信息 ---
+  if (!isHeaderWritten) {
+    const parentLogName = getParentProcessLogFileName();
+    if (parentLogName) {
+      // stream.write(`[SYSTEM] 父进程日志文件: ${parentLogName}\n`);
+      formatLogSteamWrite({
+        stream,
+        type: LogTypeEnum.SYSTEM,
+        content: `父进程日志文件: ${parentLogName}`,
+      });
+    }
+    const callMode = getCallMode();
+    // stream.write(`[SYSTEM] 当前调用模式: ${callMode}\n`);
+    formatLogSteamWrite({
+      stream,
+      type: LogTypeEnum.SYSTEM,
+      content: `当前调用模式: ${callMode}`,
+    });
+    isHeaderWritten = true;
+  }
+  return stream;
+};
+
+/** 写入日志 */
+const writeLog = (logList: unknown[], type: LogTypeEnum) => {
+  const stream = getProcessLogStream();
+
+  // 序列化日志内容，剥离 chalk
+  const content = logList
+    .map((item) => {
+      if (item instanceof Error) return item.stack || item.message;
+      if (typeof item === "object" && item !== null)
+        return JSON.stringify(item);
+      return String(item);
+    })
+    .join(" ");
+
+  // 写入纯文本日志
+  formatLogSteamWrite({
+    stream,
+    type,
+    content: content,
+  });
+};
 
 /** 日志行为分发 */
 const logActionDispatch = (...[type, ...logList]: LogParams) => {
@@ -43,33 +78,7 @@ const logActionDispatch = (...[type, ...logList]: LogParams) => {
     // eslint-disable-next-line no-restricted-syntax
     return console.log(chalk[type](...logList));
   } else {
-    const dir = getLogOutputDir();
-    const filePath = path.resolve(dir, getCurrentProcessLogFileName());
-    const stream = getLogStream(filePath);
-
-    // --- 关键逻辑：首次写入时添加父进程溯源信息 ---
-    if (!isHeaderWritten) {
-      const parentLogName = getParentProcessLogFileName();
-      if (parentLogName) {
-        stream.write(`[SYSTEM] 父进程日志文件: ${parentLogName}\n`);
-      }
-      isHeaderWritten = true;
-    }
-
-    // 序列化日志内容，剥离 chalk
-    const content = logList
-      .map((item) => {
-        if (item instanceof Error) return item.stack || item.message;
-        if (typeof item === "object" && item !== null)
-          return JSON.stringify(item);
-        return String(item);
-      })
-      .join(" ");
-
-    const time = getLogTime();
-    // 写入纯文本日志
-    const logLine = `[${time}] [${type.toUpperCase()}] ${content}\n`;
-    stream.write(logLine);
+    return writeLog(logList, type);
   }
 };
 
@@ -78,6 +87,8 @@ const colorTextSwift = <T>(
   baseFn: (...[type, ...messages]: LogParams) => T,
 ) => {
   return Object.assign(baseFn, {
+    /** 系统 */
+    system: (...messages: unknown[]) => baseFn(LogTypeEnum.SYSTEM, ...messages),
     /** 成功 */
     success: (...messages: unknown[]) =>
       baseFn(LogTypeEnum.SUCCESS, ...messages),

@@ -9,6 +9,10 @@
       "path": "packages/utils"
     },
     {
+      "name": "mcp-utils",
+      "path": "packages/mcp-utils"
+    },
+    {
       "name": "extract",
       "path": "packages/extract"
     },

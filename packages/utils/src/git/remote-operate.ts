@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { execSyncWithLogDispatch } from "@/process";
 
 /** 远程仓库信息 */
 export interface GitRemoteInfo {
@@ -23,10 +23,10 @@ export const pushGitPublishInfoToRemote = ({
   remoteInfo?: GitRemoteInfo;
 }) => {
   if (remoteInfo) {
-    execSync(`git push ${remoteInfo.alias} v${version}`, {
+    execSyncWithLogDispatch(`git push ${remoteInfo.alias} v${version}`, {
       stdio: "inherit",
     });
-    execSync(`git push ${remoteInfo.alias} ${branchName}`, {
+    execSyncWithLogDispatch(`git push ${remoteInfo.alias} ${branchName}`, {
       stdio: "inherit",
     });
   }

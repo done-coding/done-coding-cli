@@ -3,9 +3,9 @@ import path from "node:path";
 import { getGitProjectDir } from "./base-info-resolve";
 import { HooksNameEnum } from "@/husky";
 import type { GitRemoteInfo } from "./remote-operate";
-import { execSync } from "node:child_process";
 import { log } from "@/log";
 import pinyin from "pinyin";
+import { execSyncWithLogDispatch } from "@/process";
 
 /** 支持通过提交钩子获取提交信息的 */
 export const SUPPORT_GET_COMMIT_BY_HOOKS_NAMES = [
@@ -100,24 +100,40 @@ export const getGitLastCommitInfo = ({
   remoteAlias = "origin",
 }: GetGitLastCommitParams = {}): GitLastCommitInfo => {
   try {
-    const lastHash = execSync(`git rev-parse HEAD`).toString().trim();
-    const lastCommitter = execSync('git log -1 --pretty=format:"%an"')
+    const lastHash = execSyncWithLogDispatch(`git rev-parse HEAD`)
       .toString()
       .trim();
-    const lastCommitEmail = execSync('git log -1 --pretty=format:"%ae"')
+    const lastCommitter = execSyncWithLogDispatch(
+      'git log -1 --pretty=format:"%an"',
+    )
       .toString()
       .trim();
-    const lastCommitMsg = execSync('git log -1 --pretty=format:"%s"')
+    const lastCommitEmail = execSyncWithLogDispatch(
+      'git log -1 --pretty=format:"%ae"',
+    )
       .toString()
       .trim();
-    const userName = execSync("git config user.name").toString().trim();
-    const userEmail = execSync("git config user.email").toString().trim();
-    const branchName = execSync("git rev-parse --abbrev-ref HEAD")
+    const lastCommitMsg = execSyncWithLogDispatch(
+      'git log -1 --pretty=format:"%s"',
+    )
+      .toString()
+      .trim();
+    const userName = execSyncWithLogDispatch("git config user.name")
+      .toString()
+      .trim();
+    const userEmail = execSyncWithLogDispatch("git config user.email")
+      .toString()
+      .trim();
+    const branchName = execSyncWithLogDispatch(
+      "git rev-parse --abbrev-ref HEAD",
+    )
       .toString()
       .trim();
     let remoteUrl = "";
     try {
-      remoteUrl = execSync(`git config --get remote.${remoteAlias}.url`)
+      remoteUrl = execSyncWithLogDispatch(
+        `git config --get remote.${remoteAlias}.url`,
+      )
         .toString()
         .trim();
     } catch (e) {

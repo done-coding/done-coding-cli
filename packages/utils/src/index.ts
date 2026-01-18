@@ -17,3 +17,4 @@ export * from "./temp-dir";
 export * from "./uuid";
 export * from "./time";
 export * from "./path";
+export * from "./process";

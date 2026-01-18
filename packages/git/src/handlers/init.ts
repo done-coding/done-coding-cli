@@ -2,6 +2,7 @@ import type { ArgumentsCamelCase, SubCliInfo } from "@done-coding/cli-utils";
 import { InitTypeEnum, SubcommandEnum, type InitOptions } from "@/types";
 import {
   addHuskyHooks,
+  execSyncWithLogDispatch,
   getConfigFileCommonOptions,
   initHandlerCommon,
   log,
@@ -17,7 +18,6 @@ import {
   SUPPORT_CHECK_REVERSE_MERGE_HOOKS_NAME,
 } from "@/utils";
 import configDefault from "@/config";
-import { execSync } from "node:child_process";
 
 /** 获取初始化选项 */
 export const getOptions = () => {
@@ -35,7 +35,9 @@ export const getOptions = () => {
 };
 
 const addScript = (commandPrefix: string) => {
-  execSync(`npm pkg set scripts.postprepare="${commandPrefix} init"`);
+  execSyncWithLogDispatch(
+    `npm pkg set scripts.postprepare="${commandPrefix} init"`,
+  );
 };
 
 export const handler = async (

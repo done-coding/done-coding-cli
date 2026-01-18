@@ -1,4 +1,3 @@
-import { execSync } from "node:child_process";
 import {
   resolveMergeInfoByCommitMsg,
   resolveMergeInfoByRefType,
@@ -6,6 +5,7 @@ import {
 } from "./merge-resolve";
 import { resolveCheckoutInfoByRefInfo } from "./checkout-resolve";
 import { log } from "@/log";
+import { execSyncWithLogDispatch } from "@/process";
 
 /** git checkout信息 */
 export interface GitCheckoutInfo {
@@ -38,8 +38,10 @@ export interface GitLogItemInfo extends GitLogCommonInfo {
 }
 
 /** 提交日志信息 */
-export interface GitReflogItemInfoRaw
-  extends Omit<GitLogCommonInfo, "message"> {
+export interface GitReflogItemInfoRaw extends Omit<
+  GitLogCommonInfo,
+  "message"
+> {
   hash: string;
   /** 完整信息 */
   fullMessage: string;
@@ -93,7 +95,8 @@ export interface GitRebaseInfo {
 
 /** reflog信息 */
 export interface GitReflogItemInfo
-  extends Omit<GitReflogItemInfoRaw, "fullMessage">,
+  extends
+    Omit<GitReflogItemInfoRaw, "fullMessage">,
     Pick<GitLogCommonInfo, "message"> {
   type: GitRefLogTypeEnum;
 }
@@ -138,7 +141,7 @@ export const getCurrentBranchLastCommitList = ({
     commitTime: "%ci",
   };
 
-  const bufferRes = execSync(
+  const bufferRes = execSyncWithLogDispatch(
     `git --no-pager log --oneline -n ${count} --pretty=format:"${gitJSON.stringify(
       logInfoTemplate,
     )}"`,
@@ -179,7 +182,7 @@ export const getLastReflogList = ({
     commitTime: "%ci",
   };
 
-  const bufferRes = execSync(
+  const bufferRes = execSyncWithLogDispatch(
     `git --no-pager reflog -n ${count} --pretty=format:"${gitJSON.stringify(
       refLogInfoTemplate,
     )}"`,

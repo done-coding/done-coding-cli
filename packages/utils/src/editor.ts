@@ -1,6 +1,6 @@
-import { execSync } from "node:child_process";
 import { log } from "./log";
 import { xPrompts } from "./prompts";
+import { execSyncWithLogDispatch } from "./process";
 
 /** 编辑器类型枚举 */
 export enum EditorTypeEnum {
@@ -43,8 +43,8 @@ const dispatchEditorCheckRes = (
   onError: () => void,
 ) => {
   try {
-    execSync(`${cmd} -v`, { stdio: "ignore" });
-    execSync(`${cmd} ${path}`);
+    execSyncWithLogDispatch(`${cmd} -v`, { stdio: "ignore" });
+    execSyncWithLogDispatch(`${cmd} ${path}`);
   } catch (error) {
     onError();
   }

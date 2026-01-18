@@ -4,10 +4,9 @@ import type {
   SubCliInfo,
 } from "@done-coding/cli-utils";
 import { GitPlatformEnum, SubcommandEnum } from "@/types";
-import { log } from "@done-coding/cli-utils";
+import { execSyncWithLogDispatch, log } from "@done-coding/cli-utils";
 import type { CloneOptions } from "@/types";
 import { getTargetRepoUrl } from "@/utils";
-import { execSync } from "node:child_process";
 
 export const getOptions = (): CliInfo["options"] => {
   return {
@@ -40,7 +39,7 @@ export const handler = async (options: CliHandlerArgv<CloneOptions>) => {
 
   const { projectName } = options;
 
-  execSync(
+  execSyncWithLogDispatch(
     `git clone ${repoUrl} ${projectName ? `${projectName} ` : ""}--depth=1`,
     { stdio: "inherit" },
   );

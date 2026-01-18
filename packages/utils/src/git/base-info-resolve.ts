@@ -1,8 +1,8 @@
-import { execSync } from "node:child_process";
+import { execSyncWithLogDispatch } from "@/process";
 
 /** 获取git项目目录 */
 export const getGitProjectDir = (rootDir: string) => {
-  const bufferRes = execSync("git rev-parse --show-toplevel", {
+  const bufferRes = execSyncWithLogDispatch("git rev-parse --show-toplevel", {
     cwd: rootDir,
   });
   const strRes = bufferRes.toString();

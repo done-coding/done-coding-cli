@@ -1,10 +1,10 @@
 import { log } from "@/log";
-import { execSync } from "node:child_process";
+import { execSyncWithLogDispatch } from "@/process";
 
 /** 获取当前分支名 */
 export const getCurrentBranchName = (): string | undefined => {
   try {
-    const bufferRes = execSync("git symbolic-ref --short HEAD", {
+    const bufferRes = execSyncWithLogDispatch("git symbolic-ref --short HEAD", {
       stdio: "ignore",
     });
 
@@ -13,7 +13,7 @@ export const getCurrentBranchName = (): string | undefined => {
     return branchName;
   } catch (error) {
     try {
-      const headVersion = execSync("git rev-parse --short HEAD")
+      const headVersion = execSyncWithLogDispatch("git rev-parse --short HEAD")
         .toString()
         .trim();
       log.skip(`当前未指向具体某个分支, 当前commit hash: ${headVersion}`);

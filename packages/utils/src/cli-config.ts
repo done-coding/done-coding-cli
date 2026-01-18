@@ -1,4 +1,3 @@
-import { execSync } from "node:child_process";
 import path from "node:path";
 import fs from "node:fs";
 import { tmpdir, homedir } from "node:os";
@@ -14,6 +13,7 @@ import { isHttpGitUrl, isSshGitUrl } from "./git";
 import { applyUseTempDir } from "./temp-dir";
 import { uuidv4 } from "./uuid";
 import { log } from "./log";
+import { execSyncWithLogDispatch } from "./process";
 
 /** done-coding-cli 全局配置 key 枚举 */
 export enum DoneCodingCliGlobalConfigKeyEnum {
@@ -79,10 +79,14 @@ const createLocalAssetsConfigTempRepo = async (configTemporaryDir: string) => {
       assetConfigRepoUrl,
   } = await getGlobalConfig();
   if (isSshGitUrl(assetConfigRepoUrl) || isHttpGitUrl(assetConfigRepoUrl)) {
-    execSync(`git clone ${assetConfigRepoUrl} ${configTemporaryDir} --depth=1`);
+    execSyncWithLogDispatch(
+      `git clone ${assetConfigRepoUrl} ${configTemporaryDir} --depth=1`,
+    );
   } else {
     fs.mkdirSync(configTemporaryDir, { recursive: true });
-    execSync(`cp -r ${assetConfigRepoUrl}/ ${configTemporaryDir}/`);
+    execSyncWithLogDispatch(
+      `cp -r ${assetConfigRepoUrl}/ ${configTemporaryDir}/`,
+    );
   }
 
   return {

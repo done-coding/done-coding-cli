@@ -13,7 +13,7 @@ import path from "node:path";
 
 /** 环境配置 - 调用模式枚举 */
 export enum EnvConfigCallModeEnum {
-  DEFAULT = "",
+  DEFAULT = "DEFAULT",
   MCP = "MCP",
 }
 
@@ -200,16 +200,20 @@ const getApplyConfig = (): EnvConfig => {
   }
 };
 
+/** 获取调用模式 */
+export const getCallMode = () => {
+  return getApplyConfig().callMode;
+};
+
 /** 是mcp模式 */
-export const isMcpMode = ({ callMode } = getApplyConfig()) => {
-  return callMode === EnvConfigCallModeEnum.MCP;
+export const isMcpMode = () => {
+  return getCallMode() === EnvConfigCallModeEnum.MCP;
 };
 
 /** 允许输出日志到控制台 */
 export const allowConsoleLog = () => {
-  const config = getApplyConfig();
-  const isMcp = isMcpMode(config);
-  return isMcp ? false : config.consoleLog;
+  const isMcp = isMcpMode();
+  return isMcp ? false : getApplyConfig().consoleLog;
 };
 
 /**

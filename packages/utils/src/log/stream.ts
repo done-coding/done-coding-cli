@@ -5,9 +5,16 @@ import path from "node:path";
 const logStreamMap = new Map<string, fs.WriteStream>();
 
 /**
+ * fs.WriteStream 确实没有直接声明 fd 属性（虽然运行时它确实存在）。这是因为 fd 是由底层的物理文件句柄分配的，其类型定义在内部较为隐蔽。
+ */
+export interface XFsWriteStream extends fs.WriteStream {
+  fd?: number;
+}
+
+/**
  * 获取或创建日志写入流
  */
-export const getLogStream = (filePathInit: string): fs.WriteStream => {
+export const getLogStream = (filePathInit: string): XFsWriteStream => {
   // 统一转为绝对路径作为 Map 的 Key
   const filePath = path.resolve(filePathInit);
   const logDir = path.dirname(filePath);
@@ -29,12 +36,23 @@ export const getLogStream = (filePathInit: string): fs.WriteStream => {
   }
 
   // 2. 创建追加写入流
+  // const stream = fs.createWriteStream(filePath, {
+  //   flags: "a",
+  //   encoding: "utf8",
+  //   // 2026 建议：高并发下可适当调大缓存区
+  //   highWaterMark: 64 * 1024,
+  // });
+
+  // 2. 先同步拿句柄，确保 execSync 可用
+  const fd = fs.openSync(filePath, "a");
+
+  // 3. 创建流：绑定 fd，并设置 autoClose
   const stream = fs.createWriteStream(filePath, {
-    flags: "a",
+    fd: fd,
+    autoClose: true, // 关键：stream 销毁时自动关 fd
     encoding: "utf8",
-    // 2026 建议：高并发下可适当调大缓存区
     highWaterMark: 64 * 1024,
-  });
+  }) as XFsWriteStream;
 
   // 3. 必做的错误处理：防止进程崩溃
   stream.on("error", () => {
@@ -47,6 +65,15 @@ export const getLogStream = (filePathInit: string): fs.WriteStream => {
   });
 
   logStreamMap.set(filePath, stream);
+
+  // 工业级防御：由于流是异步打开的，即便用了 openSync，
+  // 在极少数极其极端的 race condition 下仍可能为 undefined
+  if (typeof stream.fd !== "number") {
+    throw new Error(
+      `Failed to get file descriptor from stream for ${stream.path}`,
+    );
+  }
+
   return stream;
 };
 
