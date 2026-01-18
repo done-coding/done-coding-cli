@@ -1,0 +1,55 @@
+{
+  "name": "@done-coding/mcp-utils",
+  "version": "0.0.0",
+  "description": "mcp utils",
+  "private": false,
+  "module": "es/index.mjs",
+  "types": "types/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./es/index.mjs",
+      "types": "./types/index.d.ts"
+    }
+  },
+  "files": [
+    "es",
+    "lib",
+    "types"
+  ],
+  "scripts": {
+    "clean": "rimraf es lib dist types coverage",
+    "dev": "vite build -w",
+    "predev": "pnpm run clean && dc-inject",
+    "build": "vite build",
+    "prebuild": "pnpm run clean && dc-inject",
+    "prepack": "pnpm build",
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/done-coding/done-coding-cli.git",
+    "directory": "packages/utils"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "author": "JustSoSu",
+  "license": "MIT",
+  "sideEffects": false,
+  "devDependencies": {
+    "@done-coding/cli-inject": "^0.5.17",
+    "@types/node": "^18.0.0",
+    "@vitest/coverage-istanbul": "^1.1.1",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.3",
+    "vite": "^5.0.10",
+    "vite-plugin-dts": "^3.7.0",
+    "vitest": "^1.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -41,12 +41,12 @@
       "path": "packages/config"
     },
     {
-      "name": "cli",
-      "path": "packages/cli"
-    },
-    {
       "name": "mcp",
       "path": "packages/mcp"
+    },
+    {
+      "name": "cli",
+      "path": "packages/cli"
     },
   ],
   "settings": {
