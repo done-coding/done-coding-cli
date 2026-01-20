@@ -20,7 +20,8 @@
   "files": [
     "es",
     "lib",
-    "types"
+    "types",
+    "scripts/postinstall.mjs"
   ],
   "scripts": {
     "clean": "rimraf es lib types",
@@ -29,7 +30,7 @@
     "dev": "vite build --watch",
     "prebuild": "pnpm run clean",
     "build": "vite build && pnpm run moreCli",
-    "postinstall": "node es/postinstall.mjs",
+    "postinstall": "node scripts/postinstall.mjs",
     "prepack": "pnpm build"
   },
   "repository": {

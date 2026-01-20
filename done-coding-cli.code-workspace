@@ -105,6 +105,9 @@
     ],
     "[ignore]": {
       "editor.defaultFormatter": "foxundermoon.shell-format"
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "vscode.typescript-language-features"
     }
   },
   "extensions": {
