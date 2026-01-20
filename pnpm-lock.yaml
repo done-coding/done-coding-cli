@@ -208,6 +208,9 @@ importers:
       "@done-coding/cli-utils":
         specifier: workspace:0.8.2-alpha.0
         version: link:../utils
+      "@done-coding/mcp-utils":
+        specifier: workspace:0.0.0
+        version: link:../mcp-utils
     devDependencies:
       "@types/node":
         specifier: ^18.0.0
@@ -324,7 +327,7 @@ importers:
         specifier: workspace:0.4.10-alpha.0
         version: link:../component
       "@done-coding/cli-utils":
-        specifier: workspace:0.8.2-alpha.0
+        specifier: workspace:*
         version: link:../utils
       "@modelcontextprotocol/sdk":
         specifier: ^1.25.2
@@ -362,6 +365,13 @@ importers:
         version: 1.6.1(@types/node@18.19.4)
 
   packages/mcp-utils:
+    dependencies:
+      "@modelcontextprotocol/sdk":
+        specifier: ^1.25.2
+        version: 1.25.2(hono@4.11.4)(zod@4.3.5)
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.5
     devDependencies:
       "@done-coding/cli-inject":
         specifier: ^0.5.17

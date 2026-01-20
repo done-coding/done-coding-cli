@@ -2,6 +2,7 @@ import { FormNameEnum, createHandler, injectInfo } from "create-done-coding";
 import type { McpCreateAnswerPreset } from "create-done-coding";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { EnvConfigCallModeEnum, initEnvConfig } from "@done-coding/cli-utils";
 import templateConfig from "./template.json" with { type: "json" };
 
 /** 添加工具：执行创建项目的动作 */
@@ -24,6 +25,9 @@ export const addTool = (server: McpServer) => {
     },
     async (input: McpCreateAnswerPreset) => {
       try {
+        initEnvConfig({
+          callMode: EnvConfigCallModeEnum.MCP,
+        });
         await createHandler({
           _mcp: input,
         });

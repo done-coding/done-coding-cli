@@ -52,6 +52,7 @@
     "@done-coding/cli-git": "workspace:0.6.13-alpha.0",
     "@done-coding/cli-inject": "workspace:0.5.21-alpha.0",
     "@done-coding/cli-template": "workspace:0.8.8-alpha.0",
-    "@done-coding/cli-utils": "workspace:0.8.2-alpha.0"
+    "@done-coding/cli-utils": "workspace:0.8.2-alpha.0",
+    "@done-coding/mcp-utils": "workspace:0.0.0"
   }
 }

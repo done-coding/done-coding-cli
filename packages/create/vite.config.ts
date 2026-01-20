@@ -9,6 +9,8 @@ import { doneCodingCliConfig } from "@done-coding/cli-inject/helpers";
 
 const isPro = process.env.NODE_ENV === "production";
 
+const inputList = ["src/index.ts", "src/cli.ts", "src/mcp-config.ts"];
+
 const build = {
   minify: isPro,
   target: "node16",
@@ -18,7 +20,7 @@ const build = {
       ...builtinModules.map((m) => `node:${m}`),
       ...Object.keys(pkg.dependencies || {}),
     ],
-    input: ["src/index.ts", "src/cli.ts"],
+    input: inputList,
     output: [
       {
         format: "es",
@@ -31,7 +33,7 @@ const build = {
     ],
   },
   lib: {
-    entry: ["src/index.ts", "src/cli.ts"],
+    entry: inputList,
   },
 } satisfies BuildOptions;
 

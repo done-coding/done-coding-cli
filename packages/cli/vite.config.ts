@@ -8,6 +8,8 @@ import { generateFile } from "@done-coding/cli-inject";
 
 const isPro = process.env.NODE_ENV === "production";
 
+const inputList = ["src/index.ts", "src/cli.ts"];
+
 const build = {
   minify: isPro,
   target: "node16",
@@ -17,7 +19,7 @@ const build = {
       ...builtinModules.map((m) => `node:${m}`),
       ...Object.keys(pkg.dependencies || {}),
     ],
-    input: ["src/index.ts", "src/cli.ts", "src/postinstall.ts"],
+    input: inputList,
     output: [
       {
         format: "es",
@@ -30,7 +32,7 @@ const build = {
     ],
   },
   lib: {
-    entry: ["src/index.ts", "src/cli.ts", "src/postinstall.ts"],
+    entry: inputList,
   },
 } satisfies BuildOptions;
 
