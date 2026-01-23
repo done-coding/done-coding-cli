@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-extract",
-  "version": "0.1.21-alpha.1",
+  "version": "0.1.21-alpha.2",
   "description": "信息提取命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -52,7 +52,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:0.5.21-alpha.1",
+    "@done-coding/cli-inject": "workspace:0.5.21-alpha.2",
     "@types/node": "^18.0.0",
     "@types/yargs": "^17.0.28",
     "rimraf": "^6.0.1",
@@ -64,7 +64,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@done-coding/cli-template": "workspace:0.8.8-alpha.1",
-    "@done-coding/cli-utils": "workspace:0.8.2-alpha.1"
+    "@done-coding/cli-template": "workspace:0.8.8-alpha.2",
+    "@done-coding/cli-utils": "workspace:0.8.2-alpha.2"
   }
 }

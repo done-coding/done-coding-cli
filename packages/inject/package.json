@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-inject",
-  "version": "0.5.21-alpha.1",
+  "version": "0.5.21-alpha.2",
   "description": "信息(JSON)注入命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -64,6 +64,6 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@done-coding/cli-utils": "workspace:0.8.2-alpha.1"
+    "@done-coding/cli-utils": "workspace:0.8.2-alpha.2"
   }
 }

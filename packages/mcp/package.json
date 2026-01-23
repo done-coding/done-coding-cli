@@ -1,6 +1,6 @@
 {
   "name": "dc-cli-mcp",
-  "version": "0.0.1-alpha.2",
+  "version": "0.0.1-alpha.3",
   "description": "调用done-coding命令行的mcp服务",
   "private": false,
   "module": "es/index.mjs",
@@ -43,7 +43,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:0.5.21-alpha.1",
+    "@done-coding/cli-inject": "workspace:0.5.21-alpha.2",
     "@types/node": "^18.0.0",
     "@vitest/coverage-istanbul": "^1.1.1",
     "rimraf": "^6.0.1",
@@ -56,10 +56,10 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@done-coding/cli-component": "workspace:0.4.10-alpha.1",
-    "@done-coding/cli-utils": "workspace:0.8.2-alpha.1",
+    "@done-coding/cli-component": "workspace:0.4.10-alpha.2",
+    "@done-coding/cli-utils": "workspace:0.8.2-alpha.2",
     "@modelcontextprotocol/sdk": "^1.25.2",
-    "create-done-coding": "workspace:0.11.23-alpha.1",
+    "create-done-coding": "workspace:0.11.23-alpha.2",
     "zod": "^4.3.5"
   }
 }
