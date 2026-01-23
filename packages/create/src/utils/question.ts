@@ -94,7 +94,7 @@ export const saveGitHistoryForm: PromptObject<FormNameEnum.IS_SAVE_GIT_HISTORY> 
   {
     type: "confirm",
     name: FormNameEnum.IS_SAVE_GIT_HISTORY,
-    message: "是否保留git历史",
+    message: "是否保存模板仓库git历史记录",
     initial: false,
   };
 

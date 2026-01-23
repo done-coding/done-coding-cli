@@ -1,9 +1,10 @@
-import { FormNameEnum, createHandler, injectInfo } from "create-done-coding";
-import type { McpCreateAnswerPreset } from "create-done-coding";
+import { FormNameEnum, injectInfo } from "create-done-coding";
+import type { CreateOptions, McpCreateAnswerPreset } from "create-done-coding";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { EnvConfigCallModeEnum, initEnvConfig } from "@done-coding/cli-utils";
+import { log, params2cliParams } from "@done-coding/cli-utils";
 import templateConfig from "./template.json" with { type: "json" };
+import { execSync } from "node:child_process";
 
 /** 添加工具：执行创建项目的动作 */
 export const addTool = (server: McpServer) => {
@@ -24,12 +25,15 @@ export const addTool = (server: McpServer) => {
       }),
     },
     async (input: McpCreateAnswerPreset) => {
+      log.info(27, input);
       try {
-        initEnvConfig({
-          callMode: EnvConfigCallModeEnum.MCP,
-        });
-        await createHandler({
-          _mcp: input,
+        const createOptions: CreateOptions = {
+          ...input,
+          simple: true,
+        };
+        execSync(`${injectInfo.name} ${params2cliParams(createOptions)}`, {
+          cwd: process.cwd(),
+          stdio: "ignore",
         });
         return {
           content: [

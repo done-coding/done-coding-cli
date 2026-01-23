@@ -18,3 +18,4 @@ export * from "./uuid";
 export * from "./time";
 export * from "./path";
 export * from "./process";
+export * from "./cli-params";

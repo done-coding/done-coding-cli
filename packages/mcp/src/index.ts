@@ -6,6 +6,12 @@ import {
   addResource as addCreateResource,
   addPrompt as addCreatePrompt,
 } from "./create.js";
+import { EnvConfigCallModeEnum, initEnvConfig } from "@done-coding/cli-utils";
+
+initEnvConfig({
+  callMode: EnvConfigCallModeEnum.MCP,
+  consoleLog: false,
+});
 
 const server = new McpServer({
   name: injectInfo.name,

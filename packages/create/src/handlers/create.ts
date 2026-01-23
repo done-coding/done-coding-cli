@@ -30,10 +30,11 @@ import {
   isHttpGitUrl,
   log,
   lookForParentTarget,
-  getAnswerWithMCP,
   rmGitCtrlAsync,
-  getAnswerSwift,
   execSyncWithLogDispatch,
+  isMcpMode,
+  getSafePath,
+  generateGetAnswerSwiftFn,
 } from "@done-coding/cli-utils";
 import { getTargetRepoUrl } from "@done-coding/cli-git";
 import { cloneDoneCodingSeries } from "@done-coding/cli-git/helpers";
@@ -51,6 +52,43 @@ const getOptions = (): CliInfo["options"] => {
       type: "boolean",
       describe: "是否仅仅(从done-coding系列项目列表中)克隆远程仓库",
       default: false,
+      hidden: true,
+    },
+    [FormNameEnum.TEMPLATE_GIT_PATH]: {
+      type: "string",
+      describe: "模板仓库地址(如果设置 则不会去拉模板列表)",
+    },
+    [FormNameEnum.TEMPLATE_GIT_BRANCH]: {
+      type: "string",
+      describe: "模板仓库分支(不指定则是默认分支)",
+    },
+    simple: {
+      type: "boolean",
+      describe: "是否精简模式(仓库克隆完后不再询问后续细节操作策略)",
+      default: true,
+    },
+    [FormNameEnum.IS_CHANGE_BRANCH_NAME]: {
+      type: "boolean",
+      describe: "(如果非精简模式，且需要更改分支名)是否更改分支名",
+      default: false,
+    },
+    [FormNameEnum.LOCAL_BRANCH_NAME]: {
+      type: "string",
+      describe: "(如果非精简模式，且需要更改分支名)本地分支名",
+    },
+    [FormNameEnum.IS_SAVE_GIT_HISTORY]: {
+      type: "boolean",
+      describe: "(如果非精简模式)是否保存模板仓库git历史记录",
+      default: false,
+    },
+    [FormNameEnum.IS_TRANS_HTTP_URL_TO_SSH_URL]: {
+      type: "boolean",
+      describe: "(如果非精简模式)是否将http url转换为ssh url",
+    },
+    [FormNameEnum.GIT_COMMIT_MESSAGE]: {
+      alias: "m",
+      type: "string",
+      describe: "(如果非精简模式)git提交信息预设值",
     },
   };
 };
@@ -66,50 +104,54 @@ const getPositionals = (): CliInfo["positionals"] => {
 
 // eslint-disable-next-line complexity
 export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
-  log.info(`版本: ${injectInfo.version}`);
+  /** 是否mcp模式 */
+  const isMCP = isMcpMode();
 
-  /** mcp预设答案 */
-  const mcpPresetAnswer = argv._mcp;
-  // 是否mcp场景
-  const isMCP = !!mcpPresetAnswer;
+  log.info(`版本: ${injectInfo.version}`);
 
   const {
     [FormNameEnum.PROJECT_NAME]: projectNameInit,
-    justCloneFromDoneCoding = true,
+    justCloneFromDoneCoding,
   } = argv;
 
+  // !!! mcp不考虑克隆模式 justCloneFromDoneCoding【默认值为false 即不更改】
   if (justCloneFromDoneCoding) {
     log.info(`仅仅(从done-coding系列项目列表中)克隆远程仓库`);
     await cloneDoneCodingSeries(projectNameInit);
     return;
   }
 
-  // const projectNameNoTrim = projectNameInit ?? (await xPrompts(projectNameForm))[FormNameEnum.PROJECT_NAME]
-  const projectNameNoTrim = await getAnswerWithMCP({
-    key: FormNameEnum.PROJECT_NAME,
-    defaultValue: projectNameInit,
-    presetAnswer: mcpPresetAnswer,
-    questionConfig: projectNameForm,
+  const getAnswerSwift = generateGetAnswerSwiftFn({
     isMCP,
+    presetAnswer: argv,
   });
 
-  const projectName = projectNameNoTrim?.trim();
+  // const projectNameNoTrim = projectNameInit ?? (await xPrompts(projectNameForm))[FormNameEnum.PROJECT_NAME]
+  const projectNameNoTrim = await getAnswerSwift(
+    FormNameEnum.PROJECT_NAME,
+    projectNameForm,
+    projectNameInit,
+  );
+
+  let projectName = projectNameNoTrim?.trim();
 
   if (!projectName) {
     log.error(`项目名称不能为空`);
     return process.exit(1);
   }
 
-  // 检测与层级冲突的符号
-  if (
-    projectName.includes(" ") ||
-    projectName.includes("\\") ||
-    projectName.includes("/")
-  ) {
-    log.error(`项目名称\`${projectName}\`不能包含空格或者\\或者/`);
-    return process.exit(1);
+  // 安全路径名
+  const projectNameSafe = getSafePath(projectName);
+
+  // 如果安全路径与原始路径不一致，则提示用户并自动转换
+  if (projectNameSafe !== projectName) {
+    log.warn(
+      `项目名称\`${projectName}\`包含非法字符，已自动转换为\`${projectNameSafe}\``,
+    );
+    projectName = projectNameSafe;
   }
 
+  // 项目路径
   const projectNamePath = resolve(process.cwd(), projectName);
 
   // 检测是否同名文件存在
@@ -121,6 +163,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     }
 
     // const isRemove = (await xPrompts(getRemoveDirForm()))[FormNameEnum.IS_REMOVE_SAME_NAME_DIR]
+    // !!! 是否删除 不设默认值 即不帮用户决定删除与否
     const isRemove = await getAnswerSwift<boolean>(
       FormNameEnum.IS_REMOVE_SAME_NAME_DIR,
       getRemoveDirForm(),
@@ -135,14 +178,15 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   }
 
   // 获取远程地址/分支
-  let remoteUrl: string | undefined = "";
-  let templateBranch: string | undefined = "";
-  // !!! mcp专用逻辑
-  if (isMCP) {
-    remoteUrl = mcpPresetAnswer[FormNameEnum.TEMPLATE_GIT_PATH];
-    templateBranch = mcpPresetAnswer[FormNameEnum.TEMPLATE_GIT_BRANCH];
-    // !!! 非mcp逻辑
-  } else {
+  let remoteUrl: string | undefined = await getAnswerSwift(
+    FormNameEnum.TEMPLATE_GIT_PATH,
+  );
+  let templateBranch: string | undefined = await getAnswerSwift(
+    FormNameEnum.TEMPLATE_GIT_BRANCH,
+  );
+
+  // 如果入参未设置 仓库地址 则拉取模板 同时如果模板配置分支多选 也会更新
+  if (!remoteUrl) {
     // const template = (await xPrompts(
     //   await getTemplateForm(),
     // ))[FormNameEnum.TEMPLATE];
@@ -204,15 +248,8 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     { stdio: "inherit" },
   );
 
-  // !!! mcp到此步骤直接退出
-  if (isMCP) {
-    log.stage(`移除克隆仓库的git控制`);
-    await rmGitCtrlAsync(projectNamePath);
-    return process.exit(0);
-  }
-
-  /** 如果有没有父级仓库 且知名了克隆的远程分支 则询问是否需要更改本地分支名 */
-  if (!parentGitDir && templateBranch) {
+  /** 非简洁模式 且 如果有没有父级仓库 且知名了克隆的远程分支 则询问是否需要更改本地分支名 */
+  if (!argv.simple && !parentGitDir && templateBranch) {
     // const isChangeBranchName = (await xPrompts(getIsChangeBranchName(templateBranch)))[FormNameEnum.IS_CHANGE_BRANCH_NAME];
     const isChangeBranchName = await getAnswerSwift<boolean>(
       FormNameEnum.IS_CHANGE_BRANCH_NAME,
@@ -251,6 +288,13 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     rmSync(configPathFinal, { force: true });
 
     log.stage("模板项目配置注入成功, 模版项目配置文件已删除");
+  }
+
+  // 简洁模式 - 此处结束 - 移除git控制退出
+  if (argv.simple) {
+    log.stage(`移除克隆仓库的git控制`);
+    await rmGitCtrlAsync(projectNamePath);
+    return process.exit(0);
   }
 
   log.stage("项目初始化完成");

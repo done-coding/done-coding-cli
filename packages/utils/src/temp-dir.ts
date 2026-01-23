@@ -27,14 +27,14 @@ export const applyUseTempDir = <T>({
 
   // 清除临时文件夹
   const clear = () => {
-    log.stage("正在清理临时目录...", dir);
+    // log.stage("正在清理临时目录...", dir);
     removeAsset(dir);
   };
 
   // 退出信号 清除
   if (exitClear) {
     process.once("exit", () => {
-      log.stage("发现进程退出，正在清理临时目录...", dir);
+      // log.stage("发现进程退出，正在清理临时目录...", dir);
       clear();
     });
   }
