@@ -1,6 +1,6 @@
 {
   "name": "dc-cli-mcp",
-  "version": "0.0.1-alpha.4",
+  "version": "0.0.1-alpha.5",
   "description": "调用done-coding命令行的mcp服务",
   "private": false,
   "module": "es/index.mjs",
