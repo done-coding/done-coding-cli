@@ -36,12 +36,8 @@ export const addTool = (server: McpServer) => {
           simple: true,
         };
         log.info(37, process.env);
-        const cliPath =
-          "/Users/supengfei/Documents/code/project/done-coding-cli/packages/create/es/cli.mjs";
-        // /Users/supengfei/Documents/code/project/done-coding-cli/packages/mcp/es/index.
-        // const res = execSync(`npx --no-install create-done-coding ${params2cliParams(createOptions)}`, {
         const res = execSync(
-          `node ${cliPath} ${params2cliParams(createOptions)}`,
+          `npx create-done-coding@${injectInfo.version} ${params2cliParams(createOptions)}`,
           {
             cwd: process.cwd(),
             env: process.env,

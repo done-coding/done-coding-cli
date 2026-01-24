@@ -37,7 +37,7 @@ async function callMyMcpService() {
   console.log("MCP 服务返回结果:", result);
 }
 
-// eslint-disable-next-line no-restricted-syntax
 callMyMcpService().catch((error) =>
+  // eslint-disable-next-line no-restricted-syntax
   console.log("出错了", error?.message || error),
 );
