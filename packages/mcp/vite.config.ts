@@ -8,7 +8,7 @@ import { builtinModules } from "node:module";
 
 const isPro = process.env.NODE_ENV === "production";
 
-const inputList = ["src/index.ts"];
+const inputList = ["src/index.ts", "src/test.ts"];
 
 const build = {
   minify: isPro,

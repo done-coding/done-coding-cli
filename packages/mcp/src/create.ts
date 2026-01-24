@@ -14,10 +14,14 @@ export const addTool = (server: McpServer) => {
       title: `创建项目工具 - ${injectInfo.name}`,
       description: "根据用户提供的项目名称、模板地址和分支创建新项目",
       inputSchema: z.object({
-        [FormNameEnum.PROJECT_NAME]: z.string().min(1, "项目名称不能为空"),
+        [FormNameEnum.PROJECT_NAME]: z
+          .string()
+          .min(1, "项目名称不能为空")
+          .describe("项目名称"),
         [FormNameEnum.TEMPLATE_GIT_PATH]: z
           .string()
-          .min(1, "模板仓库地址不能为空"),
+          .min(1, "模板仓库地址不能为空")
+          .describe("模板仓库地址"),
         [FormNameEnum.TEMPLATE_GIT_BRANCH]: z
           .string()
           .optional()
@@ -31,10 +35,20 @@ export const addTool = (server: McpServer) => {
           ...input,
           simple: true,
         };
-        execSync(`${injectInfo.name} ${params2cliParams(createOptions)}`, {
-          cwd: process.cwd(),
-          stdio: "ignore",
-        });
+        log.info(37, process.env);
+        const cliPath =
+          "/Users/supengfei/Documents/code/project/done-coding-cli/packages/create/es/cli.mjs";
+        // /Users/supengfei/Documents/code/project/done-coding-cli/packages/mcp/es/index.
+        // const res = execSync(`npx --no-install create-done-coding ${params2cliParams(createOptions)}`, {
+        const res = execSync(
+          `node ${cliPath} ${params2cliParams(createOptions)}`,
+          {
+            cwd: process.cwd(),
+            env: process.env,
+          },
+        );
+        log.info(42, JSON.stringify(res.toString()));
+
         return {
           content: [
             {
@@ -45,6 +59,7 @@ export const addTool = (server: McpServer) => {
         };
       } catch (error: any) {
         return {
+          isError: true,
           content: [
             { type: "text", text: `❌ 创建失败: ${error?.message || error}` },
           ],

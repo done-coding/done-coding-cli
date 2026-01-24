@@ -104,6 +104,8 @@ const getPositionals = (): CliInfo["positionals"] => {
 
 // eslint-disable-next-line complexity
 export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
+  // eslint-disable-next-line no-restricted-syntax
+  console.log(process.env);
   /** 是否mcp模式 */
   const isMCP = isMcpMode();
 
