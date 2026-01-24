@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli",
-  "version": "0.15.20-alpha.2",
+  "version": "0.15.20-alpha.3",
   "description": "done-coding命令行工具",
   "private": false,
   "module": "es/cli.mjs",
@@ -64,6 +64,6 @@
     "@done-coding/cli-publish": "workspace:0.7.14-alpha.2",
     "@done-coding/cli-template": "workspace:0.8.8-alpha.2",
     "@done-coding/cli-utils": "workspace:0.8.2-alpha.2",
-    "create-done-coding": "workspace:0.11.23-alpha.2"
+    "create-done-coding": "workspace:0.11.23-alpha.3"
   }
 }
