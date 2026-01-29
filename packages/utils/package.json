@@ -18,10 +18,7 @@
     "types"
   ],
   "scripts": {
-    "clean": "rimraf es lib types",
-    "predev": "pnpm run clean",
-    "dev": "vite build --watch",
-    "prebuild": "pnpm run clean",
+    "dev": "vite build -w -m devBuild",
     "build": "vite build",
     "prepack": "pnpm build"
   },
@@ -48,7 +45,6 @@
     "@types/prompts": "^2.4.6",
     "@types/semver": "^7.5.3",
     "@types/yargs": "^17.0.28",
-    "rimraf": "^6.0.1",
     "typescript": "^5.8.3",
     "vite": "^4.4.11",
     "vite-plugin-dts": "^3.6.0"

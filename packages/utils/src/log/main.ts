@@ -10,15 +10,14 @@ import {
 import path from "node:path";
 import { getLogStream } from "./stream";
 import { formatLogSteamWrite } from "./format";
-import { LogTypeEnum } from "./utils";
-
-export type LogParams = [type: LogTypeEnum, ...messages: unknown[]];
+import type { OutputParams } from "@/_init";
+import { getLogTime, outputSwift, OutputTypeEnum, setLogFn } from "@/_init";
 
 /** 标记当前进程是否已写入过文件头 */
 let isHeaderWritten = false;
 
 /** 获取当前进程对应的日志流 */
-export const getProcessLogStream = () => {
+export const getProcessLogStream = (logTime = getLogTime()) => {
   const dir = getLogOutputDir();
   const filePath = path.resolve(dir, getCurrentProcessLogFileName());
   const stream = getLogStream(filePath);
@@ -30,16 +29,18 @@ export const getProcessLogStream = () => {
       // stream.write(`[SYSTEM] 父进程日志文件: ${parentLogName}\n`);
       formatLogSteamWrite({
         stream,
-        type: LogTypeEnum.SYSTEM,
+        type: OutputTypeEnum.SYSTEM,
         content: `父进程日志文件: ${parentLogName}`,
+        logTime,
       });
     }
     const callMode = getCallMode();
     // stream.write(`[SYSTEM] 当前调用模式: ${callMode}\n`);
     formatLogSteamWrite({
       stream,
-      type: LogTypeEnum.SYSTEM,
+      type: OutputTypeEnum.SYSTEM,
       content: `当前调用模式: ${callMode}`,
+      logTime,
     });
     isHeaderWritten = true;
   }
@@ -47,15 +48,26 @@ export const getProcessLogStream = () => {
 };
 
 /** 写入日志 */
-const writeLog = (logList: unknown[], type: LogTypeEnum) => {
-  const stream = getProcessLogStream();
+const writeLog = ({
+  logList,
+  type,
+  logTime,
+}: {
+  /** 日志内容 */
+  logList: unknown[];
+  /** 日志类型 */
+  type: OutputTypeEnum;
+  /** 日志时间 */
+  logTime: string;
+}) => {
+  const stream = getProcessLogStream(logTime);
 
   // 序列化日志内容，剥离 chalk
   const content = logList
     .map((item) => {
       if (item instanceof Error) return item.stack || item.message;
       if (typeof item === "object" && item !== null)
-        return JSON.stringify(item);
+        return JSON.stringify(item, null, 2);
       return String(item);
     })
     .join(" ");
@@ -65,55 +77,43 @@ const writeLog = (logList: unknown[], type: LogTypeEnum) => {
     stream,
     type,
     content: content,
+    logTime,
   });
 };
 
 /** 日志行为分发 */
-const logActionDispatch = (...[type, ...logList]: LogParams) => {
+const logActionDispatch = (...[logTime, type, ...logList]: OutputParams) => {
+  // 系统日志不输出到控制台
+  if (type === OutputTypeEnum.SYSTEM) {
+    return writeLog({
+      logList,
+      type,
+      logTime,
+    });
+  }
   if (allowConsoleLog()) {
-    if (type === LogTypeEnum.TABLE) {
+    if (type === OutputTypeEnum.TABLE) {
       // eslint-disable-next-line no-restricted-syntax
       return console.table(...logList);
     }
     // eslint-disable-next-line no-restricted-syntax
     return console.log(chalk[type](...logList));
   } else {
-    return writeLog(logList, type);
+    return writeLog({
+      logList,
+      type,
+      logTime,
+    });
   }
 };
 
-/** 彩色文字快捷调用 */
-const colorTextSwift = <T>(
-  baseFn: (...[type, ...messages]: LogParams) => T,
-) => {
-  return Object.assign(baseFn, {
-    /** 系统 */
-    system: (...messages: unknown[]) => baseFn(LogTypeEnum.SYSTEM, ...messages),
-    /** 成功 */
-    success: (...messages: unknown[]) =>
-      baseFn(LogTypeEnum.SUCCESS, ...messages),
-    /** /步骤 */
-    stage: (...messages: unknown[]) => baseFn(LogTypeEnum.STAGE, ...messages),
-    /** 提示信息 */
-    info: (...messages: unknown[]) => baseFn(LogTypeEnum.INFO, ...messages),
-    /** 警告 */
-    warn: (...messages: unknown[]) => baseFn(LogTypeEnum.WARN, ...messages),
-    /** 错误 */
-    error: (...messages: unknown[]) => baseFn(LogTypeEnum.ERROR, ...messages),
-    /** 跳过 */
-    skip: (...messages: unknown[]) => baseFn(LogTypeEnum.SKIP, ...messages),
-    /** 表格 */
-    table: (...messages: unknown[]) => baseFn(LogTypeEnum.TABLE, ...messages),
-  });
-};
-
 /** 日志 */
-export const log = colorTextSwift(logActionDispatch);
+export const log = setLogFn(outputSwift(logActionDispatch));
 
 /** 获取输出文字 */
-export const getLogText = colorTextSwift<string>(
-  (type, ...messages: unknown[]) => {
-    if (type === LogTypeEnum.TABLE) {
+export const getLogText = outputSwift<string>(
+  (_logTime, type, ...messages: unknown[]) => {
+    if (type === OutputTypeEnum.TABLE) {
       return JSON.stringify(messages);
     } else {
       return chalk[type](...messages);

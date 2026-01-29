@@ -1,13 +1,13 @@
+import { asyncLog, getLogTime } from "@/_init";
 import {
   DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL,
   DONE_CODING_CONFIG_RELATIVE_DIR,
   DONE_CODING_LOG_OUTPUT_DIR_NAME,
   DONE_CODING_SERIES_DEFAULT,
   DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL_DESC,
-} from "./const";
-import { getSafePath } from "./path";
-import { getLogTime } from "./time";
-import { uuidv4 } from "./uuid";
+} from "@/const";
+import { getSafePath } from "@/path";
+import { uuidv4 } from "@/uuid";
 import { tmpdir, homedir } from "node:os";
 import path from "node:path";
 
@@ -120,6 +120,7 @@ const getEnvConfigFromGlobal = () =>
 const setEnvConfig = (configInit: EnvConfig): EnvConfig => {
   const globalConfig = getEnvConfigFromGlobal();
   if (globalConfig) {
+    asyncLog.system(`环境配置已存在: `, globalConfig);
     return globalConfig;
   }
   const config = Object.freeze({
@@ -132,6 +133,7 @@ const setEnvConfig = (configInit: EnvConfig): EnvConfig => {
     configurable: false,
   });
   setProcessEnv(EnvConfigProcessKeyEnum.GLOBAL_CONFIG_IMAGE, config);
+  asyncLog.system(`设置环境配置完成: `, config);
   return config;
 };
 
@@ -232,7 +234,8 @@ export const initEnvConfig = ({
   }
 >) => {
   if (isChildProcess) {
-    throw new Error(`非顶级进程不允许调用该方法`);
+    const errMsg = `非顶级进程不允许调用该方法`;
+    throw new Error(errMsg);
   }
 
   /**
@@ -242,13 +245,14 @@ export const initEnvConfig = ({
    */
   const globalConfig = getEnvConfigFromGlobal();
   if (globalConfig) {
-    throw new Error(`内存全局配置存在，说明是以下某个原因:
+    const errMsg = `内存全局配置存在，说明是以下某个原因:
 1. 顶级进程重复调用initEnvConfig
 2. 顶级进程在调用该方法之前调用了getApplyConfig, 即获取配置应用的同时会冻结配置 不会后续变化
 ------
 如果是顶级进程 请第一时间调用，请给对应调用包专门顶级进程才会调用的入口 并调用此方法
 如 mcp模式入口 需要第一时间调用此方法
-`);
+`;
+    throw new Error(errMsg);
   } else {
     // 从process那上级进程的全局内存配置副本
     const processConfig = getEnvConfigFromProcess();

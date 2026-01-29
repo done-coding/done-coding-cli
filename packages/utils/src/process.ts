@@ -3,8 +3,9 @@ import {
   type ExecSyncOptions,
   type StdioOptions,
 } from "node:child_process";
-import { allowConsoleLog } from "./env-config";
-import { getProcessLogStream, formatLogSteamWrite, LogTypeEnum } from "./log";
+import { allowConsoleLog } from "@/env-config";
+import { getProcessLogStream, formatLogSteamWrite } from "@/log";
+import { OutputTypeEnum } from "@/_init";
 
 /**
  * 将 stdio 配置归一化为标准的 [stdin, stdout, stderr] 数组
@@ -77,7 +78,7 @@ export const execSyncWithLogDispatch = (
   try {
     formatLogSteamWrite({
       stream,
-      type: LogTypeEnum.SYSTEM,
+      type: OutputTypeEnum.SYSTEM,
       content: `[子进程任务开始执行] ${command}`,
     });
 
@@ -92,13 +93,13 @@ export const execSyncWithLogDispatch = (
     if (result && normalized[1] === "pipe") {
       formatLogSteamWrite({
         stream,
-        type: LogTypeEnum.SYSTEM,
+        type: OutputTypeEnum.SYSTEM,
         content: `[任务执行成功返回]: ${result.toString().trim()}`,
       });
     } else {
       formatLogSteamWrite({
         stream,
-        type: LogTypeEnum.SYSTEM,
+        type: OutputTypeEnum.SYSTEM,
         content: `[任务执行成功]`,
       });
     }
@@ -109,7 +110,7 @@ export const execSyncWithLogDispatch = (
     const errorDetail = error.stderr ? `\nSTDERR: ${error.stderr}` : "";
     formatLogSteamWrite({
       stream,
-      type: LogTypeEnum.ERROR,
+      type: OutputTypeEnum.ERROR,
       content: `[任务执行失败]: ${command}\nSTATUS: ${error.status}\nMSG: ${error.message}${errorDetail}`,
     });
 

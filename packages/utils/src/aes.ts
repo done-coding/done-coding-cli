@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { log } from "./log";
 
 /** AES 加密算法 */
@@ -40,10 +40,14 @@ export function encryptAES({
 
     /** 初始化向量 */
     const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipheriv(ALGORITHM, derivedKey, iv);
+    const cipher = crypto.createCipheriv(
+      ALGORITHM,
+      derivedKey as crypto.CipherKey,
+      iv as crypto.BinaryLike,
+    );
 
-    let encrypted = cipher.update(text);
-    encrypted = Buffer.concat([encrypted, cipher.final()]);
+    let encrypted: Buffer = cipher.update(text) as Buffer;
+    encrypted = Buffer.concat([encrypted, cipher.final()] as Uint8Array[]);
 
     const ivHex = iv.toString(ENCODING);
     const encryptedHex = encrypted.toString(ENCODING);
@@ -85,10 +89,16 @@ export function decryptAES({
     const iv = Buffer.from(ivHex, ENCODING);
     const encrypted = Buffer.from(encryptedHex, ENCODING);
 
-    const decipher = crypto.createDecipheriv(ALGORITHM, derivedKey, iv);
+    const decipher = crypto.createDecipheriv(
+      ALGORITHM,
+      derivedKey as crypto.CipherKey,
+      iv as crypto.BinaryLike,
+    );
 
-    let decrypted = decipher.update(encrypted);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    let decrypted: Buffer = decipher.update(
+      encrypted as NodeJS.ArrayBufferView,
+    ) as Buffer;
+    decrypted = Buffer.concat([decrypted, decipher.final()] as Uint8Array[]);
     return decrypted.toString();
   } catch (error) {
     // 记录错误但不抛出，返回空字符串表示解密失败
