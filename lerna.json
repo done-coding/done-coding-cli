@@ -6,7 +6,15 @@
   "npmClient": "pnpm",
   "command": {
     "version": {
-      "message": "chore(release): %s"
+      "message": "chore(release): 新版本发布",
+      "conventionalCommits": true,
+      "ignoreChanges": [
+        "**/__tests__/**",
+        "**/*.test.ts",
+        "**/*.spec.ts",
+        "**/!(*src|package.json)/**",
+        "**/*.md"
+      ]
     }
   }
 }
