@@ -3,7 +3,7 @@
  * @Author       : supengfei
  * @Date         : 2025-06-29 17:21:27
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-01-29 22:15:29
+ * @LastEditTime : 2026-01-30 19:11:02
  */
 import { defineConfig } from "vite";
 import path from "node:path";
@@ -53,6 +53,7 @@ export default defineConfig(({ command, mode }) => {
           ...builtinModules,
           ...builtinModules.map((m) => `node:${m}`),
           ...Object.keys(pkg.dependencies || {}),
+          ...Object.keys(pkg.peerDependencies || {}),
         ],
         input: inputList,
         output: [

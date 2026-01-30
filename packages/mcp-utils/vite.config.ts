@@ -1,3 +1,10 @@
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2026-01-30 08:55:40
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-01-30 19:15:50
+ */
 /// <reference types="vitest" />
 import { defineConfig } from "vite";
 import path from "node:path";
@@ -53,6 +60,8 @@ export default defineConfig(({ command, mode }) => {
           ...builtinModules,
           ...builtinModules.map((m) => `node:${m}`),
           ...Object.keys(pkg.dependencies || {}),
+          ...Object.keys(pkg.peerDependencies || {}),
+          /^@modelcontextprotocol\/sdk(\/.*)?$/,
         ],
         input: inputList,
         output: [
