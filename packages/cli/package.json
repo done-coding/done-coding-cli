@@ -24,11 +24,8 @@
     "scripts/postinstall.mjs"
   ],
   "scripts": {
-    "clean": "rimraf es lib types",
     "moreCli": "node ./scripts/more-cli.mjs",
-    "predev": "pnpm run clean",
-    "dev": "vite build --watch",
-    "prebuild": "pnpm run clean",
+    "dev": "vite build -w -m hotBuild",
     "build": "vite build && pnpm run moreCli",
     "postinstall": "node scripts/postinstall.mjs",
     "prepack": "pnpm build"
@@ -47,14 +44,11 @@
   "sideEffects": false,
   "devDependencies": {
     "@types/node": "^18.0.0",
-    "rimraf": "^6.0.1",
     "typescript": "^5.8.3",
     "vite": "^4.4.11",
     "vite-plugin-dts": "^3.6.0"
   },
-  "engines": {
-    "node": ">=18.0.0"
-  },
+  "peerDependencies": {},
   "dependencies": {
     "@done-coding/cli-component": "workspace:0.4.10-alpha.2",
     "@done-coding/cli-config": "workspace:0.1.13-alpha.2",
@@ -65,5 +59,8 @@
     "@done-coding/cli-template": "workspace:0.8.8-alpha.2",
     "@done-coding/cli-utils": "workspace:0.8.2-alpha.2",
     "create-done-coding": "workspace:0.11.23-alpha.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

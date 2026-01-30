@@ -5,7 +5,7 @@ import pkg from "./package.json";
 import { builtinModules } from "node:module";
 
 export default defineConfig(({ command, mode }) => {
-  const isPro = command === "build" && mode !== "devBuild";
+  const isPro = command === "build" && mode !== "hotBuild";
 
   const inputList = ["src/index.ts"];
 
@@ -42,6 +42,7 @@ export default defineConfig(({ command, mode }) => {
           ...builtinModules,
           ...builtinModules.map((m) => `node:${m}`),
           ...Object.keys(pkg.dependencies || {}),
+          ...Object.keys(pkg.peerDependencies || {}),
           "yargs/helpers",
         ],
         input: inputList,

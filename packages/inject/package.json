@@ -32,11 +32,10 @@
     "types"
   ],
   "scripts": {
-    "clean": "rimraf es lib types",
     "local:init": "node ./scripts/local-init-inject.mjs",
-    "predev": "pnpm run clean && pnpm run local:init",
-    "dev": "vite build --watch",
-    "prebuild": "pnpm run clean && pnpm run local:init",
+    "predev": "pnpm run local:init",
+    "dev": "vite build -w -m hotBuild",
+    "prebuild": "pnpm run local:init",
     "build": "vite build",
     "prepack": "pnpm build"
   },
@@ -55,15 +54,15 @@
   "devDependencies": {
     "@types/node": "^18.0.0",
     "@types/yargs": "^17.0.28",
-    "rimraf": "^6.0.1",
     "typescript": "^5.8.3",
     "vite": "^4.4.11",
     "vite-plugin-dts": "^3.6.0"
   },
-  "engines": {
-    "node": ">=18.0.0"
-  },
+  "peerDependencies": {},
   "dependencies": {
     "@done-coding/cli-utils": "workspace:0.8.2-alpha.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

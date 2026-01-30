@@ -2,55 +2,55 @@
   "folders": [
     {
       "name": "done-coding-cli",
-      "path": "."
+      "path": ".",
     },
     {
       "name": "utils",
-      "path": "packages/utils"
+      "path": "packages/utils",
     },
     {
       "name": "mcp-utils",
-      "path": "packages/mcp-utils"
+      "path": "packages/mcp-utils",
     },
     {
       "name": "extract",
-      "path": "packages/extract"
+      "path": "packages/extract",
     },
     {
       "name": "inject",
-      "path": "packages/inject"
+      "path": "packages/inject",
     },
     {
       "name": "create",
-      "path": "packages/create"
+      "path": "packages/create",
     },
     {
       "name": "publish",
-      "path": "packages/publish"
+      "path": "packages/publish",
     },
     {
       "name": "template",
-      "path": "packages/template"
+      "path": "packages/template",
     },
     {
       "name": "component",
-      "path": "packages/component"
+      "path": "packages/component",
     },
     {
       "name": "git",
-      "path": "packages/git"
+      "path": "packages/git",
     },
     {
       "name": "config",
-      "path": "packages/config"
+      "path": "packages/config",
     },
     {
       "name": "mcp",
-      "path": "packages/mcp"
+      "path": "packages/mcp",
     },
     {
       "name": "cli",
-      "path": "packages/cli"
+      "path": "packages/cli",
     },
   ],
   "settings": {
@@ -58,32 +58,27 @@
     "files.encoding": "utf8",
     "editor.tabSize": 2,
     "editor.formatOnSave": true,
-    "cSpell.ignorePaths": [".git", ".vscode", "node_modules", "pnpm-lock.yaml"],
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "eslint.validate": [
-      "javascript",
-      "javascriptreact",
-      "typescript",
-      "typescriptreact",
-      "vue",
-      "html"
+    "fileheader.configObj": {
+      "autoAdd": true,
+      "autoUpdateOnSave": true,
+      "wideSame": true,
+      "prohibitAutoAdd": ["json", "md", "jsonc", "xml", "shellscript"],
+    },
+    "fileheader.customMade": {
+      "Description": "",
+      "Author": "git config user.name",
+      "Date": "Do not edit",
+      "LastEditors": "git config user.name",
+      "LastEditTime": "Do not edit",
+    },
+
+    "cSpell.ignorePaths": [
+      "**", // 先忽略所有
+      "!**/src/**", // 再排除（即允许检查）所有 src 目录下的内容
+      "**/node_modules/**",
+      "**/dist/**",
+      "pnpm-lock.yaml",
     ],
-    "[jsonc]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": "explicit"
-    },
-    "typescript.tsdk": "node_modules/typescript/lib",
-    "[xml]": {
-      "editor.defaultFormatter": "redhat.vscode-xml"
-    },
-    "[shellscript]": {
-      "editor.defaultFormatter": "foxundermoon.shell-format"
-    },
-    "[dotenv]": {
-      "editor.defaultFormatter": "foxundermoon.shell-format"
-    },
     "cSpell.words": [
       "commitlint",
       "csstype",
@@ -98,27 +93,50 @@
       "PREMINOR",
       "PREPATCH",
       "Reflog",
+      "supengfei",
       "unplugin",
       "upperfirst",
       "uuidv",
-      "VITE"
+      "VITE",
     ],
-    "[ignore]": {
-      "editor.defaultFormatter": "foxundermoon.shell-format"
+    "editor.defaultFormatter": "esbenp.prettier-vscode", // 默认用 Prettier
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
     },
-    "[javascript]": {
-      "editor.defaultFormatter": "vscode.typescript-language-features"
-    }
+    "[xml]": {
+      "editor.defaultFormatter": "redhat.vscode-xml",
+    },
+    "[shellscript]": {
+      "editor.defaultFormatter": "foxundermoon.shell-format",
+    },
+    "[dotenv]": {
+      "editor.defaultFormatter": "foxundermoon.shell-format",
+    },
+    "[ignore]": {
+      "editor.defaultFormatter": "foxundermoon.shell-format",
+    },
+    "eslint.validate": [
+      "javascript",
+      "javascriptreact",
+      "typescript",
+      "typescriptreact",
+      "vue",
+      "html",
+    ],
+    "typescript.tsdk": "node_modules/typescript/lib",
   },
   "extensions": {
     "recommendations": [
+      "OBKoro1.korofileheader",
+      "redhat.vscode-xml",
+      "foxundermoon.shell-format",
       "streetsidesoftware.code-spell-checker",
       "editorconfig.editorconfig",
       "esbenp.prettier-vscode",
       "wayou.vscode-todo-highlight",
       "dbaeumer.vscode-eslint",
       "usernamehw.errorlens",
-      "shd101wyy.markdown-preview-enhanced"
-    ]
-  }
+      "shd101wyy.markdown-preview-enhanced",
+    ],
+  },
 }

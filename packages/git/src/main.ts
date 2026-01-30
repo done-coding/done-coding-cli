@@ -1,3 +1,10 @@
+/*
+ * @Description  : git 命令行工具
+ * @Author       : supengfei
+ * @Date         : 2025-06-18 20:46:25
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-01-30 07:27:18
+ */
 import { commandCliInfo } from "@/handlers";
 import injectInfo from "@/injectInfo.json";
 import type { SubCliInfo } from "@done-coding/cli-utils";
@@ -27,5 +34,7 @@ export const crateAsSubcommand = () => {
   return createSubcommand({
     ...commandCliInfo,
     ...dispatchCommandAndUsage(true),
+    // git 子命令不显示描述信息 即不在父命令的描述信息中显示
+    describe: false,
   } as unknown as SubCliInfo);
 };

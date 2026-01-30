@@ -21,10 +21,7 @@
     "types"
   ],
   "scripts": {
-    "clean": "rimraf es lib types",
-    "predev": "pnpm run clean",
-    "dev": "vite build --watch",
-    "prebuild": "pnpm run clean",
+    "dev": "vite build -w -m hotBuild",
     "build": "vite build",
     "prepack": "pnpm build"
   },
@@ -49,14 +46,11 @@
     "@types/lodash.upperfirst": "^4.3.8",
     "@types/node": "^18.0.0",
     "@types/yargs": "^17.0.28",
-    "rimraf": "^6.0.1",
     "typescript": "^5.8.3",
     "vite": "^4.4.11",
     "vite-plugin-dts": "^3.6.0"
   },
-  "engines": {
-    "node": ">=18.0.0"
-  },
+  "peerDependencies": {},
   "dependencies": {
     "@done-coding/cli-template": "workspace:0.8.8-alpha.2",
     "@done-coding/cli-utils": "workspace:0.8.2-alpha.2",
@@ -65,5 +59,8 @@
     "lodash.lowerfirst": "^4.3.1",
     "lodash.template": "^4.5.0",
     "lodash.upperfirst": "^4.3.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

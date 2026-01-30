@@ -1,6 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import injectInfo from "@/injectInfo.json" with { type: "json" };
 import type {
   McpToolRegisterOptions,
   McpResourceRegisterOptions,
@@ -13,14 +12,18 @@ export const registerServer = async ({
   toolConfigList,
   resourceConfigList,
   promptConfigList,
+  name,
+  version,
 }: {
   toolConfigList: McpToolRegisterOptions<object>[];
   resourceConfigList: McpResourceRegisterOptions[];
   promptConfigList: McpPromptRegisterOptions[];
+  name: string;
+  version: string;
 }) => {
   const server = new McpServer({
-    name: injectInfo.name,
-    version: injectInfo.version,
+    name,
+    version,
   });
 
   toolConfigList.forEach(
@@ -53,6 +56,7 @@ export const registerServer = async ({
 
   // @ts-ignore
   resourceConfigList.forEach(({ name, url, title, description, handler }) =>
+    // @ts-ignore
     server.registerResource(
       name,
       url,
