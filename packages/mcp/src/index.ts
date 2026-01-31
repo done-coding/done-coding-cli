@@ -1,27 +1,12 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import injectInfo from "@/injectInfo.json" with { type: "json" };
-import {
-  addTool as addCreateTool,
-  addResource as addCreateResource,
-  addPrompt as addCreatePrompt,
-} from "./create.js";
-import { EnvConfigCallModeEnum, initEnvConfig } from "@done-coding/cli-utils";
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2026-01-30 22:23:16
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-01-31 16:42:16
+ */
+import { setupMcpServer } from "create-done-coding";
 
-initEnvConfig({
-  callMode: EnvConfigCallModeEnum.MCP,
-  consoleLog: false,
+await setupMcpServer().catch(() => {
+  process.exit(1);
 });
-
-const server = new McpServer({
-  name: injectInfo.name,
-  version: injectInfo.version,
-});
-
-addCreateTool(server);
-addCreateResource(server);
-addCreatePrompt(server);
-
-const transport = new StdioServerTransport();
-
-await server.connect(transport);
