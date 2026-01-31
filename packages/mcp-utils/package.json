@@ -10,6 +10,24 @@
     ".": {
       "import": "./es/index.mjs",
       "types": "./types/index.d.ts"
+    },
+    "./server": {
+      "import": "./es/server.mjs",
+      "types": "./types/server.d.ts"
+    },
+    "./client": {
+      "import": "./es/client.mjs",
+      "types": "./types/client.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "server": [
+        "./types/server.d.ts"
+      ],
+      "client": [
+        "./types/client.d.ts"
+      ]
     }
   },
   "files": [
