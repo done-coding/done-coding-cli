@@ -1,3 +1,10 @@
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2026-01-10 17:50:27
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-01-31 08:09:59
+ */
 /** done-coding 全局环境配置symbol 描述 */
 export const DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL_DESC =
   "__DONE_CODING_ENV_CONFIG__";
@@ -5,6 +12,11 @@ export const DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL_DESC =
 /** done-coding 全局环境配置symbol */
 export const DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL = Symbol.for(
   DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL_DESC,
+);
+
+/** done-coding 当前进程日志文件名symbol */
+export const DONE_CODING_CURRENT_LOG_FILE_NAME_SYMBOL = Symbol.for(
+  "DONE_CODING_CURRENT_LOG_FILE_NAME",
 );
 
 /** done-coding 【全局/临时】文件相对目录 */

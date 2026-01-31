@@ -1,12 +1,12 @@
 import { asyncLog, getLogTime } from "@/_init";
 import {
   DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL,
+  DONE_CODING_CURRENT_LOG_FILE_NAME_SYMBOL,
   DONE_CODING_CONFIG_RELATIVE_DIR,
   DONE_CODING_LOG_OUTPUT_DIR_NAME,
   DONE_CODING_SERIES_DEFAULT,
   DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL_DESC,
 } from "@/const";
-import { getSafePath } from "@/path";
 import { uuidv4 } from "@/uuid";
 import { tmpdir, homedir } from "node:os";
 import path from "node:path";
@@ -56,7 +56,10 @@ export interface EnvConfig {
 }
 
 export interface XGlobalThis {
-  [DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL]: EnvConfig;
+  /** 全局配置 */
+  [DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL]?: EnvConfig;
+  /** 当前进程日志文件名 */
+  [DONE_CODING_CURRENT_LOG_FILE_NAME_SYMBOL]?: string;
 }
 
 /** 获取进程环境变量key */
@@ -94,23 +97,47 @@ export const getProcessEnv = <T>(
  * !!! 设置后不允许更新
  * @returns 是否设置成功
  */
-const setProcessEnv = <T>(
-  keyInit: EnvConfigProcessKeyEnum,
-  value: T,
-): boolean => {
+const setProcessEnv = <T>(keyInit: EnvConfigProcessKeyEnum, value: T) => {
   const currentValue = getProcessEnv(keyInit);
   if (currentValue !== undefined) {
-    return false;
+    asyncLog.system(
+      `${keyInit} 已存在，将覆盖: 
+`,
+      JSON.stringify(currentValue, null, 2),
+      `
+    =>
+`,
+      JSON.stringify(value, null, 2),
+    );
+    // return false;
   }
   const key = getProcessEnvKey(keyInit);
   const valueInit: ProcessValueInit<T> = { value };
   process.env[key] = JSON.stringify(valueInit);
-  return true;
+  asyncLog.system(`${keyInit} 设置完成: `, JSON.stringify(valueInit, null, 2));
+  // return true;
 };
 
 /** 从全局获取配置 */
 const getEnvConfigFromGlobal = () =>
   (globalThis as unknown as XGlobalThis)[DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL];
+
+/** 获取当前进程日志文件名 */
+export const getCurrentProcessLogFileName = () => {
+  const value = (globalThis as unknown as XGlobalThis)[
+    DONE_CODING_CURRENT_LOG_FILE_NAME_SYMBOL
+  ];
+  if (value) {
+    return value;
+  } else {
+    const newFileName = `${getLogTime()}-${uuidv4()}`;
+    (globalThis as unknown as XGlobalThis)[
+      DONE_CODING_CURRENT_LOG_FILE_NAME_SYMBOL
+    ] = newFileName;
+    asyncLog.system(`设置当前进程日志文件名为: `, newFileName);
+    return newFileName;
+  }
+};
 
 /**
  * 设置环境配置
@@ -119,21 +146,14 @@ const getEnvConfigFromGlobal = () =>
  */
 const setEnvConfig = (configInit: EnvConfig): EnvConfig => {
   const globalConfig = getEnvConfigFromGlobal();
-  if (globalConfig) {
-    asyncLog.system(`环境配置已存在: `, globalConfig);
-    return globalConfig;
-  }
-  const config = Object.freeze({
+  const config = {
+    ...(globalConfig || {}),
     ...configInit,
-  });
-  Object.defineProperty(globalThis, DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL, {
-    value: config,
-    writable: false,
-    enumerable: false,
-    configurable: false,
-  });
+  };
   setProcessEnv(EnvConfigProcessKeyEnum.GLOBAL_CONFIG_IMAGE, config);
-  asyncLog.system(`设置环境配置完成: `, config);
+  (globalThis as unknown as XGlobalThis)[DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL] =
+    config;
+  asyncLog.system(`设置环境配置完成: `, JSON.stringify(config, null, 2));
   return config;
 };
 
@@ -141,135 +161,87 @@ const setEnvConfig = (configInit: EnvConfig): EnvConfig => {
 const getEnvConfigFromProcess = () =>
   getProcessEnv<EnvConfig>(EnvConfigProcessKeyEnum.GLOBAL_CONFIG_IMAGE);
 
-/**
- * 当前是子进程
- */
-const isChildProcess = typeof process.send === "function";
-
-/** 获取默认环境配置 */
-const getDefaultEnvConfig = (
-  seriesInit = DONE_CODING_SERIES_DEFAULT,
-): EnvConfig => {
-  const series = getSafePath(seriesInit);
-  return {
-    callMode: EnvConfigCallModeEnum.DEFAULT,
-    series,
-    consoleLog: true,
-    logOutputDir: `${DONE_CODING_CONFIG_RELATIVE_DIR}/${series}/${DONE_CODING_LOG_OUTPUT_DIR_NAME}`,
-    processLogFileNameList: [],
-  };
+/** 获取配置的日志输出目录 - 相对路径 */
+const getEnvConfigLogOutputDir = (series: string) => {
+  return `${DONE_CODING_CONFIG_RELATIVE_DIR}/${series}/${DONE_CODING_LOG_OUTPUT_DIR_NAME}`;
 };
 
 /**
- * 一个进程激活后客观存在
+ * 当前是子进程
  */
-const currentProcessLogFileName = `${getLogTime()}-${uuidv4()}`;
 
-/**
- * 将processConfig设置为全局配置
+/** 获取继承的环境配置
+ * ------
+ * 即上一级进程的配置 如果没有或上级未设置则内部shim一个默认值
  */
-const setEnvConfigFromProcessConfig = (processConfig: EnvConfig) => {
-  const currentGlobalConfig: EnvConfig = {
-    ...processConfig,
-    processLogFileNameList: [
-      currentProcessLogFileName,
-      ...processConfig.processLogFileNameList,
-    ].slice(0, 10),
+const getInheritEnvConfig = (): EnvConfig => {
+  const processConfig = getEnvConfigFromProcess();
+
+  let configInit: EnvConfig;
+  if (processConfig) {
+    configInit = processConfig;
+  } else {
+    const series = DONE_CODING_SERIES_DEFAULT;
+    configInit = {
+      callMode: EnvConfigCallModeEnum.DEFAULT,
+      series,
+      consoleLog: true,
+      logOutputDir: getEnvConfigLogOutputDir(series),
+      processLogFileNameList: [],
+    };
+  }
+  const {
+    callMode,
+    series,
+    consoleLog,
+    logOutputDir,
+    processLogFileNameList: processLogFileNameListInit,
+  } = configInit;
+
+  const currentProcessLogFileName = getCurrentProcessLogFileName();
+
+  const processLogFileNameList = (
+    processLogFileNameListInit[0] === currentProcessLogFileName
+      ? processLogFileNameListInit
+      : [currentProcessLogFileName, ...processLogFileNameListInit]
+  ).slice(0, 10);
+  return {
+    callMode,
+    series,
+    consoleLog,
+    logOutputDir,
+    processLogFileNameList,
   };
-  return setEnvConfig(currentGlobalConfig);
 };
 
 /**
  * 获取应用的环境配置
- * ---
- * !!! 子进程随时调用 都是幂等 即内部懒设置 即使用时才在查询并在合适时机同步到内存中
- * !!! 顶级进程如果在initEnvConfig之前调用 会导致 initEnvConfig 调用时报错
- * ---
- * 获取了应用配置后即当前进程不可更改 避免多次调用 结果不一致
  */
 const getApplyConfig = (): EnvConfig => {
-  // 优先从全局内存中读 读不到从process中读
-  const globalConfig = getEnvConfigFromGlobal();
-  if (globalConfig) {
-    return globalConfig;
-  }
-
-  /**
-   * 走到这里说明两种情况
-   * 1. 顶级进程未设置 global config即未调用或者不需要调用 initEnvConfig
-   * 2. 子顶级进程
-   */
-
-  // 从process那上级进程的全局内存配置副本
-  const processConfig = getEnvConfigFromProcess();
-  // 不存在说明是情况2 需要抛错
-  if (processConfig) {
-    return setEnvConfigFromProcessConfig(processConfig);
-  } else {
-    const defaultConfig = getDefaultEnvConfig();
-    // 自身是顶级进程 但是尚未设置
-    const currentGlobalConfig: EnvConfig = {
-      ...defaultConfig,
-      processLogFileNameList: [currentProcessLogFileName],
-    };
-    return setEnvConfig(currentGlobalConfig);
-  }
+  return getEnvConfigFromGlobal() || getInheritEnvConfig();
 };
 
 /**
- * 初始化环境配置
+ * 更新环境配置
  * ---
- * !!! 顶级进程才调用且只能调用一次
- * 非顶级进程调用会忽略入参 即优先使用父级设置的进程配置
- * ---
- * 即顶级进程调用
- * 非顶级进程通过进程环境继承
+ * 可以多次调用 不限制进程层级
  */
-export const initEnvConfig = ({
-  series,
-  ...otherConfig
-}: Partial<
-  Pick<EnvConfig, "callMode" | "consoleLog"> & {
-    series: string;
-  }
->) => {
-  if (isChildProcess) {
-    const errMsg = `非顶级进程不允许调用该方法`;
-    throw new Error(errMsg);
-  }
+export const updateEnvConfig = ({
+  series = DONE_CODING_SERIES_DEFAULT,
+  callMode = EnvConfigCallModeEnum.DEFAULT,
+  consoleLog = true,
+}: Partial<Pick<EnvConfig, "callMode" | "consoleLog" | "series">>) => {
+  const logOutputDir = getEnvConfigLogOutputDir(series);
 
-  /**
-   * 全局内存中读
-   * ---
-   * 如果有globalConfig配置 必有processConfig, 即setEnvConfig会在设置全局配置时同步到processConfig中
-   */
-  const globalConfig = getEnvConfigFromGlobal();
-  if (globalConfig) {
-    const errMsg = `内存全局配置存在，说明是以下某个原因:
-1. 顶级进程重复调用initEnvConfig
-2. 顶级进程在调用该方法之前调用了getApplyConfig, 即获取配置应用的同时会冻结配置 不会后续变化
-------
-如果是顶级进程 请第一时间调用，请给对应调用包专门顶级进程才会调用的入口 并调用此方法
-如 mcp模式入口 需要第一时间调用此方法
-`;
-    throw new Error(errMsg);
-  } else {
-    // 从process那上级进程的全局内存配置副本
-    const processConfig = getEnvConfigFromProcess();
-    // 存在顶级进程且顶级进程设置了 processConfig
-    if (processConfig) {
-      return setEnvConfigFromProcessConfig(processConfig);
-    } else {
-      const defaultConfig = getDefaultEnvConfig(series);
-      // 自身是顶级进程 但是尚未设置
-      const currentGlobalConfig: EnvConfig = {
-        ...defaultConfig,
-        ...otherConfig,
-        processLogFileNameList: [currentProcessLogFileName],
-      };
-      return setEnvConfig(currentGlobalConfig);
-    }
-  }
+  const nextConfig = {
+    ...getApplyConfig(),
+    series,
+    callMode,
+    consoleLog,
+    logOutputDir,
+  };
+
+  return setEnvConfig(nextConfig);
 };
 
 /** 获取调用模式 */
@@ -299,11 +271,6 @@ export const getLogOutputDir = (persistent = false) => {
     persistent ? homedir() : tmpdir(),
     getApplyConfig().logOutputDir,
   );
-};
-
-/** 获取自身进程日志文件名 */
-export const getCurrentProcessLogFileName = () => {
-  return getApplyConfig().processLogFileNameList[0];
 };
 
 /** 获取父级进程日志文件名 */
