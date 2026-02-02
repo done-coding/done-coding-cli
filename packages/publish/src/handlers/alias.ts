@@ -6,15 +6,14 @@ import {
   getConfigFileCommonOptions,
   getPackageJson,
   getCliModuleTempDir,
-  log,
+  outputConsole,
   readConfigFile,
-  execSyncWithLogDispatch,
 } from "@done-coding/cli-utils";
 import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "@/utils";
 import path from "node:path";
 import fs, { rmSync } from "node:fs";
 import injectInfo from "@/injectInfo.json";
-
+import { execSync } from "node:child_process";
 /** 获取别名发布选项 */
 export const getAliasOptions = () =>
   getConfigFileCommonOptions({
@@ -37,7 +36,7 @@ export const aliasHandler = async (argv: CliHandlerArgv<AliasOptions>) => {
   });
   const aliasInfoList = getAliasInfoList(configInfo);
   if (!aliasInfoList) {
-    log.warn("没有配置别名发布信息");
+    outputConsole.warn("没有配置别名发布信息");
     return;
   }
 
@@ -51,12 +50,12 @@ export const aliasHandler = async (argv: CliHandlerArgv<AliasOptions>) => {
     fn: async (tempDir) => {
       fs.mkdirSync(tempDir, { recursive: true });
 
-      execSyncWithLogDispatch(`pnpm add ${name}@${version}`, {
+      execSync(`pnpm add ${name}@${version}`, {
         stdio: "inherit",
         cwd: tempDir,
       });
 
-      const distTagListBuffer = execSyncWithLogDispatch(`npm dist-tag ${name}`);
+      const distTagListBuffer = execSync(`npm dist-tag ${name}`);
 
       const distTagListStr = distTagListBuffer.toString().trim();
       const distTagList = distTagListStr
@@ -67,7 +66,7 @@ export const aliasHandler = async (argv: CliHandlerArgv<AliasOptions>) => {
       )?.[0];
 
       if (!distTag) {
-        return log.warn(`没有找到 ${name}@${version} 对应的dist-tag`);
+        return outputConsole.warn(`没有找到 ${name}@${version} 对应的dist-tag`);
       }
 
       // console.log(distTag)
@@ -94,7 +93,7 @@ export const aliasHandler = async (argv: CliHandlerArgv<AliasOptions>) => {
           JSON.stringify(newPackageJson, null, 2),
         );
 
-        execSyncWithLogDispatch(`pnpm publish --tag ${distTag}`, {
+        execSync(`pnpm publish --tag ${distTag}`, {
           stdio: "inherit",
           cwd: sourcePck,
         });

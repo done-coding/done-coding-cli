@@ -1,7 +1,11 @@
 import type { GitConfig } from "@/types";
 import { CheckTypeEnum, SubcommandEnum } from "@/types";
-import type { GitLogItemInfo, GitReflogItemInfo } from "@done-coding/cli-utils";
-import { log, type GitMergeBranchInfo } from "@done-coding/cli-utils";
+import type {
+  GitLogItemInfo,
+  GitReflogItemInfo,
+  GitMergeBranchInfo,
+} from "@done-coding/cli-utils";
+import { outputConsole } from "@done-coding/cli-utils";
 
 /** 获取检测反向合并配置map */
 export const getCheckReverseMergeConfigMap = (config: GitConfig) => {
@@ -39,14 +43,14 @@ export const getCheckReverseMergeMaxIndexMap = (
         const index = logList.findIndex((item) => item.hash === afterHash);
         if (index !== -1) {
           // (afterHash:${index + 1}, logCount:${logCount})
-          log.info(
+          outputConsole.info(
             `${branchReg} 设置 只检测 ${afterHash} 之后的日志 即 下标 [0 - ${index})`,
           );
           maxIndex = Math.min(maxIndex, index - 1);
         }
       }
 
-      log.info(`${branchReg} 最多检查${maxIndex + 1}条`);
+      outputConsole.info(`${branchReg} 最多检查${maxIndex + 1}条`);
 
       acc[branchReg] = maxIndex;
 
@@ -76,7 +80,7 @@ export const checkIsReverseMerge = ({
   const { fromBranch, toBranch = currentBranch } = mergeInfo;
 
   if (fromBranch === currentBranch) {
-    log.skip(`跳过: 允许远程${fromBranch} => 本地${toBranch}`);
+    outputConsole.skip(`跳过: 允许远程${fromBranch} => 本地${toBranch}`);
     return;
   }
 
@@ -89,7 +93,7 @@ export const checkIsReverseMerge = ({
   );
 
   if (!res) {
-    log.skip(`跳过: 允许${fromBranch} => ${toBranch}`);
+    outputConsole.skip(`跳过: 允许${fromBranch} => ${toBranch}`);
   }
 
   return res;

@@ -3,12 +3,12 @@
  * @Author       : supengfei
  * @Date         : 2026-01-30 21:15:09
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-01-30 21:50:06
+ * @LastEditTime : 2026-02-01 17:44:17
  */
 import {
   EnvConfigCallModeEnum,
   updateEnvConfig,
-  log,
+  outputConsole,
 } from "@done-coding/cli-utils";
 import { createServer } from "@done-coding/mcp-utils";
 import {
@@ -34,7 +34,7 @@ export const setupMcpServer = async () => {
     name: injectInfo.name,
     version: injectInfo.version,
   }).catch((error) => {
-    log.error("MCP 服务启动失败:", error);
+    outputConsole.error("MCP 服务启动失败:", error);
     process.exit(1);
   });
 };

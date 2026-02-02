@@ -2,10 +2,9 @@ import type { ArgumentsCamelCase, SubCliInfo } from "@done-coding/cli-utils";
 import { InitTypeEnum, SubcommandEnum, type InitOptions } from "@/types";
 import {
   addHuskyHooks,
-  execSyncWithLogDispatch,
   getConfigFileCommonOptions,
   initHandlerCommon,
-  log,
+  outputConsole,
   xPrompts,
 } from "@done-coding/cli-utils";
 import type { SupportCheckReverseMergeHooksNameType } from "@/utils";
@@ -18,6 +17,7 @@ import {
   SUPPORT_CHECK_REVERSE_MERGE_HOOKS_NAME,
 } from "@/utils";
 import configDefault from "@/config";
+import { execSync } from "node:child_process";
 
 /** 获取初始化选项 */
 export const getOptions = () => {
@@ -35,9 +35,7 @@ export const getOptions = () => {
 };
 
 const addScript = (commandPrefix: string) => {
-  execSyncWithLogDispatch(
-    `npm pkg set scripts.postprepare="${commandPrefix} init"`,
-  );
+  execSync(`npm pkg set scripts.postprepare="${commandPrefix} init"`);
 };
 
 export const handler = async (
@@ -64,7 +62,7 @@ export const handler = async (
 
       return initHandlerCommon(configDefault, argv, {
         onFileGenerated: (path) => {
-          log.info(`文件生成成功: ${path}`);
+          outputConsole.info(`文件生成成功: ${path}`);
         },
       });
     }

@@ -2,13 +2,15 @@
 /** 考虑本包会使用当前文件源码 避免不识别@ 此处用相对路径 */
 /** 考虑本包会使用当前文件源码 避免不识别@ 此处用相对路径 */
 
-import type { SubCliInfo } from "@done-coding/cli-utils";
+import type {
+  SubCliInfo,
+  CliHandlerArgv,
+  CliInfo,
+} from "@done-coding/cli-utils";
 import {
   readConfigFile,
   getConfigFileCommonOptions,
-  type CliHandlerArgv,
-  type CliInfo,
-  log,
+  outputConsole,
   _set,
 } from "@done-coding/cli-utils";
 import path from "node:path";
@@ -51,12 +53,12 @@ export const generateFile = async ({
   };
 
   if (!sourceFilePath.endsWith(".json")) {
-    log.error("源文件必须是json");
+    outputConsole.error("源文件必须是json");
     return process.exit(1);
   }
 
   if (!injectFilePath.endsWith(".json")) {
-    log.error("注入文件必须是json");
+    outputConsole.error("注入文件必须是json");
     return process.exit(1);
   }
 
@@ -87,28 +89,28 @@ export const generateFile = async ({
 
     // 如果注入文件存在且内容相同，则不重复注入
     if (injectInfoJson === currentInjectInfo) {
-      log.skip(`注入文件已存在且内容相同，无需重复注入`);
+      outputConsole.skip(`注入文件已存在且内容相同，无需重复注入`);
       return injectInfo;
     } else {
-      log.stage(`文件内容变化,开始覆盖注入文件`);
+      outputConsole.stage(`文件内容变化,开始覆盖注入文件`);
     }
   } else {
-    log.stage(`开始注入文件`);
+    outputConsole.stage(`开始注入文件`);
   }
 
   fs.writeFileSync(injectInfoFileFullPath, injectInfoJson);
-  log.success(`文件注入成功: ${injectInfoFileFullPath}`);
-  log.info(injectInfoJson);
+  outputConsole.success(`文件注入成功: ${injectInfoFileFullPath}`);
+  outputConsole.info(injectInfoJson);
 };
 
 /** 提取文件命令处理器 */
 export const handler = async (argv: CliHandlerArgv<GenerateOptions>) => {
   const config = await readConfigFile<InjectConfig>(argv, () => {
-    log.info(`配置文件为空，使用默认配置`);
+    outputConsole.info(`配置文件为空，使用默认配置`);
     return configDefault;
   });
   if (!config) {
-    log.error(`配置文件为空`);
+    outputConsole.error(`配置文件为空`);
     return process.exit(1);
   }
 

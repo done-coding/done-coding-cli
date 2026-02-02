@@ -5,7 +5,6 @@ import type {
   McpResourceRegisterItem,
   McpPromptRegisterItem,
 } from "@done-coding/mcp-utils";
-// import { log } from "@done-coding/cli-utils";
 import templateConfig from "./template.json";
 // import { execSync } from "node:child_process";
 import { createHandler } from "@/handlers";
@@ -34,13 +33,13 @@ export const toolRegisterList: McpToolRegisterItem[] = [
         }),
       },
       async (input: McpCreateAnswerPreset) => {
-        // log.info(27, input);
+        // outputConsole.info(27, input);
         try {
           const createOptions: CreateOptions = {
             ...input,
             simple: true,
           };
-          // log.info(37, process.env);
+          // outputConsole.info(37, process.env);
           // const res = execSync(
           //   `npx create-done-coding@${injectInfo.version} ${params2cliParams(createOptions)}`,
           //   {

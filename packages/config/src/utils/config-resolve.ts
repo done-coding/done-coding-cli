@@ -8,7 +8,7 @@ import { ConfigModuleEnum } from "@/types";
 import {
   getPackageJson,
   getRelyPkgVersion,
-  log,
+  outputConsole,
   readConfigFile,
 } from "@done-coding/cli-utils";
 import { existsSync } from "node:fs";
@@ -24,7 +24,7 @@ export const getConfig = async (
 ) => {
   return await readConfigFile(argv, (): ConfigConfig => {
     const { moduleList = [] } = argv;
-    log.info(
+    outputConsole.info(
       `配置文件不存在 读取命令行参数 moduleList: ${JSON.stringify(
         moduleList,
         null,
@@ -106,7 +106,7 @@ export const adjustModuleList = (list: string[]): ConfigModuleEnum[] => {
   return list.filter((item) => {
     const valid = ALLOW_MODULE_LIST.includes(item as ConfigModuleEnum);
     if (!valid) {
-      log.warn(
+      outputConsole.warn(
         `当前不支持${item}的配置检测, 支持的类型有${ALLOW_MODULE_LIST.join(
           ", ",
         )}`,
@@ -128,7 +128,7 @@ export const getConfigInfo = ({
 
   const moduleList = adjustModuleList(moduleListInit);
 
-  log.stage(`开始获取${moduleList.join(", ")}配置信息...`);
+  outputConsole.stage(`开始获取${moduleList.join(", ")}配置信息...`);
 
   const pkgJson = getPackageJson({ rootDir });
 
@@ -149,7 +149,7 @@ export const getConfigInfo = ({
       ].map((item) => item.replace(REPLACE_MARK, cur));
 
       if (!configFileRelativePathListInit.length) {
-        log.warn(`安装了${cur}, 但未找到${cur}的配置文件 认为未使用`);
+        outputConsole.warn(`安装了${cur}, 但未找到${cur}的配置文件 认为未使用`);
         return acc;
       }
 

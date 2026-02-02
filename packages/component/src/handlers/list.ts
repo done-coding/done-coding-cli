@@ -5,7 +5,7 @@ import type {
   SubCliInfo,
   YargsOptionsRecord,
 } from "@done-coding/cli-utils";
-import { getLogText, log } from "@done-coding/cli-utils";
+import { chalk, outputConsole } from "@done-coding/cli-utils";
 import type { ListOptions, Config } from "@/types";
 import { SubcommandEnum } from "@/types";
 import { getComponentEnvData, getConfig } from "@/utils";
@@ -42,7 +42,7 @@ export const getComponentList = (config: Config): string[] => {
         const filePath = path.join(componentDirAbsolutePath, file);
         const stats = fs.statSync(filePath);
         if (stats.isDirectory()) {
-          log.info("filePath:", filePath, path.basename(filePath));
+          outputConsole.info("filePath:", filePath, path.basename(filePath));
           return path.basename(filePath);
         } else {
           return "";
@@ -62,7 +62,7 @@ export const getComponentList = (config: Config): string[] => {
 
     return list;
   } else {
-    log.error("组件源码路径不是目录");
+    outputConsole.error("组件源码路径不是目录");
     return process.exit(1);
   }
 };
@@ -71,7 +71,7 @@ export const handler = async ({
   outputJson,
   outputPath: outputPathInit,
 }: CliHandlerArgv<ListOptions>) => {
-  log.stage("展示列表");
+  outputConsole.stage("展示列表");
   const config = getConfig();
   const list = getComponentList(config);
 
@@ -90,12 +90,12 @@ export const handler = async ({
     };
   });
 
-  log.table(
+  outputConsole.table(
     listInfo.map(({ name, fullName, nameKebab }) => {
       return {
-        [getLogText.success("名称")]: name,
-        [getLogText.success("带系列名称")]: fullName,
-        [getLogText.success("绝对路径")]: path.resolve(
+        [chalk.greenBright("名称")]: name,
+        [chalk.greenBright("带系列名称")]: fullName,
+        [chalk.greenBright("绝对路径")]: path.resolve(
           config.componentDir,
           nameKebab,
         ),
@@ -109,7 +109,7 @@ export const handler = async ({
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
-    log.stage(`输出组件名列表到${outputAbsolutePath}`);
+    outputConsole.stage(`输出组件名列表到${outputAbsolutePath}`);
     fs.writeFileSync(outputAbsolutePath, JSON.stringify(listInfo, null, 2));
   }
 };

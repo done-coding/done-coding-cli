@@ -1,10 +1,17 @@
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2025-06-28 16:04:26
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-02-01 17:46:08
+ */
 import type { RemoveOptions } from "@/types";
 import { SubcommandEnum } from "@/types";
 import { getComponentList } from "./list";
 import fs from "node:fs";
 import path from "node:path";
 import type { CliHandlerArgv, SubCliInfo } from "@done-coding/cli-utils";
-import { log, xPrompts } from "@done-coding/cli-utils";
+import { outputConsole, xPrompts } from "@done-coding/cli-utils";
 import { getComponentEnvData, getConfig, operateComponent } from "@/utils";
 
 const getPositionals = (): SubCliInfo["positionals"] => {
@@ -20,11 +27,11 @@ const getPositionals = (): SubCliInfo["positionals"] => {
 export const handler = async ({
   name: nameInit,
 }: CliHandlerArgv<RemoveOptions>) => {
-  log.stage("移除组件");
+  outputConsole.stage("移除组件");
   const config = getConfig();
   const list = await getComponentList(config);
   if (list.length === 0) {
-    log.error("组件列表为空");
+    outputConsole.error("组件列表为空");
     return process.exit(1);
   }
   let name: string;
@@ -60,7 +67,7 @@ export const handler = async ({
     }
   }
 
-  log.error(`组件${name}不存在`);
+  outputConsole.error(`组件${name}不存在`);
   return process.exit(1);
 };
 

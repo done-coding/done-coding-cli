@@ -1,16 +1,23 @@
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2025-06-18 20:46:25
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-02-01 17:47:16
+ */
 import { cloneHandler } from "@/handlers";
 import { GitPlatformEnum } from "@/types";
 import { getGitUsernameForm, getPlatformForm } from "@/utils";
-import { log, xPrompts } from "@done-coding/cli-utils";
+import { outputConsole, xPrompts } from "@done-coding/cli-utils";
 
 /** 克隆done-coding系列项目 */
 export const cloneDoneCodingSeries = async (projectName?: string) => {
-  log.info("克隆done-coding系列项目");
+  outputConsole.info("克隆done-coding系列项目");
 
-  log.stage("选择平台:");
+  outputConsole.stage("选择平台:");
   const { platform } = await xPrompts(getPlatformForm(GitPlatformEnum.GITEE));
 
-  log.stage("选择用户名:");
+  outputConsole.stage("选择用户名:");
   const { username } = await xPrompts(
     getGitUsernameForm(
       {
@@ -20,8 +27,8 @@ export const cloneDoneCodingSeries = async (projectName?: string) => {
     ),
   );
 
-  log.info("platform:", platform);
-  log.info("username:", username);
+  outputConsole.info("platform:", platform);
+  outputConsole.info("username:", username);
 
   await cloneHandler({
     platform,

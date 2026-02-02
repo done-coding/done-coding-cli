@@ -1,10 +1,12 @@
-import type { SubCliInfo } from "@done-coding/cli-utils";
+import type {
+  SubCliInfo,
+  CliHandlerArgv,
+  CliInfo,
+} from "@done-coding/cli-utils";
 import {
   readConfigFile,
   getConfigFileCommonOptions,
-  type CliHandlerArgv,
-  type CliInfo,
-  log,
+  outputConsole,
 } from "@done-coding/cli-utils";
 import {
   GenerateModeEnum,
@@ -82,11 +84,11 @@ export const generateFile = async ({
 /** 提取文件命令处理器 */
 export const handler = async (argv: CliHandlerArgv<GenerateOptions>) => {
   const config = await readConfigFile<ExtractConfig>(argv, () => {
-    log.info(`配置文件为空，使用默认配置`);
+    outputConsole.info(`配置文件为空，使用默认配置`);
     return configDefault;
   });
   if (!config) {
-    log.error(`配置文件为空`);
+    outputConsole.error(`配置文件为空`);
     return process.exit(1);
   }
 

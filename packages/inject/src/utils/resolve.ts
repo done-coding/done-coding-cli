@@ -1,8 +1,15 @@
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2026-02-02 22:20:55
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-02-02 22:21:09
+ */
 /** 考虑本包会使用当前文件源码 避免不识别@ 此处用相对路径 */
 /** 考虑本包会使用当前文件源码 避免不识别@ 此处用相对路径 */
 /** 考虑本包会使用当前文件源码 避免不识别@ 此处用相对路径 */
 
-import { _get, log } from "@done-coding/cli-utils";
+import { _get, outputConsole } from "@done-coding/cli-utils";
 import type {
   InjectKeyConfig,
   InjectKeyConfigFixed,
@@ -42,7 +49,7 @@ export const keyConfigResolve = ({
       if (typeof sourceValue === "string") {
         return sourceValue.replace(reg, replaceValue);
       } else {
-        log.warn(
+        outputConsole.warn(
           `${sourceValue}不是字符串类型，无法使用正则表达式进行替换，此处将直接返回原值`,
         );
         return sourceValue;
@@ -57,7 +64,7 @@ export const keyConfigResolve = ({
       return _get(sourceJson, sourceKey);
     }
     default: {
-      log.warn(`未知的配置类型${type}`);
+      outputConsole.warn(`未知的配置类型${type}`);
       return undefined;
     }
   }

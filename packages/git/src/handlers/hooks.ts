@@ -1,15 +1,11 @@
 import type { ArgumentsCamelCase, PositionalOptions } from "yargs";
-import type { GitConfig } from "@/types";
-import {
-  CheckReverseMergeWayEnum,
-  SubcommandEnum,
-  type HooksOptions,
-} from "@/types";
+import type { GitConfig, HooksOptions } from "@/types";
+import { CheckReverseMergeWayEnum, SubcommandEnum } from "@/types";
 import type { SubCliInfo, YargsOptions } from "@done-coding/cli-utils";
 import {
   getConfigFileCommonOptions,
   HooksNameEnum,
-  log,
+  outputConsole,
   readConfigFile,
 } from "@done-coding/cli-utils";
 import { checkReverseMergeHandler } from "./check";
@@ -76,7 +72,7 @@ export const handler = async (argv: ArgumentsCamelCase<HooksOptions>) => {
       break;
     }
     default: {
-      log.error(`${hookName} 当前未支持处理`);
+      outputConsole.error(`${hookName} 当前未支持处理`);
     }
   }
 };

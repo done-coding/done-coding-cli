@@ -4,7 +4,7 @@ import type {
   SubCliInfo,
   YargsOptionsRecord,
 } from "@done-coding/cli-utils";
-import { log } from "@done-coding/cli-utils";
+import { outputConsole } from "@done-coding/cli-utils";
 import type { CompileOptions, CompilePublicConfig } from "@/types";
 import { OutputModeEnum } from "@/types";
 import {
@@ -85,10 +85,10 @@ export const handler = async (argv: CliHandlerArgv<CompileOptions>) => {
   } = publicConfig as CompilePublicConfig;
 
   if (batch) {
-    log.stage(`开始批量处理`);
+    outputConsole.stage(`开始批量处理`);
     return batchHandler(publicConfig);
   }
-  log.stage(`开始单个处理`);
+  outputConsole.stage(`开始单个处理`);
 
   /** 环境变量 */
   const envData = getData({

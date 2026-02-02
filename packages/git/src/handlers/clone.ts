@@ -1,10 +1,18 @@
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2025-06-21 18:36:43
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-02-01 17:42:03
+ */
 import type {
   CliHandlerArgv,
   CliInfo,
   SubCliInfo,
 } from "@done-coding/cli-utils";
 import { GitPlatformEnum, SubcommandEnum } from "@/types";
-import { execSyncWithLogDispatch, log } from "@done-coding/cli-utils";
+import { outputConsole } from "@done-coding/cli-utils";
+import { execSync } from "node:child_process";
 import type { CloneOptions } from "@/types";
 import { getTargetRepoUrl } from "@/utils";
 
@@ -39,12 +47,12 @@ export const handler = async (options: CliHandlerArgv<CloneOptions>) => {
 
   const { projectName } = options;
 
-  execSyncWithLogDispatch(
+  execSync(
     `git clone ${repoUrl} ${projectName ? `${projectName} ` : ""}--depth=1`,
     { stdio: "inherit" },
   );
 
-  log.success(`克隆${repoUrl}成功`);
+  outputConsole.success(`克隆${repoUrl}成功`);
 };
 
 export const commandCliInfo: SubCliInfo = {

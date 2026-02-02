@@ -1,8 +1,15 @@
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2025-06-29 23:15:27
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-02-01 17:47:55
+ */
 import {
   lookForParentTarget,
   decryptAES,
   encryptAES,
-  log,
+  outputConsole,
 } from "@done-coding/cli-utils";
 import type { GitConfigInfo, GitParamsInfo, GitPlatformEnum } from "@/types";
 import fs from "node:fs";
@@ -32,22 +39,22 @@ export const getGitConfigInfo = (
     isFindFarthest: false,
   });
   if (!parentGitDir) {
-    log.warn(`配置文件不存在`);
+    outputConsole.warn(`配置文件不存在`);
     return;
   }
-  // log.info(`配置文件目录 ${parentGitDir}`);
+  // outputConsole.info(`配置文件目录 ${parentGitDir}`);
   /** 配置文件路径 */
   const configFilePath = `${parentGitDir}/${platformConfigBasePath}`;
 
   const configStr = fs.readFileSync(configFilePath, "utf-8");
 
   const secretKey = getGitConfigFileSecretKey(params);
-  // log.info(`配置文件解密密钥 ${secretKey}`);
+  // outputConsole.info(`配置文件解密密钥 ${secretKey}`);
 
   const configDecrypt = decryptAES({ encryptedText: configStr, secretKey });
 
   if (!configDecrypt) {
-    log.warn(`配置文件解密失败`);
+    outputConsole.warn(`配置文件解密失败`);
     return;
   }
 
@@ -79,7 +86,7 @@ export const setGitConfigInfo = ({
 
   const secretKey = getGitConfigFileSecretKey({ platform, username });
 
-  // log.info(`配置文件加密密钥 ${secretKey}`);
+  // outputConsole.info(`配置文件加密密钥 ${secretKey}`);
 
   const encryptedInfo = encryptAES({ text: infoStr, secretKey });
 
@@ -91,5 +98,5 @@ export const setGitConfigInfo = ({
 
   fs.writeFileSync(configFilePath, encryptedInfo, "utf-8");
 
-  log.success(`配置信息保存成功 ${configFilePath}`);
+  outputConsole.success(`配置信息保存成功 ${configFilePath}`);
 };

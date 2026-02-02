@@ -3,7 +3,7 @@
  * @Author       : supengfei
  * @Date         : 2025-04-19 13:54:04
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-01-31 12:10:09
+ * @LastEditTime : 2026-02-02 22:21:27
  */
 module.exports = {
   root: true,
@@ -49,7 +49,7 @@ module.exports = {
           {
             selector:
               "Identifier[name='console'][parent.type='MemberExpression']",
-            message: `❌ 请从utils包导出 log 代替 console, 
+            message: `❌ 请从utils包导出 outputConsole 代替 console, 
 -------
 即需要考虑MCP服务环境额外输出问题`,
           },

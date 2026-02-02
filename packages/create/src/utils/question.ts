@@ -1,6 +1,6 @@
 import {
-  getLogText,
-  log,
+  chalk,
+  outputConsole,
   readCliModuleAssetsConfig,
   type PromptObject,
 } from "@done-coding/cli-utils";
@@ -25,7 +25,7 @@ export const getTemplateList = async () => {
           const errorMsg = `配置文件出错, templateList 不是数组, 请检查 ${repoUrl} ${moduleEntryFileRelativePath}`;
           throw new Error(errorMsg);
         }
-        log.success(`模板列表拉取成功！`);
+        outputConsole.success(`模板列表拉取成功！`);
       },
     });
     templateList = config.templateList;
@@ -58,12 +58,12 @@ export const getTemplateTitle = ({
 }: CreateTemplateChoiceItem) => {
   const branchConfigType = typeof branch;
   if (branchConfigType === "string") {
-    return `${name}(${getLogText.info(branch)})`;
+    return `${name}(${chalk.white(branch)})`;
   } else {
     return `${name}(${
       Array.isArray(branch) && branch.length
-        ? getLogText.success(`${branch.length}个细分分支`)
-        : getLogText.info(`默认分支`)
+        ? chalk.greenBright(`${branch.length}个细分分支`)
+        : chalk.white(`默认分支`)
     })`;
   }
 };

@@ -3,7 +3,7 @@ import { SubcommandEnum, type InitOptions } from "@/types";
 import {
   getConfigFileCommonOptions,
   initHandlerCommon,
-  log,
+  outputConsole,
 } from "@done-coding/cli-utils";
 import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "@/utils";
 import configDefault from "@/config";
@@ -18,7 +18,7 @@ export const getOptions = () =>
 export const handler = async (argv: CliHandlerArgv<InitOptions>) => {
   return initHandlerCommon(configDefault, argv, {
     onFileGenerated: () => {
-      log.info(`文件生成成功`);
+      outputConsole.info(`文件生成成功`);
     },
   });
 };

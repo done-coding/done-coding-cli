@@ -2,7 +2,7 @@ import { GitPlatformEnum, type GitParamsInfo } from "@/types";
 import { getGiteeUserAllRepos, getGiteeUserPublicRepos } from "@/api/gitee";
 import { getGithubUserAllRepos, getGithubUserPublicRepos } from "@/api/github";
 import { getGitConfigInfo } from "./config";
-import { log, xPrompts } from "@done-coding/cli-utils";
+import { outputConsole, xPrompts } from "@done-coding/cli-utils";
 import { getGitUsernameForm, getPlatformForm } from "./question";
 
 /** 获取目标仓库地址 */
@@ -38,7 +38,7 @@ export const getTargetRepoUrl = async ({
 
   let accessToken = gitInfo?.accessToken;
 
-  log.stage(`正在获取${username}的${platform}仓库列表...`);
+  outputConsole.stage(`正在获取${username}的${platform}仓库列表...`);
 
   const params = {
     username,
@@ -47,9 +47,9 @@ export const getTargetRepoUrl = async ({
   switch (options.platform) {
     case GitPlatformEnum.GITHUB: {
       repos = (
-        await (params.accessToken
-          ? getGithubUserAllRepos
-          : getGithubUserPublicRepos)(params)
+        await (
+          params.accessToken ? getGithubUserAllRepos : getGithubUserPublicRepos
+        )(params)
       ).data.map((item) => {
         return {
           name: item.name,
@@ -62,9 +62,9 @@ export const getTargetRepoUrl = async ({
     }
     case GitPlatformEnum.GITEE: {
       repos = (
-        await (params.accessToken
-          ? getGiteeUserAllRepos
-          : getGiteeUserPublicRepos)(params)
+        await (
+          params.accessToken ? getGiteeUserAllRepos : getGiteeUserPublicRepos
+        )(params)
       ).data.map((item) => {
         return {
           name: item.name,
@@ -76,18 +76,18 @@ export const getTargetRepoUrl = async ({
       break;
     }
     default: {
-      log.error(`未知平台${platform}`);
+      outputConsole.error(`未知平台${platform}`);
       return process.exit(1);
     }
   }
 
-  log.success(`获取${username}的${platform}仓库列表成功`);
+  outputConsole.success(`获取${username}的${platform}仓库列表成功`);
 
   if (repos.length === 0) {
-    log.warn(`${username} 可获取${platform}仓库列表为空`);
+    outputConsole.warn(`${username} 可获取${platform}仓库列表为空`);
     return;
   } else {
-    log.stage(`共${repos.length}个仓库`);
+    outputConsole.stage(`共${repos.length}个仓库`);
   }
 
   const { repoUrl } = await xPrompts({

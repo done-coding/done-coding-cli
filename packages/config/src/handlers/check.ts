@@ -1,3 +1,10 @@
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2025-06-29 17:21:27
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-02-01 17:47:32
+ */
 import {
   ConfigModuleEnum,
   SubcommandEnum,
@@ -12,7 +19,10 @@ import {
   getConfigInfo,
 } from "@/utils";
 import type { SubCliInfo } from "@done-coding/cli-utils";
-import { getConfigFileCommonOptions, log } from "@done-coding/cli-utils";
+import {
+  getConfigFileCommonOptions,
+  outputConsole,
+} from "@done-coding/cli-utils";
 import type { ArgumentsCamelCase } from "yargs";
 import type yargs from "yargs";
 
@@ -43,7 +53,7 @@ export const handler = async (
 }> => {
   const config = await getConfig(argv);
   const info = getConfigInfo({ config, rootDir: argv.rootDir });
-  log.success(`检测到工程化配置信息: 
+  outputConsole.success(`检测到工程化配置信息: 
 ${JSON.stringify(info, null, 2)}`);
   return {
     config,

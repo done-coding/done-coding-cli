@@ -11,11 +11,10 @@ import type {
   YargsOptionsRecord,
 } from "@done-coding/cli-utils";
 import {
-  execSyncWithLogDispatch,
   getConfigFileCommonOptions,
   getGitLastCommitInfo,
   getPackageJson,
-  log,
+  outputConsole,
   pushGitPublishInfoToRemote,
   readConfigFile,
   xPrompts,
@@ -24,7 +23,7 @@ import type { ReleaseType } from "semver";
 import { inc } from "semver";
 import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "@/utils";
 import { aliasHandler, getAliasInfoList } from "./alias";
-
+import { execSync } from "node:child_process";
 export const getExecOptions = (): YargsOptionsRecord<ExecOptions> => {
   return {
     ...getConfigFileCommonOptions({
@@ -229,7 +228,7 @@ export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
 
   const { version } = npmInfo;
 
-  execSyncWithLogDispatch(`npm version ${version}`, {
+  execSync(`npm version ${version}`, {
     cwd: rootDir,
     stdio: "inherit",
   });
@@ -240,7 +239,7 @@ export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
       case PublishModeEnum.WEB: {
         const { build } = modeConfigInfo as ConfigInfoWeb;
         if (build) {
-          execSyncWithLogDispatch(`${build}`, {
+          execSync(`${build}`, {
             stdio: "inherit",
             cwd: rootDir,
           });
@@ -250,7 +249,7 @@ export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
         break;
       }
       case PublishModeEnum.NPM: {
-        execSyncWithLogDispatch(`npm publish --tag ${tag}`, {
+        execSync(`npm publish --tag ${tag}`, {
           cwd: rootDir,
           stdio: "inherit",
         });
@@ -261,20 +260,22 @@ export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
       }
     }
   } catch (error: any) {
-    log.error(`发布失败, error: ${error.message}`);
+    outputConsole.error(`发布失败, error: ${error.message}`);
 
     try {
-      log.info(`回滚本地版本到发布前的版本：${lastCommitInfo.lastHash}`);
+      outputConsole.info(
+        `回滚本地版本到发布前的版本：${lastCommitInfo.lastHash}`,
+      );
       const { lastHash } = lastCommitInfo;
-      execSyncWithLogDispatch(`git reset --hard ${lastHash}`, {
+      execSync(`git reset --hard ${lastHash}`, {
         stdio: "inherit",
       });
-      log.info(`删除本次发布时生成的tag：v${npmInfo.version}`);
-      execSyncWithLogDispatch(`git tag -d v${npmInfo.version}`, {
+      outputConsole.info(`删除本次发布时生成的tag：v${npmInfo.version}`);
+      execSync(`git tag -d v${npmInfo.version}`, {
         stdio: "inherit",
       });
     } catch (error: any) {
-      log.error(`回滚失败, error: ${error.message}`);
+      outputConsole.error(`回滚失败, error: ${error.message}`);
     }
     return process.exit(1);
   }
@@ -288,7 +289,7 @@ export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
     });
   }
 
-  log.success(`发布成功，版本号：${version}`);
+  outputConsole.success(`发布成功，版本号：${version}`);
 
   if (mode === PublishModeEnum.NPM && getAliasInfoList(configInfo)) {
     aliasHandler(argv);

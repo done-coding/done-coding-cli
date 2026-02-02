@@ -11,7 +11,7 @@ import type {
 } from "@done-coding/cli-utils";
 import {
   getConfigFileCommonOptions,
-  log,
+  outputConsole,
   readConfigFile,
   xPrompts,
 } from "@done-coding/cli-utils";
@@ -83,7 +83,7 @@ export const handler = async (
   }
 
   if (!config) {
-    log.error(`读取配置文件失败`);
+    outputConsole.error(`读取配置文件失败`);
     return process.exit(1);
   }
 
@@ -127,7 +127,7 @@ export const handler = async (
     const { envData: itemEnvData, env, input, output, ...rest } = item;
 
     if (env) {
-      log.warn(`批量处理中 env:${env} 将被忽略, 只读envData`);
+      outputConsole.warn(`批量处理中 env:${env} 将被忽略, 只读envData`);
     }
 
     return {

@@ -28,10 +28,9 @@ import {
 import {
   http2sshGitUrl,
   isHttpGitUrl,
-  log,
+  outputConsole,
   lookForParentTarget,
   rmGitCtrlAsync,
-  execSyncWithLogDispatch,
   isMcpMode,
   getSafePath,
   generateGetAnswerSwiftFn,
@@ -44,6 +43,7 @@ import {
   GitRemoteRepoAliasNameEnum,
   type CreateOptions,
 } from "@/types";
+import { execSync } from "node:child_process";
 
 const getOptions = (): CliInfo["options"] => {
   return {
@@ -107,7 +107,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   /** 是否mcp模式 */
   const isMCP = isMcpMode();
 
-  log.info(`版本: ${injectInfo.version}`);
+  outputConsole.info(`版本: ${injectInfo.version}`);
 
   const {
     [FormNameEnum.PROJECT_NAME]: projectNameInit,
@@ -116,7 +116,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
 
   // !!! mcp不考虑克隆模式 justCloneFromDoneCoding【默认值为false 即不更改】
   if (justCloneFromDoneCoding) {
-    log.info(`仅仅(从done-coding系列项目列表中)克隆远程仓库`);
+    outputConsole.info(`仅仅(从done-coding系列项目列表中)克隆远程仓库`);
     await cloneDoneCodingSeries(projectNameInit);
     return;
   }
@@ -136,7 +136,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   let projectName = projectNameNoTrim?.trim();
 
   if (!projectName) {
-    log.error(`项目名称不能为空`);
+    outputConsole.error(`项目名称不能为空`);
     return process.exit(1);
   }
 
@@ -145,7 +145,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
 
   // 如果安全路径与原始路径不一致，则提示用户并自动转换
   if (projectNameSafe !== projectName) {
-    log.warn(
+    outputConsole.warn(
       `项目名称\`${projectName}\`包含非法字符，已自动转换为\`${projectNameSafe}\``,
     );
     projectName = projectNameSafe;
@@ -158,7 +158,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   if (existsSync(projectNamePath)) {
     // !!! mcp直接报错 不替用户决定删除与不删除
     if (isMCP) {
-      log.error(`项目${projectName}已存在`);
+      outputConsole.error(`项目${projectName}已存在`);
       return process.exit(1);
     }
 
@@ -172,7 +172,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     if (isRemove === true) {
       rmSync(projectNamePath, { recursive: true, force: true });
     } else {
-      log.error(`项目${projectName}已存在`);
+      outputConsole.error(`项目${projectName}已存在`);
       return process.exit(1);
     }
   }
@@ -211,11 +211,11 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
         (item) => item.name === template,
       );
       if (!target) {
-        log.error(`模板${template}不存在`);
+        outputConsole.error(`模板${template}不存在`);
         return process.exit(1);
       }
       if (!target.url) {
-        log.error(`模板${template}仓库地址不存在`);
+        outputConsole.error(`模板${template}仓库地址不存在`);
         return process.exit(1);
       }
       remoteUrl = target.url;
@@ -232,16 +232,16 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   }
 
   if (!remoteUrl) {
-    log.error(`模板仓库地址不存在`);
+    outputConsole.error(`模板仓库地址不存在`);
     return process.exit(1);
   }
 
   /** 父级git目录 */
   const parentGitDir = lookForParentTarget(".git");
 
-  log.stage("正在初始化项目，请稍等...");
+  outputConsole.stage("正在初始化项目，请稍等...");
 
-  execSyncWithLogDispatch(
+  execSync(
     `git clone${
       templateBranch ? ` -b ${templateBranch}` : ""
     } ${remoteUrl} ${projectName} --depth=1`,
@@ -263,7 +263,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
         localBranchNameForm,
       );
 
-      execSyncWithLogDispatch(`git branch -m ${localBranchName}`, {
+      execSync(`git branch -m ${localBranchName}`, {
         cwd: projectNamePath,
         stdio: "inherit",
       });
@@ -287,17 +287,17 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     });
     rmSync(configPathFinal, { force: true });
 
-    log.stage("模板项目配置注入成功, 模版项目配置文件已删除");
+    outputConsole.stage("模板项目配置注入成功, 模版项目配置文件已删除");
   }
 
   // 简洁模式 - 此处结束 - 移除git控制退出
   if (argv.simple) {
-    log.stage(`移除克隆仓库的git控制`);
+    outputConsole.stage(`移除克隆仓库的git控制`);
     await rmGitCtrlAsync(projectNamePath);
     return process.exit(0);
   }
 
-  log.stage("项目初始化完成");
+  outputConsole.stage("项目初始化完成");
 
   if (parentGitDir) {
     /** 当前项目git目录 */
@@ -310,7 +310,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     }
 
     rmSync(currentGitInfoDir, { recursive: true, force: true });
-    log.stage(
+    outputConsole.stage(
       `项目创建在父级git仓库${parentGitDir}中，已删除${projectName}目录下的.git(${currentGitInfoDir})`,
     );
   } else {
@@ -327,7 +327,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
 
     if (saveGitHistory) {
       // 保存git记录则重命名origin为upstream 同时完整克隆仓库
-      execSyncWithLogDispatch(
+      execSync(
         `git remote rename ${GitRemoteRepoAliasNameEnum.ORIGIN} ${GitRemoteRepoAliasNameEnum.UPSTREAM} && git fetch --unshallow`,
         {
           cwd: projectNamePath,
@@ -335,11 +335,11 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
         },
       );
 
-      log.stage(
+      outputConsole.stage(
         `已经将origin重命名为upstream，后续可以与模板git仓库有完整的交互`,
       );
 
-      log.success(`已保存git历史记录`);
+      outputConsole.success(`已保存git历史记录`);
 
       if (isHttpGitUrl(remoteUrl)) {
         const sshUrl = http2sshGitUrl(remoteUrl);
@@ -359,7 +359,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
           }),
         );
         if (isTransToSshUrl) {
-          execSyncWithLogDispatch(
+          execSync(
             `git remote set-url ${GitRemoteRepoAliasNameEnum.UPSTREAM} ${sshUrl}`,
             {
               cwd: projectNamePath,
@@ -367,7 +367,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
             },
           );
         }
-        log.success(`已将模板远程仓库地址更换为${sshUrl}`);
+        outputConsole.success(`已将模板远程仓库地址更换为${sshUrl}`);
       }
     } else {
       // 项目git目录
@@ -376,7 +376,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
 
       await rmGitCtrlAsync(projectNamePath);
 
-      execSyncWithLogDispatch(`git init`, {
+      execSync(`git init`, {
         cwd: projectNamePath,
         stdio: "inherit",
       });
@@ -391,14 +391,14 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   );
 
   // 提交代码
-  execSyncWithLogDispatch(`git add . && git commit -m '${gitCommitMessage}'`, {
+  execSync(`git add . && git commit -m '${gitCommitMessage}'`, {
     cwd: projectNamePath,
     stdio: "inherit",
   });
 
-  log.success(`项目${projectName}初始化完成`);
+  outputConsole.success(`项目${projectName}初始化完成`);
 
-  log.info(`
+  outputConsole.info(`
 使用步骤: 
   1. cd ${projectName}
   2. pnpm install

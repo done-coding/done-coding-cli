@@ -14,8 +14,7 @@ import type { SubCliInfo } from "@done-coding/cli-utils";
 import {
   addHuskyHooks,
   addPackageConfig,
-  execSyncWithLogDispatch,
-  log,
+  outputConsole,
   readCliModuleAssetsConfig,
   xPrompts,
 } from "@done-coding/cli-utils";
@@ -24,6 +23,7 @@ import fs, { existsSync } from "node:fs";
 import path from "node:path";
 import type yargs from "yargs";
 import injectInfo from "@/injectInfo.json";
+import { execSync } from "node:child_process";
 
 const {
   cliConfig: { moduleName },
@@ -52,12 +52,12 @@ const selectModuleConfig = async ({
   moduleConfigList: ConfigProjectConfigItem[];
 }) => {
   if (!Array.isArray(moduleConfigList) || moduleConfigList.length === 0) {
-    log.error(`未找到 ${moduleName} 预设版本配置`);
+    outputConsole.error(`未找到 ${moduleName} 预设版本配置`);
     return;
   }
   if (moduleConfigList.length === 1) {
     const res = moduleConfigList[0];
-    log.skip(
+    outputConsole.skip(
       `${moduleName} 跳过版本选择: 仅有一个预设版本配置, 默认选择第一个(${res.version})`,
     );
     return res;
@@ -88,13 +88,13 @@ const selectConfigFileInfo = async ({
 }) => {
   const { configFileInfoList } = moduleConfig;
   if (!Array.isArray(configFileInfoList) || configFileInfoList.length === 0) {
-    log.error(`未找到 ${moduleName} 配置文件信息列表`);
+    outputConsole.error(`未找到 ${moduleName} 配置文件信息列表`);
     return;
   }
   if (configFileInfoList.length === 1) {
     const res = configFileInfoList[0];
 
-    log.skip(
+    outputConsole.skip(
       `${moduleName} 跳过配置文件信息选择: 仅有一个配置文件信息, 默认选择第一个(${res.sourceFile})`,
     );
 
@@ -119,16 +119,13 @@ const selectConfigFileInfo = async ({
 
 /** 添加依赖包 */
 const addPkg = ({ rootDir, list }: { rootDir: string; list: string[] }) => {
-  log.stage(`开始安装依赖包: ${JSON.stringify(list, null, 2)}`);
+  outputConsole.stage(`开始安装依赖包: ${JSON.stringify(list, null, 2)}`);
   const pnpmWorkspaceFilePath = path.resolve(rootDir, "pnpm-workspace.yaml");
   const isPnpmWorkspace = existsSync(pnpmWorkspaceFilePath);
-  execSyncWithLogDispatch(
-    `pnpm add -D ${isPnpmWorkspace ? "-w" : ""} ${list.join(" ")}`,
-    {
-      cwd: rootDir,
-      stdio: "inherit",
-    },
-  );
+  execSync(`pnpm add -D ${isPnpmWorkspace ? "-w" : ""} ${list.join(" ")}`, {
+    cwd: rootDir,
+    stdio: "inherit",
+  });
 };
 
 /** 添加husky配置 */
@@ -189,7 +186,7 @@ const resolveModuleConfig = async ({
     ...configFileInfoRelyPackages,
   ];
 
-  log.stage(`需要安装的依赖包: 
+  outputConsole.stage(`需要安装的依赖包: 
 ${JSON.stringify(pkgList, null, 2)}`);
 
   await addPackageConfig({
@@ -254,7 +251,7 @@ export const handler = async (argv: ArgumentsCamelCase<AddConfigOptions>) => {
   const needAddModuleList = moduleList.filter((item) => {
     const itemInfo = info[item];
     if (itemInfo) {
-      log.skip(`
+      outputConsole.skip(`
 检测到 ${item} 已配置, ${JSON.stringify(itemInfo, null, 2)},
 跳过添加 ${item}`);
       return false;
@@ -263,7 +260,7 @@ export const handler = async (argv: ArgumentsCamelCase<AddConfigOptions>) => {
   });
 
   if (!needAddModuleList.length) {
-    log.success(`所有配置项均已配置, 无需添加`);
+    outputConsole.success(`所有配置项均已配置, 无需添加`);
     return;
   }
 
@@ -279,7 +276,7 @@ export const handler = async (argv: ArgumentsCamelCase<AddConfigOptions>) => {
       if (!cliConfig?.project) {
         throw new Error("项目工程化预设不存在");
       }
-      log.success(`预设配置拉取成功`);
+      outputConsole.success(`预设配置拉取成功`);
 
       const { project } = cliConfig;
 
@@ -307,10 +304,10 @@ export const handler = async (argv: ArgumentsCamelCase<AddConfigOptions>) => {
           moduleName,
         });
         if (!moduleConfigList) {
-          log.error(`未找到 ${moduleName} 预设配置`);
+          outputConsole.error(`未找到 ${moduleName} 预设配置`);
           return;
         }
-        log.stage(`开始添加 ${moduleName} 配置`);
+        outputConsole.stage(`开始添加 ${moduleName} 配置`);
 
         const res = await resolveModuleConfig({
           moduleName,
@@ -329,7 +326,9 @@ export const handler = async (argv: ArgumentsCamelCase<AddConfigOptions>) => {
           const sourceFilePath = path.resolve(moduleDir, version, sourceFile);
           const targetFilePath = path.resolve(rootDir, targetFile);
 
-          log.stage(`开始复制 ${sourceFilePath} -> ${targetFilePath}`);
+          outputConsole.stage(
+            `开始复制 ${sourceFilePath} -> ${targetFilePath}`,
+          );
 
           const targetFileDir = path.dirname(targetFilePath);
           if (!fs.existsSync(targetFileDir)) {
@@ -337,7 +336,9 @@ export const handler = async (argv: ArgumentsCamelCase<AddConfigOptions>) => {
           }
           fs.copyFileSync(sourceFilePath, targetFilePath);
 
-          log.success(`添加 ${moduleName} 配置成功, 路径: ${targetFilePath}`);
+          outputConsole.success(
+            `添加 ${moduleName} 配置成功, 路径: ${targetFilePath}`,
+          );
 
           waitInstallPkgList.push(...pkgList);
           waitAddHuskyConfigFns.push(addHuskyConfigFn);
@@ -351,8 +352,8 @@ export const handler = async (argv: ArgumentsCamelCase<AddConfigOptions>) => {
       });
 
       for (let cmd of waitRunScripts) {
-        log.stage(`运行脚本: ${cmd}`);
-        execSyncWithLogDispatch(cmd, { cwd: rootDir, stdio: "inherit" });
+        outputConsole.stage(`运行脚本: ${cmd}`);
+        execSync(cmd, { cwd: rootDir, stdio: "inherit" });
       }
 
       await Promise.all(waitAddHuskyConfigFns.map((fn) => fn()));
@@ -368,8 +369,8 @@ export const handler = async (argv: ArgumentsCamelCase<AddConfigOptions>) => {
       message: "请输入提交信息",
       initial: `chore: 添加 ${needAddModuleList.join(", ")} 工程化配置`,
     });
-    execSyncWithLogDispatch(`git add .`, { cwd: rootDir, stdio: "inherit" });
-    execSyncWithLogDispatch(`git commit -m "${commitMsg}"`, {
+    execSync(`git add .`, { cwd: rootDir, stdio: "inherit" });
+    execSync(`git commit -m "${commitMsg}"`, {
       cwd: rootDir,
       stdio: "inherit",
     });

@@ -25,7 +25,7 @@ import {
   resolveMergeInfoByGitReflogAction,
   checkCurrentIsRebasing,
   resolveMergeInfoByCommitMsg,
-  log,
+  outputConsole,
   getCurrentBranchName,
   getCommitByHookName,
   getLastReflogList,
@@ -84,7 +84,7 @@ export const checkReverseMergeByReflogAction = ({
 2. 回退到当前已提交记录的最新版本
   git reset --hard <当前已提交记录的最新版本号> 
     `;
-    log.error(errorMsg);
+    outputConsole.error(errorMsg);
     return process.exit(1);
   }
 };
@@ -102,7 +102,7 @@ export const checkReverseMergeByCommitMsg = ({
   rootDir: string;
 }) => {
   if (checkCurrentIsRebasing(rootDir)) {
-    return log.skip(`当前在变基中, 不通过提交信息检测合并`);
+    return outputConsole.skip(`当前在变基中, 不通过提交信息检测合并`);
   }
 
   const mergeInfo = resolveMergeInfoByCommitMsg(commitMsg);
@@ -127,7 +127,7 @@ export const checkReverseMergeByCommitMsg = ({
 2. 回退到当前已提交记录的最新版本
   git reset --hard <当前已提交记录的最新版本号> 
         `;
-    log.error(errorMsg);
+    outputConsole.error(errorMsg);
     return process.exit(1);
   }
 };
@@ -181,7 +181,9 @@ export const checkReverseMergeByCommitRecord = ({
     Object.entries(configMap).forEach(([branchReg]) => {
       const maxIndex = maxIndexMap[branchReg];
       if (index > maxIndex) {
-        log.skip(`${branchReg} 只检测${maxIndex + 1}条， 超出不再检测`);
+        outputConsole.skip(
+          `${branchReg} 只检测${maxIndex + 1}条， 超出不再检测`,
+        );
         return;
       }
 
@@ -208,7 +210,7 @@ export const checkReverseMergeByCommitRecord = ({
 3. 回退到前一次操作的版本号 
   git reset --hard <当前已提交记录的最新版本号> 
 `;
-        log.error(errorMsg);
+        outputConsole.error(errorMsg);
         return process.exit(1);
       }
     });
@@ -235,15 +237,15 @@ export const checkReverseRebase = ({
       if (reg.test(targetBranch)) {
         const errorMsg = `禁止变基到${targetBranch}的基线
     即 禁止${originBranch}分子包含${targetBranch}分支(可能)存在的其他需求的代码`;
-        log.error(errorMsg);
+        outputConsole.error(errorMsg);
         return process.exit(1);
       }
     } else {
-      log.skip(`不检测是否变基到${targetBranch}的基线`);
+      outputConsole.skip(`不检测是否变基到${targetBranch}的基线`);
     }
   }
 
-  log.success(`允许变基到${targetBranch}`);
+  outputConsole.success(`允许变基到${targetBranch}`);
 };
 
 export type CheckReverseMergeHandlerParams =

@@ -1,20 +1,15 @@
 import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "@/utils";
-import type { SubCliInfo } from "@done-coding/cli-utils";
+import type { SubCliInfo, CliHandlerArgv } from "@done-coding/cli-utils";
 import {
-  log,
+  outputConsole,
   xPrompts,
-  type CliHandlerArgv,
   initHandlerCommon,
   getUseDefaultConfig,
   getConfigFileCommonOptions,
 } from "@done-coding/cli-utils";
 import configDefault from "@/json/default.json";
-import type { InitOptions } from "@/types";
-import {
-  OutputModeEnum,
-  SubcommandEnum,
-  type CompileTemplateConfig,
-} from "@/types";
+import type { InitOptions, CompileTemplateConfig } from "@/types";
+import { OutputModeEnum, SubcommandEnum } from "@/types";
 
 const getOptions = () =>
   getConfigFileCommonOptions({
@@ -101,7 +96,7 @@ export const handler = async (argv: CliHandlerArgv<InitOptions>) => {
     edit: true,
     onFileGenerated(filePath) {
       if (!useDefaultConfig) {
-        log.success(`配置文件已生成：${filePath}
+        outputConsole.success(`配置文件已生成：${filePath}
         请具体需要替换
         globalEnvData中的 GLOBAL_\${index}及其对应值
         collectEnvDataForm各项中 COLLECT_KEY_\${index} COLLECT_LABEL_\${index}

@@ -1,5 +1,12 @@
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2025-06-28 20:10:39
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-02-01 17:45:56
+ */
 import type { CompileOptions } from "@/types";
-import { log } from "@done-coding/cli-utils";
+import { outputConsole } from "@done-coding/cli-utils";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -40,7 +47,7 @@ export const getData = <
   if (filePath) {
     if (limitJson) {
       if (!filePath.endsWith(".json")) {
-        log.error(`${filePathKey}必须是json文件，请检查文件后缀名`);
+        outputConsole.error(`${filePathKey}必须是json文件，请检查文件后缀名`);
         return process.exit(1);
       }
     }
@@ -65,10 +72,10 @@ export const getData = <
     }
   } else {
     if (!dataInit) {
-      log.error(`${filePathKey}与${dataInitKey}不能同时为空`);
+      outputConsole.error(`${filePathKey}与${dataInitKey}不能同时为空`);
       return process.exit(1);
     }
-    log.info(`${filePathKey} 为空，将使用${dataInitKey}作为数据`);
+    outputConsole.info(`${filePathKey} 为空，将使用${dataInitKey}作为数据`);
 
     if (limitJson) {
       return JSON.parse(dataInit) as R;

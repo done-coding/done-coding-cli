@@ -2,7 +2,7 @@ import type { AddOptions } from "@/types";
 import { SubcommandEnum } from "@/types";
 import { getComponentList } from "./list";
 import type { CliHandlerArgv, SubCliInfo } from "@done-coding/cli-utils";
-import { log, xPrompts } from "@done-coding/cli-utils";
+import { outputConsole, xPrompts } from "@done-coding/cli-utils";
 import {
   ensureNameLegal,
   getComponentEnvData,
@@ -23,7 +23,7 @@ const getPositionals = (): SubCliInfo["positionals"] => {
 export const handler = async ({
   name: nameInit,
 }: CliHandlerArgv<AddOptions>) => {
-  log.stage("添加组件");
+  outputConsole.stage("添加组件");
   let name: string;
   if (!nameInit) {
     name = (
@@ -46,7 +46,7 @@ export const handler = async ({
       name,
     });
     if (data.nameKebab === nameKebab) {
-      log.error(`组件${nameKebab}已存在, 不能再次创建${name}组件`);
+      outputConsole.error(`组件${nameKebab}已存在, 不能再次创建${name}组件`);
       return process.exit(1);
     }
   }

@@ -1,10 +1,17 @@
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2025-04-06 15:30:54
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-02-01 17:46:19
+ */
 import { getEnvData } from "./env-data";
 import type { Config, TemplateConfigFull } from "@/types";
 import { SubcommandEnum } from "@/types";
 import type { CompileOptions } from "@done-coding/cli-template";
 import { compileHandler, OutputModeEnum } from "@done-coding/cli-template";
 import _template from "lodash.template";
-import { log } from "@done-coding/cli-utils";
+import { outputConsole } from "@done-coding/cli-utils";
 
 /** 操作组件 */
 export const operateComponent = async ({
@@ -17,7 +24,7 @@ export const operateComponent = async ({
   command: SubcommandEnum;
 }) => {
   if (![SubcommandEnum.ADD, SubcommandEnum.REMOVE].includes(command)) {
-    log.error(`不支持组件${command}操作`);
+    outputConsole.error(`不支持组件${command}操作`);
     return process.exit(1);
   }
   const envData = getEnvData({
