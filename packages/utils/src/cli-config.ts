@@ -1,19 +1,19 @@
 import path from "node:path";
 import fs from "node:fs";
 import { tmpdir, homedir } from "node:os";
-import { assetIsExitsAsync, readJsonFileAsync } from "./file-operate";
+import { assetIsExitsAsync, readJsonFileAsync } from "@/file-operate";
 import {
   ASSETS_CONFIG_REPO_URL_DEFAULT,
   DONE_CODING_CLI_TEMP_ASSETS_CONFIG_RELATIVE_DIR,
   DONE_CODING_CLI_GLOBAL_CONFIG_RELATIVE_PATH,
   DONE_CODING_CLI_ASSETS_CONFIG_REPO_DIR_NAME,
   DONE_CODING_CLI_ASSETS_CONFIG_REPO_MODULE_ENTRY,
-} from "./const";
-import { isHttpGitUrl, isSshGitUrl } from "./git";
-import { applyUseTempDir } from "./temp-dir";
-import { uuidv4 } from "./uuid";
-import { log } from "./log";
-import { execSyncWithLogDispatch } from "./process";
+} from "@/const";
+import { isHttpGitUrl, isSshGitUrl } from "@/git";
+import { applyUseTempDir } from "@/temp-dir";
+import { uuidv4 } from "@/uuid";
+import { outputConsole } from "@/env-config";
+import { execSync } from "node:child_process";
 
 /** done-coding-cli 全局配置 key 枚举 */
 export enum DoneCodingCliGlobalConfigKeyEnum {
@@ -70,7 +70,7 @@ const getGlobalConfig = async (): Promise<DoneCodingCliGlobalConfig> => {
 /** 创建本地资产配置临时仓库 */
 const createLocalAssetsConfigTempRepo = async (configTemporaryDir: string) => {
   if (await assetIsExitsAsync(configTemporaryDir)) {
-    log.error(`${configTemporaryDir} 已存在，请手动删除该目录再试`);
+    outputConsole.error(`${configTemporaryDir} 已存在，请手动删除该目录再试`);
     return process.exit(1);
   }
 
@@ -79,14 +79,10 @@ const createLocalAssetsConfigTempRepo = async (configTemporaryDir: string) => {
       assetConfigRepoUrl,
   } = await getGlobalConfig();
   if (isSshGitUrl(assetConfigRepoUrl) || isHttpGitUrl(assetConfigRepoUrl)) {
-    execSyncWithLogDispatch(
-      `git clone ${assetConfigRepoUrl} ${configTemporaryDir} --depth=1`,
-    );
+    execSync(`git clone ${assetConfigRepoUrl} ${configTemporaryDir} --depth=1`);
   } else {
     fs.mkdirSync(configTemporaryDir, { recursive: true });
-    execSyncWithLogDispatch(
-      `cp -r ${assetConfigRepoUrl}/ ${configTemporaryDir}/`,
-    );
+    execSync(`cp -r ${assetConfigRepoUrl}/ ${configTemporaryDir}/`);
   }
 
   return {
@@ -117,7 +113,7 @@ export const readCliModuleAssetsConfig = async <R>({
     config: R;
   }) => void | Promise<void>;
 }): Promise<R> => {
-  log.stage(`拉取${moduleName}配置，请稍等...`);
+  outputConsole.stage(`拉取${moduleName}配置，请稍等...`);
 
   return applyUseTempDir({
     // 资源配置仓库临时文件夹

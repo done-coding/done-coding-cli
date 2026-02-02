@@ -3,9 +3,9 @@ import path from "node:path";
 import { getGitProjectDir } from "./base-info-resolve";
 import { HooksNameEnum } from "@/husky";
 import type { GitRemoteInfo } from "./remote-operate";
-import { log } from "@/log";
+import { outputConsole } from "@/env-config";
 import pinyin from "pinyin";
-import { execSyncWithLogDispatch } from "@/process";
+import { execSync } from "node:child_process";
 
 /** 支持通过提交钩子获取提交信息的 */
 export const SUPPORT_GET_COMMIT_BY_HOOKS_NAMES = [
@@ -100,44 +100,28 @@ export const getGitLastCommitInfo = ({
   remoteAlias = "origin",
 }: GetGitLastCommitParams = {}): GitLastCommitInfo => {
   try {
-    const lastHash = execSyncWithLogDispatch(`git rev-parse HEAD`)
+    const lastHash = execSync(`git rev-parse HEAD`).toString().trim();
+    const lastCommitter = execSync('git log -1 --pretty=format:"%an"')
       .toString()
       .trim();
-    const lastCommitter = execSyncWithLogDispatch(
-      'git log -1 --pretty=format:"%an"',
-    )
+    const lastCommitEmail = execSync('git log -1 --pretty=format:"%ae"')
       .toString()
       .trim();
-    const lastCommitEmail = execSyncWithLogDispatch(
-      'git log -1 --pretty=format:"%ae"',
-    )
+    const lastCommitMsg = execSync('git log -1 --pretty=format:"%s"')
       .toString()
       .trim();
-    const lastCommitMsg = execSyncWithLogDispatch(
-      'git log -1 --pretty=format:"%s"',
-    )
-      .toString()
-      .trim();
-    const userName = execSyncWithLogDispatch("git config user.name")
-      .toString()
-      .trim();
-    const userEmail = execSyncWithLogDispatch("git config user.email")
-      .toString()
-      .trim();
-    const branchName = execSyncWithLogDispatch(
-      "git rev-parse --abbrev-ref HEAD",
-    )
+    const userName = execSync("git config user.name").toString().trim();
+    const userEmail = execSync("git config user.email").toString().trim();
+    const branchName = execSync("git rev-parse --abbrev-ref HEAD")
       .toString()
       .trim();
     let remoteUrl = "";
     try {
-      remoteUrl = execSyncWithLogDispatch(
-        `git config --get remote.${remoteAlias}.url`,
-      )
+      remoteUrl = execSync(`git config --get remote.${remoteAlias}.url`)
         .toString()
         .trim();
     } catch (e) {
-      log.warn(`git远程仓库地址获取失败或者不存在`);
+      outputConsole.warn(`git远程仓库地址获取失败或者不存在`);
     }
 
     return {
@@ -164,7 +148,7 @@ export const getGitLastCommitInfo = ({
         : undefined,
     };
   } catch (err) {
-    log.error(`获取git最后提交信息失败`);
+    outputConsole.error(`获取git最后提交信息失败`);
     throw err;
   }
 };

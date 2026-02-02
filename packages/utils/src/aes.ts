@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { log } from "./log";
+import { outputConsole } from "@/env-config";
 
 /** AES 加密算法 */
 const ALGORITHM = "aes-256-cbc";
@@ -54,7 +54,7 @@ export function encryptAES({
     return `${ivHex}${SEPARATOR}${encryptedHex}`;
   } catch (error) {
     // 记录错误但不抛出，返回空字符串表示加密失败
-    log.error(
+    outputConsole.error(
       `加密失败: ${error instanceof Error ? error.message : String(error)}`,
     );
     return "";
@@ -102,7 +102,7 @@ export function decryptAES({
     return decrypted.toString();
   } catch (error) {
     // 记录错误但不抛出，返回空字符串表示解密失败
-    log.error(
+    outputConsole.error(
       `解密失败: ${error instanceof Error ? error.message : String(error)}`,
     );
     return "";

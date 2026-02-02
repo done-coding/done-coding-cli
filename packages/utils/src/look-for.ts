@@ -1,6 +1,12 @@
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2025-05-31 19:29:11
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-02-01 17:38:09
+ */
 import path from "node:path";
 import fs from "node:fs";
-// import { log } from "./log";
 
 /**
  * 查找目标文件或目录
@@ -33,10 +39,7 @@ export const lookForParentTarget = (
     const dir = isFindFarthest ? dirList.shift()! : dirList.pop()!;
     const currentNamespaceDir = path.join(dir, target);
     if (fs.existsSync(currentNamespaceDir)) {
-      // log.info(`${currentNamespaceDir}存在`);
       return dir;
-      // } else {
-      // log.info(`${currentNamespaceDir}不存在`)
     }
   }
 

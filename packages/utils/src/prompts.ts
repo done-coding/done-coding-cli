@@ -1,5 +1,5 @@
+import { outputConsole } from "@/env-config";
 import prompts from "prompts";
-import { log } from "./log";
 export type {
   Choice as PromptChoice,
   Options as PromptOptions,
@@ -19,7 +19,7 @@ export const xPrompts = <T extends string = string>(
   const [questions, options = {}] = args;
   return prompts(questions, {
     onCancel(params) {
-      log.error(`退出${params?.name}输入`);
+      outputConsole.error(`退出${params?.name}输入`);
       return process.exit(1);
     },
     ...options,
@@ -67,7 +67,7 @@ export const getAnswer = async <V = unknown, T extends string = string>({
   if (presetValue !== undefined) {
     return presetValue;
   } else if (isMCP) {
-    log.error(`MCP场景的预设值不能为空`);
+    outputConsole.error(`MCP场景的预设值不能为空`);
     return process.exit(1);
   }
   return (

@@ -4,8 +4,8 @@ import {
   type GitMergeBranchInfo,
 } from "./merge-resolve";
 import { resolveCheckoutInfoByRefInfo } from "./checkout-resolve";
-import { log } from "@/log";
-import { execSyncWithLogDispatch } from "@/process";
+import { outputConsole } from "@/env-config";
+import { execSync } from "node:child_process";
 
 /** git checkout信息 */
 export interface GitCheckoutInfo {
@@ -141,7 +141,7 @@ export const getCurrentBranchLastCommitList = ({
     commitTime: "%ci",
   };
 
-  const bufferRes = execSyncWithLogDispatch(
+  const bufferRes = execSync(
     `git --no-pager log --oneline -n ${count} --pretty=format:"${gitJSON.stringify(
       logInfoTemplate,
     )}"`,
@@ -182,7 +182,7 @@ export const getLastReflogList = ({
     commitTime: "%ci",
   };
 
-  const bufferRes = execSyncWithLogDispatch(
+  const bufferRes = execSync(
     `git --no-pager reflog -n ${count} --pretty=format:"${gitJSON.stringify(
       refLogInfoTemplate,
     )}"`,
@@ -213,7 +213,7 @@ export const getLastReflogList = ({
     } else if (type.startsWith(GitRefLogTypeEnum.COMMIT_MERGE)) {
       const res = resolveMergeInfoByCommitMsg(message);
       if (!res) {
-        log.warn(
+        outputConsole.warn(
           `${item.hash} 是合并提交 但是未从提交信息(${message})中检测到合并分支信息，推测手动更改了提交内容`,
         );
       }

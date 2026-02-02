@@ -1,6 +1,12 @@
-import { assetIsExits, removeAsset } from "./file-operate";
-import { log } from "./log";
-
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2026-01-24 13:52:35
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-02-01 17:38:35
+ */
+import { assetIsExits, removeAsset } from "@/file-operate";
+import { outputConsole } from "@/env-config";
 /**
  * 申请使用临时目录
  * ---
@@ -21,20 +27,20 @@ export const applyUseTempDir = <T>({
 }): T => {
   /** 文件存在直接提示 并退出 */
   if (assetIsExits(dir)) {
-    log.error(`${dir} 已存在，请手动删除该目录再试`);
+    outputConsole.error(`${dir} 已存在，请手动删除该目录再试`);
     return process.exit(1);
   }
 
   // 清除临时文件夹
   const clear = () => {
-    // log.stage("正在清理临时目录...", dir);
+    // outputConsole.stage("正在清理临时目录...", dir);
     removeAsset(dir);
   };
 
   // 退出信号 清除
   if (exitClear) {
     process.once("exit", () => {
-      // log.stage("发现进程退出，正在清理临时目录...", dir);
+      // outputConsole.stage("发现进程退出，正在清理临时目录...", dir);
       clear();
     });
   }

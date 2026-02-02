@@ -1,6 +1,13 @@
-import { log } from "./log";
-import { xPrompts } from "./prompts";
-import { execSyncWithLogDispatch } from "./process";
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2026-01-11 09:28:42
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-02-01 17:37:30
+ */
+import { outputConsole } from "@/env-config";
+import { xPrompts } from "@/prompts";
+import { execSync } from "node:child_process";
 
 /** 编辑器类型枚举 */
 export enum EditorTypeEnum {
@@ -43,8 +50,8 @@ const dispatchEditorCheckRes = (
   onError: () => void,
 ) => {
   try {
-    execSyncWithLogDispatch(`${cmd} -v`, { stdio: "ignore" });
-    execSyncWithLogDispatch(`${cmd} ${path}`);
+    execSync(`${cmd} -v`, { stdio: "ignore" });
+    execSync(`${cmd} ${path}`);
   } catch (error) {
     onError();
   }
@@ -53,7 +60,7 @@ const dispatchEditorCheckRes = (
 /** 用编辑器打开文件 */
 export const openFileInEditor = (path: string, editorType: EditorTypeEnum) => {
   const outputTip = (extraTip: string) => {
-    return log.info(`
+    return outputConsole.info(`
       ${extraTip}, 请用编辑器打开 ${path} 进行编辑
 `);
   };

@@ -1,10 +1,10 @@
-import type { CliHandlerArgv, YargsOptions } from "./cli";
+import type { CliHandlerArgv, YargsOptions } from "@/cli";
 import path from "node:path";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { getEditorType, openFileInEditor } from "./editor";
-import { xPrompts } from "./prompts";
-import { json5 } from "./json5";
-import { log } from "./log";
+import { xPrompts } from "@/prompts";
+import { json5 } from "@/json5";
+import { outputConsole } from "@/env-config";
 
 /** 配置文件通用选项 */
 export interface ConfigFileCommonOptions {
@@ -79,11 +79,11 @@ export const initConfigFile = async <T>(
     });
   }
   if (configPathFinal.endsWith(".json5")) {
-    log.info(`json5模式写入 ${configPathFinal}`);
+    outputConsole.info(`json5模式写入 ${configPathFinal}`);
     writeFileSync(configPathFinal, json5.stringify(content, null, 2));
     return configPathFinal;
   } else {
-    log.info(`json模式写入 ${configPathFinal}`);
+    outputConsole.info(`json模式写入 ${configPathFinal}`);
     writeFileSync(configPathFinal, JSON.stringify(content, null, 2));
 
     return configPathFinal;
@@ -121,17 +121,17 @@ export const readConfigFile = async <T>(
 
   if (!existsSync(configPathFinal)) {
     if (onNotExists) {
-      log.info(`配置文件不存在，使用onNotExists返回值`);
+      outputConsole.info(`配置文件不存在，使用onNotExists返回值`);
       return onNotExists();
     }
     const errorMsg = `配置文件不存在 ${configPathFinal}`;
     throw new Error(errorMsg);
   }
   if (configPathFinal.endsWith(".json5")) {
-    log.info(`json5模式解析 ${configPathFinal}`);
+    outputConsole.info(`json5模式解析 ${configPathFinal}`);
     return json5.parse(readFileSync(configPathFinal, "utf8"));
   } else {
-    log.info(`json模式解析 ${configPathFinal}`);
+    outputConsole.info(`json模式解析 ${configPathFinal}`);
     return JSON.parse(readFileSync(configPathFinal, "utf8"));
   }
 };

@@ -6,7 +6,7 @@ import type {
 } from "yargs";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { log } from "./log";
+import { outputConsole } from "@/env-config";
 import type { PackageJson } from "./package-json";
 
 export { ArgumentsCamelCase, CommandModule, YargsOptions, YargsArgv };
@@ -59,12 +59,12 @@ export type CliHandlerArgv<O> = ArgumentsCamelCase<O> | O;
 
 const failHandler = (msg: string, err: Error) => {
   if (msg) {
-    log.error(msg);
+    outputConsole.error(msg);
   } else {
-    log.error(err.message);
+    outputConsole.error(err.message);
   }
   if (err?.stack) {
-    log.error(err.stack);
+    outputConsole.error(err.stack);
   }
   process.exit(1);
 };

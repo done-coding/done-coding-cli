@@ -1,4 +1,3 @@
-import { asyncLog, getLogTime } from "@/_init";
 import {
   DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL,
   DONE_CODING_CURRENT_LOG_FILE_NAME_SYMBOL,
@@ -7,10 +6,16 @@ import {
   DONE_CODING_SERIES_DEFAULT,
   DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL_DESC,
 } from "@/const";
-import { uuidv4 } from "@/uuid";
 import { tmpdir, homedir } from "node:os";
 import path from "node:path";
-
+import {
+  createOutputConsole,
+  createOutputLogFile,
+  OutputConsoleTypeEnum,
+} from "@done-coding/output-node";
+import { assetIsExits } from "@/file-operate";
+import fs from "node:fs";
+import { dayjs } from "@/time";
 /** 环境配置 - 调用模式枚举 */
 export enum EnvConfigCallModeEnum {
   DEFAULT = "DEFAULT",
@@ -100,21 +105,21 @@ export const getProcessEnv = <T>(
 const setProcessEnv = <T>(keyInit: EnvConfigProcessKeyEnum, value: T) => {
   const currentValue = getProcessEnv(keyInit);
   if (currentValue !== undefined) {
-    asyncLog.system(
-      `${keyInit} 已存在，将覆盖: 
-`,
-      JSON.stringify(currentValue, null, 2),
-      `
-    =>
-`,
-      JSON.stringify(value, null, 2),
-    );
+    //     asyncLog.system(
+    //       `${keyInit} 已存在，将覆盖:
+    // `,
+    //       JSON.stringify(currentValue, null, 2),
+    //       `
+    //     =>
+    // `,
+    //       JSON.stringify(value, null, 2),
+    //     );
     // return false;
   }
   const key = getProcessEnvKey(keyInit);
   const valueInit: ProcessValueInit<T> = { value };
   process.env[key] = JSON.stringify(valueInit);
-  asyncLog.system(`${keyInit} 设置完成: `, JSON.stringify(valueInit, null, 2));
+  // asyncLog.system(`${keyInit} 设置完成: `, JSON.stringify(valueInit, null, 2));
   // return true;
 };
 
@@ -130,11 +135,11 @@ export const getCurrentProcessLogFileName = () => {
   if (value) {
     return value;
   } else {
-    const newFileName = `${getLogTime()}-${uuidv4()}`;
+    const newFileName = `${dayjs().format("YYYY-MM-DD_HH-mm-ss")}_${process.pid}.log`;
     (globalThis as unknown as XGlobalThis)[
       DONE_CODING_CURRENT_LOG_FILE_NAME_SYMBOL
     ] = newFileName;
-    asyncLog.system(`设置当前进程日志文件名为: `, newFileName);
+    // asyncLog.system(`设置当前进程日志文件名为: `, newFileName);
     return newFileName;
   }
 };
@@ -153,7 +158,7 @@ const setEnvConfig = (configInit: EnvConfig): EnvConfig => {
   setProcessEnv(EnvConfigProcessKeyEnum.GLOBAL_CONFIG_IMAGE, config);
   (globalThis as unknown as XGlobalThis)[DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL] =
     config;
-  asyncLog.system(`设置环境配置完成: `, JSON.stringify(config, null, 2));
+  // asyncLog.system(`设置环境配置完成: `, JSON.stringify(config, null, 2));
   return config;
 };
 
@@ -267,13 +272,47 @@ export const allowConsoleLog = () => {
  * @param persistent 是否持久话
  */
 export const getLogOutputDir = (persistent = false) => {
-  return path.resolve(
+  const dir = path.resolve(
     persistent ? homedir() : tmpdir(),
     getApplyConfig().logOutputDir,
   );
+  if (!assetIsExits(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  return dir;
 };
 
 /** 获取父级进程日志文件名 */
 export const getParentProcessLogFileName = (): string | undefined => {
   return getApplyConfig().processLogFileNameList[1];
 };
+
+/** 日志文件输出实例 */
+export const logger = (() => {
+  const instance = createOutputLogFile({
+    logFilePath: path.resolve(
+      getLogOutputDir(),
+      getCurrentProcessLogFileName(),
+    ),
+  });
+  /** 标记当前进程是否已写入过文件头 */
+  let isHeaderWritten = false;
+  /** 写入文件头 */
+  if (!isHeaderWritten) {
+    const parentLogName = getParentProcessLogFileName();
+    if (parentLogName) {
+      instance.info(`父进程日志文件: ${parentLogName}`);
+      isHeaderWritten = true;
+    }
+  }
+  return instance;
+})();
+
+/** 控制台输出实例 */
+export const outputConsole = createOutputConsole({
+  isSwitchLogFile: () => !allowConsoleLog(),
+  enableColor: true,
+  outputFileFn: (type, ...messages) => {
+    return logger.info({ type: OutputConsoleTypeEnum[type], messages });
+  },
+});

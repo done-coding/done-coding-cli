@@ -1,7 +1,14 @@
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2025-06-25 22:49:38
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-02-01 17:38:19
+ */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import _merge from "lodash.merge";
-import { log } from "./log";
+import { outputConsole } from "@/env-config";
 
 const PACKAGE_JSON_PATH = "package.json";
 
@@ -57,7 +64,7 @@ export const getRelyPkgVersion = <R extends PackageJson>({
       : pkgInfo.devDependencies;
     version = pkgDepsMaybe?.[pkgName];
     if (version) {
-      log.warn(
+      outputConsole.warn(
         `${isDevPkg ? "开发" : "生产"}依赖包${pkgName}可能错误的安装在${
           isDevPkg ? "dependencies" : "devDependencies"
         }`,
@@ -67,7 +74,7 @@ export const getRelyPkgVersion = <R extends PackageJson>({
   }
 
   if (!version) {
-    log.info(`依赖包${pkgName}未安装`);
+    outputConsole.info(`依赖包${pkgName}未安装`);
   }
 
   return version;
