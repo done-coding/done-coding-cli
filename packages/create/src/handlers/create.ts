@@ -46,6 +46,11 @@ import { execSync } from "node:child_process";
 
 const getOptions = (): CliInfo["options"] => {
   return {
+    [FormNameEnum.PROJECT_NAME]: {
+      alias: "n",
+      type: "string",
+      describe: "项目名称",
+    },
     justCloneFromDoneCoding: {
       alias: "clone",
       type: "boolean",
@@ -54,10 +59,12 @@ const getOptions = (): CliInfo["options"] => {
       hidden: true,
     },
     [FormNameEnum.TEMPLATE_GIT_PATH]: {
+      alias: "p",
       type: "string",
       describe: "模板仓库地址",
     },
     [FormNameEnum.TEMPLATE_GIT_BRANCH]: {
+      alias: "b",
       type: "string",
       describe: "模板仓库分支",
     },
@@ -98,14 +105,14 @@ const getOptions = (): CliInfo["options"] => {
   };
 };
 
-const getPositionals = (): CliInfo["positionals"] => {
-  return {
-    [FormNameEnum.PROJECT_NAME]: {
-      describe: "项目名称",
-      type: "string",
-    },
-  };
-};
+// const getPositionals = (): CliInfo["positionals"] => {
+//   return {
+//     [FormNameEnum.PROJECT_NAME]: {
+//       describe: "项目名称",
+//       type: "string",
+//     },
+//   };
+// };
 
 // eslint-disable-next-line complexity
 export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
@@ -412,6 +419,6 @@ export const commandCliInfo: SubCliInfo = {
   command: `$0`,
   describe: injectInfo.description,
   options: getOptions(),
-  positionals: getPositionals(),
+  // positionals: getPositionals(),
   handler,
 };
