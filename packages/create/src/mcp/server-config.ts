@@ -41,6 +41,7 @@ export const toolRegisterList: McpToolRegisterItem[] = [
         }),
       },
       async (input: McpCreateAnswerPreset) => {
+        outputConsole.info(`当前运行目录: ${process.cwd()}`);
         // outputConsole.info(27, input);
         try {
           const createOptions: CreateOptions = {
@@ -102,7 +103,9 @@ export const resourceRegisterList: McpResourceRegisterItem[] = [
       },
       async (uri: URL) => {
         try {
+          outputConsole.stage("获取可用项目模板列表");
           const templateList = await getTemplateList();
+          outputConsole.success("获取可用项目模板列表成功");
           return {
             contents: [
               {
