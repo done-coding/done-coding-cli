@@ -5,7 +5,10 @@
   "module": "es/index.mjs",
   "type": "module",
   "types": "types/index.d.ts",
-  "bin": "es/cli.mjs",
+  "bin": {
+    "create-done-coding": "es/cli.mjs",
+    "mcp-server": "es/mcp-server.mjs"
+  },
   "exports": {
     ".": {
       "import": "./es/index.mjs",

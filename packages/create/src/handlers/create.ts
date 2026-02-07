@@ -31,7 +31,6 @@ import {
   outputConsole,
   lookForParentTarget,
   rmGitCtrlAsync,
-  isMcpMode,
   getSafePath,
   generateGetAnswerSwiftFn,
 } from "@done-coding/cli-utils";
@@ -48,7 +47,7 @@ import { execSync } from "node:child_process";
 const getOptions = (): CliInfo["options"] => {
   return {
     justCloneFromDoneCoding: {
-      alias: "c",
+      alias: "clone",
       type: "boolean",
       describe: "是否仅仅(从done-coding系列项目列表中)克隆远程仓库",
       default: false,
@@ -56,39 +55,45 @@ const getOptions = (): CliInfo["options"] => {
     },
     [FormNameEnum.TEMPLATE_GIT_PATH]: {
       type: "string",
-      describe: "模板仓库地址(如果设置 则不会去拉模板列表)",
+      describe: "模板仓库地址",
     },
     [FormNameEnum.TEMPLATE_GIT_BRANCH]: {
       type: "string",
-      describe: "模板仓库分支(不指定则是默认分支)",
+      describe: "模板仓库分支",
     },
-    simple: {
+    skipTemplateCompile: {
       type: "boolean",
-      describe: "是否精简模式(仓库克隆完后不再询问后续细节操作策略)",
+      describe: "是否跳过模板编译",
+      default: false,
+      hidden: true,
+    },
+    openGitDetailOptimize: {
+      type: "boolean",
+      describe: "开启git细节优化",
       default: true,
     },
     [FormNameEnum.IS_CHANGE_BRANCH_NAME]: {
       type: "boolean",
-      describe: "(如果非精简模式，且需要更改分支名)是否更改分支名",
+      describe: "git细节优化:是否更改分支名",
       default: false,
     },
     [FormNameEnum.LOCAL_BRANCH_NAME]: {
       type: "string",
-      describe: "(如果非精简模式，且需要更改分支名)本地分支名",
+      describe: "git细节优化:需要更改本地分支名时的更改值",
     },
     [FormNameEnum.IS_SAVE_GIT_HISTORY]: {
       type: "boolean",
-      describe: "(如果非精简模式)是否保存模板仓库git历史记录",
+      describe: "git细节优化:是否保存模板仓库git历史记录",
       default: false,
     },
     [FormNameEnum.IS_TRANS_HTTP_URL_TO_SSH_URL]: {
       type: "boolean",
-      describe: "(如果非精简模式)是否将http url转换为ssh url",
+      describe: "git细节优化:是否将http url转换为ssh url",
     },
     [FormNameEnum.GIT_COMMIT_MESSAGE]: {
       alias: "m",
       type: "string",
-      describe: "(如果非精简模式)git提交信息预设值",
+      describe: "git细节优化:git提交信息",
     },
   };
 };
@@ -104,9 +109,6 @@ const getPositionals = (): CliInfo["positionals"] => {
 
 // eslint-disable-next-line complexity
 export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
-  /** 是否mcp模式 */
-  const isMCP = isMcpMode();
-
   outputConsole.info(`版本: ${injectInfo.version}`);
 
   const {
@@ -122,7 +124,6 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   }
 
   const getAnswerSwift = generateGetAnswerSwiftFn({
-    isMCP,
     presetAnswer: argv,
   });
 
@@ -156,12 +157,6 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
 
   // 检测是否同名文件存在
   if (existsSync(projectNamePath)) {
-    // !!! mcp直接报错 不替用户决定删除与不删除
-    if (isMCP) {
-      outputConsole.error(`项目${projectName}已存在`);
-      return process.exit(1);
-    }
-
     // const isRemove = (await xPrompts(getRemoveDirForm()))[FormNameEnum.IS_REMOVE_SAME_NAME_DIR]
     // !!! 是否删除 不设默认值 即不帮用户决定删除与否
     const isRemove = await getAnswerSwift<boolean>(
@@ -248,8 +243,8 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     { stdio: "inherit" },
   );
 
-  /** 非简洁模式 且 如果有没有父级仓库 且知名了克隆的远程分支 则询问是否需要更改本地分支名 */
-  if (!argv.simple && !parentGitDir && templateBranch) {
+  /** 开启git细节优化 且 如果有没有父级仓库 且知名了克隆的远程分支 则询问是否需要更改本地分支名 */
+  if (argv.openGitDetailOptimize && !parentGitDir && templateBranch) {
     // const isChangeBranchName = (await xPrompts(getIsChangeBranchName(templateBranch)))[FormNameEnum.IS_CHANGE_BRANCH_NAME];
     const isChangeBranchName = await getAnswerSwift<boolean>(
       FormNameEnum.IS_CHANGE_BRANCH_NAME,
@@ -278,20 +273,27 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   });
 
   if (configPathFinal) {
-    await batchCompileHandler({
-      rootDir: projectNamePath,
-      configPath: configPath,
-      extraEnvData: {
-        $projectName: projectName,
-      },
-    });
-    rmSync(configPathFinal, { force: true });
+    outputConsole.stage(`当前模板项目配置了预设问题`);
 
-    outputConsole.stage("模板项目配置注入成功, 模版项目配置文件已删除");
+    // 跳过模板编译 - 不进行模板编译
+    if (argv.skipTemplateCompile) {
+      outputConsole.stage(`用户设置:跳过模板编译`);
+    } else {
+      outputConsole.stage(`开始进行模板编译`);
+      await batchCompileHandler({
+        rootDir: projectNamePath,
+        configPath: configPath,
+        extraEnvData: {
+          $projectName: projectName,
+        },
+      });
+      rmSync(configPathFinal, { force: true });
+      outputConsole.stage("模板项目配置编译成功, 编译配置文件已删除");
+    }
   }
 
-  // 简洁模式 - 此处结束 - 移除git控制退出
-  if (argv.simple) {
+  // 未开启git细节优化 - 此处结束 - 移除git控制退出
+  if (!argv.openGitDetailOptimize) {
     outputConsole.stage(`移除克隆仓库的git控制`);
     await rmGitCtrlAsync(projectNamePath);
     return process.exit(0);

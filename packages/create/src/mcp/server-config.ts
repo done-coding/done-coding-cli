@@ -5,9 +5,17 @@ import type {
   McpResourceRegisterItem,
   McpPromptRegisterItem,
 } from "@done-coding/mcp-utils";
-import templateConfig from "./template.json";
-// import { execSync } from "node:child_process";
-import { createHandler } from "@/handlers";
+import {
+  hijackChildProcess,
+  outputConsole,
+  params2cliParams,
+} from "@done-coding/cli-utils";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import { getTemplateList } from "@/utils";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /** mcp服务 工具注册列表 */
 export const toolRegisterList: McpToolRegisterItem[] = [
@@ -37,7 +45,8 @@ export const toolRegisterList: McpToolRegisterItem[] = [
         try {
           const createOptions: CreateOptions = {
             ...input,
-            simple: true,
+            skipTemplateCompile: true,
+            openGitDetailOptimize: false,
           };
           // outputConsole.info(37, process.env);
           // const res = execSync(
@@ -47,7 +56,17 @@ export const toolRegisterList: McpToolRegisterItem[] = [
           //     env: process.env,
           //   },
           // );
-          await createHandler(createOptions);
+
+          const cliPath = path.resolve(__dirname, "./cli.mjs");
+
+          await hijackChildProcess({
+            command: "node",
+            args: [cliPath, ...params2cliParams(createOptions)],
+            cwd: process.cwd(),
+            env: process.env,
+          });
+          // await createHandler(createOptions);
+          outputConsole.success("项目创建成功");
 
           return {
             content: [
@@ -58,6 +77,7 @@ export const toolRegisterList: McpToolRegisterItem[] = [
             ],
           };
         } catch (error: any) {
+          outputConsole.error("项目创建失败", error?.message || error);
           return {
             isError: true,
             content: [
@@ -81,15 +101,29 @@ export const resourceRegisterList: McpResourceRegisterItem[] = [
         description: "包含所有可用的项目模板信息、仓库地址及可选分支",
       },
       async (uri: URL) => {
-        return {
-          contents: [
-            {
-              uri: uri.href,
-              text: JSON.stringify(templateConfig.templateList, null, 2),
-              mimeType: "application/json",
-            },
-          ],
-        };
+        try {
+          const templateList = await getTemplateList();
+          return {
+            contents: [
+              {
+                uri: uri.href,
+                text: JSON.stringify(templateList, null, 2),
+                mimeType: "application/json",
+              },
+            ],
+          };
+        } catch (error: any) {
+          return {
+            isError: true,
+            contents: [
+              {
+                uri: uri.href,
+                type: "text",
+                text: `❌ 获取可用项目模板列表失败: ${error?.message || error}`,
+              },
+            ],
+          };
+        }
       },
     ) as any;
   },

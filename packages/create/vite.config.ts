@@ -3,7 +3,7 @@
  * @Author       : supengfei
  * @Date         : 2026-01-29 17:32:50
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-01-30 19:10:32
+ * @LastEditTime : 2026-02-07 16:49:39
  */
 import { defineConfig } from "vite";
 import path from "node:path";
@@ -23,7 +23,7 @@ generateFile({
 export default defineConfig(({ command, mode }) => {
   const isPro = command === "build" && mode !== "hotBuild";
 
-  const inputList = ["src/index.ts", "src/cli.ts", "src/mcp-config.ts"];
+  const inputList = ["src/index.ts", "src/cli.ts", "src/mcp-server.ts"];
 
   return {
     plugins: [
