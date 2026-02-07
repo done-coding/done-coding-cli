@@ -86,7 +86,7 @@ importers:
         specifier: workspace:0.8.3-alpha.0
         version: link:../utils
       create-done-coding:
-        specifier: workspace:0.11.24-alpha.0
+        specifier: workspace:0.11.24-alpha.1
         version: link:../create
     devDependencies:
       "@types/node":
@@ -312,7 +312,7 @@ importers:
         specifier: ^1.25.2
         version: 1.25.2(hono@4.11.4)(zod@4.3.5)
       create-done-coding:
-        specifier: workspace:0.11.24-alpha.0
+        specifier: workspace:0.11.24-alpha.1
         version: link:../create
       zod:
         specifier: ^4.3.5
