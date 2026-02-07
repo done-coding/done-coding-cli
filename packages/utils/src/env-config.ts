@@ -5,6 +5,7 @@ import {
   DONE_CODING_LOG_OUTPUT_DIR_NAME,
   DONE_CODING_SERIES_DEFAULT,
   DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL_DESC,
+  DONE_CODING_PROCESS_CREATE_BY_HIJACK_PRESET_JSON_KEY,
 } from "@/const";
 import { tmpdir, homedir } from "node:os";
 import path from "node:path";
@@ -16,11 +17,6 @@ import {
 import { assetIsExits } from "@/file-operate";
 import fs from "node:fs";
 import { dayjs } from "@/time";
-/** 环境配置 - 调用模式枚举 */
-export enum EnvConfigCallModeEnum {
-  DEFAULT = "DEFAULT",
-  MCP = "MCP",
-}
 
 /**
  * 环境配置 在进程中 key的初始值枚举
@@ -32,6 +28,12 @@ export enum EnvConfigProcessKeyEnum {
   GLOBAL_CONFIG_IMAGE = "GLOBAL_CONFIG_IMAGE",
 }
 
+/** 自身或祖先进程被劫持进程创建 行为预设信息 */
+export interface EnvConfigProcessCreateByHijackPresetInfo {
+  /** 开始等待用户输入前退出 */
+  beforeInputExit?: boolean;
+}
+
 /**
  * 环境配置
  * ----
@@ -40,16 +42,19 @@ export enum EnvConfigProcessKeyEnum {
  * !!! 不作为主要的通信方式
  */
 export interface EnvConfig {
-  /** 调用模式 */
-  callMode: EnvConfigCallModeEnum;
   /** 系列
    * ----
    * 规划的系列 会有 cli 、server等
    * 默认会是 `${DONE_CODING_SERIES_DEFAULT}`
    */
   series: string;
-  /** 是否允许日志输出到控制台 */
-  consoleLog: boolean;
+  /**
+   * 是否允许日志输出到控制台
+   * ---
+   * boolean 类型 表示是否允许所有类型日志输出到控制台
+   * array 类型 表示允许的日志类型
+   */
+  consoleLog: boolean | OutputConsoleTypeEnum[];
   /** 日志输出路径 */
   logOutputDir: string;
   /**
@@ -58,6 +63,10 @@ export interface EnvConfig {
    * 新进程的日志从左侧进栈
    */
   processLogFileNameList: string[];
+  /** 自身或祖先进程是否被劫持进程创建 */
+  processCreateByHijack: boolean;
+  /** 自身或祖先进程被劫持进程创建 行为预设信息 */
+  processCreateByHijackPresetInfo?: EnvConfigProcessCreateByHijackPresetInfo;
 }
 
 export interface XGlobalThis {
@@ -182,13 +191,16 @@ const getEnvConfigLogOutputDir = (series: string) => {
 const getInheritEnvConfig = (): EnvConfig => {
   const processConfig = getEnvConfigFromProcess();
 
-  let configInit: EnvConfig;
+  let configInit: Omit<
+    EnvConfig,
+    "processCreateByHijack" | "processCreateByHijackPresetJson"
+  >;
   if (processConfig) {
     configInit = processConfig;
   } else {
     const series = DONE_CODING_SERIES_DEFAULT;
+
     configInit = {
-      callMode: EnvConfigCallModeEnum.DEFAULT,
       series,
       consoleLog: true,
       logOutputDir: getEnvConfigLogOutputDir(series),
@@ -196,7 +208,6 @@ const getInheritEnvConfig = (): EnvConfig => {
     };
   }
   const {
-    callMode,
     series,
     consoleLog,
     logOutputDir,
@@ -210,12 +221,31 @@ const getInheritEnvConfig = (): EnvConfig => {
       ? processLogFileNameListInit
       : [currentProcessLogFileName, ...processLogFileNameListInit]
   ).slice(0, 10);
+
+  const processCreateByHijackPresetJson =
+    process.env[DONE_CODING_PROCESS_CREATE_BY_HIJACK_PRESET_JSON_KEY];
+
+  /** 自身或祖先进程被劫持进程创建 行为预设信息 */
+  let processCreateByHijackPresetInfo:
+    | EnvConfigProcessCreateByHijackPresetInfo
+    | undefined;
+  if (processCreateByHijackPresetJson) {
+    try {
+      processCreateByHijackPresetInfo = JSON.parse(
+        processCreateByHijackPresetJson,
+      ) as EnvConfigProcessCreateByHijackPresetInfo;
+    } catch (error) {}
+  }
+
   return {
-    callMode,
     series,
     consoleLog,
     logOutputDir,
     processLogFileNameList,
+    /** 自身或祖先进程是否被劫持进程创建 */
+    processCreateByHijack: !!processCreateByHijackPresetInfo,
+    /** 自身或祖先进程被劫持进程创建 行为预设信息 */
+    processCreateByHijackPresetInfo,
   };
 };
 
@@ -233,15 +263,13 @@ const getApplyConfig = (): EnvConfig => {
  */
 export const updateEnvConfig = ({
   series = DONE_CODING_SERIES_DEFAULT,
-  callMode = EnvConfigCallModeEnum.DEFAULT,
   consoleLog = true,
-}: Partial<Pick<EnvConfig, "callMode" | "consoleLog" | "series">>) => {
+}: Partial<Pick<EnvConfig, "consoleLog" | "series">>) => {
   const logOutputDir = getEnvConfigLogOutputDir(series);
 
   const nextConfig = {
     ...getApplyConfig(),
     series,
-    callMode,
     consoleLog,
     logOutputDir,
   };
@@ -249,20 +277,14 @@ export const updateEnvConfig = ({
   return setEnvConfig(nextConfig);
 };
 
-/** 获取调用模式 */
-export const getCallMode = () => {
-  return getApplyConfig().callMode;
+/** 是否被劫持进程创建 */
+export const processIsHijacked = (): boolean => {
+  return getApplyConfig().processCreateByHijack;
 };
 
-/** 是mcp模式 */
-export const isMcpMode = () => {
-  return getCallMode() === EnvConfigCallModeEnum.MCP;
-};
-
-/** 允许输出日志到控制台 */
-export const allowConsoleLog = () => {
-  const isMcp = isMcpMode();
-  return isMcp ? false : getApplyConfig().consoleLog;
+/** 获取自身或祖先进程被劫持进程创建 行为预设信息 */
+export const getProcessCreateByHijackPresetInfo = () => {
+  return getApplyConfig().processCreateByHijackPresetInfo;
 };
 
 /**
@@ -308,11 +330,26 @@ export const logger = (() => {
   return instance;
 })();
 
+/** 是否允许控制台输出 */
+const isAllowConsoleLog = (type: OutputConsoleTypeEnum) => {
+  const config = getApplyConfig();
+  if (typeof config.consoleLog === "boolean") {
+    return config.consoleLog;
+  } else {
+    return config.consoleLog.includes(type);
+  }
+};
+
 /** 控制台输出实例 */
 export const outputConsole = createOutputConsole({
-  isSwitchLogFile: () => !allowConsoleLog(),
+  isSwitchLogFile: (type) => {
+    return !isAllowConsoleLog(type);
+  },
   enableColor: true,
-  outputFileFn: (type, ...messages) => {
-    return logger.info({ type: OutputConsoleTypeEnum[type], messages });
+  outputFileFn: (consoleType, ...consoleMessages) => {
+    return logger.info({
+      consoleType: OutputConsoleTypeEnum[consoleType],
+      consoleMessages,
+    });
   },
 });

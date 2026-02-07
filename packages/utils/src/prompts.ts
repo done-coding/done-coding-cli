@@ -1,5 +1,17 @@
-import { outputConsole } from "@/env-config";
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2026-01-23 23:09:08
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-02-05 22:55:57
+ */
+import { processIsHijacked, outputConsole } from "@/env-config";
 import prompts from "prompts";
+import {
+  createPromptsStartWaitUserInputEvent,
+  createPromptsEndWaitUserInputEvent,
+  processSendCustomEvent,
+} from "@/_event";
 export type {
   Choice as PromptChoice,
   Options as PromptOptions,
@@ -13,23 +25,38 @@ export type {
 } from "prompts";
 
 /** prompts 拓展 */
-export const xPrompts = <T extends string = string>(
+export const xPrompts = async <T extends string = string>(
   ...args: Parameters<typeof prompts<T>>
 ) => {
   const [questions, options = {}] = args;
-  return prompts(questions, {
+
+  /** 如果当前进程是被劫持进程创建的，则发送开始等待用户输入事件 */
+  if (processIsHijacked()) {
+    await processSendCustomEvent(createPromptsStartWaitUserInputEvent(args));
+    return process.exit(1);
+  }
+  const res = prompts(questions, {
     onCancel(params) {
-      outputConsole.error(`退出${params?.name}输入`);
+      outputConsole.error(
+        `您取消了 “${params?.message || params?.name}” 相关表单输入`,
+      );
       return process.exit(1);
     },
     ...options,
   });
+
+  /** 如果当前进程是被劫持进程创建的，则发送结束等待用户输入事件 */
+  if (processIsHijacked()) {
+    res.finally(() => {
+      processSendCustomEvent(createPromptsEndWaitUserInputEvent());
+    });
+  }
+
+  return res;
 };
 
 /** 获取答案 考虑mcp情况 的选项 */
 export interface GetAnswerOptions<V, T extends string> {
-  /** 是否mcp场景 */
-  isMCP?: boolean;
   /** 表单key */
   key: T;
   /** 预设答案所在的对象 */
@@ -56,7 +83,6 @@ export type GetAnswerResult<
  * 有预设值的场景: MCP
  */
 export const getAnswer = async <V = unknown, T extends string = string>({
-  isMCP,
   key,
   presetAnswer,
   defaultValue,
@@ -64,13 +90,8 @@ export const getAnswer = async <V = unknown, T extends string = string>({
 }: GetAnswerOptions<V, T>): GetAnswerResult<V, T, typeof questionConfig> => {
   // 预设值
   const presetValue = presetAnswer?.[key];
-  if (presetValue !== undefined) {
-    return presetValue;
-  } else if (isMCP) {
-    outputConsole.error(`MCP场景的预设值不能为空`);
-    return process.exit(1);
-  }
   return (
+    presetValue ??
     defaultValue ??
     (questionConfig !== undefined
       ? (await xPrompts(questionConfig))[key]
@@ -80,9 +101,8 @@ export const getAnswer = async <V = unknown, T extends string = string>({
 
 /** 生成 获取答案的快捷函数 */
 export const generateGetAnswerSwiftFn = ({
-  isMCP,
   presetAnswer,
-}: Pick<GetAnswerOptions<unknown, string>, "isMCP" | "presetAnswer">) => {
+}: Pick<GetAnswerOptions<unknown, string>, "presetAnswer">) => {
   return async <V = unknown, T extends string = string>(
     key: T,
     /** 表单问询配置 */
@@ -94,7 +114,6 @@ export const generateGetAnswerSwiftFn = ({
       key,
       questionConfig,
       defaultValue,
-      isMCP,
       presetAnswer,
     }) as GetAnswerResult<V, T, typeof questionConfig>;
   };

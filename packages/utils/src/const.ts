@@ -3,7 +3,7 @@
  * @Author       : supengfei
  * @Date         : 2026-01-10 17:50:27
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-01-31 08:09:59
+ * @LastEditTime : 2026-02-05 21:03:15
  */
 /** done-coding 全局环境配置symbol 描述 */
 export const DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL_DESC =
@@ -18,6 +18,10 @@ export const DONE_CONFIG_ENV_CONFIG_GLOBAL_SYMBOL = Symbol.for(
 export const DONE_CODING_CURRENT_LOG_FILE_NAME_SYMBOL = Symbol.for(
   "DONE_CODING_CURRENT_LOG_FILE_NAME",
 );
+
+/** done-coding 自身或祖先进程被劫持进程创建 行为预设JSON值 */
+export const DONE_CODING_PROCESS_CREATE_BY_HIJACK_PRESET_JSON_KEY =
+  "DONE_CODING_PROCESS_CREATE_BY_HIJACK_PRESET_JSON";
 
 /** done-coding 【全局/临时】文件相对目录 */
 export const DONE_CODING_CONFIG_RELATIVE_DIR = ".done-coding";

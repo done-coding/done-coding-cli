@@ -439,8 +439,8 @@ importers:
   packages/utils:
     dependencies:
       "@done-coding/output-node":
-        specifier: 0.1.0
-        version: 0.1.0(chalk@5.4.1)(pino@8.21.0)(signal-exit@4.1.0)
+        specifier: 0.1.1
+        version: 0.1.1(chalk@5.4.1)(pino@8.17.2)(signal-exit@4.1.0)
       chalk:
         specifier: ^5.3.0
         version: 5.4.1
@@ -463,8 +463,8 @@ importers:
         specifier: ^4.3.2
         version: 4.3.2
       pino:
-        specifier: ^8.17.2
-        version: 8.21.0
+        specifier: 8.17.2
+        version: 8.17.2
       pinyin:
         specifier: ^2.11.2
         version: 2.11.2(encoding@0.1.13)
@@ -475,7 +475,7 @@ importers:
         specifier: ^7.5.4
         version: 7.5.4
       signal-exit:
-        specifier: ^4.1.0
+        specifier: 4.1.0
         version: 4.1.0
       yargs:
         specifier: ^17.7.2
@@ -797,17 +797,17 @@ packages:
       }
     engines: { node: ">=12" }
 
-  "@done-coding/output-core@0.1.0":
+  "@done-coding/output-core@0.1.1":
     resolution:
       {
-        integrity: sha512-bG2rRpYaOcVZ0X7DsFXBiP+PgF6HzNaep67arLJHd7+OEwQXDZVoqHMzlLWo3cR+DB6ZVr8n5muf+jhN60GC3A==,
+        integrity: sha512-rO0M97QqjHD48MvJVZ/gQXDCfphy9j/UqQxrIFnwqBT1n/OGIC+feXlb+1/EIQU0/448rTtlK/BUfJpVeBd0yw==,
       }
     engines: { node: ">=18.0.0" }
 
-  "@done-coding/output-node@0.1.0":
+  "@done-coding/output-node@0.1.1":
     resolution:
       {
-        integrity: sha512-Vi9a6pP5FBlr12aLlJ0P5MyI/80gfhTxBxCmqQw2xxZ5Hf5CA+/6ImnKnOiCyi1qld88UcbxZL8BTWIpO3FcpA==,
+        integrity: sha512-2+FmZ/dPtjkDbbWg4TxOG8yMxdA6xD8SpNKCE9B5zfC5DytmC7AuVpmpU4lwvC3S6VSvw49qB/k6KyIDCopdGA==,
       }
     engines: { node: ">=18.0.0" }
     peerDependencies:
@@ -7066,10 +7066,10 @@ packages:
       }
     engines: { node: ">=10" }
 
-  pino-abstract-transport@1.2.0:
+  pino-abstract-transport@1.1.0:
     resolution:
       {
-        integrity: sha512-Guhh8EZfPCfH+PMXAb6rKOjGQEoy0xlAIn+irODG5kgfYV+BQ0rGYYWTIel3P5mmyXqkYkPmdIkywsn6QKUR1Q==,
+        integrity: sha512-lsleG3/2a/JIWUtf9Q5gUNErBqwIu1tUKTT3dUzaf5DySw9ra1wcqKjJjLX1VTY64Wk1eEOYsVGSaGfCK85ekA==,
       }
 
   pino-std-serializers@6.2.2:
@@ -7078,10 +7078,10 @@ packages:
         integrity: sha512-cHjPPsE+vhj/tnhCy/wiMh3M3z3h/j15zHQX+S9GkTBgqJuTuJzYJ4gUyACLhDaJ7kk9ba9iRDmbH2tJU03OiA==,
       }
 
-  pino@8.21.0:
+  pino@8.17.2:
     resolution:
       {
-        integrity: sha512-ip4qdzjkAyDDZklUaZkcRFb2iA118H9SgRh8yzTkSQK8HilsOJF7rSY8HoW5+I0M46AZgX/pxbprf2vvzQCE0Q==,
+        integrity: sha512-LA6qKgeDMLr2ux2y/YiUt47EfgQ+S9LznBWOJdN3q1dx2sv0ziDLUBeVpyVv17TEcGCBuWf0zNtg3M5m1NhhWQ==,
       }
     hasBin: true
 
@@ -9284,13 +9284,13 @@ snapshots:
     dependencies:
       "@jridgewell/trace-mapping": 0.3.9
 
-  "@done-coding/output-core@0.1.0": {}
+  "@done-coding/output-core@0.1.1": {}
 
-  "@done-coding/output-node@0.1.0(chalk@5.4.1)(pino@8.21.0)(signal-exit@4.1.0)":
+  "@done-coding/output-node@0.1.1(chalk@5.4.1)(pino@8.17.2)(signal-exit@4.1.0)":
     dependencies:
-      "@done-coding/output-core": 0.1.0
+      "@done-coding/output-core": 0.1.1
       chalk: 5.4.1
-      pino: 8.21.0
+      pino: 8.17.2
       signal-exit: 4.1.0
 
   "@done-coding/request-axios@1.2.2(axios@1.8.4)":
@@ -13392,19 +13392,19 @@ snapshots:
 
   pify@5.0.0: {}
 
-  pino-abstract-transport@1.2.0:
+  pino-abstract-transport@1.1.0:
     dependencies:
       readable-stream: 4.7.0
       split2: 4.2.0
 
   pino-std-serializers@6.2.2: {}
 
-  pino@8.21.0:
+  pino@8.17.2:
     dependencies:
       atomic-sleep: 1.0.0
       fast-redact: 3.5.0
       on-exit-leak-free: 2.1.2
-      pino-abstract-transport: 1.2.0
+      pino-abstract-transport: 1.1.0
       pino-std-serializers: 6.2.2
       process-warning: 3.0.0
       quick-format-unescaped: 4.0.4
