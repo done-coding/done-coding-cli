@@ -3,7 +3,7 @@
  * @Author       : supengfei
  * @Date         : 2026-01-30 21:15:09
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-01-31 16:38:48
+ * @LastEditTime : 2026-02-03 21:24:19
  */
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
@@ -22,7 +22,7 @@ async function callMyMcpService() {
     command: "node",
     // 编译后的脚本绝对路径
     args: [scriptPath], // 或者使用 'npx', 'mcp-cli'
-    env: { ...process.env } as Record<string, any>, // 确保环境变量传递
+    env: { ...process.env } as unknown as Record<string, string>, // 确保环境变量传递
     stderr: "inherit",
   });
 
