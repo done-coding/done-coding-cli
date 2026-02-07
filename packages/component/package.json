@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-component",
-  "version": "0.4.10-alpha.2",
+  "version": "0.4.11-alpha.0",
   "description": "组件命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -38,7 +38,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:0.5.21-alpha.2",
+    "@done-coding/cli-inject": "workspace:0.5.22-alpha.0",
     "@types/lodash.camelcase": "^4.3.8",
     "@types/lodash.kebabcase": "^4.1.8",
     "@types/lodash.lowerfirst": "^4.3.8",
@@ -50,10 +50,9 @@
     "vite": "^4.4.11",
     "vite-plugin-dts": "^3.6.0"
   },
-  "peerDependencies": {},
   "dependencies": {
-    "@done-coding/cli-template": "workspace:0.8.8-alpha.2",
-    "@done-coding/cli-utils": "workspace:0.8.2-alpha.2",
+    "@done-coding/cli-template": "workspace:0.8.9-alpha.0",
+    "@done-coding/cli-utils": "workspace:0.8.3-alpha.0",
     "lodash.camelcase": "^4.3.0",
     "lodash.kebabcase": "^4.1.1",
     "lodash.lowerfirst": "^4.3.1",

@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli",
-  "version": "0.15.20-alpha.3",
+  "version": "0.15.21-alpha.0",
   "description": "done-coding命令行工具",
   "private": false,
   "module": "es/cli.mjs",
@@ -48,17 +48,16 @@
     "vite": "^4.4.11",
     "vite-plugin-dts": "^3.6.0"
   },
-  "peerDependencies": {},
   "dependencies": {
-    "@done-coding/cli-component": "workspace:0.4.10-alpha.2",
-    "@done-coding/cli-config": "workspace:0.1.13-alpha.2",
-    "@done-coding/cli-extract": "workspace:0.1.21-alpha.2",
-    "@done-coding/cli-git": "workspace:0.6.13-alpha.2",
-    "@done-coding/cli-inject": "workspace:0.5.21-alpha.2",
-    "@done-coding/cli-publish": "workspace:0.7.14-alpha.2",
-    "@done-coding/cli-template": "workspace:0.8.8-alpha.2",
-    "@done-coding/cli-utils": "workspace:0.8.2-alpha.2",
-    "create-done-coding": "workspace:0.11.23-alpha.3"
+    "@done-coding/cli-component": "workspace:0.4.11-alpha.0",
+    "@done-coding/cli-config": "workspace:0.1.14-alpha.0",
+    "@done-coding/cli-extract": "workspace:0.1.22-alpha.0",
+    "@done-coding/cli-git": "workspace:0.6.14-alpha.0",
+    "@done-coding/cli-inject": "workspace:0.5.22-alpha.0",
+    "@done-coding/cli-publish": "workspace:0.7.15-alpha.0",
+    "@done-coding/cli-template": "workspace:0.8.9-alpha.0",
+    "@done-coding/cli-utils": "workspace:0.8.3-alpha.0",
+    "create-done-coding": "workspace:0.11.24-alpha.0"
   },
   "engines": {
     "node": ">=18.0.0"

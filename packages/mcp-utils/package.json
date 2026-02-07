@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/mcp-utils",
-  "version": "0.0.1-alpha.0",
+  "version": "0.0.2-alpha.0",
   "description": "mcp utils",
   "private": false,
   "module": "es/index.mjs",
@@ -62,7 +62,6 @@
     "vite-plugin-dts": "^3.7.0",
     "vitest": "^1.6.1"
   },
-  "peerDependencies": {},
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.2",
     "zod": "^4.3.5"
