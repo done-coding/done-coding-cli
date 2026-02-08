@@ -1,6 +1,6 @@
 {
   "name": "create-done-coding",
-  "version": "0.11.24-alpha.3",
+  "version": "0.11.24-alpha.4",
   "description": "项目创建命令行工具",
   "module": "es/index.mjs",
   "type": "module",
@@ -49,7 +49,7 @@
     "@done-coding/cli-git": "workspace:0.6.14-alpha.0",
     "@done-coding/cli-template": "workspace:0.8.9-alpha.0",
     "@done-coding/cli-utils": "workspace:0.8.3-alpha.0",
-    "@done-coding/mcp-utils": "workspace:0.0.2-alpha.1"
+    "@done-coding/mcp-utils": "workspace:0.0.2-alpha.2"
   },
   "engines": {
     "node": ">=18.0.0"
