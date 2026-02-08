@@ -5,7 +5,6 @@ import type {
   McpResourceRegisterItem,
   McpPromptRegisterItem,
 } from "@done-coding/mcp-utils";
-import { getMcpCommonToolParams } from "@done-coding/mcp-utils";
 import {
   hijackChildProcess,
   outputConsole,
@@ -39,11 +38,14 @@ export const toolRegisterList: McpToolRegisterItem[] = [
             .string()
             .optional()
             .describe("对应的 Git 分支名称"),
-          ...getMcpCommonToolParams(z),
+          cwd: z
+            .string()
+            .min(1, "创建项目的目录绝对路径不能为空")
+            .describe("创建项目的目录绝对路径"),
         }),
       },
       async (input: McpCreateToolParams) => {
-        outputConsole.info(`当前运行目录: ${process.cwd()}`);
+        outputConsole.info(`当前运行目录: ${input.cwd}`);
         // outputConsole.info(27, input);
         try {
           const createOptions: CreateOptions = {

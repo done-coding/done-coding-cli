@@ -3,7 +3,7 @@
  * @Author       : supengfei
  * @Date         : 2026-02-07 19:21:19
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-02-08 11:04:21
+ * @LastEditTime : 2026-02-08 11:20:26
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
@@ -21,17 +21,6 @@ export interface McpCommonToolParams {
   /** 当前工作目录 */
   cwd: string;
 }
-
-/** 获取mcp通用工具参数 */
-export const getMcpCommonToolParams = (z: ZType) => {
-  return {
-    cwd: z
-      .string()
-      .min(1, "当前工作目录不能为空")
-      .describe("当前工作目录")
-      .default(process.cwd()),
-  };
-};
 
 /** mcp服务 工具注册单项 */
 export type McpToolRegisterItem = (
