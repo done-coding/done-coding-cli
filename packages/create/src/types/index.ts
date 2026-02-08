@@ -3,16 +3,16 @@
  * @Author       : supengfei
  * @Date         : 2026-01-23 23:09:08
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-02-07 12:39:43
+ * @LastEditTime : 2026-02-08 11:06:03
  */
 import { FormNameEnum } from "./formNameEnum";
-import { McpCreateAnswerPreset } from "./mcp";
+import { McpCreateToolParams } from "./mcp";
 
 export * from "./formNameEnum";
 
 export { FormNameEnum };
 
-export type { McpCreateAnswerPreset };
+export type { McpCreateToolParams };
 
 export enum SubcommandEnum {
   CREATE = "create",

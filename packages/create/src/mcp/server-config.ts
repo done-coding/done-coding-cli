@@ -1,10 +1,11 @@
 import { FormNameEnum, injectInfo } from "@/index";
-import type { CreateOptions, McpCreateAnswerPreset } from "@/types";
+import type { CreateOptions, McpCreateToolParams } from "@/types";
 import type {
   McpToolRegisterItem,
   McpResourceRegisterItem,
   McpPromptRegisterItem,
 } from "@done-coding/mcp-utils";
+import { getMcpCommonToolParams } from "@done-coding/mcp-utils";
 import {
   hijackChildProcess,
   outputConsole,
@@ -38,9 +39,10 @@ export const toolRegisterList: McpToolRegisterItem[] = [
             .string()
             .optional()
             .describe("对应的 Git 分支名称"),
+          ...getMcpCommonToolParams(z),
         }),
       },
-      async (input: McpCreateAnswerPreset) => {
+      async (input: McpCreateToolParams) => {
         outputConsole.info(`当前运行目录: ${process.cwd()}`);
         // outputConsole.info(27, input);
         try {
@@ -63,7 +65,7 @@ export const toolRegisterList: McpToolRegisterItem[] = [
           await hijackChildProcess({
             command: "node",
             args: [cliPath, ...params2cliParams(createOptions)],
-            cwd: process.cwd(),
+            cwd: input.cwd,
             env: process.env,
           });
           // await createHandler(createOptions);
