@@ -13,7 +13,7 @@ import { isHttpGitUrl, isSshGitUrl } from "@/git";
 import { applyUseTempDir } from "@/temp-dir";
 import { uuidv4 } from "@/uuid";
 import { outputConsole } from "@/env-config";
-import { execSync } from "node:child_process";
+import { execSyncHijack } from "@/process";
 
 /** done-coding-cli 全局配置 key 枚举 */
 export enum DoneCodingCliGlobalConfigKeyEnum {
@@ -69,6 +69,9 @@ const getGlobalConfig = async (): Promise<DoneCodingCliGlobalConfig> => {
 
 /** 创建本地资产配置临时仓库 */
 const createLocalAssetsConfigTempRepo = async (configTemporaryDir: string) => {
+  outputConsole.debug(
+    `创建本地资产配置临时仓库，临时目录: ${configTemporaryDir}`,
+  );
   if (await assetIsExitsAsync(configTemporaryDir)) {
     outputConsole.error(`${configTemporaryDir} 已存在，请手动删除该目录再试`);
     return process.exit(1);
@@ -79,10 +82,15 @@ const createLocalAssetsConfigTempRepo = async (configTemporaryDir: string) => {
       assetConfigRepoUrl,
   } = await getGlobalConfig();
   if (isSshGitUrl(assetConfigRepoUrl) || isHttpGitUrl(assetConfigRepoUrl)) {
-    execSync(`git clone ${assetConfigRepoUrl} ${configTemporaryDir} --depth=1`);
+    execSyncHijack(
+      `git clone ${assetConfigRepoUrl} ${configTemporaryDir} --depth=1`,
+      {
+        stdio: "ignore",
+      },
+    );
   } else {
     fs.mkdirSync(configTemporaryDir, { recursive: true });
-    execSync(`cp -r ${assetConfigRepoUrl}/ ${configTemporaryDir}/`);
+    execSyncHijack(`cp -r ${assetConfigRepoUrl}/ ${configTemporaryDir}/`);
   }
 
   return {

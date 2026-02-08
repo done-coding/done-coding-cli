@@ -3,15 +3,15 @@
  * @Author       : supengfei
  * @Date         : 2025-06-21 19:27:13
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-02-01 17:38:46
+ * @LastEditTime : 2026-02-08 12:41:28
  */
 import { outputConsole } from "@/env-config";
-import { execSync } from "node:child_process";
+import { execSyncHijack } from "@/process";
 
 /** 获取当前分支名 */
 export const getCurrentBranchName = (): string | undefined => {
   try {
-    const bufferRes = execSync("git symbolic-ref --short HEAD", {
+    const bufferRes = execSyncHijack("git symbolic-ref --short HEAD", {
       stdio: "ignore",
     });
 
@@ -20,7 +20,7 @@ export const getCurrentBranchName = (): string | undefined => {
     return branchName;
   } catch (error) {
     try {
-      const headVersion = execSync("git rev-parse --short HEAD")
+      const headVersion = execSyncHijack("git rev-parse --short HEAD")
         .toString()
         .trim();
       outputConsole.skip(

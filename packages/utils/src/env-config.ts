@@ -331,7 +331,21 @@ export const logger = (() => {
 })();
 
 /** 是否允许控制台输出 */
-const isAllowConsoleLog = (type: OutputConsoleTypeEnum) => {
+export const isAllowOutputConsole = () => {
+  const config = getApplyConfig();
+  if (typeof config.consoleLog === "boolean") {
+    return config.consoleLog;
+  } else {
+    return !!config.consoleLog.length;
+  }
+};
+
+/** 是否允许控制台输出类型 */
+const isAllowOutputConsoleType = (type: OutputConsoleTypeEnum) => {
+  /** 如果进程被劫持，则允许所有类型输出到控制台 */
+  if (processIsHijacked()) {
+    return true;
+  }
   const config = getApplyConfig();
   if (typeof config.consoleLog === "boolean") {
     return config.consoleLog;
@@ -343,7 +357,10 @@ const isAllowConsoleLog = (type: OutputConsoleTypeEnum) => {
 /** 控制台输出实例 */
 export const outputConsole = createOutputConsole({
   isSwitchLogFile: (type) => {
-    return !isAllowConsoleLog(type);
+    if ([OutputConsoleTypeEnum.DEBUG].includes(type)) {
+      return true;
+    }
+    return !isAllowOutputConsoleType(type);
   },
   enableColor: true,
   outputFileFn: (consoleType, ...consoleMessages) => {

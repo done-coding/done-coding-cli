@@ -1,4 +1,11 @@
-import { execSync } from "node:child_process";
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2026-02-07 19:21:19
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-02-08 12:40:22
+ */
+import { execSyncHijack } from "@/process";
 /** 远程仓库信息 */
 export interface GitRemoteInfo {
   /**
@@ -22,10 +29,10 @@ export const pushGitPublishInfoToRemote = ({
   remoteInfo?: GitRemoteInfo;
 }) => {
   if (remoteInfo) {
-    execSync(`git push ${remoteInfo.alias} v${version}`, {
+    execSyncHijack(`git push ${remoteInfo.alias} v${version}`, {
       stdio: "inherit",
     });
-    execSync(`git push ${remoteInfo.alias} ${branchName}`, {
+    execSyncHijack(`git push ${remoteInfo.alias} ${branchName}`, {
       stdio: "inherit",
     });
   }

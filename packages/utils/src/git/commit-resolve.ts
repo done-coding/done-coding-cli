@@ -5,7 +5,7 @@ import { HooksNameEnum } from "@/husky";
 import type { GitRemoteInfo } from "./remote-operate";
 import { outputConsole } from "@/env-config";
 import pinyin from "pinyin";
-import { execSync } from "node:child_process";
+import { execSyncHijack } from "@/process";
 
 /** 支持通过提交钩子获取提交信息的 */
 export const SUPPORT_GET_COMMIT_BY_HOOKS_NAMES = [
@@ -100,24 +100,24 @@ export const getGitLastCommitInfo = ({
   remoteAlias = "origin",
 }: GetGitLastCommitParams = {}): GitLastCommitInfo => {
   try {
-    const lastHash = execSync(`git rev-parse HEAD`).toString().trim();
-    const lastCommitter = execSync('git log -1 --pretty=format:"%an"')
+    const lastHash = execSyncHijack(`git rev-parse HEAD`).toString().trim();
+    const lastCommitter = execSyncHijack('git log -1 --pretty=format:"%an"')
       .toString()
       .trim();
-    const lastCommitEmail = execSync('git log -1 --pretty=format:"%ae"')
+    const lastCommitEmail = execSyncHijack('git log -1 --pretty=format:"%ae"')
       .toString()
       .trim();
-    const lastCommitMsg = execSync('git log -1 --pretty=format:"%s"')
+    const lastCommitMsg = execSyncHijack('git log -1 --pretty=format:"%s"')
       .toString()
       .trim();
-    const userName = execSync("git config user.name").toString().trim();
-    const userEmail = execSync("git config user.email").toString().trim();
-    const branchName = execSync("git rev-parse --abbrev-ref HEAD")
+    const userName = execSyncHijack("git config user.name").toString().trim();
+    const userEmail = execSyncHijack("git config user.email").toString().trim();
+    const branchName = execSyncHijack("git rev-parse --abbrev-ref HEAD")
       .toString()
       .trim();
     let remoteUrl = "";
     try {
-      remoteUrl = execSync(`git config --get remote.${remoteAlias}.url`)
+      remoteUrl = execSyncHijack(`git config --get remote.${remoteAlias}.url`)
         .toString()
         .trim();
     } catch (e) {

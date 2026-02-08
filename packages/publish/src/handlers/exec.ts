@@ -11,6 +11,7 @@ import type {
   YargsOptionsRecord,
 } from "@done-coding/cli-utils";
 import {
+  execSyncHijack,
   getConfigFileCommonOptions,
   getGitLastCommitInfo,
   getPackageJson,
@@ -23,7 +24,6 @@ import type { ReleaseType } from "semver";
 import { inc } from "semver";
 import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "@/utils";
 import { aliasHandler, getAliasInfoList } from "./alias";
-import { execSync } from "node:child_process";
 export const getExecOptions = (): YargsOptionsRecord<ExecOptions> => {
   return {
     ...getConfigFileCommonOptions({
@@ -228,7 +228,7 @@ export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
 
   const { version } = npmInfo;
 
-  execSync(`npm version ${version}`, {
+  execSyncHijack(`npm version ${version}`, {
     cwd: rootDir,
     stdio: "inherit",
   });
@@ -239,7 +239,7 @@ export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
       case PublishModeEnum.WEB: {
         const { build } = modeConfigInfo as ConfigInfoWeb;
         if (build) {
-          execSync(`${build}`, {
+          execSyncHijack(`${build}`, {
             stdio: "inherit",
             cwd: rootDir,
           });
@@ -249,7 +249,7 @@ export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
         break;
       }
       case PublishModeEnum.NPM: {
-        execSync(`npm publish --tag ${tag}`, {
+        execSyncHijack(`npm publish --tag ${tag}`, {
           cwd: rootDir,
           stdio: "inherit",
         });
@@ -267,11 +267,11 @@ export const execHandler = async (argv: CliHandlerArgv<ExecOptions>) => {
         `回滚本地版本到发布前的版本：${lastCommitInfo.lastHash}`,
       );
       const { lastHash } = lastCommitInfo;
-      execSync(`git reset --hard ${lastHash}`, {
+      execSyncHijack(`git reset --hard ${lastHash}`, {
         stdio: "inherit",
       });
       outputConsole.info(`删除本次发布时生成的tag：v${npmInfo.version}`);
-      execSync(`git tag -d v${npmInfo.version}`, {
+      execSyncHijack(`git tag -d v${npmInfo.version}`, {
         stdio: "inherit",
       });
     } catch (error: any) {

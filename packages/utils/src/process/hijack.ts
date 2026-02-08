@@ -3,14 +3,16 @@
  * @Author       : supengfei
  * @Date         : 2026-02-03 19:57:36
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-02-08 11:32:06
+ * @LastEditTime : 2026-02-08 13:04:34
  */
 import type { ProcessCustomEvent } from "@/_event";
 import { PROCESS_EVENT_NAME_MAP } from "@/_event";
 import { DONE_CODING_PROCESS_CREATE_BY_HIJACK_PRESET_JSON_KEY } from "@/const";
 import type { EnvConfigProcessCreateByHijackPresetInfo } from "@/env-config";
-import { outputConsole } from "@/env-config";
-import { spawn } from "node:child_process";
+import { isAllowOutputConsole, outputConsole } from "@/env-config";
+import type { ExecSyncOptions } from "node:child_process";
+// eslint-disable-next-line no-restricted-imports
+import { spawn, execSync } from "node:child_process";
 
 /** 劫持子进程选项 */
 export interface HijackChildProcessOptions extends EnvConfigProcessCreateByHijackPresetInfo {
@@ -120,4 +122,27 @@ export const hijackChildProcess = ({
       }
     });
   });
+};
+
+/** 劫持 execSync */
+export const execSyncHijack = (
+  command: string,
+  options: ExecSyncOptions = {},
+) => {
+  if (isAllowOutputConsole()) {
+    return execSync(command, options);
+  } else {
+    const { stdio = "pipe" } = options;
+    if (stdio === "inherit") {
+      outputConsole.error(
+        `execSyncHijack: execSync 选项中 stdio 设置的值为 inherit，请在设置选项时根据 isAllowOutputConsole 判断是否允许输出到控制台`,
+      );
+      return execSync(command, {
+        ...options,
+        stdio: "ignore",
+      });
+    } else {
+      return execSync(command, options);
+    }
+  }
 };

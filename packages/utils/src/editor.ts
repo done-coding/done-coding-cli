@@ -3,11 +3,11 @@
  * @Author       : supengfei
  * @Date         : 2026-01-11 09:28:42
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-02-01 17:37:30
+ * @LastEditTime : 2026-02-08 12:41:50
  */
 import { outputConsole } from "@/env-config";
 import { xPrompts } from "@/prompts";
-import { execSync } from "node:child_process";
+import { execSyncHijack } from "@/process";
 
 /** 编辑器类型枚举 */
 export enum EditorTypeEnum {
@@ -50,8 +50,8 @@ const dispatchEditorCheckRes = (
   onError: () => void,
 ) => {
   try {
-    execSync(`${cmd} -v`, { stdio: "ignore" });
-    execSync(`${cmd} ${path}`);
+    execSyncHijack(`${cmd} -v`, { stdio: "ignore" });
+    execSyncHijack(`${cmd} ${path}`);
   } catch (error) {
     onError();
   }

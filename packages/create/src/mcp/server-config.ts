@@ -53,14 +53,6 @@ export const toolRegisterList: McpToolRegisterItem[] = [
             skipTemplateCompile: true,
             openGitDetailOptimize: false,
           };
-          // outputConsole.info(37, process.env);
-          // const res = execSync(
-          //   `npx create-done-coding@${injectInfo.version} ${params2cliParams(createOptions)}`,
-          //   {
-          //     cwd: process.cwd(),
-          //     env: process.env,
-          //   },
-          // );
 
           const cliPath = path.resolve(__dirname, "./cli.mjs");
 

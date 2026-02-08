@@ -33,6 +33,7 @@ import {
   rmGitCtrlAsync,
   getSafePath,
   generateGetAnswerSwiftFn,
+  execSyncHijack,
 } from "@done-coding/cli-utils";
 import { getTargetRepoUrl } from "@done-coding/cli-git";
 import { cloneDoneCodingSeries } from "@done-coding/cli-git/helpers";
@@ -42,7 +43,6 @@ import {
   GitRemoteRepoAliasNameEnum,
   type CreateOptions,
 } from "@/types";
-import { execSync } from "node:child_process";
 
 const getOptions = (): CliInfo["options"] => {
   return {
@@ -243,7 +243,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
 
   outputConsole.stage("正在初始化项目，请稍等...");
 
-  execSync(
+  execSyncHijack(
     `git clone${
       templateBranch ? ` -b ${templateBranch}` : ""
     } ${remoteUrl} ${projectName} --depth=1`,
@@ -265,7 +265,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
         localBranchNameForm,
       );
 
-      execSync(`git branch -m ${localBranchName}`, {
+      execSyncHijack(`git branch -m ${localBranchName}`, {
         cwd: projectNamePath,
         stdio: "inherit",
       });
@@ -337,7 +337,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
 
     if (saveGitHistory) {
       // 保存git记录则重命名origin为upstream 同时完整克隆仓库
-      execSync(
+      execSyncHijack(
         `git remote rename ${GitRemoteRepoAliasNameEnum.ORIGIN} ${GitRemoteRepoAliasNameEnum.UPSTREAM} && git fetch --unshallow`,
         {
           cwd: projectNamePath,
@@ -369,7 +369,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
           }),
         );
         if (isTransToSshUrl) {
-          execSync(
+          execSyncHijack(
             `git remote set-url ${GitRemoteRepoAliasNameEnum.UPSTREAM} ${sshUrl}`,
             {
               cwd: projectNamePath,
@@ -386,7 +386,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
 
       await rmGitCtrlAsync(projectNamePath);
 
-      execSync(`git init`, {
+      execSyncHijack(`git init`, {
         cwd: projectNamePath,
         stdio: "inherit",
       });
@@ -401,7 +401,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   );
 
   // 提交代码
-  execSync(`git add . && git commit -m '${gitCommitMessage}'`, {
+  execSyncHijack(`git add . && git commit -m '${gitCommitMessage}'`, {
     cwd: projectNamePath,
     stdio: "inherit",
   });

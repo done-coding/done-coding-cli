@@ -8,12 +8,12 @@ import {
   getCliModuleTempDir,
   outputConsole,
   readConfigFile,
+  execSyncHijack,
 } from "@done-coding/cli-utils";
 import { MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "@/utils";
 import path from "node:path";
 import fs, { rmSync } from "node:fs";
 import injectInfo from "@/injectInfo.json";
-import { execSync } from "node:child_process";
 /** 获取别名发布选项 */
 export const getAliasOptions = () =>
   getConfigFileCommonOptions({
@@ -50,12 +50,12 @@ export const aliasHandler = async (argv: CliHandlerArgv<AliasOptions>) => {
     fn: async (tempDir) => {
       fs.mkdirSync(tempDir, { recursive: true });
 
-      execSync(`pnpm add ${name}@${version}`, {
+      execSyncHijack(`pnpm add ${name}@${version}`, {
         stdio: "inherit",
         cwd: tempDir,
       });
 
-      const distTagListBuffer = execSync(`npm dist-tag ${name}`);
+      const distTagListBuffer = execSyncHijack(`npm dist-tag ${name}`);
 
       const distTagListStr = distTagListBuffer.toString().trim();
       const distTagList = distTagListStr
@@ -93,7 +93,7 @@ export const aliasHandler = async (argv: CliHandlerArgv<AliasOptions>) => {
           JSON.stringify(newPackageJson, null, 2),
         );
 
-        execSync(`pnpm publish --tag ${distTag}`, {
+        execSyncHijack(`pnpm publish --tag ${distTag}`, {
           stdio: "inherit",
           cwd: sourcePck,
         });

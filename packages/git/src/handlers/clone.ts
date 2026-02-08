@@ -3,7 +3,7 @@
  * @Author       : supengfei
  * @Date         : 2025-06-21 18:36:43
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-02-01 17:42:03
+ * @LastEditTime : 2026-02-08 12:38:19
  */
 import type {
   CliHandlerArgv,
@@ -11,8 +11,7 @@ import type {
   SubCliInfo,
 } from "@done-coding/cli-utils";
 import { GitPlatformEnum, SubcommandEnum } from "@/types";
-import { outputConsole } from "@done-coding/cli-utils";
-import { execSync } from "node:child_process";
+import { execSyncHijack, outputConsole } from "@done-coding/cli-utils";
 import type { CloneOptions } from "@/types";
 import { getTargetRepoUrl } from "@/utils";
 
@@ -47,7 +46,7 @@ export const handler = async (options: CliHandlerArgv<CloneOptions>) => {
 
   const { projectName } = options;
 
-  execSync(
+  execSyncHijack(
     `git clone ${repoUrl} ${projectName ? `${projectName} ` : ""}--depth=1`,
     { stdio: "inherit" },
   );

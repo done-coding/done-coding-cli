@@ -1,7 +1,15 @@
+/*
+ * @Description  :
+ * @Author       : supengfei
+ * @Date         : 2026-02-07 19:21:19
+ * @LastEditors  : supengfei
+ * @LastEditTime : 2026-02-08 12:38:10
+ */
 import type { ArgumentsCamelCase, SubCliInfo } from "@done-coding/cli-utils";
 import { InitTypeEnum, SubcommandEnum, type InitOptions } from "@/types";
 import {
   addHuskyHooks,
+  execSyncHijack,
   getConfigFileCommonOptions,
   initHandlerCommon,
   outputConsole,
@@ -17,7 +25,6 @@ import {
   SUPPORT_CHECK_REVERSE_MERGE_HOOKS_NAME,
 } from "@/utils";
 import configDefault from "@/config";
-import { execSync } from "node:child_process";
 
 /** 获取初始化选项 */
 export const getOptions = () => {
@@ -35,7 +42,7 @@ export const getOptions = () => {
 };
 
 const addScript = (commandPrefix: string) => {
-  execSync(`npm pkg set scripts.postprepare="${commandPrefix} init"`);
+  execSyncHijack(`npm pkg set scripts.postprepare="${commandPrefix} init"`);
 };
 
 export const handler = async (

@@ -3,7 +3,7 @@
  * @Author       : supengfei
  * @Date         : 2025-04-19 13:54:04
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-02-02 22:21:27
+ * @LastEditTime : 2026-02-08 12:36:30
  */
 module.exports = {
   root: true,
@@ -79,6 +79,37 @@ module.exports = {
               "Program > ExpressionStatement > CallExpression[callee.name=/^(setInterval|setTimeout)$/]",
             message:
               "检测到【顶层】定时器！若此任务必须执行，请移入 _init 隔离区。",
+          },
+        ],
+        "no-restricted-properties": [
+          "error",
+          {
+            object: "child_process",
+            property: "execSync",
+            message:
+              "禁止使用 execSync。在 MCP 服务中同步操作会阻塞事件循环，请改用 execSyncHijack。",
+          },
+          {
+            object: "node:child_process",
+            property: "execSync",
+            message: "禁止使用 execSync，请使用 execSyncHijack 代替。",
+          },
+        ],
+        "no-restricted-imports": [
+          "error",
+          {
+            paths: [
+              {
+                name: "child_process",
+                importNames: ["execSync"],
+                message: "请改用异步版本的 execSyncHijack。",
+              },
+              {
+                name: "node:child_process",
+                importNames: ["execSync"],
+                message: "请改用异步版本的 execSyncHijack。",
+              },
+            ],
           },
         ],
       },

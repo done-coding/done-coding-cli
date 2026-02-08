@@ -5,7 +5,7 @@ import {
 } from "./merge-resolve";
 import { resolveCheckoutInfoByRefInfo } from "./checkout-resolve";
 import { outputConsole } from "@/env-config";
-import { execSync } from "node:child_process";
+import { execSyncHijack } from "@/process";
 
 /** git checkout信息 */
 export interface GitCheckoutInfo {
@@ -141,7 +141,7 @@ export const getCurrentBranchLastCommitList = ({
     commitTime: "%ci",
   };
 
-  const bufferRes = execSync(
+  const bufferRes = execSyncHijack(
     `git --no-pager log --oneline -n ${count} --pretty=format:"${gitJSON.stringify(
       logInfoTemplate,
     )}"`,
@@ -182,7 +182,7 @@ export const getLastReflogList = ({
     commitTime: "%ci",
   };
 
-  const bufferRes = execSync(
+  const bufferRes = execSyncHijack(
     `git --no-pager reflog -n ${count} --pretty=format:"${gitJSON.stringify(
       refLogInfoTemplate,
     )}"`,
