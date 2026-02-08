@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-inject",
-  "version": "0.5.22-alpha.0",
+  "version": "0.5.22-alpha.1",
   "description": "信息(JSON)注入命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -59,7 +59,7 @@
     "vite-plugin-dts": "^3.6.0"
   },
   "dependencies": {
-    "@done-coding/cli-utils": "workspace:0.8.3-alpha.0"
+    "@done-coding/cli-utils": "workspace:0.8.3-alpha.1"
   },
   "engines": {
     "node": ">=18.0.0"
