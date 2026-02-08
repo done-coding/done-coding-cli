@@ -3,7 +3,7 @@
  * @Author       : supengfei
  * @Date         : 2026-02-03 19:57:36
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-02-05 21:43:55
+ * @LastEditTime : 2026-02-08 11:32:06
  */
 import type { ProcessCustomEvent } from "@/_event";
 import { PROCESS_EVENT_NAME_MAP } from "@/_event";
@@ -30,7 +30,8 @@ export interface HijackChildProcessOptions extends EnvConfigProcessCreateByHijac
  * 用途:
  * 如 mcp模式禁止控制台输出、process.exit等操作,需要shim进程拦截控制台输出及退出
  * 如果mcp禁止输入 那么监听到开始等待用户输入事件后 那么直接中断子进程
- */ export const hijackChildProcess = ({
+ */
+export const hijackChildProcess = ({
   command,
   args,
   env,

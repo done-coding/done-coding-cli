@@ -303,6 +303,7 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   if (!argv.openGitDetailOptimize) {
     outputConsole.stage(`移除克隆仓库的git控制`);
     await rmGitCtrlAsync(projectNamePath);
+    outputConsole.success(`项目创建成功，移除克隆仓库的git控制成功`);
     return process.exit(0);
   }
 

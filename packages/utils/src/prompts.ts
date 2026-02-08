@@ -3,9 +3,13 @@
  * @Author       : supengfei
  * @Date         : 2026-01-23 23:09:08
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-02-05 22:55:57
+ * @LastEditTime : 2026-02-08 11:42:39
  */
-import { processIsHijacked, outputConsole } from "@/env-config";
+import {
+  getProcessCreateByHijackPresetInfo,
+  outputConsole,
+  processIsHijacked,
+} from "@/env-config";
 import prompts from "prompts";
 import {
   createPromptsStartWaitUserInputEvent,
@@ -29,11 +33,30 @@ export const xPrompts = async <T extends string = string>(
   ...args: Parameters<typeof prompts<T>>
 ) => {
   const [questions, options = {}] = args;
+  const isHijackedProcess = processIsHijacked();
 
-  /** 如果当前进程是被劫持进程创建的，则发送开始等待用户输入事件 */
-  if (processIsHijacked()) {
+  // 是否劫持进程创建的，则发送开始等待用户输入事件
+  if (isHijackedProcess) {
     await processSendCustomEvent(createPromptsStartWaitUserInputEvent(args));
-    return process.exit(1);
+    const processCreateByHijackPresetInfo =
+      getProcessCreateByHijackPresetInfo();
+    if (processCreateByHijackPresetInfo?.beforeInputExit) {
+      outputConsole.info(
+        `劫持进程设置在等待用户输入前退出`,
+        JSON.stringify(processCreateByHijackPresetInfo),
+      );
+      const questionsInit = args[0];
+      const questions = Array.isArray(questionsInit)
+        ? questionsInit
+        : [questionsInit];
+      outputConsole.info(
+        `检测到子进程等待用户输入${questions.map((question) => `${question.name}: ${question.message}`).join(", ")}`,
+      );
+      outputConsole.error(
+        `进程退出，原因: 检测到子进程要等待用户输入，此处子进程自己退出`,
+      );
+      return process.exit(1);
+    }
   }
   const res = prompts(questions, {
     onCancel(params) {
@@ -45,8 +68,8 @@ export const xPrompts = async <T extends string = string>(
     ...options,
   });
 
-  /** 如果当前进程是被劫持进程创建的，则发送结束等待用户输入事件 */
-  if (processIsHijacked()) {
+  // 是否劫持进程创建的，则发送结束等待用户输入事件
+  if (isHijackedProcess) {
     res.finally(() => {
       processSendCustomEvent(createPromptsEndWaitUserInputEvent());
     });
