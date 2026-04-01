@@ -1,6 +1,6 @@
 {
   "name": "create-done-coding",
-  "version": "0.11.24-alpha.7",
+  "version": "0.11.24",
   "description": "项目创建命令行工具",
   "module": "es/index.mjs",
   "type": "module",
@@ -37,7 +37,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:0.5.22-alpha.3",
+    "@done-coding/cli-inject": "workspace:0.5.22",
     "@types/node": "^18.0.0",
     "@types/yargs": "^17.0.28",
     "typescript": "^5.8.3",
@@ -45,9 +45,9 @@
     "vite-plugin-dts": "^3.6.0"
   },
   "dependencies": {
-    "@done-coding/cli-git": "workspace:0.6.14-alpha.3",
-    "@done-coding/cli-template": "workspace:0.8.9-alpha.3",
-    "@done-coding/cli-utils": "workspace:0.8.3-alpha.3"
+    "@done-coding/cli-git": "workspace:0.6.14",
+    "@done-coding/cli-template": "workspace:0.8.9",
+    "@done-coding/cli-utils": "workspace:0.8.3"
   },
   "engines": {
     "node": ">=18.0.0"

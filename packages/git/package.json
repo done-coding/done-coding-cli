@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-git",
-  "version": "0.6.14-alpha.3",
+  "version": "0.6.14",
   "description": "git跨平台操作命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -49,7 +49,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:0.5.22-alpha.3",
+    "@done-coding/cli-inject": "workspace:0.5.22",
     "@types/node": "^18.0.0",
     "@types/yargs": "^17.0.28",
     "typescript": "^5.8.3",
@@ -57,7 +57,7 @@
     "vite-plugin-dts": "^3.6.0"
   },
   "dependencies": {
-    "@done-coding/cli-utils": "workspace:0.8.3-alpha.3",
+    "@done-coding/cli-utils": "workspace:0.8.3",
     "@done-coding/request-axios": "^1.2.2",
     "axios": "^1.8.4"
   },
