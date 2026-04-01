@@ -3,7 +3,7 @@
  * @Author       : supengfei
  * @Date         : 2026-02-03 19:57:36
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-02-08 13:04:34
+ * @LastEditTime : 2026-02-08 16:16:59
  */
 import type { ProcessCustomEvent } from "@/_event";
 import { PROCESS_EVENT_NAME_MAP } from "@/_event";
@@ -47,6 +47,13 @@ export const hijackChildProcess = ({
     stdout: string;
     stderr: string;
   }>((resolve, reject) => {
+    outputConsole.debug(
+      "hijackChildProcess",
+      command,
+      args,
+      cwd,
+      beforeInputExit,
+    );
     // 状态锁，确保 Promise 只响应一次
     let isFinished = false;
 

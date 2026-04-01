@@ -128,10 +128,12 @@ export const readConfigFile = async <T>(
     throw new Error(errorMsg);
   }
   if (configPathFinal.endsWith(".json5")) {
-    outputConsole.info(`json5模式解析 ${configPathFinal}`);
+    // outputConsole.info(`json5模式解析 ${configPathFinal}`);
+    outputConsole.debug(`json5模式解析`);
     return json5.parse(readFileSync(configPathFinal, "utf8"));
   } else {
-    outputConsole.info(`json模式解析 ${configPathFinal}`);
+    // outputConsole.info(`json模式解析 ${configPathFinal}`);
+    outputConsole.debug(`json模式解析`);
     return JSON.parse(readFileSync(configPathFinal, "utf8"));
   }
 };

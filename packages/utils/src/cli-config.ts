@@ -121,7 +121,8 @@ export const readCliModuleAssetsConfig = async <R>({
     config: R;
   }) => void | Promise<void>;
 }): Promise<R> => {
-  outputConsole.stage(`拉取${moduleName}配置，请稍等...`);
+  // outputConsole.stage(`拉取${moduleName}配置，请稍等...`);
+  outputConsole.stage(`拉取配置，请稍等...`);
 
   return applyUseTempDir({
     // 资源配置仓库临时文件夹

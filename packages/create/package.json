@@ -6,8 +6,7 @@
   "type": "module",
   "types": "types/index.d.ts",
   "bin": {
-    "create-done-coding": "es/cli.mjs",
-    "mcp-server": "es/mcp-server.mjs"
+    "create-done-coding": "es/cli.mjs"
   },
   "exports": {
     ".": {
@@ -48,9 +47,9 @@
   "dependencies": {
     "@done-coding/cli-git": "workspace:0.6.14-alpha.2",
     "@done-coding/cli-template": "workspace:0.8.9-alpha.2",
-    "@done-coding/cli-utils": "workspace:0.8.3-alpha.2",
-    "@done-coding/mcp-utils": "workspace:0.0.2-alpha.2"
+    "@done-coding/cli-utils": "workspace:0.8.3-alpha.2"
   },
+  "peerDependencies": {},
   "engines": {
     "node": ">=18.0.0"
   }

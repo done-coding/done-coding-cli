@@ -9,10 +9,6 @@
       "path": "packages/utils",
     },
     {
-      "name": "mcp-utils",
-      "path": "packages/mcp-utils",
-    },
-    {
       "name": "extract",
       "path": "packages/extract",
     },
@@ -43,10 +39,6 @@
     {
       "name": "config",
       "path": "packages/config",
-    },
-    {
-      "name": "mcp",
-      "path": "packages/mcp",
     },
     {
       "name": "cli",

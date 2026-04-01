@@ -3,7 +3,7 @@
  * @Author       : supengfei
  * @Date         : 2026-01-23 23:09:08
  * @LastEditors  : supengfei
- * @LastEditTime : 2026-02-08 11:42:39
+ * @LastEditTime : 2026-04-01 11:18:17
  */
 import {
   getProcessCreateByHijackPresetInfo,
@@ -60,9 +60,10 @@ export const xPrompts = async <T extends string = string>(
   }
   const res = prompts(questions, {
     onCancel(params) {
-      outputConsole.error(
-        `您取消了 “${params?.message || params?.name}” 相关表单输入`,
-      );
+      const formName = (params?.message || params?.name || "")
+        .toString()
+        .replace(/^(请?输入)|(请?选择)/, "");
+      outputConsole.error(`您取消了"${formName}"相关表单输入`);
       return process.exit(1);
     },
     ...options,
