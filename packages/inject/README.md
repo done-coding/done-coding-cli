@@ -8,6 +8,7 @@
 ## 安装
 
 ### 独立安装
+
 ```bash
 npm install @done-coding/cli-inject
 # 或
@@ -15,6 +16,7 @@ pnpm add @done-coding/cli-inject
 ```
 
 ### 作为 done-coding CLI 的一部分
+
 ```bash
 npm install -g @done-coding/cli
 # 然后使用
@@ -46,6 +48,7 @@ dc-inject --help
 ### 基础命令
 
 #### `dc-inject init`
+
 初始化配置文件
 
 ```bash
@@ -54,6 +57,7 @@ dc-inject init
 ```
 
 #### `dc-inject` (默认命令)
+
 生成文件
 
 ```bash
@@ -68,6 +72,7 @@ dc-inject -C ./custom-config.json
 ```
 
 **选项说明**:
+
 - `-R, --rootDir`: 运行目录
 - `-C, --configPath`: 配置文件相对路径，默认为 `./.done-coding/inject.json`
 
@@ -113,6 +118,7 @@ DC inject -R ./src
 ### 常见问题
 
 **Q: 配置文件找不到**
+
 ```bash
 # 检查配置文件是否存在
 ls -la .done-coding/inject.json
@@ -122,6 +128,7 @@ dc-inject init
 ```
 
 **Q: 注入失败**
+
 ```bash
 # 检查运行目录
 dc-inject -R ./src
@@ -154,7 +161,7 @@ dc-inject --help
 
 ```bash
 # 克隆仓库
-git clone https://gitee.com/done-coding/done-coding-cli.git
+git clone https://github.com/done-coding/done-coding-cli.git
 cd done-coding-cli/packages/inject
 
 # 安装依赖

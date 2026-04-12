@@ -8,6 +8,7 @@
 ## 安装
 
 ### 独立安装
+
 ```bash
 npm install @done-coding/cli-config
 # 或
@@ -15,6 +16,7 @@ pnpm add @done-coding/cli-config
 ```
 
 ### 作为 done-coding CLI 的一部分
+
 ```bash
 npm install -g @done-coding/cli
 # 然后使用
@@ -47,6 +49,7 @@ dc-config --help
 ### 基础命令
 
 #### `dc-config check`
+
 检测工程化配置
 
 ```bash
@@ -55,6 +58,7 @@ dc-config check
 ```
 
 #### `dc-config add`
+
 添加工程化配置
 
 ```bash
@@ -106,7 +110,7 @@ DC config add
 # 自动执行的检测流程
 dc-config check
 ├── 检测 ESLint 配置
-├── 检测 Prettier 配置  
+├── 检测 Prettier 配置
 ├── 检测 TypeScript 配置
 ├── 检测 Git 钩子配置
 └── 调用 dc-git check reverse-merge  # 检测反向合并
@@ -125,6 +129,7 @@ dc-config check
 ### 常见问题
 
 **Q: 配置检测失败**
+
 ```bash
 # 检查项目根目录
 pwd
@@ -137,6 +142,7 @@ dc-config check --verbose
 ```
 
 **Q: Git 合并检测报错**
+
 ```bash
 # 确保 git 包已安装
 dc-git --version
@@ -149,6 +155,7 @@ git log --oneline -10
 ```
 
 **Q: 配置添加失败**
+
 ```bash
 # 检查写入权限
 ls -la .
@@ -191,7 +198,7 @@ DEBUG=done-coding:config dc-config check
 
 ```bash
 # 克隆仓库
-git clone https://gitee.com/done-coding/done-coding-cli.git
+git clone https://github.com/done-coding/done-coding-cli.git
 cd done-coding-cli/packages/config
 
 # 安装依赖

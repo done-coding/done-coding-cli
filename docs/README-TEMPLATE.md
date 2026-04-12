@@ -8,6 +8,7 @@
 ## 安装
 
 ### 独立安装
+
 ```bash
 npm install @done-coding/cli-{package-name}
 # 或
@@ -15,6 +16,7 @@ pnpm add @done-coding/cli-{package-name}
 ```
 
 ### 作为 done-coding CLI 的一部分
+
 ```bash
 npm install -g @done-coding/cli
 # 然后使用
@@ -35,6 +37,7 @@ dc-{command-name} --help
 ```
 
 {postinstall-section-start}
+
 ### 安装后提示
 
 {postinstall-content}
@@ -54,6 +57,7 @@ dc-{command-name} --help
 ### 基础命令
 
 #### `dc-{command-name} action1`
+
 描述基础命令的功能
 
 ```bash
@@ -62,6 +66,7 @@ dc-{command-name} action1 [options]
 ```
 
 #### `dc-{command-name} action2`
+
 描述另一个基础命令
 
 ```bash
@@ -75,6 +80,7 @@ dc-{command-name} action2 --option value
 ### 高级功能
 
 #### `dc-{command-name} advanced-action`
+
 描述高级功能
 
 ```bash
@@ -111,20 +117,20 @@ dc-{command-name} complex-workflow --input ./src --output ./dist
 ```javascript
 export default {
   // 基础配置
-  option1: 'default-value',
-  
+  option1: "default-value",
+
   // 高级配置
   advanced: {
     feature1: true,
     feature2: {
-      subOption: 'value'
-    }
+      subOption: "value",
+    },
   },
-  
+
   // 自定义配置
   custom: {
     // 用户自定义选项
-  }
+  },
 };
 ```
 
@@ -160,12 +166,14 @@ const options: {OptionsType} = {
 ### 常见问题
 
 **Q: 问题描述**
+
 ```bash
 # 解决方案命令
 dc-{command-name} fix-command
 ```
 
 **Q: 另一个常见问题**
+
 ```bash
 # 检查命令
 dc-{command-name} check
@@ -204,7 +212,7 @@ DEBUG=done-coding:{package-name} dc-{command-name} action
 
 ```bash
 # 克隆仓库
-git clone https://gitee.com/done-coding/done-coding-cli.git
+git clone https://github.com/done-coding/done-coding-cli.git
 cd done-coding-cli/packages/{package-name}
 
 # 安装依赖

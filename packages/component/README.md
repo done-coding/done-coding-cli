@@ -8,6 +8,7 @@
 ## 安装
 
 ### 独立安装
+
 ```bash
 npm install @done-coding/cli-component
 # 或
@@ -15,6 +16,7 @@ pnpm add @done-coding/cli-component
 ```
 
 ### 作为 done-coding CLI 的一部分
+
 ```bash
 npm install -g @done-coding/cli
 # 然后使用
@@ -46,6 +48,7 @@ dc-component --help
 ### 基础命令
 
 #### `dc-component add <name>`
+
 新增一个组件
 
 ```bash
@@ -57,9 +60,11 @@ dc-component add UserCard
 ```
 
 **参数说明**:
+
 - `name`: 组件名称（必需）
 
 #### `dc-component remove [name]`
+
 删除一个组件
 
 ```bash
@@ -71,9 +76,11 @@ dc-component remove
 ```
 
 **参数说明**:
+
 - `name`: 组件名称（可选）
 
 #### `dc-component list`
+
 展示组件列表
 
 ```bash
@@ -117,6 +124,7 @@ done-coding component list
 ### 常见问题
 
 **Q: 组件创建失败**
+
 ```bash
 # 检查当前目录
 pwd
@@ -126,6 +134,7 @@ dc-component add MyButton
 ```
 
 **Q: 组件列表为空**
+
 ```bash
 # 确认是否在正确的项目目录
 ls -la
@@ -135,6 +144,7 @@ dc-component list
 ```
 
 **Q: 删除组件失败**
+
 ```bash
 # 确认组件名称正确
 dc-component list
@@ -157,7 +167,7 @@ ls -la src/components/
 
 ```bash
 # 克隆仓库
-git clone https://gitee.com/done-coding/done-coding-cli.git
+git clone https://github.com/done-coding/done-coding-cli.git
 cd done-coding-cli/packages/component
 
 # 安装依赖

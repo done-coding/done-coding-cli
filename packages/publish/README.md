@@ -8,6 +8,7 @@
 ## 安装
 
 ### 独立安装
+
 ```bash
 npm install @done-coding/cli-publish
 # 或
@@ -15,6 +16,7 @@ pnpm add @done-coding/cli-publish
 ```
 
 ### 作为 done-coding CLI 的一部分
+
 ```bash
 npm install -g @done-coding/cli
 # 然后使用
@@ -47,6 +49,7 @@ dc-publish --help
 ### 基础命令
 
 #### `dc-publish init`
+
 初始化配置文件
 
 ```bash
@@ -55,6 +58,7 @@ dc-publish init
 ```
 
 #### `dc-publish` (默认命令)
+
 执行发布命令
 
 ```bash
@@ -75,6 +79,7 @@ dc-publish -p false
 ```
 
 #### `dc-publish alias`
+
 别名发布
 
 ```bash
@@ -164,6 +169,7 @@ DC publish alias
 ### 常见问题
 
 **Q: 配置文件找不到**
+
 ```bash
 # 检查配置文件是否存在
 ls -la .done-coding/publish.json
@@ -173,6 +179,7 @@ dc-publish init
 ```
 
 **Q: 发布失败**
+
 ```bash
 # 检查 npm 登录状态
 npm whoami
@@ -185,6 +192,7 @@ npm ping
 ```
 
 **Q: Git 推送失败**
+
 ```bash
 # 检查 Git 远程仓库配置
 git remote -v
@@ -220,7 +228,7 @@ dc-publish --help
 
 ```bash
 # 克隆仓库
-git clone https://gitee.com/done-coding/done-coding-cli.git
+git clone https://github.com/done-coding/done-coding-cli.git
 cd done-coding-cli/packages/publish
 
 # 安装依赖

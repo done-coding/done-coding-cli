@@ -46,7 +46,7 @@ pnpm add @done-coding/cli-utils
 ### 作为依赖使用
 
 ```javascript
-import { /* 具体导出内容 */ } from '@done-coding/cli-utils';
+import {} from /* 具体导出内容 */ "@done-coding/cli-utils";
 
 // 具体使用方法需要查看包的导出内容
 ```
@@ -85,7 +85,7 @@ import { /* 具体导出内容 */ } from '@done-coding/cli-utils';
 
 ```bash
 # 克隆仓库
-git clone https://gitee.com/done-coding/done-coding-cli.git
+git clone https://github.com/done-coding/done-coding-cli.git
 cd done-coding-cli/packages/utils
 
 # 安装依赖

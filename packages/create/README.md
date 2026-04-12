@@ -8,6 +8,7 @@
 ## 安装
 
 ### 使用 npm create（推荐）
+
 ```bash
 npm create done-coding
 # 或指定项目名称
@@ -15,6 +16,7 @@ npm create done-coding my-project
 ```
 
 ### 使用 pnpm create
+
 ```bash
 pnpm create done-coding
 # 或指定项目名称
@@ -22,6 +24,7 @@ pnpm create done-coding my-project
 ```
 
 ### 作为 done-coding CLI 的一部分
+
 ```bash
 npm install -g @done-coding/cli
 # 然后使用
@@ -54,6 +57,7 @@ npm create done-coding my-project -- -c
 ### 基础命令
 
 #### `create-done-coding [projectName]`
+
 创建新项目
 
 ```bash
@@ -68,9 +72,11 @@ create-done-coding my-project -c
 ```
 
 **参数说明**:
+
 - `projectName`: 项目名称（可选）
 
 **选项说明**:
+
 - `-c, --justCloneFromDoneCoding`: 是否仅仅从 done-coding 系列项目列表中克隆远程仓库，默认为 `false`
 
 ## 使用示例
@@ -130,6 +136,7 @@ npm create done-coding my-project -- -c
 ### 常见问题
 
 **Q: 项目创建失败**
+
 ```bash
 # 检查网络连接
 ping registry.npmjs.org
@@ -142,6 +149,7 @@ npm cache clean --force
 ```
 
 **Q: Git 克隆失败**
+
 ```bash
 # 检查 Git 是否安装
 git --version
@@ -154,6 +162,7 @@ create-done-coding my-project --verbose
 ```
 
 **Q: 权限错误**
+
 ```bash
 # 检查目录权限
 ls -la .
@@ -187,7 +196,7 @@ create-done-coding --help
 
 ```bash
 # 克隆仓库
-git clone https://gitee.com/done-coding/done-coding-cli.git
+git clone https://github.com/done-coding/done-coding-cli.git
 cd done-coding-cli/packages/create
 
 # 安装依赖

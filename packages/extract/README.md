@@ -8,6 +8,7 @@
 ## 安装
 
 ### 独立安装
+
 ```bash
 npm install @done-coding/cli-extract
 # 或
@@ -15,6 +16,7 @@ pnpm add @done-coding/cli-extract
 ```
 
 ### 作为 done-coding CLI 的一部分
+
 ```bash
 npm install -g @done-coding/cli
 # 然后使用
@@ -47,6 +49,7 @@ dc-extract --help
 ### 基础命令
 
 #### `dc-extract init`
+
 初始化配置文件
 
 ```bash
@@ -55,11 +58,13 @@ dc-extract init
 ```
 
 **功能说明**:
+
 - 在项目根目录创建 `.done-coding/extract.json5` 配置文件
 - 提供默认的提取规则和模板配置
 - 支持自定义提取目标和输出格式
 
 #### `dc-extract` (默认命令)
+
 生成文件
 
 ```bash
@@ -77,6 +82,7 @@ dc-extract -R ./src
 ```
 
 **选项说明**:
+
 - `-R, --rootDir`: 运行目录，默认为当前目录
 - `-C, --configPath`: 配置文件相对路径，默认为 `./.done-coding/extract.json5`
 - `-m, --mode`: 生成模式，可选值：`result`（默认）、`template`
@@ -84,6 +90,7 @@ dc-extract -R ./src
 ### 生成模式
 
 #### result 模式
+
 直接生成最终结果文件
 
 ```bash
@@ -92,6 +99,7 @@ dc-extract -m result
 ```
 
 #### template 模式
+
 生成模板文件供进一步处理
 
 ```bash
@@ -161,6 +169,7 @@ DC extract -C ./config.json5
 ### 常见问题
 
 **Q: 配置文件找不到**
+
 ```bash
 # 检查配置文件是否存在
 ls -la .done-coding/extract.json5
@@ -170,6 +179,7 @@ dc-extract init
 ```
 
 **Q: 生成失败**
+
 ```bash
 # 检查运行目录
 dc-extract -R ./src
@@ -208,7 +218,7 @@ dc-extract --help
 
 ```bash
 # 克隆仓库
-git clone https://gitee.com/done-coding/done-coding-cli.git
+git clone https://github.com/done-coding/done-coding-cli.git
 cd done-coding-cli/packages/extract
 
 # 安装依赖
