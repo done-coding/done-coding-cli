@@ -109,7 +109,11 @@ jobs:
       #   --message           自定义版本提交信息，包含 [skip ci] 防止循环触发
       # --------------------------------------------------------
       - name: Publish packages (no push)
+        # --------------------------------------------------------
+        # lerna publish 前构建所有包：考虑某些依赖会是其他不需要发版的workspace包
+        # --------------------------------------------------------
         run: |
+          npx lerna run build
           npx lerna publish --yes --conventional-graduate --no-push --message "chore(release): publish [skip ci]"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
