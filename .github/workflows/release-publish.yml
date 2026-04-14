@@ -110,10 +110,10 @@ jobs:
       # --------------------------------------------------------
       - name: Publish packages (no push)
         # --------------------------------------------------------
-        # 考虑cli-inject被所有其他包在build阶段以来 故此需要构建inject 包括 inject依赖的 utils
+        # lerna publish 前构建所有包：考虑某些依赖会是其他不需要发版的workspace包
         # --------------------------------------------------------
         run: |
-          npx lerna run build --scope=@done-coding/cli-utils --scope=@done-coding/cli-inject
+          npx lerna run build
           npx lerna publish --yes --conventional-graduate --no-push --message "chore(release): publish [skip ci]"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
