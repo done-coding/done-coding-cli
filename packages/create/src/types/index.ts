@@ -2,17 +2,14 @@
  * @Description  :
  * @Author       : supengfei
  * @Date         : 2026-01-23 23:09:08
- * @LastEditors  : supengfei
- * @LastEditTime : 2026-02-08 11:06:03
+ * @LastEditors  : JustSoSu
+ * @LastEditTime : 2026-04-14 15:44:31
  */
 import { FormNameEnum } from "./formNameEnum";
-import { McpCreateToolParams } from "./mcp";
 
 export * from "./formNameEnum";
 
 export { FormNameEnum };
-
-export type { McpCreateToolParams };
 
 export enum SubcommandEnum {
   CREATE = "create",
