@@ -109,7 +109,11 @@ jobs:
       #   --message           自定义版本提交信息，包含 [skip ci] 防止循环触发
       # --------------------------------------------------------
       - name: Publish packages (no push)
+        # --------------------------------------------------------
+        # 考虑cli-inject被所有其他包在build阶段以来 故此需要构建inject 包括 inject依赖的 utils
+        # --------------------------------------------------------
         run: |
+          npx lerna run build --scope=@done-coding/cli-utils --scope=@done-coding/cli-inject
           npx lerna publish --yes --conventional-graduate --no-push --message "chore(release): publish [skip ci]"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
