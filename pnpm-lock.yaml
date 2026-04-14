@@ -86,7 +86,7 @@ importers:
         specifier: workspace:0.8.4
         version: link:../utils
       create-done-coding:
-        specifier: workspace:0.11.26-alpha.0
+        specifier: workspace:0.11.26
         version: link:../create
     devDependencies:
       "@types/node":
