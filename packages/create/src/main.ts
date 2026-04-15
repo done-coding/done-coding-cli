@@ -9,7 +9,8 @@ const {
 
 /** 分发命令&步骤 */
 const dispatchCommandAndUsage = (asSubcommand = false) => {
-  const command = `${asSubcommand ? `${moduleName} ` : ""}[projectName]`;
+  // const command = `${asSubcommand ? `${moduleName} ` : ""}[projectName]`;
+  const command = `${asSubcommand ? `${moduleName} ` : ""}`;
   const usage = `$0 ${command.trim()}`;
   return { command, usage };
 };
