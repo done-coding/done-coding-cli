@@ -56,12 +56,15 @@ importers:
   packages/ai:
     dependencies:
       "@done-coding/cli-utils":
-        specifier: ^0.7.4
-        version: 0.7.8(encoding@0.1.13)
+        specifier: workspace:0.8.4
+        version: link:../utils
+      openai:
+        specifier: ^4.77.0
+        version: 4.104.0(encoding@0.1.13)
     devDependencies:
       "@done-coding/cli-inject":
-        specifier: ^0.5.17
-        version: 0.5.23(encoding@0.1.13)
+        specifier: workspace:0.5.23
+        version: link:../inject
       "@types/node":
         specifier: ^18.0.0
         version: 18.19.4
@@ -756,28 +759,6 @@ packages:
         integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==,
       }
     engines: { node: ">=12" }
-
-  "@done-coding/cli-inject@0.5.23":
-    resolution:
-      {
-        integrity: sha512-wlgZmXhXGkXfc/9gmtCgo6c5m2FPdT1gU+Wm4eYpGjQgvBXE7oKMC4FQ8hSvSWtJC4lcmQ+iku4Ar9DvpdviHA==,
-      }
-    engines: { node: ">=18.0.0" }
-    hasBin: true
-
-  "@done-coding/cli-utils@0.7.8":
-    resolution:
-      {
-        integrity: sha512-HyYIj+zLeMdm1N9pwtCZYflhQcuV5bmr1fg8wSeSJWLzah1HT4OXOFzJ13AIMQQmpjAaxM0k/A3p1RdQj+YAHw==,
-      }
-    engines: { node: ">=18.0.0" }
-
-  "@done-coding/cli-utils@0.8.4":
-    resolution:
-      {
-        integrity: sha512-dY2e0+OtZ/Q8Z1MYSu4YLoyrFuFO+xFSbB5Ls7EsFpHyMlNgPok1D7k8vA9wvEwQIIaxl04JywNC0wkRAiOjiA==,
-      }
-    engines: { node: ">=18.0.0" }
 
   "@done-coding/output-core@0.1.2":
     resolution:
@@ -2118,6 +2099,12 @@ packages:
     resolution:
       {
         integrity: sha512-ZYFzrvyWUNhaPomn80dsMNgMeXxNWZBdkuG/hWlUvXvbdUH8ZERNBGXnU87McuGcWDsyzX2aChCv/SVN348k3A==,
+      }
+
+  "@types/node-fetch@2.6.13":
+    resolution:
+      {
+        integrity: sha512-QGpRVpzSaUs30JBSGPjOg4Uveu384erbHBoT1zeONvyCfwQxIkUshLAOqN/k9EjGviPRmWTTe6aH2qySWKTVSw==,
       }
 
   "@types/node@18.19.4":
@@ -4053,12 +4040,32 @@ packages:
       }
     engines: { node: ">=14" }
 
+  form-data-encoder@1.7.2:
+    resolution:
+      {
+        integrity: sha512-qfqtYan3rxrnCk1VYaA4H+Ms9xdpPqvLZa6xmMgFvhO32x7/3J/ExcTd6qpxM0vH2GdMI+poehyBZvqfMTto8A==,
+      }
+
   form-data@4.0.0:
     resolution:
       {
         integrity: sha512-ETEklSGi5t0QMZuiXoA/Q6vcnxcLQP5vdugSpuAyi6SVGi2clPPp+xgEhuMaHC+zGgn31Kd235W35f7Hykkaww==,
       }
     engines: { node: ">= 6" }
+
+  form-data@4.0.5:
+    resolution:
+      {
+        integrity: sha512-8RipRLol37bNs2bhoV67fiTEvdTrbMUYcFTiy3+wuuOnUog2QBHCZWXDRijWQfAkhBj2Uf5UnVaiWwA5vdd82w==,
+      }
+    engines: { node: ">= 6" }
+
+  formdata-node@4.4.1:
+    resolution:
+      {
+        integrity: sha512-0iirZp3uVDjVGt9p49aTaqjk84TrglENEDuqfdlZQ1roC9CWlPk6Avf8EEnZNcAqPonwkG35x4n3ww/1THYAeQ==,
+      }
+    engines: { node: ">= 12.20" }
 
   fs-constants@1.0.0:
     resolution:
@@ -5906,6 +5913,14 @@ packages:
         integrity: sha512-mmcei9JghVNDYydghQmeDX8KoAm0FAiYyIcUt/N4nhyAipB17pllZQDOJD2fotxABnt4Mdz+dKTO7eftLg4d0A==,
       }
 
+  node-domexception@1.0.0:
+    resolution:
+      {
+        integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==,
+      }
+    engines: { node: ">=10.5.0" }
+    deprecated: Use your platform's native DOMException instead
+
   node-fetch@2.6.7:
     resolution:
       {
@@ -6221,6 +6236,21 @@ packages:
         integrity: sha512-7x81NCL719oNbsq/3mh+hVrAWmFuEYUqrq/Iw3kUzH8ReypT9QQ0BLoJS7/G9k6N81XjW4qHWtjWwe/9eLy1EQ==,
       }
     engines: { node: ">=12" }
+
+  openai@4.104.0:
+    resolution:
+      {
+        integrity: sha512-p99EFNsA/yX6UhVO93f5kJsDRLAg+CTA2RBqdHK4RtK8u5IJw32Hyb2dTGKbnnFmnuoBv5r7Z2CURI9sGZpSuA==,
+      }
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.23.8
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
 
   optionator@0.9.3:
     resolution:
@@ -8136,6 +8166,13 @@ packages:
         integrity: sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==,
       }
 
+  web-streams-polyfill@4.0.0-beta.3:
+    resolution:
+      {
+        integrity: sha512-QW95TCTaHmsYfHDybGMwO5IJIM93I/6vTRk+daHTWFPhwh+C8Cg7j7XyKrwrj8Ib6vYXe0ocYNrmzY4xAAN6ug==,
+      }
+    engines: { node: ">= 14" }
+
   webidl-conversions@3.0.1:
     resolution:
       {
@@ -8610,49 +8647,6 @@ snapshots:
   "@cspotcode/source-map-support@0.8.1":
     dependencies:
       "@jridgewell/trace-mapping": 0.3.9
-
-  "@done-coding/cli-inject@0.5.23(encoding@0.1.13)":
-    dependencies:
-      "@done-coding/cli-utils": 0.8.4(encoding@0.1.13)
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
-
-  "@done-coding/cli-utils@0.7.8(encoding@0.1.13)":
-    dependencies:
-      chalk: 5.4.1
-      json5: 2.2.3
-      lodash.curry: 4.1.1
-      lodash.get: 4.4.2
-      lodash.merge: 4.6.2
-      lodash.set: 4.3.2
-      pinyin: 2.11.2(encoding@0.1.13)
-      prompts: 2.4.2
-      semver: 7.7.3
-      yargs: 17.7.2
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
-
-  "@done-coding/cli-utils@0.8.4(encoding@0.1.13)":
-    dependencies:
-      "@done-coding/output-node": 0.1.2(chalk@5.4.1)(pino@8.17.2)(signal-exit@4.1.0)
-      chalk: 5.4.1
-      dayjs: 1.11.19
-      json5: 2.2.3
-      lodash.curry: 4.1.1
-      lodash.get: 4.4.2
-      lodash.merge: 4.6.2
-      lodash.set: 4.3.2
-      pino: 8.17.2
-      pinyin: 2.11.2(encoding@0.1.13)
-      prompts: 2.4.2
-      semver: 7.7.3
-      signal-exit: 4.1.0
-      yargs: 17.7.2
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
 
   "@done-coding/output-core@0.1.2": {}
 
@@ -9434,6 +9428,11 @@ snapshots:
   "@types/minimatch@3.0.5": {}
 
   "@types/minimist@1.2.3": {}
+
+  "@types/node-fetch@2.6.13":
+    dependencies:
+      "@types/node": 18.19.4
+      form-data: 4.0.5
 
   "@types/node@18.19.4":
     dependencies:
@@ -10795,11 +10794,26 @@ snapshots:
       cross-spawn: 7.0.6
       signal-exit: 4.1.0
 
+  form-data-encoder@1.7.2: {}
+
   form-data@4.0.0:
     dependencies:
       asynckit: 0.4.0
       combined-stream: 1.0.8
       mime-types: 2.1.35
+
+  form-data@4.0.5:
+    dependencies:
+      asynckit: 0.4.0
+      combined-stream: 1.0.8
+      es-set-tostringtag: 2.1.0
+      hasown: 2.0.2
+      mime-types: 2.1.35
+
+  formdata-node@4.4.1:
+    dependencies:
+      node-domexception: 1.0.0
+      web-streams-polyfill: 4.0.0-beta.3
 
   fs-constants@1.0.0: {}
 
@@ -11989,6 +12003,8 @@ snapshots:
 
   node-addon-api@3.2.1: {}
 
+  node-domexception@1.0.0: {}
+
   node-fetch@2.6.7(encoding@0.1.13):
     dependencies:
       whatwg-url: 5.0.0
@@ -12261,6 +12277,18 @@ snapshots:
       define-lazy-prop: 2.0.0
       is-docker: 2.2.1
       is-wsl: 2.2.0
+
+  openai@4.104.0(encoding@0.1.13):
+    dependencies:
+      "@types/node": 18.19.4
+      "@types/node-fetch": 2.6.13
+      abort-controller: 3.0.0
+      agentkeepalive: 4.5.0
+      form-data-encoder: 1.7.2
+      formdata-node: 4.4.1
+      node-fetch: 2.7.0(encoding@0.1.13)
+    transitivePeerDependencies:
+      - encoding
 
   optionator@0.9.3:
     dependencies:
@@ -13456,6 +13484,8 @@ snapshots:
   wcwidth@1.0.1:
     dependencies:
       defaults: 1.0.4
+
+  web-streams-polyfill@4.0.0-beta.3: {}
 
   webidl-conversions@3.0.1: {}
 

@@ -50,7 +50,8 @@
   },
   "peerDependencies": {},
   "dependencies": {
-    "@done-coding/cli-utils": "workspace:0.8.4"
+    "@done-coding/cli-utils": "workspace:0.8.4",
+    "openai": "^4.77.0"
   },
   "engines": {
     "node": ">=18.0.0"
