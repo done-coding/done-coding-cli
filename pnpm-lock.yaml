@@ -93,7 +93,7 @@ importers:
   packages/cli:
     dependencies:
       "@done-coding/cli-ai":
-        specifier: workspace:0.1.0
+        specifier: workspace:0.1.1
         version: link:../ai
       "@done-coding/cli-component":
         specifier: workspace:0.5.0

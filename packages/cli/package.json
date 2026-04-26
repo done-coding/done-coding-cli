@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "description": "done-coding命令行工具",
   "private": false,
   "module": "es/cli.mjs",
@@ -49,7 +49,7 @@
     "vite-plugin-dts": "^3.6.0"
   },
   "dependencies": {
-    "@done-coding/cli-ai": "workspace:0.1.0",
+    "@done-coding/cli-ai": "workspace:0.1.1",
     "@done-coding/cli-component": "workspace:0.5.0",
     "@done-coding/cli-config": "workspace:0.2.0",
     "@done-coding/cli-extract": "workspace:0.2.0",
