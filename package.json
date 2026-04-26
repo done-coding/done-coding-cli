@@ -11,8 +11,7 @@
     "prepare": "husky install",
     "postinstall": "prettier --write pnpm-lock.yaml",
     "push": "lerna publish",
-    "postpush": "node ./scripts/postpush.mjs",
-    "log": "conventional-changelog -p angular -i CHANGELOG.md -s --release-count 0"
+    "postpush": "node ./scripts/postpush.mjs"
   },
   "repository": {
     "type": "git",
@@ -27,8 +26,6 @@
     "@types/node": "^18.19.4",
     "@typescript-eslint/eslint-plugin": "^7.7.0",
     "@typescript-eslint/parser": "^7.7.0",
-    "conventional-changelog": "^5.1.0",
-    "conventional-changelog-cli": "^4.1.0",
     "eslint": "^8.49.0",
     "eslint-config-alloy": "^5.1.2",
     "eslint-plugin-import": "^2.29.1",

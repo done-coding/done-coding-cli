@@ -30,7 +30,7 @@ export const createCommand = async () => {
 };
 
 /** 作为子命令创建 */
-export const crateAsSubcommand = () => {
+export const createAsSubcommand = () => {
   return createSubcommand({
     ...commandCliInfo,
     ...dispatchCommandAndUsage(true),

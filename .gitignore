@@ -6,3 +6,4 @@ packages/*/release
 packages/*/dist
 packages/*/coverage
 lerna-debug.log
+.claude/settings.local.json
