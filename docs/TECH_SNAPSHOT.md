@@ -111,6 +111,23 @@ packages/<name>/src/
 - `handlers/index.ts` 导出 `commandCliInfo`（含 describe, version, subcommands, demandCommandCount）和 `handler()`（子命令 switch-case 路由）
 - 无 `handler()` 的二层 dispatch——`DC create` 进入 ai 包的 handler，内部 switch `SubcommandEnum` 分发到各子命令
 
+#### 默认子命令（`$0`）
+
+WHEN 子包希望「不指定子命令时执行默认行为」，将对应 `handlers/<subcommand>.ts` 中的 `command` 设为 `"$0"`，其余文件与普通子命令完全一致：
+
+```typescript
+// handlers/<默认子命令>.ts — 仅此文件有差异
+export const commandCliInfo: SubCliInfo = {
+  command: `$0`,  // ← 普通子命令为 SubcommandEnum.XXX，默认子命令为 "$0"
+  describe: "该子命令的描述",
+  handler: <handlerFn> as SubCliInfo["handler"],
+};
+```
+
+- 该子命令仍保留在 `SubcommandEnum` 中，仍可通过 `handler(SubcommandEnum.XXX, argv)` 编程调用
+- `handlers/index.ts`、`types/index.ts`、`main.ts` 无需任何特殊处理
+- 参考：`packages/template/src/handlers/compile.ts`
+
 详细说明：每个子包的架构细节见 `packages/<name>/docs/ARCHITECTURE.md`（待创建）。
 
 ### 依赖关系
