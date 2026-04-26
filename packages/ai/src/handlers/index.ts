@@ -1,8 +1,4 @@
 import {
-  handler as testHandler,
-  commandCliInfo as testCommandCliInfo,
-} from "./test";
-import {
   handler as chatHandler,
   commandCliInfo as chatCommandCliInfo,
 } from "./chat";
@@ -15,7 +11,7 @@ import {
   type CliInfo,
 } from "@done-coding/cli-utils";
 
-export { testHandler, testCommandCliInfo, chatHandler, chatCommandCliInfo };
+export { chatHandler, chatCommandCliInfo };
 
 /** 导出供外部 export使用， cli内部不会通过改方法调用各子命令方法 */
 export const handler = async (
@@ -23,9 +19,6 @@ export const handler = async (
   argv: CliHandlerArgv<any>,
 ) => {
   switch (command) {
-    case SubcommandEnum.TEST: {
-      return testHandler(argv);
-    }
     case SubcommandEnum.CHAT: {
       return chatHandler(argv);
     }
@@ -40,7 +33,7 @@ const { version, description: describe } = injectInfo;
 export const commandCliInfo: Omit<CliInfo, "usage"> = {
   describe,
   version,
-  subcommands: [testCommandCliInfo, chatCommandCliInfo].map(createSubcommand),
+  subcommands: [chatCommandCliInfo].map(createSubcommand),
   demandCommandCount: 1,
   rootScriptName: getRootScriptName({ packageJson: injectInfo }),
 };

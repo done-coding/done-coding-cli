@@ -18,6 +18,7 @@ import {
   CUSTOM_PRESET_INDEX,
   CUSTOM_PRESET_LABEL,
 } from "@/services/model-presets";
+import { AuthenticationError } from "openai";
 import { streamChat } from "@/services/api-client";
 
 /**
@@ -159,7 +160,19 @@ const chatHandler = async () => {
       });
       process.stdout.write("\n");
     } catch (error: any) {
-      outputConsole.error(`请求失败: ${error?.message || error}`);
+      const isAuthError =
+        error instanceof AuthenticationError || error?.status === 401;
+      if (isAuthError) {
+        outputConsole.info("API Key 无效，请重新输入\n");
+        const result = await firstTimeSetup();
+        if (!result) return;
+        aiConfig = result;
+        config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG] = aiConfig;
+        await writeGlobalConfig(config);
+        outputConsole.info(`已切换至 ${aiConfig.model}\n`);
+      } else {
+        outputConsole.error(`请求失败: ${error?.message || error}`);
+      }
     }
   }
 };

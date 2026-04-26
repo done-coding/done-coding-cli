@@ -67,8 +67,8 @@ done-coding-cli 是一个面向 **Node.js 前端/全栈开发者**的 CLI 工具
 | `DC publish` | `@done-coding/cli-publish` | `init`、`exec`（未指明时默认执行）、`alias` |
 | `DC template` | `@done-coding/cli-template` | `init`、`compile`（未指明时默认执行）、`batch` |
 | `DC git` | `@done-coding/cli-git` | `init`、`clone`、`hooks`、`check` |
-| `DC ai` | `@done-coding/cli-ai` | `test`（开发中） |
-| `DC`（无子命令） | `@done-coding/cli` 自身 | 交互式对话（当前为假实现，计划接入真 AI） |
+| `DC ai` | `@done-coding/cli-ai` | `chat`（默认） |
+| `DC`（无子命令） | `@done-coding/cli` 自身 | 交互式提问 → AI 对话或 --help |
 
 ## 4. 功能清单
 
@@ -84,7 +84,7 @@ done-coding-cli 是一个面向 **Node.js 前端/全栈开发者**的 CLI 工具
 | `DC template` | `@done-coding/cli-template` | Lodash 模板编译引擎，支持 4 种输出模式 + 回滚 + Markdown 处理，被 create/component/extract 内部调用 | `活跃` | `packages/template/docs/BUSINESS.md`（待创建） |
 | `DC git` | `@done-coding/cli-git` | 跨平台 Git 操作（init/clone/hooks/check），含 reverse-merge 检测 | `活跃` | `packages/git/docs/BUSINESS.md`（待创建） |
 | `DC publish` | `@done-coding/cli-publish` | 语义化版本管理 + npm/web 发布 + 别名发布 | `活跃` | `packages/publish/docs/BUSINESS.md`（待创建） |
-| `DC ai` | `@done-coding/cli-ai` | AI 交互式对话（选模型 → 填 key → SSE 流式聊天） | `计划中` | `packages/ai/docs/BUSINESS.md`（待创建） |
+| `DC ai` | `@done-coding/cli-ai` | AI 交互式对话（选模型 → 填 key → SSE 流式聊天） | `活跃` | `packages/ai/docs/BUSINESS.md`（待创建） |
 | — | `@done-coding/cli-utils` | 共享工具库（yargs 封装、xPrompts、配置管理、Git 工具、AES 加密等） | `活跃` | 无独立 CLI |
 
 ## 5. 核心业务流程
@@ -165,8 +165,7 @@ MIT
 
 | 债务 | 影响 | 优先级 |
 |---|---|---|
-| `DC` 无子命令时的 `createChat` 为假实现（只回显用户输入，不做 AI 推理） | 核心差异化能力缺失 | **高** |
-| `@done-coding/cli-ai` 仅有一个 `test` 骨架 | `DC ai` 无实际功能 | **高** |
+| 端到端对话需真实 API Key 验证 | 对话流程已串通，但未用真实 Key 跑通 AI 响应 | 中 |
 | 部分子包 README 未列出 `DC <subcommand>` 能用的具体选项，用户需靠 `--help` 反推 | 独立使用子包的用户可能因文档不全而放弃 | 中 |
 | create-done-coding 的远程模板列表依赖 Gitee 外部仓库 | Gitee 不可用时 `DC create` 无法获取模板列表 | 低 |
 | CHANGELOG.md 已删除但部分 README 仍含链接 | README 404 链接 | 低 |

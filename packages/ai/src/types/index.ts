@@ -1,7 +1,5 @@
 /** 子命令枚举 */
 export enum SubcommandEnum {
-  /** 测试命令 */
-  TEST = "test",
   /** AI 对话 */
   CHAT = "chat",
 }
@@ -14,9 +12,4 @@ export enum ChatKeywordEnum {
   MODEL = "/model",
   /** 清屏 */
   CLEAR = "/clear",
-}
-
-export interface TestOptions {
-  /** 测试选项 */
-  xx: string;
 }
