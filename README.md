@@ -170,9 +170,8 @@ graph TD
 
 ### 文档贡献
 
-- 遵循 [文档编写指南](./docs/DOCUMENTATION-GUIDE.md)
-- 使用 [文档模板](./docs/README-TEMPLATE.md)
-- 通过 [质量检查清单](./docs/DOCUMENTATION-CHECKLIST.md) 验证
+- 遵循项目现有的子包 README 模式
+- 参考各子包的 README.md 作为模板
 
 ## 发布流程
 
