@@ -6,60 +6,21 @@ import { createAsSubcommand as createPublishCommand } from "@done-coding/cli-pub
 import { createAsSubcommand as createTemplateCommand } from "@done-coding/cli-template";
 import { createAsSubcommand as createComponentCommand } from "@done-coding/cli-component";
 import { createAsSubcommand as createConfigCommand } from "@done-coding/cli-config";
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   createAsSubcommand as createAiCommand,
   handler as aiHandler,
+  SubcommandEnum as AiSubcommandEnum,
 } from "@done-coding/cli-ai";
-/* eslint-enable @typescript-eslint/no-unused-vars */
 import injectInfo from "@/injectInfo.json";
 import type { CliInfo } from "@done-coding/cli-utils";
 import {
   createMainCommand,
   getRootScriptName,
-  outputConsole,
+  execSyncHijack,
   xPrompts,
-  chalk,
 } from "@done-coding/cli-utils";
 
 const { version, description: describe } = injectInfo;
-
-const createChat = async ({
-  currentCount = 1,
-  maxCount,
-}: {
-  currentCount?: number;
-  maxCount: number;
-}) => {
-  const v = (
-    await xPrompts(
-      {
-        type: "text",
-        name: "value",
-        message: "",
-        validate: (value) => value?.trim().length > 0 || " ",
-      },
-      {
-        onCancel() {
-          return process.exit(0);
-        },
-      },
-    )
-  ).value;
-
-  outputConsole.stage(`[${currentCount}]大脑接入中`, chalk.gray(`你问了:${v}`));
-  outputConsole.skip(`---------------`);
-
-  if (currentCount >= maxCount) {
-    outputConsole.stage(`${maxCount}轮对话结束`);
-    return;
-  }
-
-  createChat({
-    currentCount: currentCount + 1,
-    maxCount,
-  });
-};
 
 const commandCliInfo: CliInfo = {
   usage: `$0 <command> [options]`,
@@ -79,13 +40,20 @@ const commandCliInfo: CliInfo = {
   demandCommandCount: 0,
   rootScriptName: getRootScriptName({ packageJson: injectInfo }),
   async handler() {
-    // execSyncHijack(`node ${process.argv[1]} -h`, {
-    //   stdio: 'inherit'
-    // })
-
-    createChat({
-      maxCount: 3,
+    const { shouldChat } = await xPrompts({
+      type: "confirm",
+      name: "shouldChat",
+      message: "是否唤起 AI 对话？",
+      initial: true,
     });
+
+    if (shouldChat) {
+      await aiHandler(AiSubcommandEnum.CHAT, {});
+    } else {
+      execSyncHijack(`node ${process.argv[1]} --help`, {
+        stdio: "inherit",
+      });
+    }
   },
 };
 

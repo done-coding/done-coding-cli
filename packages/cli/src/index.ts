@@ -31,6 +31,7 @@ export {
 export {
   createAsSubcommand as createAiCommand,
   handler as aiHandler,
+  SubcommandEnum as AiSubcommandEnum,
 } from "@done-coding/cli-ai";
 
 export {
