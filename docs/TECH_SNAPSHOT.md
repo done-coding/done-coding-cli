@@ -222,6 +222,9 @@ DC inject:
 | TypeScript strict | 严格模式，完整类型导出到 `types/` |
 | Side-effect free | 所有包 `"sideEffects": false` |
 | 无循环依赖 | cli → 各子包 → utils（单向） |
+| 禁止魔鬼字符串 | 业务关键字（如命令、状态、配置 key）[MUST] 使用枚举值，禁止内联字符串字面量 |
+| 禁止魔鬼数字 | 有语义的数值（如索引标记、状态码）[MUST] 定义为具名常量 |
+| JSDoc 注释 | 所有 `export` 类型/接口、枚举成员、公共函数 [MUST] 包含 `/** 中文描述 */` |
 
 ### 子包模板一致性
 
@@ -311,6 +314,9 @@ DC inject:
 | 在 `handler()` 中调用 `process.exit()` | hijack 模式会杀掉父进程 | throw error 让 yargs 处理 |
 | 在子包中 import cli 主包 | 会造成循环依赖 | 子包 [MUST NOT] import cli 包 |
 | `npm install` 而非 `pnpm install` | preinstall 脚本 `npx only-allow pnpm` 会拒绝 | [MUST] 使用 pnpm |
+| 使用内联字符串作业务判断 | 如 `if (cmd === "/exit")`，分散在多处难维护 | [MUST] 定义枚举，引用枚举值 |
+| 使用魔法数字 | 如 `value: -1` 标记"自定义"，语义不清 | [MUST] 定义为具名常量 |
+| 导出类型缺少 JSDoc | 其他开发者/AI agent 无法理解字段含义 | [MUST] `/** */` 注释每个 `export type`/`enum` 成员 |
 
 ## 10. 技术债务与风险
 
