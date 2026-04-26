@@ -12,7 +12,7 @@ import {
 } from "@done-coding/cli-utils";
 import { writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { SubcommandEnum, ChatKeywordEnum } from "@/types";
+import { ChatKeywordEnum } from "@/types";
 import {
   PROVIDER_PRESETS,
   CUSTOM_PROVIDER_INDEX,
@@ -239,7 +239,7 @@ const chatHandler = async () => {
 
 /** yargs 子命令注册信息 */
 export const commandCliInfo: SubCliInfo = {
-  command: SubcommandEnum.CHAT,
+  command: `$0`,
   describe: "AI 对话",
   handler: chatHandler as SubCliInfo["handler"],
 };
