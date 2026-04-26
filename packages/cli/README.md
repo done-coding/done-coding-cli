@@ -335,13 +335,13 @@ DC --version
 
 - [项目创建工具](https://www.npmjs.com/package/create-done-coding)
 - [组件生成工具](https://www.npmjs.com/package/@done-coding/cli-component)
-- [更多工具](https://gitee.com/done-coding/done-coding-cli)
+- [更多工具](https://github.com/done-coding/done-coding-cli)
 
 ## 许可证
 
-MIT © [JustSoSu](https://gitee.com/done-coding)
+MIT © [done-coding](https://github.com/done-coding)
 
 ## 相关链接
 
-- [Gitee 仓库](https://gitee.com/done-coding/done-coding-cli)
+- [Github 仓库](https://github.com/done-coding/done-coding-cli)
 - [更新日志](./CHANGELOG.md)

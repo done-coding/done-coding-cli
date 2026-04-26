@@ -314,7 +314,7 @@ node es/cli.mjs --help
 
 ## 许可证
 
-MIT © [JustSoSu](https://gitee.com/done-coding)
+MIT © [done-coding](https://github.com/done-coding)
 
 ## 包依赖关系
 
@@ -353,5 +353,5 @@ dc-git check reverse-merge
 
 - [主 CLI 工具](https://www.npmjs.com/package/@done-coding/cli)
 - [配置工具包](https://www.npmjs.com/package/@done-coding/cli-config) - 使用本包的检测功能
-- [Gitee 仓库](https://gitee.com/done-coding/done-coding-cli)
+- [Github 仓库](https://github.com/done-coding/done-coding-cli)
 - [更新日志](./CHANGELOG.md)
