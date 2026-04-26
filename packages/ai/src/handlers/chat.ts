@@ -30,9 +30,9 @@ const readGlobalConfig = async (): Promise<DoneCodingCliGlobalConfig> => {
   try {
     return await readJsonFileAsync<DoneCodingCliGlobalConfig>(
       getGlobalConfigFilePath(),
-      {} as DoneCodingCliGlobalConfig,
     );
   } catch {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     return {} as DoneCodingCliGlobalConfig;
   }
 };
@@ -184,7 +184,7 @@ const chatHandler = async () => {
     if (trimmed === ChatKeywordEnum.MODEL) {
       // 在当前服务商下切换模型
       const provider = PROVIDER_PRESETS.find(
-        (p) => p.baseUrl === aiConfig.baseUrl,
+        (p) => p.baseUrl === aiConfig?.baseUrl,
       );
       if (provider) {
         const model = await selectModelForProvider(provider);
