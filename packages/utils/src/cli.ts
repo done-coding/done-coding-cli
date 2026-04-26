@@ -196,3 +196,11 @@ export const createSubcommand = (cliInfo: SubCliInfo): CommandModule => {
     handler,
   };
 };
+
+/** 包装默认子命令 */
+export const packDefaultCommandCliInfo = (cliInfo: SubCliInfo): SubCliInfo => {
+  return {
+    ...cliInfo,
+    command: `$0`,
+  };
+};

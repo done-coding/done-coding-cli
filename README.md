@@ -114,7 +114,6 @@ done-coding-cli/
 │   ├── publish/             # 发布工具
 │   ├── template/            # 模板工具
 │   └── utils/               # 工具库
-├── docs/                    # 文档和指南
 ├── scripts/                 # 构建和发布脚本
 ├── lerna.json              # Lerna 配置
 ├── package.json            # 根包配置
@@ -171,9 +170,8 @@ graph TD
 
 ### 文档贡献
 
-- 遵循 [文档编写指南](./docs/DOCUMENTATION-GUIDE.md)
-- 使用 [文档模板](./docs/README-TEMPLATE.md)
-- 通过 [质量检查清单](./docs/DOCUMENTATION-CHECKLIST.md) 验证
+- 遵循项目现有的子包 README 模式
+- 参考各子包的 README.md 作为模板
 
 ## 发布流程
 
@@ -189,12 +187,12 @@ pnpm run log
 
 ## 许可证
 
-MIT © [JustSoSu](https://gitee.com/done-coding)
+MIT © [done-coding](https://github.com/done-coding)
 
 ## 相关链接
 
 - [主 CLI 工具文档](./packages/cli/README.md)
-- [项目仓库](https://gitee.com/done-coding/done-coding-cli)
+- [项目仓库](https://github.com/done-coding/done-coding-cli)
 - [更新日志](./CHANGELOG.md)
 
 ## 支持
@@ -202,7 +200,6 @@ MIT © [JustSoSu](https://gitee.com/done-coding)
 如果您在使用过程中遇到问题：
 
 1. 查看各包的 README 文档
-2. 查看 [更新日志](./CHANGELOG.md)
 
 ---
 

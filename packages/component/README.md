@@ -188,11 +188,11 @@ node es/cli.mjs --help
 
 ## 许可证
 
-MIT © [JustSoSu](https://gitee.com/done-coding)
+MIT © [done-coding](https://github.com/done-coding)
 
 ## 相关链接
 
 - [主 CLI 工具](https://www.npmjs.com/package/@done-coding/cli)
 - [模板处理工具](https://www.npmjs.com/package/@done-coding/cli-template) - 本包依赖的模板引擎
-- [Gitee 仓库](https://gitee.com/done-coding/done-coding-cli)
+- [Github 仓库](https://github.com/done-coding/done-coding-cli)
 - [更新日志](./CHANGELOG.md)

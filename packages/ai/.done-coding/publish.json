@@ -1,0 +1,21 @@
+{
+  "web": {},
+  "npm": {
+    "aliasInfo": [
+      {
+        "packageJson": {
+          "name": "dc-ai",
+          "bin": "es/cli.mjs",
+          "scripts": {}
+        }
+      },
+      {
+        "packageJson": {
+          "name": "done-coding-ai",
+          "bin": "es/cli.mjs",
+          "scripts": {}
+        }
+      }
+    ]
+  }
+}

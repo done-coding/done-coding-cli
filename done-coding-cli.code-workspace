@@ -41,6 +41,10 @@
       "path": "packages/config",
     },
     {
+      "name": "ai",
+      "path": "packages/ai",
+    },
+    {
       "name": "cli",
       "path": "packages/cli",
     },
@@ -50,19 +54,6 @@
     "files.encoding": "utf8",
     "editor.tabSize": 2,
     "editor.formatOnSave": true,
-    "fileheader.configObj": {
-      "autoAdd": true,
-      "autoUpdateOnSave": true,
-      "wideSame": true,
-      "prohibitAutoAdd": ["json", "md", "jsonc", "xml", "shellscript"],
-    },
-    "fileheader.customMade": {
-      "Description": "",
-      "Author": "git config user.name",
-      "Date": "Do not edit",
-      "LastEditors": "git config user.name",
-      "LastEditTime": "Do not edit",
-    },
 
     "cSpell.ignorePaths": [
       "**", // 先忽略所有
@@ -119,7 +110,6 @@
   },
   "extensions": {
     "recommendations": [
-      "OBKoro1.korofileheader",
       "redhat.vscode-xml",
       "foxundermoon.shell-format",
       "streetsidesoftware.code-spell-checker",

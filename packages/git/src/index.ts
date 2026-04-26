@@ -1,4 +1,4 @@
 export * from "@/handlers";
-export { crateAsSubcommand } from "./main";
+export { createAsSubcommand } from "./main";
 export * from "@/types";
 export { getTargetRepoUrl } from "./utils";
