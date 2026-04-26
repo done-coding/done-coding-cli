@@ -18,7 +18,7 @@ done-coding-cli 是一个面向 **Node.js 前端/全栈开发者**的 CLI 工具
 | 组件创建：复制粘贴 + 改名称 + 改引用 | `DC component add <name>` |
 | 分支保护：靠口头约定防止倒灌合并 | `DC git hooks` 在 git hook 层自动拦截 reverse-merge |
 | 发布：手动改版本 + npm publish + git push + git tag | `DC publish -t patch -d latest` 一条命令 |
-| AI 辅助 | `DC` 无子命令进入 AI 对话（`@done-coding/cli-ai`，开发中） |
+| AI 辅助 | `DC` 无子命令 → 进入 AI 对话；`DC ai` → 独立入口 |
 
 ### 关键术语
 
@@ -165,7 +165,6 @@ MIT
 
 | 债务 | 影响 | 优先级 |
 |---|---|---|
-| 端到端对话需真实 API Key 验证 | 对话流程已串通，但未用真实 Key 跑通 AI 响应 | 中 |
 | 部分子包 README 未列出 `DC <subcommand>` 能用的具体选项，用户需靠 `--help` 反推 | 独立使用子包的用户可能因文档不全而放弃 | 中 |
 | create-done-coding 的远程模板列表依赖 Gitee 外部仓库 | Gitee 不可用时 `DC create` 无法获取模板列表 | 低 |
 | CHANGELOG.md 已删除但部分 README 仍含链接 | README 404 链接 | 低 |

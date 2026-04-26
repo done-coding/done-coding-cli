@@ -20,7 +20,7 @@
                   │  ├── DC git                         │────▶ OS filesystem (.git, ~/.done-coding)
                   │  ├── DC publish                     │
                   │  ├── DC template                    │
-                  │  └── DC ai (计划中)                  │
+                  │  └── DC ai                          │
                   │                                      │
                   │  @done-coding/cli-utils (foundation) │
                   └──────────────────────────────────────┘
@@ -61,7 +61,7 @@
 ### 整体架构：分层 Monorepo
 
 ```
-入口层:  @done-coding/cli（主命令注册 + 子命令路由 + createChat 入口）
+入口层:  @done-coding/cli（主命令注册 + 子命令路由 + AI 对话入口）
          create-done-coding（独立入口：npm create done-coding）
             │
 业务层:  @done-coding/cli-component  组件管理
@@ -71,7 +71,7 @@
          @done-coding/cli-git        Git 操作
          @done-coding/cli-publish    项目发布
          @done-coding/cli-template   模板编译（被 create/component/extract 依赖）
-         @done-coding/cli-ai         AI 对话（开发中）
+         @done-coding/cli-ai         AI 对话（选服务商 → 选模型 → SSE 流式）
             │
 基础层:  @done-coding/cli-utils      共享工具 + 类型定义
 ```
@@ -111,22 +111,28 @@ packages/<name>/src/
 - `handlers/index.ts` 导出 `commandCliInfo`（含 describe, version, subcommands, demandCommandCount）和 `handler()`（子命令 switch-case 路由）
 - 无 `handler()` 的二层 dispatch——`DC create` 进入 ai 包的 handler，内部 switch `SubcommandEnum` 分发到各子命令
 
-#### 默认子命令（`$0`）
+#### 默认子命令
 
-WHEN 子包希望「不指定子命令时执行默认行为」，将对应 `handlers/<subcommand>.ts` 中的 `command` 设为 `"$0"`，其余文件与普通子命令完全一致：
+WHEN 子包希望「不指定子命令时执行默认行为」[MUST] 使用 `packDefaultCommandCliInfo()` 包装目标 handler 的 `commandCliInfo`：
 
 ```typescript
-// handlers/<默认子命令>.ts — 仅此文件有差异
-export const commandCliInfo: SubCliInfo = {
-  command: `$0`,  // ← 普通子命令为 SubcommandEnum.XXX，默认子命令为 "$0"
-  describe: "该子命令的描述",
-  handler: <handlerFn> as SubCliInfo["handler"],
+// handlers/index.ts
+import { packDefaultCommandCliInfo } from "@done-coding/cli-utils";
+
+export const commandCliInfo: Omit<CliInfo, "usage"> = {
+  subcommands: [
+    packDefaultCommandCliInfo(chatCommandCliInfo),  // ← $0 兜底
+    chatCommandCliInfo,                              // ← 命名子命令
+  ].map(createSubcommand),
+  demandCommandCount: 1,
+  // ...
 };
 ```
 
-- 该子命令仍保留在 `SubcommandEnum` 中，仍可通过 `handler(SubcommandEnum.XXX, argv)` 编程调用
-- `handlers/index.ts`、`types/index.ts`、`main.ts` 无需任何特殊处理
-- 参考：`packages/template/src/handlers/compile.ts`
+- `packDefaultCommandCliInfo()` 内部将 `command` 改为 `"$0"`，生成一个仅 yargs 路由使用的副本，不修改原始 `commandCliInfo`
+- 原始 `commandCliInfo` 同时保留在 `subcommands` 中，确保 `--help` 仍显示命名子命令
+- handler 文件本身无需任何改动——`command` 保持为 `SubcommandEnum.XXX`，`handlers/index.ts`、`types/index.ts`、`main.ts` 写法不变
+- 参考：`packages/ai/src/handlers/index.ts`
 
 详细说明：每个子包的架构细节见 `packages/<name>/docs/ARCHITECTURE.md`（待创建）。
 
@@ -143,7 +149,7 @@ export const commandCliInfo: SubCliInfo = {
     ├── @done-coding/cli-inject ── 依赖: utils                       │
     ├── @done-coding/cli-publish ─ 依赖: utils（+ semver）           │
     ├── @done-coding/cli-template  依赖: utils（+ lodash.template）  │
-    └── @done-coding/cli-ai ───── 依赖: utils                       │
+    └── @done-coding/cli-ai ───── 依赖: utils, openai               │
          ↓                                                          │
     @done-coding/cli-utils ─────── 无内部依赖 ──────────────────────┘
 ```
@@ -180,7 +186,7 @@ packages/<name>/
     └── git.config.json     # DC git config
 
 全局配置:
-  ~/.done-coding/config.json   # 全局持久化配置（计划中，AI key/model 等）
+  ~/.done-coding/config.json   # 全局持久化配置（ASSETS_CONFIG_REPO_URL、AI_CONFIG）
 ```
 
 ### 关键数据流
@@ -291,13 +297,13 @@ DC inject:
 | **决策** | 同一份代码同时服务人类交互和 AI agent 调用，通过 `DONE_CODING_PROCESS_CREATE_BY_HIJACK_PRESET_JSON` 区分模式 |
 | **背景** | 避免维护两套逻辑。hijack 模式通过 xPrompts 透明处理交互跳过、日志输出重定向。 |
 
-### ADR-5：AI 对话使用 OpenAI 兼容协议
+### ADR-5：AI 对话使用 openai SDK + OpenAI 兼容协议
 
 | 项 | 内容 |
 |---|---|
 | **状态** | `活跃` |
-| **决策** | `@done-coding/cli-ai` 的 AI 对话后端使用 OpenAI 兼容的 `/v1/chat/completions` 接口 + SSE 流式 |
-| **背景** | 绝大多数模型厂商支持此协议；暂不支持 Anthropic Messages API（用户选型时说明）。零第三方 AI SDK 依赖，用 fetch + SSE parser 自建轻量 adapter。 |
+| **决策** | `@done-coding/cli-ai` 使用 `openai` npm SDK（^4.x）+ SSE 流式 |
+| **背景** | 绝大多数模型厂商支持 OpenAI 兼容协议；SDK 提供 `.stream()` 流式调用、完整 TS 类型、baseURL 可改为任意兼容端点。暂不支持 Anthropic Messages API。 |
 
 ## 8. 质量属性与非功能需求
 
@@ -339,8 +345,6 @@ DC inject:
 
 | 债务 | 优先级 | 说明 |
 |---|---|---|
-| `createChat` 为假实现 | **高** | 见 `packages/cli/src/main.ts`，应替换为调用 `@done-coding/cli-ai` |
-| `@done-coding/cli-ai` 仅有 test 骨架 | **高** | 需实现完整的 AI 对话（选模型 → key → SSE 流式聊天） |
 | 缺少自动化测试 | 中 | 大部分子包仅有 vitest 配置但无实质性测试用例 |
 | create-done-coding 远程模板列表依赖 Gitee | 低 | Gitee 不可用时模板选择不可用，应考虑 fallback 方案 |
 | vite 构建产物包含 `#!/usr/bin/env node` 在非 cli 入口文件中 | 低 | 仅 `cli.ts` 应包含 shebang，构建配置需过滤 |
@@ -389,7 +393,7 @@ pnpm run push  # = lerna publish
 
 ### 日志/输出
 
-- 正常模式：`outputConsole`（chalk 封装）：`.info()`、`.stage()`、`.skip()`、`.log()`
+- 正常模式：`outputConsole`（chalk 封装）：`.info()`、`.stage()`、`.skip()`、`.success()`、`.error()`、`.warn()`、`.debug()`
 - hijack 模式：输出重定向到日志文件
 - `debug` 库用于开发调式（`DEBUG=done-coding:<module>`）
 
@@ -404,7 +408,7 @@ pnpm run push  # = lerna publish
 
 - npm publish 认证：依赖用户本地 `~/.npmrc`（`npm login` 结果）
 - Git clone 认证：依赖用户本地 git credential / SSH key
-- AI API Key：计划持久化到 `~/.done-coding/config.json`（`{ ai: { key: "xxx" } }`）
+- AI API Key：持久化到 `~/.done-coding/config.json` 的 `AI_CONFIG` 字段（含 model、apiKey、baseUrl）
 - AES 加密：`@done-coding/cli-utils` 提供 `encryptAES`/`decryptAES`（用于配置中的敏感值）
 
 ### 包间通信模式

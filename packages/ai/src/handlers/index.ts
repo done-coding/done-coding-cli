@@ -7,6 +7,7 @@ import { SubcommandEnum } from "@/types";
 import {
   createSubcommand,
   getRootScriptName,
+  packDefaultCommandCliInfo,
   type CliInfo,
 } from "@done-coding/cli-utils";
 
@@ -29,7 +30,10 @@ const { version, description: describe } = injectInfo;
 export const commandCliInfo: Omit<CliInfo, "usage"> = {
   describe,
   version,
-  subcommands: [chatCommandCliInfo].map(createSubcommand),
+  subcommands: [
+    packDefaultCommandCliInfo(chatCommandCliInfo),
+    chatCommandCliInfo,
+  ].map(createSubcommand),
   demandCommandCount: 1,
   rootScriptName: getRootScriptName({ packageJson: injectInfo }),
 };

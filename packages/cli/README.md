@@ -57,7 +57,8 @@ done-coding --help
 
 ## 功能特性
 
-- ✅ **统一入口**: 集成 9 个专业工具包，提供统一的命令行入口
+- ✅ **统一入口**: 集成 10 个专业工具包，提供统一的命令行入口
+- 🤖 **AI 对话**: 无子命令时唤起 AI 对话，支持多服务商、SSE 流式响应
 - 🚀 **跨平台兼容**: 支持 Windows、macOS、Linux，自动处理系统差异
 - 🔧 **模块化设计**: 每个子包独立开发，可单独使用或集成使用
 - 📦 **完整工作流**: 涵盖项目创建、开发、构建、发布的完整流程
@@ -111,6 +112,12 @@ done-coding --help
 - **描述**: 项目发布命令行工具
 - **包地址**: [@done-coding/cli-publish](https://www.npmjs.com/package/@done-coding/cli-publish)
 
+### 🤖 AI 对话
+
+- **命令**: `DC ai` 或直接输入 `DC`（无子命令）
+- **描述**: AI 对话命令行工具
+- **包地址**: [@done-coding/cli-ai](https://www.npmjs.com/package/@done-coding/cli-ai)
+
 ### 📝 模板处理
 
 - **命令**: `DC template`
@@ -149,6 +156,10 @@ DC git check <type>                       # 检查git操作
 
 # 项目发布
 DC publish                                # 项目发布命令行工具
+
+# AI 对话
+DC ai                                    # 进入 AI 对话
+DC（无子命令后选 y）                       # 唤起 AI 对话
 ```
 
 ### 使用替代命令
@@ -223,6 +234,19 @@ dc-cli publish
 done-coding publish
 ```
 
+### AI 对话
+
+```bash
+# 方式一：DC 无子命令，选 y 进入 AI 对话
+DC
+
+# 方式二：DC ai 子命令
+DC ai
+
+# 方式三：直接指定 chat
+DC ai chat
+```
+
 ## 配置
 
 您可以在项目根目录创建 `.done-coding.config.js` 文件来自定义配置：
@@ -291,6 +315,7 @@ graph TD
 ├── @done-coding/cli-inject (信息注入)
 ├── @done-coding/cli-publish (项目发布)
 ├── @done-coding/cli-template (模板处理)
+├── @done-coding/cli-ai (AI 对话)
 └── @done-coding/cli-utils (工具库)
 ```
 
