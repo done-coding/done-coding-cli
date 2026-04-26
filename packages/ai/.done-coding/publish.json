@@ -4,7 +4,14 @@
     "aliasInfo": [
       {
         "packageJson": {
-          "name": "dc-ai",
+          "name": "aidoes",
+          "bin": "es/cli.mjs",
+          "scripts": {}
+        }
+      },
+      {
+        "packageJson": {
+          "name": "aidodo",
           "bin": "es/cli.mjs",
           "scripts": {}
         }
