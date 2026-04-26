@@ -6,6 +6,12 @@ import { createAsSubcommand as createPublishCommand } from "@done-coding/cli-pub
 import { createAsSubcommand as createTemplateCommand } from "@done-coding/cli-template";
 import { createAsSubcommand as createComponentCommand } from "@done-coding/cli-component";
 import { createAsSubcommand as createConfigCommand } from "@done-coding/cli-config";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import {
+  createAsSubcommand as createAiCommand,
+  handler as aiHandler,
+} from "@done-coding/cli-ai";
+/* eslint-enable @typescript-eslint/no-unused-vars */
 import injectInfo from "@/injectInfo.json";
 import type { CliInfo } from "@done-coding/cli-utils";
 import {
@@ -68,6 +74,7 @@ const commandCliInfo: CliInfo = {
     createTemplateCommand(),
     createComponentCommand(),
     createConfigCommand(),
+    createAiCommand(),
   ],
   demandCommandCount: 0,
   rootScriptName: getRootScriptName({ packageJson: injectInfo }),

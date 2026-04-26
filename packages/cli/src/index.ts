@@ -29,6 +29,11 @@ export {
 } from "@done-coding/cli-component";
 
 export {
+  createAsSubcommand as createAiCommand,
+  handler as aiHandler,
+} from "@done-coding/cli-ai";
+
+export {
   createAsSubcommand as configComponentCommand,
   handler as configHandler,
 } from "@done-coding/cli-config";

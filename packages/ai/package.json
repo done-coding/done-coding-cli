@@ -1,0 +1,58 @@
+{
+  "name": "@done-coding/cli-ai",
+  "version": "0.0.0",
+  "description": "ai命令行工具",
+  "private": false,
+  "module": "es/index.mjs",
+  "types": "types/index.d.ts",
+  "type": "module",
+  "bin": {
+    "dc-ai": "es/cli.mjs"
+  },
+  "exports": {
+    ".": {
+      "import": "./es/index.mjs",
+      "types": "./types/index.d.ts"
+    }
+  },
+  "files": [
+    "es",
+    "lib",
+    "types"
+  ],
+  "scripts": {
+    "dev": "vite build -w -m hotBuild",
+    "build": "vite build",
+    "prepack": "pnpm build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/done-coding/done-coding-cli.git",
+    "directory": "packages/ai"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "author": "JustSoSu",
+  "license": "MIT",
+  "sideEffects": false,
+  "devDependencies": {
+    "@done-coding/cli-inject": "workspace:0.5.23",
+    "@types/node": "^18.0.0",
+    "@types/prompts": "^2.4.6",
+    "@types/yargs": "^17.0.28",
+    "@vitest/coverage-v8": "^1.6.1",
+    "typescript": "^5.8.3",
+    "vite": "^5.0.10",
+    "vite-plugin-dts": "^3.7.0",
+    "vitest": "^1.6.1"
+  },
+  "peerDependencies": {},
+  "dependencies": {
+    "@done-coding/cli-utils": "workspace:0.8.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

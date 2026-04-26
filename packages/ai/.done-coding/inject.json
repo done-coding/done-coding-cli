@@ -1,0 +1,26 @@
+{
+  "sourceFilePath": "./package.json",
+  "keyConfigMap": {
+    "name": {
+      "type": "read"
+    },
+    "version": {
+      "type": "read"
+    },
+    "description": {
+      "type": "read"
+    },
+    "bin": {
+      "type": "read"
+    },
+    "cliConfig.namespaceDir": {
+      "type": "fixed",
+      "value": ".${organization}"
+    },
+    "cliConfig.moduleName": {
+      "type": "fixed",
+      "value": "${name}"
+    }
+  },
+  "injectFilePath": "./src/injectInfo.json"
+}

@@ -49,6 +49,7 @@
     "vite-plugin-dts": "^3.6.0"
   },
   "dependencies": {
+    "@done-coding/cli-ai": "workspace:0.0.0",
     "@done-coding/cli-component": "workspace:0.4.12",
     "@done-coding/cli-config": "workspace:0.1.15",
     "@done-coding/cli-extract": "workspace:0.1.23",

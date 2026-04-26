@@ -41,6 +41,10 @@
       "path": "packages/config",
     },
     {
+      "name": "ai",
+      "path": "packages/ai",
+    },
+    {
       "name": "cli",
       "path": "packages/cli",
     },
