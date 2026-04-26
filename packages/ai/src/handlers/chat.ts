@@ -14,9 +14,9 @@ import { writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { SubcommandEnum, ChatKeywordEnum } from "@/types";
 import {
-  MODEL_PRESETS,
-  CUSTOM_PRESET_INDEX,
-  CUSTOM_PRESET_LABEL,
+  PROVIDER_PRESETS,
+  CUSTOM_PROVIDER_INDEX,
+  CUSTOM_PROVIDER_LABEL,
 } from "@/services/model-presets";
 import { AuthenticationError } from "openai";
 import { streamChat } from "@/services/api-client";
@@ -50,38 +50,62 @@ const writeGlobalConfig = async (config: DoneCodingCliGlobalConfig) => {
 };
 
 /**
- * 首次引导流程：展示预设模型列表 → 用户选择（含自定义） → 输入 API Key
+ * 首次引导流程：
+ * 1. 选择模型服务商（含自定义）
+ * 2. 选择该服务商下的具体模型
+ * 3. 输入 API Key
  * @returns AiConfig 配置对象，用户取消时返回 null
  */
 const firstTimeSetup = async (): Promise<AiConfig | null> => {
-  const choices = MODEL_PRESETS.map((p, i) => ({
-    title: `${p.label} (${p.baseUrl})`,
+  // Step 1: 选择服务商
+  const providerChoices = PROVIDER_PRESETS.map((p, i) => ({
+    title: p.label,
     value: i,
   }));
-  choices.push({ title: CUSTOM_PRESET_LABEL, value: CUSTOM_PRESET_INDEX });
+  providerChoices.push({
+    title: CUSTOM_PROVIDER_LABEL,
+    value: CUSTOM_PROVIDER_INDEX,
+  });
 
-  const { modelIndex } = await xPrompts({
+  const { providerIndex } = await xPrompts({
     type: "select",
-    name: "modelIndex",
-    message: "选择大模型",
-    choices,
+    name: "providerIndex",
+    message: "选择模型服务商",
+    choices: providerChoices,
   });
 
   let model: string;
   let baseUrl: string;
 
-  if (modelIndex === CUSTOM_PRESET_INDEX) {
+  if (providerIndex === CUSTOM_PROVIDER_INDEX) {
+    // 自定义：手填模型名 + baseUrl
     const custom = await xPrompts([
-      { type: "text", name: "model", message: "输入模型名" },
+      { type: "text", name: "model", message: "输入模型标识名" },
       { type: "text", name: "baseUrl", message: "输入 API Base URL" },
     ]);
     model = custom.model;
     baseUrl = custom.baseUrl;
   } else {
-    model = MODEL_PRESETS[modelIndex].model;
-    baseUrl = MODEL_PRESETS[modelIndex].baseUrl;
+    const provider = PROVIDER_PRESETS[providerIndex];
+    baseUrl = provider.baseUrl;
+
+    // Step 2: 选择该服务商下的模型
+    const modelChoices = provider.models.map((m, i) => ({
+      title: m.label,
+      value: i,
+    }));
+
+    const { modelIndex } = await xPrompts({
+      type: "select",
+      name: "modelIndex",
+      message: `选择 ${provider.label} 模型`,
+      choices: modelChoices,
+    });
+
+    model = provider.models[modelIndex].model;
   }
 
+  // Step 3: 输入 API Key
   const { apiKey } = await xPrompts({
     type: "password",
     name: "apiKey",

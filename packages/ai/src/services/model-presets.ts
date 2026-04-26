@@ -1,41 +1,75 @@
-import type { AiConfig } from "@done-coding/cli-utils";
+/**
+ * 模型服务商预设
+ * ---
+ * 两级结构：先选服务商（含 baseUrl），再选该服务商下的具体模型
+ */
 
-/** 预设模型条目（继承 AiConfig 配置字段，附加展示标签） */
-export type ModelPreset = {
+/** 模型信息 */
+export interface ModelInfo {
+  /** 模型标识名（API 调用传参），如 "deepseek-chat" */
+  model: string;
   /** 用户可见的展示名称 */
   label: string;
-} & AiConfig;
+}
 
-/** 自定义模型选项的索引值 */
-export const CUSTOM_PRESET_INDEX = -1;
+/** 服务商预设 */
+export interface ProviderPreset {
+  /** 服务商展示名称 */
+  label: string;
+  /** API Base URL */
+  baseUrl: string;
+  /** 该服务商下可用模型列表 */
+  models: ModelInfo[];
+}
 
-/** 自定义模型的展示标签文本 */
-export const CUSTOM_PRESET_LABEL = "自定义...";
+/** 自定义服务商的索引值 */
+export const CUSTOM_PROVIDER_INDEX = -1;
 
-/** 预设模型列表（不含 apiKey，用户需自行输入） */
-export const MODEL_PRESETS: ModelPreset[] = [
+/** 自定义服务商的展示标签 */
+export const CUSTOM_PROVIDER_LABEL = "自定义...";
+
+/** 预设服务商列表 */
+export const PROVIDER_PRESETS: ProviderPreset[] = [
   {
-    label: "DeepSeek V3",
-    model: "deepseek-chat",
-    apiKey: "",
+    label: "DeepSeek",
     baseUrl: "https://api.deepseek.com",
+    models: [
+      { model: "deepseek-v4-flash", label: "DeepSeek V4 Flash" },
+      { model: "deepseek-v4-pro", label: "DeepSeek V4 Pro" },
+      {
+        model: "deepseek-chat",
+        label: "DeepSeek V3 (chat，将于 2026/07/24 弃用)",
+      },
+      {
+        model: "deepseek-reasoner",
+        label: "DeepSeek R1 (reasoner，将于 2026/07/24 弃用)",
+      },
+    ],
   },
   {
     label: "通义千问",
-    model: "qwen-turbo",
-    apiKey: "",
     baseUrl: "https://dashscope.aliyuncs.com/compatible-mode",
+    models: [
+      { model: "qwen-turbo", label: "Qwen Turbo" },
+      { model: "qwen-plus", label: "Qwen Plus" },
+      { model: "qwen-max", label: "Qwen Max" },
+    ],
   },
   {
-    label: "Kimi",
-    model: "moonshot-v1-8k",
-    apiKey: "",
+    label: "Kimi (月之暗面)",
     baseUrl: "https://api.moonshot.cn",
+    models: [
+      { model: "moonshot-v1-8k", label: "Moonshot v1 8K" },
+      { model: "moonshot-v1-32k", label: "Moonshot v1 32K" },
+      { model: "moonshot-v1-128k", label: "Moonshot v1 128K" },
+    ],
   },
   {
     label: "Groq",
-    model: "llama-3.3-70b",
-    apiKey: "",
     baseUrl: "https://api.groq.com/openai",
+    models: [
+      { model: "llama-3.3-70b-versatile", label: "Llama 3.3 70B" },
+      { model: "mixtral-8x7b-32768", label: "Mixtral 8x7B" },
+    ],
   },
 ];
