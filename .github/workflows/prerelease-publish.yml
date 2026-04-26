@@ -1,0 +1,131 @@
+# ============================================================
+# 工作流名称：Publish from Prerelease
+# 触发条件：仅当 Pull Request 被合并到 prerelease 分支时触发
+# 核心流程：
+#   1. 将 master 最新代码同步到本地 prerelease（确保基于主干最新代码发布）
+#   2. 安装依赖并执行 lerna publish prerelease（本地生成版本提交和标签，不推送）
+#   3. 推送 prerelease 分支和 Git 标签到远端
+#   4. 不合并到 master（prerelease 不作为稳定主干基线）
+# ============================================================
+
+name: Publish from Prerelease
+
+# ------------------------------------------------------------
+# 可配置的版本变量（修改此处即可全局生效）
+# ------------------------------------------------------------
+env:
+  NODE_VERSION: "22" # Node.js 主版本号
+  PNPM_VERSION: "10.33.0" # pnpm 精确版本号
+
+# ------------------------------------------------------------
+# 触发条件：仅监听 prerelease 分支的 PR 被关闭事件
+# ------------------------------------------------------------
+on:
+  pull_request:
+    types:
+      - closed # PR 关闭时触发（包含合并关闭和直接关闭）
+    branches:
+      - prerelease # 仅针对目标分支为 prerelease 的 PR
+
+# ------------------------------------------------------------
+# 并发控制：同一时间只允许一个发布任务运行，避免并发冲突
+# ------------------------------------------------------------
+concurrency:
+  group: prerelease-publish
+  cancel-in-progress: false # 不取消正在运行的任务，新任务排队等待
+
+jobs:
+  publish:
+    # --------------------------------------------------------
+    # 关键过滤：仅当 PR 真正被合并时才执行，直接关闭的 PR 跳过
+    # --------------------------------------------------------
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    # 必须显式声明权限，确保 GITHUB_TOKEN 有推送代码和标签的能力
+    permissions:
+      contents: write
+
+    steps:
+      # --------------------------------------------------------
+      # 步骤 1：检出代码
+      # --------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取完整 Git 历史，供 lerna 计算版本号
+          token: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+
+      # --------------------------------------------------------
+      # 步骤 2：安装 pnpm（版本从环境变量读取）
+      # --------------------------------------------------------
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      # --------------------------------------------------------
+      # 步骤 3：安装 Node.js（版本从环境变量读取）
+      # --------------------------------------------------------
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: "https://registry.npmjs.org"
+
+      # --------------------------------------------------------
+      # 步骤 4：配置 Git 用户信息
+      # --------------------------------------------------------
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          # 使用 GitHub Actions 官方虚拟邮箱，确保提交正确归属 Bot
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # --------------------------------------------------------
+      # 步骤 5：将 master 分支的最新代码同步到本地 prerelease
+      # --------------------------------------------------------
+      # 目的：确保本次发布基于最新的主干代码（包含所有已上线的 hotfix）
+      # 注意：仅在本地合并，不推送到远端，避免触发额外的 CI 运行
+      # --------------------------------------------------------
+      - name: Sync master into prerelease (locally)
+        run: |
+          git fetch origin master
+          # 使用 --no-ff 保留合并历史，提交信息带 [skip ci] 是防御性措施
+          git merge origin/master --no-ff -m "chore: sync master into prerelease [skip ci]"
+
+      # --------------------------------------------------------
+      # 步骤 6：安装项目依赖
+      # --------------------------------------------------------
+      - name: Install dependencies
+        run: pnpm install
+
+      # --------------------------------------------------------
+      # 步骤 7：Lerna 发布 prerelease（本地生成提交和标签，不推送）
+      # --------------------------------------------------------
+      # 关键参数：
+      #   prerelease          使用 prerelease 版本策略（如 1.0.0 → 1.0.1-alpha.0）
+      #   --dist-tag alpha     发布到 npm 的 alpha dist-tag，不影响 latest
+      #   --preid alpha        预发布标识符前缀
+      #   --yes                跳过所有交互式确认
+      #   --no-push            禁止 Lerna 自动推送，由我们手动控制推送时机
+      #   --message            自定义版本提交信息，包含 [skip ci] 防止循环触发
+      # --------------------------------------------------------
+      - name: Publish packages (no push)
+        # --------------------------------------------------------
+        # lerna publish 前构建所有包：考虑某些依赖会是其他不需要发版的workspace包
+        # --------------------------------------------------------
+        run: |
+          npx lerna run build
+          npx lerna publish prerelease --yes --dist-tag alpha --preid alpha --no-push --message "chore(prerelease): publish [skip ci]"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+
+      # --------------------------------------------------------
+      # 步骤 8：推送 prerelease 分支和 Git 标签
+      # --------------------------------------------------------
+      # --follow-tags 确保 lerna 生成的标签一并推送
+      # --------------------------------------------------------
+      - name: Push prerelease branch and tags
+        run: git push --follow-tags origin prerelease
