@@ -26,3 +26,23 @@ b. 修改设计/计划后再说
 ```
 
 > 特例复现 → 项目改进；跨项目出现 → 全局改进
+
+---
+
+## 2026-04-26: 未查实际 API 就使用 `outputConsole.log` — 该方法不存在
+
+**层级：** 项目改进
+
+**现象：**
+AI 在 chat.ts 中使用 `outputConsole.log()` 打印普通信息，但 `outputConsole` 不存在 `log` 方法。运行时报错 `TypeError: outputConsole.log is not a function`。用户指出应使用 `outputConsole.info()`。
+
+**根因：**
+- AI 根据通用经验假设 `outputConsole.log` 存在（大多数 logger 都有 `log` 方法）
+- 实现代码前没有 grep 验证 `outputConsole` 的实际方法列表
+- 现有方法为：`info`、`error`、`warn`、`success`、`stage`、`skip`、`debug`——偏偏没有 `log`
+
+**建议改进：**
+- TECH_SNAPSHOT 的「常见错误」中新增一条：假设开源库/内部模块的 API 存在某个通用方法 -> [MUST] grep 验证
+- 或者在设计阶段要求列出将要使用的模块接口作为 checklist
+
+> 特例复现 → 项目改进；跨项目出现 → 全局改进
