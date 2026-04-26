@@ -101,17 +101,17 @@ const chatHandler = async () => {
 
   // 首次配置
   if (!aiConfig?.apiKey) {
-    outputConsole.log("首次使用需配置模型和 API Key\n");
+    outputConsole.info("首次使用需配置模型和 API Key\n");
     const result = await firstTimeSetup();
     if (!result) return;
 
     aiConfig = result;
     config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG] = aiConfig;
     await writeGlobalConfig(config);
-    outputConsole.log("");
+    outputConsole.info("");
   }
 
-  outputConsole.log(
+  outputConsole.info(
     `模型: ${aiConfig.model} | 输入消息开始对话 (${ChatKeywordEnum.EXIT} 退出, ${ChatKeywordEnum.MODEL} 切换模型, ${ChatKeywordEnum.CLEAR} 清屏)\n`,
   );
 
@@ -129,7 +129,7 @@ const chatHandler = async () => {
     if (!trimmed) continue;
 
     if (trimmed === ChatKeywordEnum.EXIT) {
-      outputConsole.log("对话结束");
+      outputConsole.info("对话结束");
       return;
     }
 
@@ -139,7 +139,7 @@ const chatHandler = async () => {
         aiConfig = result;
         config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG] = aiConfig;
         await writeGlobalConfig(config);
-        outputConsole.log(`已切换至 ${aiConfig.model}\n`);
+        outputConsole.info(`已切换至 ${aiConfig.model}\n`);
       }
       continue;
     }
