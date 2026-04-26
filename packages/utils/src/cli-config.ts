@@ -15,6 +15,16 @@ import { uuidv4 } from "@/uuid";
 import { outputConsole } from "@/env-config";
 import { execSyncHijack } from "@/process";
 
+/** AI 对话配置 */
+export interface AiConfig {
+  /** 模型名称，如 "deepseek-chat" */
+  model: string;
+  /** API Key */
+  apiKey: string;
+  /** API Base URL，如 "https://api.deepseek.com" */
+  baseUrl: string;
+}
+
 /** done-coding-cli 全局配置 key 枚举 */
 export enum DoneCodingCliGlobalConfigKeyEnum {
   /**
@@ -24,12 +34,15 @@ export enum DoneCodingCliGlobalConfigKeyEnum {
    * 2. 若非上述 则认为本地【绝对】路径
    */
   ASSETS_CONFIG_REPO_URL = "ASSETS_CONFIG_REPO_URL",
+  /** AI 对话配置 */
+  AI_CONFIG = "AI_CONFIG",
 }
 
 /** done-coding-cli 全局配置 */
-export type DoneCodingCliGlobalConfig = {
-  [K in DoneCodingCliGlobalConfigKeyEnum]: string;
-};
+export interface DoneCodingCliGlobalConfig {
+  [DoneCodingCliGlobalConfigKeyEnum.ASSETS_CONFIG_REPO_URL]: string;
+  [DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG]?: AiConfig;
+}
 
 /** 获取cli模块【临时】目录[绝对路径] */
 export const getCliModuleTempDir = (moduleName: string) => {
@@ -40,18 +53,19 @@ export const getCliModuleTempDir = (moduleName: string) => {
   );
 };
 
-/** 【全局】获取全局配置文件目录 */
-const getGlobalConfigJsonFilePath = () => {
+/** 【全局】获取全局配置文件路径 */
+export const getGlobalConfigFilePath = () => {
   return path.resolve(homedir(), DONE_CODING_CLI_GLOBAL_CONFIG_RELATIVE_PATH);
 };
 
 /** 获取全局配置文件 */
 const getGlobalConfig = async (): Promise<DoneCodingCliGlobalConfig> => {
-  const filePath = getGlobalConfigJsonFilePath();
+  const filePath = getGlobalConfigFilePath();
 
   const config: DoneCodingCliGlobalConfig = {
     [DoneCodingCliGlobalConfigKeyEnum.ASSETS_CONFIG_REPO_URL]:
       ASSETS_CONFIG_REPO_URL_DEFAULT,
+    [DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG]: undefined,
   };
   try {
     if (await assetIsExitsAsync(filePath)) {
@@ -59,7 +73,7 @@ const getGlobalConfig = async (): Promise<DoneCodingCliGlobalConfig> => {
         Partial<DoneCodingCliGlobalConfig>
       >(filePath, {});
       Object.entries(fileConfig).forEach(([key, value]) => {
-        config[key as DoneCodingCliGlobalConfigKeyEnum] = value;
+        (config as any)[key] = value;
       });
     }
   } catch (error) {}
