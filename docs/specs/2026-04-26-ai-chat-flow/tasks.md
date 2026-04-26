@@ -657,6 +657,17 @@ git status
 
 ---
 
-### 当前进度
-- 当前任务：准备就绪
-- 下一步：用户确认计划后开始执行 Task 1
+---
+## 变更记录
+
+> 以下变更在实施过程中根据用户反馈产生，已同步更新 requirements.md 和 design.md。
+
+| # | 日期 | 变更 | 影响范围 |
+|---|---|---|---|
+| 1 | 2026-04-26 | 模型选择从一级改为两级（服务商 → 模型） | model-presets.ts, chat.ts |
+| 2 | 2026-04-26 | 新增 `/provider` 关键字（选服务商+模型，保留 key） | types/index.ts, chat.ts |
+| 3 | 2026-04-26 | `/model` 改为在当前服务商下切换模型 | chat.ts |
+| 4 | 2026-04-26 | 移除示例性质 test 命令及相关类型 | test.ts, types/index.ts, handlers/index.ts |
+| 5 | 2026-04-26 | 401 错误时重新引导输入 API Key（不退出循环） | chat.ts |
+| 6 | 2026-04-26 | `outputConsole.log` → `outputConsole.info`（原方法不存在） | chat.ts |
+| 7 | 2026-04-26 | `TS18048` aiConfig 可能 undefined + ESLint 类型断言警告修复 | chat.ts |

@@ -55,31 +55,48 @@ export type AiConfig = {
 - `for await (const chunk of stream)` 逐 token 回调 `onToken(content)`
 - 网络/API 错误由调用方 catch 并友好提示
 
-### 3. 模型预设
+### 3. 模型预设（两级结构）
 
 `packages/ai/src/services/model-presets.ts`：
 
 ```typescript
-export const MODEL_PRESETS = [
-  { label: "DeepSeek V3", model: "deepseek-chat", baseUrl: "https://api.deepseek.com" },
-  { label: "通义千问",   model: "qwen-turbo", baseUrl: "https://dashscope.aliyuncs.com/compatible-mode" },
-  { label: "Kimi",       model: "moonshot-v1-8k", baseUrl: "https://api.moonshot.cn" },
-  { label: "Groq",       model: "llama-3.3-70b", baseUrl: "https://api.groq.com/openai" },
-  { label: "自定义...",  model: "", baseUrl: "" },
+// 两级结构：ProviderPreset（服务商） → ModelInfo（模型）
+export type ProviderPreset = {
+  label: string;       // 服务商名称
+  baseUrl: string;     // API 地址
+  models: ModelInfo[]; // 该服务商下的模型列表
+};
+
+export const PROVIDER_PRESETS = [
+  { label: "DeepSeek", baseUrl: "https://api.deepseek.com",
+    models: [
+      { model: "deepseek-v4-flash", label: "DeepSeek V4 Flash" },
+      { model: "deepseek-v4-pro",   label: "DeepSeek V4 Pro" },
+      { model: "deepseek-chat",     label: "DeepSeek V3 (弃用标注)" },
+      { model: "deepseek-reasoner", label: "DeepSeek R1 (弃用标注)" },
+    ]
+  },
+  { label: "通义千问", ... },
+  { label: "Kimi", ... },
+  { label: "Groq", ... },
 ];
 ```
 
-自定义选项触发额外输入：model + baseUrl。
+选择流程：选服务商 → 选该服务商下的模型。自定义服务商直接输入 model + baseUrl。
 
-### 4. Chat Handler 注册
+### 4. Chat Handler 结构
 
-遵循 TECH_SNAPSHOT 第 4 章的子包标准模式：
+`chat.ts` 拆分为三个独立函数：
 
-- `chat.ts` 导出 `commandCliInfo: SubCliInfo` 和 `handler`
-- `SubcommandEnum` 新增 `CHAT = "chat"`
-- `handlers/index.ts` switch-case 新增 `CHAT` 分支
-- `subcommands` 数组追加 `chatCommandCliInfo`
-- `demandCommandCount: 1` 保持不变
+- `selectProviderAndModel()` — 选服务商 → 选模型，返回 `{ model, baseUrl }`（不含 key）
+- `selectModelForProvider(provider)` — 在当前服务商下选模型
+- `firstTimeSetup()` — 调用 `selectProviderAndModel()` + 输入 API Key
+
+其中 `ChatKeywordEnum` 新增 `PROVIDER = "/provider"`：
+- `/provider`：调用 `selectProviderAndModel()`，保留 API Key
+- `/model`：根据当前 `baseUrl` 匹配服务商 → 直接选模型；自定义 baseUrl 则走完整流程
+
+注册方式遵循 TECH_SNAPSHOT 子包标准模式。`SubcommandEnum` 仅保留 `CHAT`（`TEST` 已移除）。
 
 ### 5. CLI 入口路由
 
@@ -119,9 +136,13 @@ loop:
   xPrompts({ type: "text" }) → 用户输入
   → 空输入 → continue
   → /exit → return
-  → /model → 重选模型 → update config → continue
+  → /provider → selectProviderAndModel() → update config → continue
+  → /model → 当前服务商匹配 → selectModelForProvider() → update config
+            → 匹配不到 → selectProviderAndModel() → update config → continue
   → /clear → 清屏 → continue
   → 其他 → streamChat(config, input) → 逐 token 输出 → 换行 → continue
+         → 401/AuthenticationError → firstTimeSetup() 重新输入 key → continue
+         → 其他错误 → 提示 → continue
 ```
 
 ## 注意事项 / 已知风险
@@ -130,5 +151,6 @@ loop:
 |---|---|
 | `DoneCodingCliGlobalConfig` 类型变更影响 `getGlobalConfig` 调用方 | 仅 config 模块的一个函数受影响，需确保 ASSETS_CONFIG_REPO_URL 仍正常工作 |
 | `openai` SDK 的 baseURL 拼接 | 用户输入是 `https://api.deepseek.com`，SDK 自动加 `/v1`，需测试各模型的实际行为 |
+| 401 认证失败 | 自动重新引导输入 API Key，不退出循环 |
 | stream 中断 | 捕获网络异常，提示"连接中断"，不退出循环 |
 | hijack 兼容 | chatHandler 用 xPrompts 做输入，天然兼容 |
