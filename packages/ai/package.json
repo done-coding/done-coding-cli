@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-ai",
-  "version": "0.0.0",
+  "version": "0.0.1-alpha.0",
   "description": "ai命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -38,7 +38,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:0.5.23",
+    "@done-coding/cli-inject": "workspace:0.5.24-alpha.0",
     "@types/node": "^18.0.0",
     "@types/prompts": "^2.4.6",
     "@types/yargs": "^17.0.28",
@@ -48,9 +48,8 @@
     "vite-plugin-dts": "^3.7.0",
     "vitest": "^1.6.1"
   },
-  "peerDependencies": {},
   "dependencies": {
-    "@done-coding/cli-utils": "workspace:0.8.4",
+    "@done-coding/cli-utils": "workspace:0.8.5-alpha.0",
     "openai": "^4.77.0"
   },
   "engines": {

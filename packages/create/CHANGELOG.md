@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.11.27-alpha.1](https://github.com/done-coding/done-coding-cli/compare/create-done-coding@0.11.26...create-done-coding@0.11.27-alpha.1) (2026-04-26)
+
+### Features
+
+- **ai:** 开发ai子cli ([df4ef1a](https://github.com/done-coding/done-coding-cli/commit/df4ef1a9b69bc9221a3e9188dc17ef32c3e8701d))
+
 ## [0.11.26](https://github.com/done-coding/done-coding-cli/compare/create-done-coding@0.11.25...create-done-coding@0.11.26) (2026-04-14)
 
 ### Bug Fixes

@@ -56,14 +56,14 @@ importers:
   packages/ai:
     dependencies:
       "@done-coding/cli-utils":
-        specifier: workspace:0.8.4
+        specifier: workspace:0.8.5-alpha.0
         version: link:../utils
       openai:
         specifier: ^4.77.0
         version: 4.104.0(encoding@0.1.13)
     devDependencies:
       "@done-coding/cli-inject":
-        specifier: workspace:0.5.23
+        specifier: workspace:0.5.24-alpha.0
         version: link:../inject
       "@types/node":
         specifier: ^18.0.0
@@ -93,34 +93,34 @@ importers:
   packages/cli:
     dependencies:
       "@done-coding/cli-ai":
-        specifier: workspace:0.0.0
+        specifier: workspace:0.0.1-alpha.0
         version: link:../ai
       "@done-coding/cli-component":
-        specifier: workspace:0.4.12
+        specifier: workspace:0.4.13-alpha.0
         version: link:../component
       "@done-coding/cli-config":
-        specifier: workspace:0.1.15
+        specifier: workspace:0.1.16-alpha.0
         version: link:../config
       "@done-coding/cli-extract":
-        specifier: workspace:0.1.23
+        specifier: workspace:0.1.24-alpha.0
         version: link:../extract
       "@done-coding/cli-git":
-        specifier: workspace:0.6.15
+        specifier: workspace:0.6.16-alpha.0
         version: link:../git
       "@done-coding/cli-inject":
-        specifier: workspace:0.5.23
+        specifier: workspace:0.5.24-alpha.0
         version: link:../inject
       "@done-coding/cli-publish":
-        specifier: workspace:0.7.16
+        specifier: workspace:0.7.17-alpha.0
         version: link:../publish
       "@done-coding/cli-template":
-        specifier: workspace:0.8.10
+        specifier: workspace:0.8.11-alpha.0
         version: link:../template
       "@done-coding/cli-utils":
-        specifier: workspace:0.8.4
+        specifier: workspace:0.8.5-alpha.0
         version: link:../utils
       create-done-coding:
-        specifier: workspace:0.11.27-alpha.0
+        specifier: workspace:0.11.27-alpha.1
         version: link:../create
     devDependencies:
       "@types/node":
@@ -139,10 +139,10 @@ importers:
   packages/component:
     dependencies:
       "@done-coding/cli-template":
-        specifier: workspace:0.8.10
+        specifier: workspace:0.8.11-alpha.0
         version: link:../template
       "@done-coding/cli-utils":
-        specifier: workspace:0.8.4
+        specifier: workspace:0.8.5-alpha.0
         version: link:../utils
       lodash.camelcase:
         specifier: ^4.3.0
@@ -161,7 +161,7 @@ importers:
         version: 4.3.1
     devDependencies:
       "@done-coding/cli-inject":
-        specifier: workspace:0.5.23
+        specifier: workspace:0.5.24-alpha.0
         version: link:../inject
       "@types/lodash.camelcase":
         specifier: ^4.3.8
@@ -197,11 +197,11 @@ importers:
   packages/config:
     dependencies:
       "@done-coding/cli-utils":
-        specifier: workspace:0.8.4
+        specifier: workspace:0.8.5-alpha.0
         version: link:../utils
     devDependencies:
       "@done-coding/cli-inject":
-        specifier: workspace:0.5.23
+        specifier: workspace:0.5.24-alpha.0
         version: link:../inject
       "@types/node":
         specifier: ^18.0.0
@@ -222,17 +222,17 @@ importers:
   packages/create:
     dependencies:
       "@done-coding/cli-git":
-        specifier: workspace:0.6.15
+        specifier: workspace:0.6.16-alpha.0
         version: link:../git
       "@done-coding/cli-template":
-        specifier: workspace:0.8.10
+        specifier: workspace:0.8.11-alpha.0
         version: link:../template
       "@done-coding/cli-utils":
-        specifier: workspace:0.8.4
+        specifier: workspace:0.8.5-alpha.0
         version: link:../utils
     devDependencies:
       "@done-coding/cli-inject":
-        specifier: workspace:0.5.23
+        specifier: workspace:0.5.24-alpha.0
         version: link:../inject
       "@types/node":
         specifier: ^18.0.0
@@ -253,14 +253,14 @@ importers:
   packages/extract:
     dependencies:
       "@done-coding/cli-template":
-        specifier: workspace:0.8.10
+        specifier: workspace:0.8.11-alpha.0
         version: link:../template
       "@done-coding/cli-utils":
-        specifier: workspace:0.8.4
+        specifier: workspace:0.8.5-alpha.0
         version: link:../utils
     devDependencies:
       "@done-coding/cli-inject":
-        specifier: workspace:0.5.23
+        specifier: workspace:0.5.24-alpha.0
         version: link:../inject
       "@types/node":
         specifier: ^18.0.0
@@ -281,7 +281,7 @@ importers:
   packages/git:
     dependencies:
       "@done-coding/cli-utils":
-        specifier: workspace:0.8.4
+        specifier: workspace:0.8.5-alpha.0
         version: link:../utils
       "@done-coding/request-axios":
         specifier: ^1.2.2
@@ -291,7 +291,7 @@ importers:
         version: 1.8.4
     devDependencies:
       "@done-coding/cli-inject":
-        specifier: workspace:0.5.23
+        specifier: workspace:0.5.24-alpha.0
         version: link:../inject
       "@types/node":
         specifier: ^18.0.0
@@ -312,7 +312,7 @@ importers:
   packages/inject:
     dependencies:
       "@done-coding/cli-utils":
-        specifier: workspace:0.8.4
+        specifier: workspace:0.8.5-alpha.0
         version: link:../utils
     devDependencies:
       "@types/node":
@@ -334,14 +334,14 @@ importers:
   packages/publish:
     dependencies:
       "@done-coding/cli-utils":
-        specifier: workspace:0.8.4
+        specifier: workspace:0.8.5-alpha.0
         version: link:../utils
       semver:
         specifier: ^7.5.4
         version: 7.5.4
     devDependencies:
       "@done-coding/cli-inject":
-        specifier: workspace:0.5.23
+        specifier: workspace:0.5.24-alpha.0
         version: link:../inject
       "@types/node":
         specifier: ^18.0.0
@@ -365,7 +365,7 @@ importers:
   packages/template:
     dependencies:
       "@done-coding/cli-utils":
-        specifier: workspace:0.8.4
+        specifier: workspace:0.8.5-alpha.0
         version: link:../utils
       lodash.assign:
         specifier: ^4.2.0
@@ -375,7 +375,7 @@ importers:
         version: 4.5.0
     devDependencies:
       "@done-coding/cli-inject":
-        specifier: workspace:0.5.23
+        specifier: workspace:0.5.24-alpha.0
         version: link:../inject
       "@types/lodash.assign":
         specifier: ^4.2.9
