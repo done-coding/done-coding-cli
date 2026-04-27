@@ -1,0 +1,21 @@
+{
+  "web": {},
+  "npm": {
+    "aliasInfo": [
+      {
+        "packageJson": {
+          "name": "ai-mrm",
+          "bin": "es/cli.mjs",
+          "scripts": {}
+        }
+      },
+      {
+        "packageJson": {
+          "name": "done-coding-mrm",
+          "bin": "es/cli.mjs",
+          "scripts": {}
+        }
+      }
+    ]
+  }
+}
