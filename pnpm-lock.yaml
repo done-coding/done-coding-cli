@@ -334,12 +334,12 @@ importers:
   packages/mrm:
     dependencies:
       "@done-coding/cli-utils":
-        specifier: ^0.7.4
-        version: 0.7.8(encoding@0.1.13)
+        specifier: workspace:0.9.0
+        version: link:../utils
     devDependencies:
       "@done-coding/cli-inject":
-        specifier: ^0.5.17
-        version: 0.5.23(encoding@0.1.13)
+        specifier: workspace:0.6.0
+        version: link:../inject
       "@types/node":
         specifier: ^18.0.0
         version: 18.19.4
@@ -793,28 +793,6 @@ packages:
         integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==,
       }
     engines: { node: ">=12" }
-
-  "@done-coding/cli-inject@0.5.23":
-    resolution:
-      {
-        integrity: sha512-wlgZmXhXGkXfc/9gmtCgo6c5m2FPdT1gU+Wm4eYpGjQgvBXE7oKMC4FQ8hSvSWtJC4lcmQ+iku4Ar9DvpdviHA==,
-      }
-    engines: { node: ">=18.0.0" }
-    hasBin: true
-
-  "@done-coding/cli-utils@0.7.8":
-    resolution:
-      {
-        integrity: sha512-HyYIj+zLeMdm1N9pwtCZYflhQcuV5bmr1fg8wSeSJWLzah1HT4OXOFzJ13AIMQQmpjAaxM0k/A3p1RdQj+YAHw==,
-      }
-    engines: { node: ">=18.0.0" }
-
-  "@done-coding/cli-utils@0.8.4":
-    resolution:
-      {
-        integrity: sha512-dY2e0+OtZ/Q8Z1MYSu4YLoyrFuFO+xFSbB5Ls7EsFpHyMlNgPok1D7k8vA9wvEwQIIaxl04JywNC0wkRAiOjiA==,
-      }
-    engines: { node: ">=18.0.0" }
 
   "@done-coding/output-core@0.1.2":
     resolution:
@@ -8703,49 +8681,6 @@ snapshots:
   "@cspotcode/source-map-support@0.8.1":
     dependencies:
       "@jridgewell/trace-mapping": 0.3.9
-
-  "@done-coding/cli-inject@0.5.23(encoding@0.1.13)":
-    dependencies:
-      "@done-coding/cli-utils": 0.8.4(encoding@0.1.13)
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
-
-  "@done-coding/cli-utils@0.7.8(encoding@0.1.13)":
-    dependencies:
-      chalk: 5.4.1
-      json5: 2.2.3
-      lodash.curry: 4.1.1
-      lodash.get: 4.4.2
-      lodash.merge: 4.6.2
-      lodash.set: 4.3.2
-      pinyin: 2.11.2(encoding@0.1.13)
-      prompts: 2.4.2
-      semver: 7.7.3
-      yargs: 17.7.2
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
-
-  "@done-coding/cli-utils@0.8.4(encoding@0.1.13)":
-    dependencies:
-      "@done-coding/output-node": 0.1.2(chalk@5.4.1)(pino@8.17.2)(signal-exit@4.1.0)
-      chalk: 5.4.1
-      dayjs: 1.11.19
-      json5: 2.2.3
-      lodash.curry: 4.1.1
-      lodash.get: 4.4.2
-      lodash.merge: 4.6.2
-      lodash.set: 4.3.2
-      pino: 8.17.2
-      pinyin: 2.11.2(encoding@0.1.13)
-      prompts: 2.4.2
-      semver: 7.7.3
-      signal-exit: 4.1.0
-      yargs: 17.7.2
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
 
   "@done-coding/output-core@0.1.2": {}
 

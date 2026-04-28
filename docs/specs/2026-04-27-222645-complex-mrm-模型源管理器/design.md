@@ -1,426 +1,276 @@
-# 技术设计文档：模型源管理器（mrm）
+# 技术设计文档：模型源管理器（mrm）V2
 
 > 状态：待审核
 > 任务等级：Complex
-> 日期：2026-04-27
+> 日期：2026-04-28
 
 ## 变更范围
 
-- **Direct Targets**：`packages/mrm/src/` 下所有文件
-- **Collateral Reads**：`packages/utils/src/`（参考 cli-utils API）、`packages/git/src/`（参考已有 CLI 包模式）
-- **Out-of-Scope**：`packages/ai/`（后续消费 mrm 库 API，不在本次范围）
+- **Direct Targets**：`packages/mrm/src/` 全部源文件（重构）
+- **Collateral Reads**：`packages/utils/src/cli.ts`、`packages/utils/src/file-operate.ts`、`packages/utils/src/env-config.ts`
+- **Out-of-Scope**：`packages/ai/`
 
-## 文件结构
+## 删除 / 新增文件
 
-```
-packages/mrm/src/
-├── cli.ts                     # 入口：createCommand()
-├── main.ts                    # createCommand() + createAsSubcommand()
-├── index.ts                   # 公共 API 导出
-├── injectInfo.json            # 构建时注入元数据
-├── types/
-│   └── index.ts               # SubcommandEnum、选项接口、Client/Source/Protocol 类型
-├── handlers/
-│   ├── index.ts               # 聚合所有 handler → commandCliInfo
-│   ├── switch.ts              # mrm switch <client>
-│   ├── ls.ts                  # mrm ls [--provider] [--client]
-│   ├── add.ts                 # mrm add <alias> <url> [--client]
-│   ├── use.ts                 # mrm use <model> [--client]
-│   └── remove.ts              # mrm remove <alias> [--client]
-├── services/
-│   ├── registry.ts            # Source 注册表 CRUD（读/写 sources.json）
-│   ├── client-config.ts       # 读/写各 client 配置文件
-│   └── presets.ts             # 内置 client/source 预设
-└── utils/
-    ├── index.ts               # 工具函数 barrel
-    └── prompts.ts             # 交互式提示定义
-```
+| 操作 | 文件 |
+|------|------|
+| 删除 | src/handlers/add.ts, use.ts, remove.ts, test.ts |
+| 新增 | src/handlers/provider-add.ts, provider-use.ts, provider-remove.ts |
+| 新增 | src/handlers/model-add.ts, model-remove.ts, model-use.ts |
+| 修改 | src/handlers/switch.ts, ls.ts, index.ts |
+| 修改 | src/types/index.ts, src/services/presets.ts, registry.ts, client-config.ts |
 
 ## 数据模型
 
 ```typescript
-// === 核心类型 ===
+// ===== 枚举 =====
 
-/** API 协议方案 */
 enum Protocol {
   ANTHROPIC = 'anthropic',
   OPENAI = 'openai',
 }
 
-/** 客户端名称 */
 enum ClientName {
   CLAUDE_CODE = 'claude-code',
   DONE_CODING_AI = 'done-coding-ai',
 }
 
-/** 客户端 */
+enum SubcommandEnum {
+  LS = 'ls',
+  USE = 'use',                    // 快捷别名
+  SWITCH = 'switch',
+  PROVIDER_ADD = 'provider-add',
+  PROVIDER_USE = 'provider-use',
+  PROVIDER_REMOVE = 'provider-remove',
+  MODEL_ADD = 'model-add',
+  MODEL_REMOVE = 'model-remove',
+  MODEL_USE = 'model-use',
+}
+
+// ===== 核心结构 =====
+
 interface Client {
   name: ClientName;
   protocol: Protocol;
-  /** 绝对路径，运行时通过 homedir() 解析 */
   configPath: string;
 }
 
-/** 源 — 用户管理 */
-interface Source {
-  /** 源别名，唯一 */
+interface Provider {
+  /** 服务商别名，同协议下唯一 */
   alias: string;
   /** API 端点 */
   baseUrl: string;
-  /** 认证密钥（可空，mrm use 时若空则提示输入） */
+  /** 认证密钥 */
   apiKey: string;
-  /** 该源支持的模型名列表 */
+  /** 支持的模型 */
   models: string[];
+  /** 所属协议 */
+  protocol: Protocol;
+  /** 是否内置（内置不可删除） */
+  builtin: boolean;
 }
 
-/** 模型提供商 */
-interface Provider {
-  /** 提供商标识 */
+/** registry 中每个 provider 的模型可区分内置/用户添加 */
+interface ModelEntry {
   name: string;
-  /** 旗下模型 */
-  models: ModelInfo[];
+  builtin: boolean;
 }
 
-/** 模型信息 */
-interface ModelInfo {
-  /** 模型标识名 */
-  name: string;
-  /** 显示名 */
-  label: string;
+/** 每个 client 的状态 */
+interface ClientState {
+  provider: string;    // 当前 provider alias
+  model: string;       // 当前 model name
 }
 
-/** 注册表文件结构 */
-interface SourcesRegistry {
-  /** 当前 client 名 */
+/** 注册表 */
+interface Registry {
   currentClient: string;
-  sources: {
-    [clientName: string]: Source[];
-  };
+  clientState: Record<string, ClientState>;
+  /** providers 按协议分组，多 client 共享 */
+  providers: Record<Protocol, Provider[]>;
 }
-```
 
-### 各 Client 配置文件类型（单独定义）
+// ===== Client 配置类型 =====
 
-```typescript
-// ===== claude-code 配置 (~/.claude/settings.json) =====
-
-/** Claude Code 配置文件结构（仅列 mrm 关注的字段，其余 merge 保留） */
 interface ClaudeCodeSettings {
-  /** 当前使用的模型 */
   model?: string;
-  /** 环境变量（第三方源配置主入口） */
   env?: ClaudeCodeEnv;
-  /** 自定义 API Key 生成脚本 */
   apiKeyHelper?: string;
-  /** 模型 ID 映射 */
   modelOverrides?: Record<string, string>;
 }
 
 interface ClaudeCodeEnv {
-  /** API Key */
   ANTHROPIC_API_KEY?: string;
-  /** 自定义 API 端点 */
   ANTHROPIC_BASE_URL?: string;
-  /** 指定使用的模型（第三方源必需） */
   ANTHROPIC_MODEL?: string;
-  /** 默认 Opus 模型映射 */
   ANTHROPIC_DEFAULT_OPUS_MODEL?: string;
-  /** 默认 Sonnet 模型映射 */
   ANTHROPIC_DEFAULT_SONNET_MODEL?: string;
-  /** 默认 Haiku 模型映射 */
   ANTHROPIC_DEFAULT_HAIKU_MODEL?: string;
-  /** Subagent 模型 */
   CLAUDE_CODE_SUBAGENT_MODEL?: string;
-  /** API 超时（毫秒） */
   API_TIMEOUT_MS?: string;
-  /** 努力级别 */
   CLAUDE_CODE_EFFORT_LEVEL?: string;
-  /** 允许其他 env 字段 */
   [key: string]: string | undefined;
 }
-```
 
-**不同源写入 env 字段的差异**：
-
-| 源类型 | 写入的 env 字段 |
-|--------|---------------|
-| **deepseek**（Anthropic 协议） | `ANTHROPIC_BASE_URL` + `ANTHROPIC_API_KEY` + `ANTHROPIC_MODEL` + `ANTHROPIC_DEFAULT_OPUS_MODEL` + `ANTHROPIC_DEFAULT_SONNET_MODEL` + `ANTHROPIC_DEFAULT_HAIKU_MODEL` + `CLAUDE_CODE_SUBAGENT_MODEL` + `API_TIMEOUT_MS`(3000000) + `CLAUDE_CODE_EFFORT_LEVEL`(max)<br>所有模型字段值 = 用户选择的模型名 |
-| **n1n**（中转源） | `ANTHROPIC_BASE_URL` + `ANTHROPIC_API_KEY`（auth_token） |
-| **anthropic**（默认源） | `ANTHROPIC_API_KEY`（仅当非空时写入） |
-
-writer 通过源别名识别类型，写入对应的 env 字段组合。
-
-// ===== done-coding-ai 配置 (~/.done-coding/config.json) =====
-
-/** done-coding-ai 全局配置文件结构 */
 interface DoneCodingAiGlobalConfig {
-  AI_CONFIG?: DoneCodingAiConfig;
-  ASSETS_CONFIG_REPO_URL?: string;
-  /** 允许其他字段 */
+  AI_CONFIG?: { model: string; apiKey: string; baseUrl: string };
   [key: string]: unknown;
 }
-
-interface DoneCodingAiConfig {
-  model: string;
-  apiKey: string;
-  baseUrl: string;
-}
 ```
 
-### Client 配置写入映射
-
-| client | config 类型 | 写入字段 |
-|--------|------------|---------|
-| `claude-code` | `ClaudeCodeSettings` | `model` = 选中的模型名<br>`env.ANTHROPIC_BASE_URL` = source.baseUrl<br>`env.ANTHROPIC_API_KEY` = source.apiKey<br>若为默认源（api.anthropic.com + anthropic）则 `ANTHROPIC_API_KEY` 仅在 apiKey 非空时写入 |
-| `done-coding-ai` | `DoneCodingAiGlobalConfig` | `AI_CONFIG.model` = 选中的模型名<br>`AI_CONFIG.baseUrl` = source.baseUrl<br>`AI_CONFIG.apiKey` = source.apiKey |
-
-两种 client 的 config writer 均使用 **merge 策略**（读取现有 JSON → 修改目标字段 → 写回），不覆盖文件中其他已有字段。
-
-## 数据流
+## 命令结构
 
 ```
-用户执行命令
-     │
-     ▼
-handler 读取 ~/.done-coding/mrm/sources.json（Registry）
-     │
-     ├─ ls:    Registry → 按 模型→提供商→源 聚合展示
-     ├─ add:   用户输入 → 写入 Registry
-     ├─ use:   Registry 查源 → 选源 → 写入 Client Config File
-     ├─ remove: 删除 Registry 中条目
-     └─ switch: 更新 Registry.currentClient
+mrm switch <client>
+mrm ls [--view=model|provider]
+mrm provider add <alias> <url>
+mrm provider use <alias>
+mrm provider remove <alias>
+mrm model add <providerAlias> <modelName>
+mrm model remove <providerAlias> <modelName>
+mrm model use <modelName> [--provider=<alias>]
+mrm use <modelName> [--provider=<alias>]           # 同 model use
 ```
 
-### 关键路径：`mrm use <model>` 写入流程
+所有命令均基于 `mrm switch` 设置的当前 client 操作，不接受 `--client` 参数。每条命令执行后会显示 `当前: <client> → <provider> → <model>` 提示。
+
+## 核心流程
+
+### 切换 client：`mrm switch`
 
 ```
-mrm use sonnet
-     │
-     ▼
-读取 sources.json
-     │
-     ▼
-查找 client="claude-code" 下支持 "sonnet" 的源
-     ├── 0 个 → 报错退出
-     ├── 1 个
-     │     └── apiKey 为空？→ 提示输入 → 回写 Registry
-     │     └── 写入 client 配置文件
-     └── 多个 → 交互式选源 → 同上
+mrm switch claude-code
+  ├── 校验 ClientName 合法性
+  ├── registry.clientState['claude-code'] 存在？
+  │     ├── 是 → 恢复 (provider, model)
+  │     └── 否 → 设为默认 (anthropic, sonnet)
+  └── 更新 registry.currentClient，写 registry，提示状态行
 ```
 
-### Client 配置写入映射
-
-| client | 文件 | 写入字段 |
-|--------|------|---------|
-| `claude-code` | `~/.claude/settings.json` | 合并写入：读取现有 JSON → 设置 apiUrl + apiKey + model → 写回 |
-| `done-coding-ai` | `~/.done-coding/config.json` | 合并写入：读取现有 JSON → 设置 AI_CONFIG = { baseUrl, apiKey, model } → 写回 |
-
-config writer 使用 **merge 策略**（读取 → 修改 → 写回），不覆盖文件中其他已有字段。
-
-## 子命令与选项
+### 切换 provider / model 的级联保证
 
 ```
-dc-mrm
-├── ls [--provider] [--client=<name>]
-├── add <alias> <url> [--client=<name>]
-├── use <model> [--client=<name>]
-├── remove <alias> [--client=<name>]
-└── switch <client>
+mrm provider use <alias>
+  ├── 当前 protocol 下查找 provider → 校验
+  ├── 更新 clientState[currentClient].provider
+  ├── 设该 provider 的默认 model（models[0]）
+  ├── 写 registry
+  └── 写 client 配置文件
+
+mrm model use <name> [--provider=xxx]
+  ├── [可选] 先切 provider（同 provider use）
+  ├── 目标 provider 下查找 model → 校验
+  ├── 更新 clientState[currentClient].model
+  ├── 写 registry
+  └── 写 client 配置文件
 ```
 
-所有命令使用 `--client` 公共选项（通过 `getConfigFileCommonOptions` 或自定义 builder）。`switch` 无 `--client` 参数。
+### 删除 provider / model 的回退
 
-## 架构决策记录（ADR）
+```
+mrm provider remove <alias>
+  ├── 内置？ → 报错退出
+  ├── 确认
+  ├── 当前使用？ → clientState 回退到默认 provider + 默认 model
+  └── 写 registry
 
-### ADR-1: 注册表文件格式
+mrm model remove <pAlias> <mName>
+  ├── provider 内置且 model 内置？ → 报错退出
+  ├── 确认
+  ├── 当前使用且是 provider 最后一 model？ → 回退 provider
+  └── 写 registry
+```
 
-**决策**：使用单个 JSON 文件 `~/.done-coding/mrm/sources.json` 存储所有 client 下的源注册表 + 当前 client 标识。
+## Client 配置写入（`mrm provider use` / `mrm model use` 触发）
 
-**备选**：
-- 每个 client 一个文件（如 `sources-claude-code.json`）→ 管理更分散
-- 独立文件存 currentClient → 多了 I/O
+每个切换操作最终调用 `writeClientConfig()`，该函数：
 
-**权衡**：单文件更简单，sources.json 规模很小（源数量 < 10），无性能问题。
+1. 读取当前 client 的 configPath
+2. merge 写入：对于 claude-code → 写入 `ClaudeCodeSettings`（含 env 的 DeepSeek 特殊处理）；对于 done-coding-ai → 写入 `AI_CONFIG`
 
-### ADR-2: apiKey 明文存储
+写入策略与 V1 一致（merge 不覆盖其他字段），DeepSeek 仍需要额外的 env 模型映射。
 
-**决策**：apiKey 明文存储在 sources.json 中。
-
-**备选**：加密存储（AES）→ 增加复杂度，需要管理加密密钥
-
-**权衡**：与 nrm 一致，用户自行承担安全风险。后续可升级为 keychain 集成。
-
-### ADR-3: Client 配置合并写入
-
-**决策**：写入 client 配置文件时采用 read → merge → write 策略。
-
-**理由**：不破坏用户已有的其他配置字段。
-
-### ADR-4: `remove` 不写回 client 配置
-
-**决策**：`mrm remove` 仅从注册表删除源，不修改 client 配置文件。
-
-**理由**：用户可能只想清理注册表；配置文件中可能有其他工具写入的值。`use` 是唯一的配置写入入口。
-
-## 内置预设（presets.ts）
+## 内置预设
 
 ### 内置 Client
 
 ```typescript
 const BUILTIN_CLIENTS: Client[] = [
-  {
-    name: ClientName.CLAUDE_CODE,
-    protocol: Protocol.ANTHROPIC,
-    configPath: '~/.claude/settings.json', // 运行时 homedir 解析
-  },
-  {
-    name: ClientName.DONE_CODING_AI,
-    protocol: Protocol.OPENAI,
-    configPath: '~/.done-coding/config.json',
-  },
+  { name: ClientName.CLAUDE_CODE,  protocol: Protocol.ANTHROPIC, configPath: '' },
+  { name: ClientName.DONE_CODING_AI, protocol: Protocol.OPENAI, configPath: '' },
 ];
 ```
 
-### 内置 Source（初始注册表）
+configPath 运行时通过 `getClientConfigPath()` 解析（同 V1）。
 
-```typescript
-// claude-code 下的默认源
-const CLAUDE_CODE_DEFAULT_SOURCES: Source[] = [
-  {
-    alias: 'anthropic',
-    baseUrl: 'https://api.anthropic.com',
-    apiKey: '',
-    models: ['haiku', 'sonnet', 'opus'],
-  },
-  {
-    alias: 'deepseek',
-    baseUrl: 'https://api.deepseek.com',
-    apiKey: '',
-    models: ['deepseek-v4-pro'],
-  },
-];
+### 内置 Provider（builtin: true）
 
-// done-coding-ai 下的默认源（openai 协议，支持所有 OpenAI 兼容提供商）
-const DONE_CODING_CLI_DEFAULT_SOURCES: Source[] = [
-  {
-    alias: 'deepseek',
-    baseUrl: 'https://api.deepseek.com',
-    apiKey: '',
-    models: ['deepseek-v4-pro', 'deepseek-v4-flash', 'deepseek-chat', 'deepseek-reasoner'],
-  },
-  {
-    alias: 'qwen',
-    baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode',
-    apiKey: '',
-    models: ['qwen-turbo', 'qwen-plus', 'qwen-max'],
-  },
-  {
-    alias: 'kimi',
-    baseUrl: 'https://api.moonshot.cn',
-    apiKey: '',
-    models: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
-  },
-  {
-    alias: 'groq',
-    baseUrl: 'https://api.groq.com/openai',
-    apiKey: '',
-    models: ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768'],
-  },
-];
-```
+**Anthropic 协议：**
 
-### 内置 Provider（按协议划分）
+| alias | baseUrl | 默认模型 |
+|-------|---------|---------|
+| anthropic | https://api.anthropic.com | haiku, sonnet, opus |
+| deepseek | https://api.deepseek.com/anthropic | deepseek-v4-pro, deepseek-v4-flash, deepseek-chat, deepseek-reasoner |
 
-同一公司支持多种协议时，每种协议独立定义一个 Provider 条目（如 DeepSeek 同时出现在两个协议下，且不同协议下的模型集合、baseUrl 后缀不同）。
+**OpenAI 协议：**
 
-```typescript
-interface ProviderPreset {
-  /** 提供商标识，如 'anthropic'、'deepseek' */
-  name: string;
-  /** 所属协议 */
-  protocol: Protocol;
-  /** 旗下模型 */
-  models: ModelInfo[];
-  /** 默认 API 端点路径后缀（可选，用于拼接 baseUrl） */
-  baseUrlSuffix?: string;
-}
+| alias | baseUrl | 默认模型 |
+|-------|---------|---------|
+| openai | https://api.openai.com | gpt-4o, gpt-4o-mini |
+| deepseek | https://api.deepseek.com | deepseek-v4-pro, deepseek-v4-flash, deepseek-chat, deepseek-reasoner |
+| qwen | https://dashscope.aliyuncs.com/compatible-mode | qwen-turbo, qwen-plus, qwen-max |
+| kimi | https://api.moonshot.cn | moonshot-v1-8k, moonshot-v1-32k, moonshot-v1-128k |
 
-const BUILTIN_PROVIDERS_BY_PROTOCOL: Record<Protocol, ProviderPreset[]> = {
+### 默认 ClientState（出厂设置，仅首次使用）
 
-  [Protocol.ANTHROPIC]: [
-    {
-      name: 'anthropic',
-      protocol: Protocol.ANTHROPIC,
-      models: [
-        { name: 'haiku', label: 'Claude Haiku' },
-        { name: 'sonnet', label: 'Claude Sonnet' },
-        { name: 'opus', label: 'Claude Opus' },
-      ],
-    },
-    {
-      name: 'deepseek',
-      protocol: Protocol.ANTHROPIC,
-      models: [
-        { name: 'deepseek-v4-pro', label: 'DeepSeek V4 Pro' },
-      ],
-      /** DeepSeek 的 Anthropic 协议端点需拼接 /anthropic */
-      baseUrlSuffix: '/anthropic',
-    },
-  ],
+| client | provider | model |
+|--------|----------|-------|
+| claude-code | anthropic | sonnet |
+| done-coding-ai | deepseek | deepseek-v4-pro |
 
-  [Protocol.OPENAI]: [
-    {
-      name: 'deepseek',
-      protocol: Protocol.OPENAI,
-      models: [
-        { name: 'deepseek-v4-pro', label: 'DeepSeek V4 Pro' },
-        { name: 'deepseek-v4-flash', label: 'DeepSeek V4 Flash' },
-        { name: 'deepseek-chat', label: 'DeepSeek Chat' },
-        { name: 'deepseek-reasoner', label: 'DeepSeek Reasoner' },
-      ],
-    },
-    {
-      name: 'qwen',
-      protocol: Protocol.OPENAI,
-      models: [
-        { name: 'qwen-turbo', label: 'Qwen Turbo' },
-        { name: 'qwen-plus', label: 'Qwen Plus' },
-        { name: 'qwen-max', label: 'Qwen Max' },
-      ],
-    },
-    {
-      name: 'kimi',
-      protocol: Protocol.OPENAI,
-      models: [
-        { name: 'moonshot-v1-8k', label: 'Moonshot V1 8K' },
-        { name: 'moonshot-v1-32k', label: 'Moonshot V1 32K' },
-        { name: 'moonshot-v1-128k', label: 'Moonshot V1 128K' },
-      ],
-    },
-    {
-      name: 'groq',
-      protocol: Protocol.OPENAI,
-      models: [
-        { name: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B' },
-        { name: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B' },
-      ],
-    },
-  ],
-};
-```
+## ADR
 
-**说明**：DeepSeek 的 Anthropic 协议端点（如 `https://api.deepseek.com/anthropic`）与 OpenAI 协议端点（`https://api.deepseek.com`）不同，故拆为两个独立 Provider 条目，并通过 `baseUrlSuffix` 区分。
+### ADR-1: Provider 按 Protocol 共享
+
+**决策**：Provider 注册在 Protocol 维度，不按 Client 维度。Client 通过绑定的 Protocol 获取可用 Provider 列表。
+
+**理由**：不同 Client 可能使用同一套 API 协议（如 done-coding-ai + 未来其他 openai 协议客户端），共享 Provider 避免重复注册。
+
+**权衡**：一个 Protocol 下 provider alias 必须唯一。
+
+### ADR-2: ClientState 持久化
+
+**决策**：registry 中存储每个 client 的上次 (provider, model) 组合。切回时恢复，而非重置为出厂设置。
+
+**理由**：用户体验——用户可能在不同 client 间频繁切换，不应每次回到出厂值。
+
+### ADR-3: builtin 标记保护
+
+**决策**：Provider 和 Model 各有 `builtin: boolean` 标记。内置项不可删除。
+
+**理由**：出厂预设应该始终可用。用户可以基于内置 provider 添加自定义模型，也可以添加自定义 provider。
+
+### ADR-4: 级联默认保证
+
+**决策**：每次切换 client → provider → model 链中任一级，自动填充下游默认值，确保链不悬空。
+
+### ADR-5: `mrm use` 双注册
+
+**决策**：`mrm model use` 和 `mrm use` 是同一个 handler，通过 yargs 的 `command` 字段注册为两个命令。
+
+**理由**：降低日常使用摩擦——大部分用户只想快速切模型。
 
 ## 注意事项 / 已知风险
 
 | 风险 | 影响 | 应对 |
 |------|------|------|
-| `~/.claude/settings.json` schema 变更 | 写入失败或格式错误 | 使用 merge 策略，仅设置确认需要的字段；写入前验证 JSON 合法性 |
-| 用户手动编辑 sources.json 导致格式损坏 | 注册表读取失败 | 读取时捕获 JSON parse 错误，提示用户检查或重建 |
-| 同一 baseUrl 注册多个名 | 源列表显示冗余 | `mrm add` 时检查 baseUrl 去重（可选，先不实现） |
-| apiKey 明文泄漏风险 | 安全风险 | README 注明风险；后续可选升级 keychain |
+| V1 registry 格式不兼容 | 已有用户数据丢失 | 读取时检测旧格式，若存在则提示迁移或忽略 |
+| 内置 provider 模型列表变更 | 已有 registry 中模型过期 | 首次初始化写内置数据，后续读取时检查并补充缺失项 |
+| `mrm model use --provider=xxx` 原子性 | provider 切换失败但 model 已记录 | handler 内先切 provider，成功后才切 model |
 
-## 实施时要移除的文件
+## 实施时要删除的文件
 
-- `src/handlers/test.ts` — 初始化示例，实施时删除
-- `SubcommandEnum.TEST` — 对应类型定义
+- `src/handlers/add.ts`
+- `src/handlers/use.ts`
+- `src/handlers/remove.ts`
+- `src/handlers/test.ts`
