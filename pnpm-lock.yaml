@@ -331,6 +331,40 @@ importers:
         specifier: ^3.6.0
         version: 3.7.0(@types/node@18.19.4)(rollup@4.48.1)(typescript@5.8.3)(vite@4.5.10(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0))
 
+  packages/mrm:
+    dependencies:
+      "@done-coding/cli-utils":
+        specifier: workspace:0.9.0
+        version: link:../utils
+    devDependencies:
+      "@done-coding/cli-inject":
+        specifier: workspace:0.6.0
+        version: link:../inject
+      "@types/node":
+        specifier: ^18.0.0
+        version: 18.19.4
+      "@types/prompts":
+        specifier: ^2.4.6
+        version: 2.4.9
+      "@types/yargs":
+        specifier: ^17.0.28
+        version: 17.0.33
+      "@vitest/coverage-v8":
+        specifier: ^1.6.1
+        version: 1.6.1(vitest@1.6.1(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0))
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+      vite:
+        specifier: ^5.0.10
+        version: 5.4.21(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0)
+      vite-plugin-dts:
+        specifier: ^3.7.0
+        version: 3.7.0(@types/node@18.19.4)(rollup@4.48.1)(typescript@5.8.3)(vite@5.4.21(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0))
+      vitest:
+        specifier: ^1.6.1
+        version: 1.6.1(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0)
+
   packages/publish:
     dependencies:
       "@done-coding/cli-utils":
