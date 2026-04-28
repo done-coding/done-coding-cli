@@ -42,16 +42,13 @@ export const handler = async (argv: CliHandlerArgv<ProviderAddOptions>) => {
   /** 交互式输入模型列表 */
   const { models } = (await xPrompts([
     {
-      type: "list",
+      type: "text",
       name: "models",
       message: "输入该服务商支持的模型（空格或逗号分隔）:",
     },
-  ])) as { models: string[] };
+  ])) as { models: string };
 
-  const modelList =
-    typeof models === "string"
-      ? (models as string).split(/[\s,]+/).filter(Boolean)
-      : models;
+  const modelList = models.split(/[\s,]+/).filter(Boolean);
 
   if (modelList.length === 0) {
     outputConsole.error("至少需要一个模型");
