@@ -29,6 +29,6 @@ export const handler = async (argv: CliHandlerArgv<SwitchOptions>) => {
 
 export const commandCliInfo: SubCliInfo = {
   command: `${SubcommandEnum.SWITCH} <client>`,
-  describe: `切换当前客户端 (${Object.values(ClientName).join(" | ")})`,
+  describe: false as unknown as string,
   handler: handler as SubCliInfo["handler"],
 };

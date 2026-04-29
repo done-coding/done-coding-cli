@@ -13,6 +13,7 @@ import {
   getCurrentClient,
   getCurrentProtocol,
   getCurrentState,
+  findProvider,
   addProvider,
 } from "@/services/registry";
 import { promptApiKey } from "@/utils/prompts";
@@ -34,6 +35,12 @@ export const handler = async (argv: CliHandlerArgv<ProviderAddOptions>) => {
   const { alias, url } = argv;
   const clientName = getCurrentClient();
   const protocol = getCurrentProtocol();
+
+  /** 前置校验：避免用户交互输入后才发现冲突 */
+  if (findProvider(protocol, alias)) {
+    outputConsole.error(`服务商 "${alias}" 在 ${protocol} 协议下已存在`);
+    process.exit(1);
+  }
 
   outputConsole.info(`当前: ${clientName} → 添加服务商到 ${protocol} 协议`);
 
@@ -64,16 +71,11 @@ export const handler = async (argv: CliHandlerArgv<ProviderAddOptions>) => {
     builtin: false,
   };
 
-  try {
-    addProvider(protocol, provider);
-    const state = getCurrentState();
-    outputConsole.info(
-      `服务商 "${alias}" 添加成功 → 当前: ${clientName} → ${state.provider} → ${state.model}`,
-    );
-  } catch (e: any) {
-    outputConsole.error(e.message);
-    process.exit(1);
-  }
+  addProvider(protocol, provider);
+  const state = getCurrentState();
+  outputConsole.info(
+    `服务商 "${alias}" 添加成功 → 当前: ${clientName} → ${state.provider} → ${state.model}`,
+  );
 };
 
 export const commandCliInfo: SubCliInfo = {

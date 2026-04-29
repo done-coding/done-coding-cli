@@ -32,6 +32,17 @@ export function writeClientConfig(
   }
 }
 
+/** DeepSeek 等第三方服务商需要的额外 env key */
+const THIRD_PARTY_ENV_KEYS = [
+  "ANTHROPIC_MODEL",
+  "ANTHROPIC_DEFAULT_OPUS_MODEL",
+  "ANTHROPIC_DEFAULT_SONNET_MODEL",
+  "ANTHROPIC_DEFAULT_HAIKU_MODEL",
+  "CLAUDE_CODE_SUBAGENT_MODEL",
+  "API_TIMEOUT_MS",
+  "CLAUDE_CODE_EFFORT_LEVEL",
+];
+
 function writeClaudeCodeConfig(
   model: string,
   baseUrl: string,
@@ -46,8 +57,9 @@ function writeClaudeCodeConfig(
     ANTHROPIC_API_KEY: apiKey,
   };
 
-  /** DeepSeek 走 anthropic 协议需要额外的模型指向 */
-  if (baseUrl.includes("deepseek")) {
+  const isThirdParty = baseUrl.includes("deepseek");
+
+  if (isThirdParty) {
     env.ANTHROPIC_MODEL = model;
     env.ANTHROPIC_DEFAULT_OPUS_MODEL = model;
     env.ANTHROPIC_DEFAULT_SONNET_MODEL = model;
@@ -55,6 +67,10 @@ function writeClaudeCodeConfig(
     env.CLAUDE_CODE_SUBAGENT_MODEL = model;
     env.API_TIMEOUT_MS = "3000000";
     env.CLAUDE_CODE_EFFORT_LEVEL = "max";
+  } else {
+    for (const key of THIRD_PARTY_ENV_KEYS) {
+      delete env[key];
+    }
   }
 
   const updated: ClaudeCodeSettings = {
@@ -62,6 +78,12 @@ function writeClaudeCodeConfig(
     model,
     env,
   };
+
+  if (!isThirdParty) {
+    delete updated.apiKeyHelper;
+    delete updated.modelOverrides;
+  }
+
   writeFile(configPath, updated);
 }
 

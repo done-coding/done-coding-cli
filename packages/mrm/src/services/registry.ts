@@ -57,6 +57,13 @@ export function writeRegistry(registry: Registry): void {
 /** 补齐内置 provider（升级场景） */
 function mergeBuiltins(registry: Registry): Registry {
   const merged = structuredClone(registry);
+
+  /** 旧模型名 → 新模型名映射（迁移用） */
+  const modelRenames: Record<string, string> = {
+    "deepseek-v4-pro": "deepseek-v4-pro[1m]",
+    "deepseek-v4-flash": "deepseek-v4-flash[1m]",
+  };
+
   for (const proto of [Protocol.ANTHROPIC, Protocol.OPENAI]) {
     if (!merged.providers[proto]) {
       merged.providers[proto] = [];
@@ -67,9 +74,25 @@ function mergeBuiltins(registry: Registry): Registry {
       );
       if (!exists) {
         merged.providers[proto].push(structuredClone(builtin));
+      } else {
+        /** 迁移：重命名已改名的内置模型 */
+        for (const [oldName, newName] of Object.entries(modelRenames)) {
+          const idx = exists.models.indexOf(oldName);
+          if (idx >= 0) {
+            exists.models[idx] = newName;
+          }
+        }
       }
     }
   }
+
+  /** 迁移 clientState 中引用的旧模型名 */
+  for (const [, state] of Object.entries(merged.clientState)) {
+    if (state.model && modelRenames[state.model]) {
+      state.model = modelRenames[state.model];
+    }
+  }
+
   /** 补齐 clientState */
   for (const client of BUILTIN_CLIENTS) {
     if (!merged.clientState[client.name]) {
@@ -220,7 +243,8 @@ export function addModel(
   modelName: string,
 ): void {
   const registry = readRegistry();
-  const provider = findProvider(protocol, providerAlias);
+  const providers = registry.providers[protocol] ?? [];
+  const provider = providers.find((p) => p.alias === providerAlias);
   if (!provider) {
     throw new Error(`服务商 "${providerAlias}" 不存在`);
   }
@@ -240,7 +264,8 @@ export function removeModel(opts: {
 }): ClientState {
   const { protocol, clientName, providerAlias, modelName } = opts;
   const registry = readRegistry();
-  const provider = findProvider(protocol, providerAlias);
+  const providers = registry.providers[protocol] ?? [];
+  const provider = providers.find((p) => p.alias === providerAlias);
   if (!provider) {
     throw new Error(`服务商 "${providerAlias}" 不存在`);
   }

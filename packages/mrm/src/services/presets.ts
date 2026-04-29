@@ -31,8 +31,8 @@ export const BUILTIN_PROVIDERS_BY_PROTOCOL: Record<Protocol, Provider[]> = {
       baseUrl: "https://api.deepseek.com/anthropic",
       apiKey: "",
       models: [
-        "deepseek-v4-pro",
-        "deepseek-v4-flash",
+        "deepseek-v4-pro[1m]",
+        "deepseek-v4-flash[1m]",
         "deepseek-chat",
         "deepseek-reasoner",
       ],
@@ -55,8 +55,8 @@ export const BUILTIN_PROVIDERS_BY_PROTOCOL: Record<Protocol, Provider[]> = {
       baseUrl: "https://api.deepseek.com",
       apiKey: "",
       models: [
-        "deepseek-v4-pro",
-        "deepseek-v4-flash",
+        "deepseek-v4-pro[1m]",
+        "deepseek-v4-flash[1m]",
         "deepseek-chat",
         "deepseek-reasoner",
       ],
@@ -90,7 +90,7 @@ export const DEFAULT_CLIENT_STATE: Record<
   [ClientName.CLAUDE_CODE]: { provider: "anthropic", model: "sonnet" },
   [ClientName.DONE_CODING_AI]: {
     provider: "deepseek",
-    model: "deepseek-v4-pro",
+    model: "deepseek-v4-pro[1m]",
   },
 };
 

@@ -3,7 +3,7 @@ import type {
   YargsOptionsRecord,
   SubCliInfo,
 } from "@done-coding/cli-utils";
-import { outputConsole } from "@done-coding/cli-utils";
+import { chalk, outputConsole } from "@done-coding/cli-utils";
 import { SubcommandEnum, type LsOptions, type Provider } from "@/types";
 import {
   BUILTIN_CLIENTS,
@@ -59,16 +59,31 @@ function showByModel(
   state: { provider: string; model: string },
 ): void {
   const seen = new Set<string>();
+  const lines: {
+    isCurrent: boolean;
+    model: string;
+    prefix: string;
+    suffix: string;
+  }[] = [];
+  let maxModelLen = 0;
+
   for (const p of providers) {
     for (const m of p.models) {
       const key = `${m}@${p.alias}`;
       if (seen.has(key)) continue;
       seen.add(key);
       const isCurrent = state.model === m && state.provider === p.alias;
-      const star = isCurrent ? " ★" : "";
-      const built = p.builtin ? " [内置]" : "";
-      outputConsole.info(`${m}${star}    ${p.alias} (${p.protocol})${built}`);
+      const prefix = `${p.alias} (${p.protocol})`;
+      const suffix = p.builtin ? chalk.magenta(" [内置]") : "";
+      lines.push({ isCurrent, model: m, prefix, suffix });
+      if (m.length > maxModelLen) maxModelLen = m.length;
     }
+  }
+
+  for (const { isCurrent, model, prefix, suffix } of lines) {
+    const marker = isCurrent ? "*" : " ";
+    const text = `${marker} ${model.padEnd(maxModelLen + 2)}${prefix}${suffix}`;
+    outputConsole.info(isCurrent ? chalk.green(text) : text);
   }
 }
 
@@ -78,13 +93,17 @@ function showByProvider(
   state: { provider: string; model: string },
 ): void {
   for (const p of providers) {
-    const currentMark = state.provider === p.alias ? " ★" : "";
-    const builtMark = p.builtin ? " [内置]" : "";
-    outputConsole.info(`${p.alias}${currentMark} (${p.protocol})${builtMark}`);
+    const isCurrentProvider = state.provider === p.alias;
+    const marker = isCurrentProvider ? "*" : " ";
+    const builtTag = p.builtin ? chalk.magenta(" [内置]") : "";
+    const provText = `${marker} ${p.alias} (${p.protocol})${builtTag}`;
+    outputConsole.info(isCurrentProvider ? chalk.green(provText) : provText);
     for (const m of p.models) {
-      const star = state.model === m && state.provider === p.alias ? " ★" : "";
-      const built = isBuiltinModel(p, m) ? " [内置]" : "";
-      outputConsole.info(`  ${m}${star}${built}`);
+      const isCurrentModel = state.model === m && state.provider === p.alias;
+      const modelMarker = isCurrentModel ? "*" : " ";
+      const modelBuilt = isBuiltinModel(p, m) ? chalk.magenta(" [内置]") : "";
+      const modelText = `  ${modelMarker} ${m}${modelBuilt}`;
+      outputConsole.info(isCurrentModel ? chalk.green(modelText) : modelText);
     }
   }
 }

@@ -4,6 +4,7 @@ import { SubcommandEnum, type ModelRemoveOptions } from "@/types";
 import {
   getCurrentClient,
   getCurrentProtocol,
+  findProvider,
   removeModel,
 } from "@/services/registry";
 import { promptConfirm } from "@/utils/prompts";
@@ -13,6 +14,21 @@ export const handler = async (argv: CliHandlerArgv<ModelRemoveOptions>) => {
   const clientName = getCurrentClient();
   const protocol = getCurrentProtocol();
 
+  /** 前置校验：provider 和 model 必须存在 */
+  const provider = findProvider(protocol, providerAlias);
+  if (!provider) {
+    outputConsole.error(
+      `服务商 "${providerAlias}" 在 ${protocol} 协议下不存在`,
+    );
+    process.exit(1);
+  }
+  if (!provider.models.includes(modelName)) {
+    outputConsole.error(
+      `模型 "${modelName}" 在服务商 "${providerAlias}" 下不存在`,
+    );
+    process.exit(1);
+  }
+
   const confirmed = await promptConfirm(
     `确认删除模型 "${modelName}"（服务商: "${providerAlias}"）？`,
   );
@@ -21,20 +37,15 @@ export const handler = async (argv: CliHandlerArgv<ModelRemoveOptions>) => {
     return;
   }
 
-  try {
-    const state = removeModel({
-      protocol,
-      clientName,
-      providerAlias,
-      modelName,
-    });
-    outputConsole.info(
-      `已删除模型 "${modelName}" → 当前: ${clientName} → ${state.provider} → ${state.model}`,
-    );
-  } catch (e: any) {
-    outputConsole.error(e.message);
-    process.exit(1);
-  }
+  const state = removeModel({
+    protocol,
+    clientName,
+    providerAlias,
+    modelName,
+  });
+  outputConsole.info(
+    `已删除模型 "${modelName}" → 当前: ${clientName} → ${state.provider} → ${state.model}`,
+  );
 };
 
 export const commandCliInfo: SubCliInfo = {

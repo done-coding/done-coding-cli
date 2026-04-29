@@ -9,6 +9,7 @@ import {
   getCurrentClient,
   getCurrentProtocol,
   getCurrentState,
+  findProvider,
   addModel,
 } from "@/services/registry";
 
@@ -30,20 +31,23 @@ export const handler = async (argv: CliHandlerArgv<ModelAddOptions>) => {
   const clientName = getCurrentClient();
   const protocol = getCurrentProtocol();
 
-  try {
-    /** 支持空格分隔的批量输入 */
-    const models = modelName.split(/[\s,]+/).filter(Boolean);
-    for (const m of models) {
-      addModel(protocol, providerAlias, m);
-    }
-    const state = getCurrentState();
-    outputConsole.info(
-      `模型添加成功 → 当前: ${clientName} → ${state.provider} → ${state.model}`,
+  /** 前置校验：provider 必须存在 */
+  if (!findProvider(protocol, providerAlias)) {
+    outputConsole.error(
+      `服务商 "${providerAlias}" 在 ${protocol} 协议下不存在`,
     );
-  } catch (e: any) {
-    outputConsole.error(e.message);
     process.exit(1);
   }
+
+  /** 支持空格分隔的批量输入 */
+  const models = modelName.split(/[\s,]+/).filter(Boolean);
+  for (const m of models) {
+    addModel(protocol, providerAlias, m);
+  }
+  const state = getCurrentState();
+  outputConsole.info(
+    `模型添加成功 → 当前: ${clientName} → ${state.provider} → ${state.model}`,
+  );
 };
 
 export const commandCliInfo: SubCliInfo = {
