@@ -160,11 +160,20 @@ const addSubcommands = (
   }
 
   for (const [parent, children] of parentGroups) {
+    const childNames = children
+      .map((c) =>
+        typeof c.command === "string" ? c.command.split(/\s+/)[0] : "",
+      )
+      .filter(Boolean)
+      .join(" | ");
     result = result.command({
       command: parent,
       describe: `${parent} commands`,
       builder: (childYargs) => {
-        let childResult = childYargs;
+        let childResult = childYargs.demandCommand(
+          1,
+          `"${parent}" 需要子命令: ${childNames}`,
+        );
         for (const child of children) {
           childResult = childResult.command(child);
         }
