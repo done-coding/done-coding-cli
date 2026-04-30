@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-inject",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "信息(JSON)注入命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -59,7 +59,7 @@
     "vite-plugin-dts": "^3.6.0"
   },
   "dependencies": {
-    "@done-coding/cli-utils": "workspace:0.9.0"
+    "@done-coding/cli-utils": "workspace:0.9.1"
   },
   "engines": {
     "node": ">=18.0.0"

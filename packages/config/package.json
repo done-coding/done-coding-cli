@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-config",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "工程化配置命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -38,7 +38,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:0.6.0",
+    "@done-coding/cli-inject": "workspace:0.6.1",
     "@types/node": "^18.0.0",
     "@types/yargs": "^17.0.28",
     "typescript": "^5.8.3",
@@ -46,7 +46,7 @@
     "vite-plugin-dts": "^3.6.0"
   },
   "dependencies": {
-    "@done-coding/cli-utils": "workspace:0.9.0"
+    "@done-coding/cli-utils": "workspace:0.9.1"
   },
   "engines": {
     "node": ">=18.0.0"
