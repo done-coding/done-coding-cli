@@ -110,6 +110,9 @@ importers:
       "@done-coding/cli-inject":
         specifier: workspace:0.6.0
         version: link:../inject
+      "@done-coding/cli-mrm":
+        specifier: workspace:0.0.0
+        version: link:../mrm
       "@done-coding/cli-publish":
         specifier: workspace:0.8.0
         version: link:../publish

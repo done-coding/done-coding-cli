@@ -57,7 +57,7 @@ done-coding --help
 
 ## 功能特性
 
-- ✅ **统一入口**: 集成 10 个专业工具包，提供统一的命令行入口
+- ✅ **统一入口**: 集成 11 个专业工具包，提供统一的命令行入口
 - 🤖 **AI 对话**: 无子命令时唤起 AI 对话，支持多服务商、SSE 流式响应
 - 🚀 **跨平台兼容**: 支持 Windows、macOS、Linux，自动处理系统差异
 - 🔧 **模块化设计**: 每个子包独立开发，可单独使用或集成使用
@@ -106,6 +106,12 @@ done-coding --help
 - **描述**: 信息(JSON)注入命令行工具
 - **包地址**: [@done-coding/cli-inject](https://www.npmjs.com/package/@done-coding/cli-inject)
 
+### 🧠 模型源管理
+
+- **命令**: `DC mrm`
+- **描述**: AI 模型源管理器，管理服务商和模型切换
+- **包地址**: [@done-coding/cli-mrm](https://www.npmjs.com/package/@done-coding/cli-mrm)
+
 ### 📦 项目发布
 
 - **命令**: `DC publish`
@@ -137,6 +143,16 @@ DC create --justCloneFromDoneCoding       # 仅从done-coding系列项目克隆
 DC component add <name>                   # 新增组件
 DC component remove [name]                # 删除组件
 DC component list                         # 展示组件列表
+
+# 模型源管理
+DC mrm ls                                 # 查看可用模型和服务商
+DC mrm use <model>                        # 切换模型
+DC mrm model add <provider> <model>       # 添加模型
+DC mrm model remove <provider> <model>    # 删除模型
+DC mrm provider add <alias> <url>         # 添加服务商
+DC mrm provider use <alias>               # 切换服务商
+DC mrm provider remove <alias>            # 删除服务商
+DC mrm switch <client>                    # 切换客户端
 
 # 工程化配置
 DC config                                 # 工程化配置命令行工具
@@ -279,14 +295,16 @@ done-coding CLI 采用模块化架构，每个子包都是独立的工具：
 ```mermaid
 graph TD
     A["@done-coding/cli"] --> B["create-done-coding"]
-    A --> C["@done-coding/cli-component"]
-    A --> D["@done-coding/cli-config"]
-    A --> E["@done-coding/cli-extract"]
-    A --> F["@done-coding/cli-git"]
-    A --> G["@done-coding/cli-inject"]
-    A --> H["@done-coding/cli-publish"]
-    A --> I["@done-coding/cli-template"]
-    A --> J["@done-coding/cli-utils"]
+    A --> C["@done-coding/cli-ai"]
+    A --> D["@done-coding/cli-component"]
+    A --> E["@done-coding/cli-config"]
+    A --> F["@done-coding/cli-extract"]
+    A --> G["@done-coding/cli-git"]
+    A --> H["@done-coding/cli-inject"]
+    A --> I["@done-coding/cli-mrm"]
+    A --> J["@done-coding/cli-publish"]
+    A --> K["@done-coding/cli-template"]
+    A --> L["@done-coding/cli-utils"]
 
     D -.-> F
 
@@ -313,6 +331,7 @@ graph TD
 ├── @done-coding/cli-extract (信息提取)
 ├── @done-coding/cli-git (Git 操作)
 ├── @done-coding/cli-inject (信息注入)
+├── @done-coding/cli-mrm (模型源管理)
 ├── @done-coding/cli-publish (项目发布)
 ├── @done-coding/cli-template (模板处理)
 ├── @done-coding/cli-ai (AI 对话)
