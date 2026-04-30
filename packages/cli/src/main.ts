@@ -11,6 +11,7 @@ import {
   handler as aiHandler,
   SubcommandEnum as AiSubcommandEnum,
 } from "@done-coding/cli-ai";
+import { createAsSubcommand as createMrmCommand } from "@done-coding/cli-mrm";
 import injectInfo from "@/injectInfo.json";
 import type { CliInfo } from "@done-coding/cli-utils";
 import {
@@ -36,6 +37,7 @@ const commandCliInfo: CliInfo = {
     createComponentCommand(),
     createConfigCommand(),
     createAiCommand(),
+    createMrmCommand(),
   ],
   demandCommandCount: 0,
   rootScriptName: getRootScriptName({ packageJson: injectInfo }),
@@ -48,7 +50,7 @@ const commandCliInfo: CliInfo = {
     });
 
     if (shouldChat) {
-      await aiHandler(AiSubcommandEnum.CHAT, {});
+      await aiHandler(AiSubcommandEnum.CHAT);
     } else {
       execSyncHijack(`node ${process.argv[1]} --help`, {
         stdio: "inherit",

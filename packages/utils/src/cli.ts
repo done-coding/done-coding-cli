@@ -119,6 +119,73 @@ export const getRootScriptName = ({
   }
 };
 
+/**
+ * 将扁平子命令按父级前缀分组并注册。
+ * yargs 以扁平 CommandModule[] 传入时，若多个命令共享父级（如 "model add" /
+ * "model use"），带多个位置参数的子命令会被错误路由——这是 yargs 的已知行为。
+ * 手动创建父级目录命令可解决此问题。
+ */
+const addSubcommands = (
+  yargsArgv: YargsArgv,
+  subcommands: CommandModule[],
+): YargsArgv => {
+  const flat: CommandModule[] = [];
+  const parentGroups = new Map<string, CommandModule[]>();
+
+  for (const cmd of subcommands) {
+    const commandStr =
+      typeof cmd.command === "string" ? cmd.command : cmd.command?.[0];
+    if (!commandStr) {
+      flat.push(cmd);
+      continue;
+    }
+    const parts = commandStr.split(/\s+/);
+    if (
+      parts.length > 1 &&
+      !parts[1].startsWith("<") &&
+      !parts[1].startsWith("[")
+    ) {
+      const parent = parts[0];
+      const childCmd = parts.slice(1).join(" ");
+      if (!parentGroups.has(parent)) parentGroups.set(parent, []);
+      parentGroups.get(parent)!.push({ ...cmd, command: childCmd });
+    } else {
+      flat.push(cmd);
+    }
+  }
+
+  let result = yargsArgv;
+  for (const cmd of flat) {
+    result = result.command(cmd);
+  }
+
+  for (const [parent, children] of parentGroups) {
+    const childNames = children
+      .map((c) =>
+        typeof c.command === "string" ? c.command.split(/\s+/)[0] : "",
+      )
+      .filter(Boolean)
+      .join(" | ");
+    result = result.command({
+      command: parent,
+      describe: `${parent} commands`,
+      builder: (childYargs) => {
+        let childResult = childYargs.demandCommand(
+          1,
+          `"${parent}" 需要子命令: ${childNames}`,
+        );
+        for (const child of children) {
+          childResult = childResult.command(child);
+        }
+        return childResult;
+      },
+      handler: () => {},
+    });
+  }
+
+  return result;
+};
+
 /** 添加 yargs 配置 */
 const addYargsConfig = (
   argv: YargsArgv,
@@ -162,7 +229,7 @@ const addYargsConfig = (
   }
   // 有子命令
   if (subcommands) {
-    argvFinal = argvFinal.command(subcommands);
+    argvFinal = addSubcommands(argvFinal, subcommands);
   }
 
   // console.log(154, isRootCommand, rootScriptName)

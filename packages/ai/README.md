@@ -128,6 +128,15 @@ dc-cli ai
 done-coding ai
 ```
 
+## 编程接口
+
+```javascript
+import { handler } from "@done-coding/cli-ai";
+
+// 启动 AI 对话
+await handler("chat");
+```
+
 ## 配置
 
 配置持久化到 `~/.done-coding/config.json` 的 `AI_CONFIG` 字段：
