@@ -244,10 +244,19 @@ const addYargsConfig = (
 
 /** 创建主命令 */
 export const createMainCommand = async ({ handler, ...config }: CliInfo) => {
-  const argv = await addYargsConfig(createYargs(), config, true).fail(
+  let yargsInstance = addYargsConfig(createYargs(), config, true).fail(
     failHandler,
-  ).argv;
-  return handler ? handler(argv) : argv;
+  );
+
+  if (handler) {
+    yargsInstance = yargsInstance.command({
+      command: "$0",
+      handler,
+    });
+  }
+
+  const argv = await yargsInstance.argv;
+  return argv;
 };
 
 /** 创建子命令模块 */
