@@ -4,37 +4,53 @@ import type {
   SubCliInfo,
 } from "@done-coding/cli-utils";
 import { chalk, outputConsole } from "@done-coding/cli-utils";
-import { SubcommandEnum, type LsOptions, type Provider } from "@/types";
+import {
+  SubcommandEnum,
+  ClientName,
+  type LsOptions,
+  type ClientOptions,
+  type Provider,
+} from "@/types";
 import {
   BUILTIN_CLIENTS,
   BUILTIN_PROVIDERS_BY_PROTOCOL,
+  getClientProtocol,
 } from "@/services/presets";
 import {
   getCurrentClient,
   getProviders,
-  getCurrentProtocol,
-  getCurrentState,
+  readRegistry,
 } from "@/services/registry";
 
-export const getOptions = (): YargsOptionsRecord<LsOptions> => ({
+export const getOptions = (): YargsOptionsRecord<
+  LsOptions & ClientOptions
+> => ({
   view: {
     type: "string",
     choices: ["model", "provider"],
     default: "model",
     describe: "展示视角: model(扁平化) | provider(树状)",
   },
+  client: {
+    type: "string",
+    choices: Object.values(ClientName),
+    describe: "指定目标 client",
+  },
 });
 
-export const handler = async (argv: CliHandlerArgv<LsOptions>) => {
-  const clientName = getCurrentClient();
+export const handler = async (
+  argv: CliHandlerArgv<LsOptions & ClientOptions>,
+) => {
+  const clientName = argv.client ?? getCurrentClient();
   const client = BUILTIN_CLIENTS.find((c) => c.name === clientName);
   if (!client) {
     outputConsole.error(`不支持的 client: ${clientName}`);
     process.exit(1);
   }
-  const protocol = getCurrentProtocol();
+  const protocol = getClientProtocol(clientName as ClientName);
   const providers = getProviders(protocol);
-  const state = getCurrentState();
+  const registry = readRegistry();
+  const state = registry.clientState[clientName] ?? { provider: "", model: "" };
 
   if (providers.length === 0) {
     outputConsole.info(`当前 ${protocol} 协议下暂无服务商`);

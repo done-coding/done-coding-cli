@@ -43,11 +43,12 @@ dc-ai --help
 
 ## 功能特性
 
-- 🤖 **多服务商支持**: DeepSeek / 通义千问 / Kimi / Groq + 自定义服务商
+- 🤖 **多服务商支持**: 通过 mrm（模型源管理器）统一管理服务商和模型
 - 🔐 **API Key 持久化**: 首次输入后保存到 `~/.done-coding/config.json`，后续自动使用
 - 📡 **SSE 流式响应**: 逐 token 实时输出，体验接近 ChatGPT
-- 🎯 **两级模型选择**: 先选服务商，再选该服务商下的具体模型
+- 🎯 **模型切换委托 mrm**: `/provider`、`/model` 内部委托 `@done-coding/cli-mrm` 管理
 - ⌨️ **内置命令**: `/provider` 切换服务商、`/model` 切换模型、`/clear` 清屏、`/exit` 退出
+- 📦 **子包帮助**: 输入 `/子包名` 查看其他 CLI 工具的版本号和帮助信息
 - 🔄 **401 自动重试**: API Key 无效时自动重新引导输入
 
 ## API 文档
@@ -72,18 +73,17 @@ dc-ai chat
 |---|---|
 | `Ctrl+C` | 取消当前输入 |
 | `/exit` | 退出对话 |
-| `/provider` | 切换服务商（保留 API Key，自动引导选模型） |
-| `/model` | 在当前服务商下切换模型 |
+| `/provider` | 切换服务商（通过 mrm 管理） |
+| `/model` | 在当前服务商下切换模型（通过 mrm 管理） |
 | `/clear` | 清屏 |
-
-**预设服务商**:
-
-| 服务商 | 可用模型 |
-|---|---|
-| DeepSeek | V4 Flash / V4 Pro / V3 Chat（弃用） / R1 Reasoner（弃用） |
-| 通义千问 | Qwen Turbo / Qwen Plus / Qwen Max |
-| Kimi（月之暗面） | Moonshot v1 8K / 32K / 128K |
-| Groq | Llama 3.3 70B / Mixtral 8x7B |
+| `/mrm` | 查看 mrm 模型源管理器的帮助 |
+| `/component` | 查看组件工具的帮助 |
+| `/config` | 查看工程配置工具的帮助 |
+| `/create` | 查看项目创建工具的帮助 |
+| `/extract` | 查看信息提取工具的帮助 |
+| `/inject` | 查看信息注入工具的帮助 |
+| `/publish` | 查看发布工具的帮助 |
+| `/template` | 查看模板编译工具的帮助 |
 
 **首次使用流程**: 选择模型服务商 → 选择具体模型 → 输入 API Key → 开始对话。
 
@@ -155,7 +155,9 @@ await handler("chat");
 
 本包集成了以下 done-coding CLI 工具：
 
+- **@done-coding/cli-mrm**: 模型源管理器（服务商/模型管理、配置写入）
 - **@done-coding/cli-utils**: 通用工具函数（xPrompts、outputConsole、全局配置读写）
+- **@done-coding/cli-component/config/create/extract/inject/publish/template**: 通过 `/子包名` 输出帮助信息
 - **openai**: OpenAI 兼容 SDK（^4.x），负责 SSE 流式调用
 
 ## 故障排除

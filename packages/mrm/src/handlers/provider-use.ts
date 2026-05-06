@@ -1,12 +1,23 @@
-import type { CliHandlerArgv, SubCliInfo } from "@done-coding/cli-utils";
+import type {
+  CliHandlerArgv,
+  SubCliInfo,
+  YargsOptionsRecord,
+} from "@done-coding/cli-utils";
 import { outputConsole } from "@done-coding/cli-utils";
-import { SubcommandEnum, type ProviderUseOptions } from "@/types";
+import {
+  SubcommandEnum,
+  ClientName,
+  type ProviderUseOptions,
+  type ClientOptions,
+} from "@/types";
 import { getCurrentClient, switchProvider } from "@/services/registry";
 import { writeClientConfig } from "@/services/client-config";
 
-export const handler = async (argv: CliHandlerArgv<ProviderUseOptions>) => {
+export const handler = async (
+  argv: CliHandlerArgv<ProviderUseOptions & ClientOptions>,
+) => {
   const { alias } = argv;
-  const clientName = getCurrentClient();
+  const clientName = argv.client ?? getCurrentClient();
 
   try {
     const state = switchProvider(clientName, alias);
@@ -21,8 +32,17 @@ export const handler = async (argv: CliHandlerArgv<ProviderUseOptions>) => {
   }
 };
 
+export const getOptions = (): YargsOptionsRecord<ClientOptions> => ({
+  client: {
+    type: "string",
+    choices: Object.values(ClientName),
+    describe: "指定目标 client",
+  },
+});
+
 export const commandCliInfo: SubCliInfo = {
   command: `${SubcommandEnum.PROVIDER_USE} <alias>`,
   describe: "切换服务商",
+  options: getOptions(),
   handler: handler as SubCliInfo["handler"],
 };

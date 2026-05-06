@@ -4,13 +4,20 @@ import type {
   YargsOptionsRecord,
 } from "@done-coding/cli-utils";
 import { outputConsole } from "@done-coding/cli-utils";
-import { SubcommandEnum, type ModelUseOptions } from "@/types";
+import {
+  SubcommandEnum,
+  ClientName,
+  type ModelUseOptions,
+  type ClientOptions,
+} from "@/types";
 import { getCurrentClient, switchModel } from "@/services/registry";
 import { writeClientConfig } from "@/services/client-config";
 
-export const handler = async (argv: CliHandlerArgv<ModelUseOptions>) => {
+export const handler = async (
+  argv: CliHandlerArgv<ModelUseOptions & ClientOptions>,
+) => {
   const { model, provider } = argv;
-  const clientName = getCurrentClient();
+  const clientName = argv.client ?? getCurrentClient();
 
   try {
     const state = switchModel(clientName, model, provider);
@@ -25,8 +32,10 @@ export const handler = async (argv: CliHandlerArgv<ModelUseOptions>) => {
   }
 };
 
-/** model use 的 options（轻量，仅 --provider） */
-export const getModelUseOptions = (): YargsOptionsRecord<ModelUseOptions> => ({
+/** model use 的 options */
+export const getModelUseOptions = (): YargsOptionsRecord<
+  ModelUseOptions & ClientOptions
+> => ({
   model: {
     type: "string",
     describe: "模型名称",
@@ -36,6 +45,11 @@ export const getModelUseOptions = (): YargsOptionsRecord<ModelUseOptions> => ({
     type: "string",
     alias: "p",
     describe: "指定服务商别名（可选）",
+  },
+  client: {
+    type: "string",
+    choices: Object.values(ClientName),
+    describe: "指定目标 client",
   },
 });
 
