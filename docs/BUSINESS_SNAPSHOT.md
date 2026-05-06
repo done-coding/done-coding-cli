@@ -170,3 +170,4 @@ MIT
 | 部分子包 README 未列出 `DC <subcommand>` 能用的具体选项，用户需靠 `--help` 反推 | 独立使用子包的用户可能因文档不全而放弃 | 中 |
 | create-done-coding 的远程模板列表依赖 Gitee 外部仓库 | Gitee 不可用时 `DC create` 无法获取模板列表 | 低 |
 | CHANGELOG.md 已删除但部分 README 仍含链接 | README 404 链接 | 低 |
+| ai 包 `/xxx` 命令在开发环境 `node es/cli.mjs chat` 启动时，`node_modules/.bin` 不在 PATH，导致 `dc-xxx --help` 找不到命令 | 本地调试 `/xxx` 需改用 `pnpm exec dc-ai chat` 或 `./node_modules/.bin/dc-ai chat` 启动 | 低 |
