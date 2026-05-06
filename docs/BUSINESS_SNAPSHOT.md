@@ -1,7 +1,7 @@
 # 业务快照
 
-> 最后更新：2026-04-26
-> 关联任务：项目全局快照梳理
+> 最后更新：2026-05-06
+> 关联任务：ai 模型切换委托 mrm + 子包帮助命令
 
 ## 1. 业务领域与背景
 
@@ -18,7 +18,7 @@ done-coding-cli 是一个面向 **Node.js 前端/全栈开发者**的 CLI 工具
 | 组件创建：复制粘贴 + 改名称 + 改引用 | `DC component add <name>` |
 | 分支保护：靠口头约定防止倒灌合并 | `DC git hooks` 在 git hook 层自动拦截 reverse-merge |
 | 发布：手动改版本 + npm publish + git push + git tag | `DC publish -t patch -d latest` 一条命令 |
-| AI 辅助 | `DC` 无子命令 → 进入 AI 对话；`DC ai` → 独立入口 |
+| AI 辅助 | `DC` 无子命令 → 进入 AI 对话；对话内可通过 `/子包名` 查看其他 CLI 工具帮助 |
 
 ### 关键术语
 
@@ -68,6 +68,7 @@ done-coding-cli 是一个面向 **Node.js 前端/全栈开发者**的 CLI 工具
 | `DC template` | `@done-coding/cli-template` | `init`、`compile`（未指明时默认执行）、`batch` |
 | `DC git` | `@done-coding/cli-git` | `init`、`clone`、`hooks`、`check` |
 | `DC ai` | `@done-coding/cli-ai` | `chat`（默认） |
+| `DC mrm` | `@done-coding/cli-mrm` | `ls`、`use`、`switch`、`model add/use/remove`、`provider add/use/remove` |
 | `DC`（无子命令） | `@done-coding/cli` 自身 | 交互式提问 → AI 对话或 --help |
 
 ## 4. 功能清单
@@ -84,7 +85,8 @@ done-coding-cli 是一个面向 **Node.js 前端/全栈开发者**的 CLI 工具
 | `DC template` | `@done-coding/cli-template` | Lodash 模板编译引擎，支持 4 种输出模式 + 回滚 + Markdown 处理，被 create/component/extract 内部调用 | `活跃` | `packages/template/docs/BUSINESS.md`（待创建） |
 | `DC git` | `@done-coding/cli-git` | 跨平台 Git 操作（init/clone/hooks/check），含 reverse-merge 检测 | `活跃` | `packages/git/docs/BUSINESS.md`（待创建） |
 | `DC publish` | `@done-coding/cli-publish` | 语义化版本管理 + npm/web 发布 + 别名发布 | `活跃` | `packages/publish/docs/BUSINESS.md`（待创建） |
-| `DC ai` | `@done-coding/cli-ai` | AI 交互式对话（选模型 → 填 key → SSE 流式聊天） | `活跃` | `packages/ai/docs/BUSINESS.md`（待创建） |
+| `DC ai` | `@done-coding/cli-ai` | AI 交互式对话，模型切换委托 mrm 管理；支持 `/子包名` 查看其他 CLI 帮助 | `活跃` | `packages/ai/docs/BUSINESS.md`（待创建） |
+| `DC mrm` | `@done-coding/cli-mrm` | 模型源管理器，管理多 client（claude-code / done-coding-ai）的服务商和模型 | `活跃` | `packages/mrm/docs/BUSINESS.md`（待创建） |
 | — | `@done-coding/cli-utils` | 共享工具库（yargs 封装、xPrompts、配置管理、Git 工具、AES 加密等） | `活跃` | 无独立 CLI |
 
 ## 5. 核心业务流程

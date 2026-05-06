@@ -1,7 +1,7 @@
 # 技术架构快照
 
-> 最后更新：2026-04-26
-> 关联任务：项目全局快照梳理
+> 最后更新：2026-05-06
+> 关联任务：ai 模型切换委托 mrm + 子包帮助命令
 
 ## 1. 系统上下文（C4 Level 1）
 
@@ -20,7 +20,8 @@
                   │  ├── DC git                         │────▶ OS filesystem (.git, ~/.done-coding)
                   │  ├── DC publish                     │
                   │  ├── DC template                    │
-                  │  └── DC ai                          │
+                  │  ├── DC ai                          │
+                  │  └── DC mrm                         │
                   │                                      │
                   │  @done-coding/cli-utils (foundation) │
                   └──────────────────────────────────────┘
@@ -71,7 +72,8 @@
          @done-coding/cli-git        Git 操作
          @done-coding/cli-publish    项目发布
          @done-coding/cli-template   模板编译（被 create/component/extract 依赖）
-         @done-coding/cli-ai         AI 对话（选服务商 → 选模型 → SSE 流式）
+         @done-coding/cli-mrm         模型源管理器（服务商/模型 CRUD + client 切换）
+         @done-coding/cli-ai         AI 对话（/provider /model 委托 mrm，/xxx 子包帮助）
             │
 基础层:  @done-coding/cli-utils      共享工具 + 类型定义
 ```
@@ -147,14 +149,20 @@ export const commandCliInfo: Omit<CliInfo, "usage"> = {
     ├── @done-coding/cli-extract ─ 依赖: template, utils             │
     ├── @done-coding/cli-git ──── 依赖: utils（+ axios）             │
     ├── @done-coding/cli-inject ── 依赖: utils                       │
+    ├── @done-coding/cli-mrm ──── 依赖: utils                       │
     ├── @done-coding/cli-publish ─ 依赖: utils（+ semver）           │
     ├── @done-coding/cli-template  依赖: utils（+ lodash.template）  │
-    └── @done-coding/cli-ai ───── 依赖: utils, openai               │
+    └── @done-coding/cli-ai ───── 依赖: utils, openai, mrm          │
+         │                          + 8 个子包（提供 /xxx bin 帮助）  │
          ↓                                                          │
     @done-coding/cli-utils ─────── 无内部依赖 ──────────────────────┘
 ```
 
-**唯一的跨包运行时调用：** `config` →（运行时通过 yargs 的 `DC git check reverse-merge`）→ `git`。其余包间通信仅通过 npm 依赖 + 编译时导出。
+**跨包运行时调用：**
+- `config` →（运行时通过 yargs 的 `DC git check reverse-merge`）→ `git`
+- `ai` →（/xxx 命令通过 execSyncHijack 调用）→ 各子包 bin（dc-mrm / dc-component / create-done-coding 等）
+
+其余包间通信仅通过 npm 依赖 + 编译时导出。
 
 ### 构建输出
 
@@ -297,7 +305,15 @@ DC inject:
 | **决策** | 同一份代码同时服务人类交互和 AI agent 调用，通过 `DONE_CODING_PROCESS_CREATE_BY_HIJACK_PRESET_JSON` 区分模式 |
 | **背景** | 避免维护两套逻辑。hijack 模式通过 xPrompts 透明处理交互跳过、日志输出重定向。 |
 
-### ADR-5：AI 对话使用 openai SDK + OpenAI 兼容协议
+### ADR-5：AI 模型切换委托 mrm 管理
+
+| 项 | 内容 |
+|---|---|
+| **状态** | `活跃` |
+| **决策** | `@done-coding/cli-ai` 的 `/provider`、`/model` 内部委托 `@done-coding/cli-mrm` 的 registry API 实现，ai 包只读 config、所有写入通过 mrm 导出方法 |
+| **背景** | ai 包内置的 `model-presets.ts` 与 mrm 功能重复且数据不同步。统一由 mrm 管理服务商/模型，ai 作为消费方。切换流程：switchProvider/switchModel → writeClientConfig → 检查 apiKey。 |
+
+### ADR-6：AI 对话使用 openai SDK + OpenAI 兼容协议
 
 | 项 | 内容 |
 |---|---|
