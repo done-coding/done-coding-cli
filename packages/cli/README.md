@@ -306,14 +306,28 @@ graph TD
     A --> K["@done-coding/cli-template"]
     A --> L["@done-coding/cli-utils"]
 
-    D -.-> F
+    C --> I
+    C -.-> B
+    C -.-> D
+    C -.-> E
+    C -.-> F
+    C -.-> H
+    C -.-> J
+    C -.-> K
 
+    style C fill:#fff3e0
+    style I fill:#e8f5e8
     style D fill:#e1f5fe
     style F fill:#e8f5e8
 ```
 
 ### 包间协作关系
 
+- **@done-coding/cli-ai** → **@done-coding/cli-mrm**:
+  - ai 包的 `/provider`、`/model` 委托 mrm 管理服务商和模型
+  - ai 只读配置，写入通过 mrm 导出方法（switchProvider/switchModel/writeClientConfig）
+- **@done-coding/cli-ai** → 各子包 bin:
+  - ai 包通过 `/子包名` 调用其他子包 bin 输出版本号和帮助信息
 - **@done-coding/cli-config** → **@done-coding/cli-git**:
   - config 包的 `merge-lint` 模块调用 git 包的 `check reverse-merge` 命令
   - 实现工程化配置中的 git 合并规范检测
