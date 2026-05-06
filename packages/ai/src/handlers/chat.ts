@@ -13,7 +13,7 @@ import {
   execSyncHijack,
 } from "@done-coding/cli-utils";
 import { writeFileSync, existsSync, mkdirSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { dirname } from "node:path";
 import { ChatKeywordEnum, SubcommandEnum } from "@/types";
 import { AuthenticationError } from "openai";
 import { streamChat } from "@/services/api-client";
@@ -180,27 +180,8 @@ const handleSubpackageHelp = (input: string): boolean => {
   outputConsole.info(chalk.yellow("当前相关cli未完全ai工具化，敬请期待。"));
   outputConsole.info(chalk.cyan("以下是其版本及使用帮助：\n"));
 
-  // 从 cwd 向上查找 node_modules/.bin/<bin>
-  let binPath = "";
-  let dir = process.cwd();
-  while (dir.length > 1) {
-    const candidate = resolve(dir, "node_modules", ".bin", bin);
-    if (existsSync(candidate)) {
-      binPath = candidate;
-      break;
-    }
-    const parent = dirname(dir);
-    if (parent === dir) break;
-    dir = parent;
-  }
-
-  if (!binPath) {
-    outputConsole.error(`无法获取 ${name} 帮助信息`);
-    return true;
-  }
-
   try {
-    const version = execSyncHijack(`${binPath} --version`, {
+    const version = execSyncHijack(`${bin} --version`, {
       encoding: "utf-8",
       stdio: ["ignore", "pipe", "pipe"],
       timeout: 5000,
@@ -213,7 +194,7 @@ const handleSubpackageHelp = (input: string): boolean => {
   }
 
   try {
-    const help = execSyncHijack(`${binPath} --help`, {
+    const help = execSyncHijack(`${bin} --help`, {
       encoding: "utf-8",
       stdio: ["ignore", "pipe", "pipe"],
       timeout: 10000,
