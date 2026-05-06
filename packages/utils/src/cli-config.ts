@@ -17,6 +17,8 @@ import { execSyncHijack } from "@/process";
 
 /** AI 对话配置 */
 export interface AiConfig {
+  /** 协议，如 "openai" / "anthropic"，默认 "openai" */
+  protocol?: string;
   /** 模型名称，如 "deepseek-chat" */
   model: string;
   /** API Key */

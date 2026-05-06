@@ -30,7 +30,13 @@ import {
 } from "@done-coding/cli-mrm";
 
 const AI_CLIENT = ClientName.DONE_CODING_AI;
-const AI_PROTOCOL = Protocol.OPENAI;
+
+/** 从 config 读取当前协议，默认 OPENAI */
+const getCurrentProtocol = async (): Promise<Protocol> => {
+  const config = await readGlobalConfig();
+  const aiConfig = config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG];
+  return (aiConfig?.protocol as Protocol) || Protocol.OPENAI;
+};
 
 /** 子包名 → bin 命令映射（排除 ai、cli、git） */
 const SUBPACKAGE_HELP_MAP: Record<string, string> = {
@@ -100,7 +106,7 @@ const ensureApiKey = async (
  * /provider 处理：列出 OPENAI 协议服务商 → 选择 → 切换
  */
 const handleProviderSwitch = async () => {
-  const providers = getProviders(AI_PROTOCOL);
+  const providers = getProviders(await getCurrentProtocol());
   if (providers.length === 0) {
     outputConsole.info("暂无可用服务商，请先用 dc-mrm provider add 添加");
     return;
@@ -123,7 +129,7 @@ const handleProviderSwitch = async () => {
     const state = switchProvider(AI_CLIENT, provider.alias);
     writeClientConfig(AI_CLIENT, state);
     outputConsole.info(`已切换服务商 → ${state.provider} → ${state.model}`);
-    await ensureApiKey(AI_PROTOCOL, provider.alias);
+    await ensureApiKey(await getCurrentProtocol(), provider.alias);
   } catch (e: any) {
     outputConsole.error(e.message);
   }
@@ -140,7 +146,7 @@ const handleModelSwitch = async () => {
     return;
   }
 
-  const provider = findProvider(AI_PROTOCOL, state.provider);
+  const provider = findProvider(await getCurrentProtocol(), state.provider);
   if (!provider || provider.models.length === 0) {
     outputConsole.info(`服务商 "${state.provider}" 下暂无模型`);
     return;
@@ -163,10 +169,47 @@ const handleModelSwitch = async () => {
     const newState = switchModel(AI_CLIENT, modelName);
     writeClientConfig(AI_CLIENT, newState);
     outputConsole.info(`已切换模型 → ${newState.model}`);
-    await ensureApiKey(AI_PROTOCOL, state.provider);
+    await ensureApiKey(await getCurrentProtocol(), state.provider);
   } catch (e: any) {
     outputConsole.error(e.message);
   }
+};
+
+/**
+ * /protocol 处理：切换协议（OPENAI / ANTHROPIC）
+ */
+const handleProtocolSwitch = async () => {
+  const currentProtocol = await getCurrentProtocol();
+  const choices = [
+    {
+      title: `OpenAI${currentProtocol === Protocol.OPENAI ? " (当前)" : ""}`,
+      value: Protocol.OPENAI,
+    },
+    {
+      title: `Anthropic${currentProtocol === Protocol.ANTHROPIC ? " (当前)" : ""}`,
+      value: Protocol.ANTHROPIC,
+    },
+  ];
+
+  const { protocol } = await xPrompts({
+    type: "select",
+    name: "protocol",
+    message: "选择协议",
+    choices,
+  });
+
+  if (protocol === currentProtocol) return;
+
+  const config = await readGlobalConfig();
+  const aiConfig = config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG];
+  if (aiConfig) {
+    aiConfig.protocol = protocol;
+    delete (aiConfig as any).model;
+    delete (aiConfig as any).baseUrl;
+    config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG] = aiConfig;
+    await writeGlobalConfig(config);
+  }
+  outputConsole.info(`已切换协议 → ${protocol}`);
 };
 
 /**
@@ -220,7 +263,7 @@ const handleSubpackageHelp = (input: string): boolean => {
  * 首次引导流程：用 mrm registry 选服务商 → 选模型 → 输入 apiKey
  */
 const firstTimeSetup = async (): Promise<AiConfig | null> => {
-  const providers = getProviders(AI_PROTOCOL);
+  const providers = getProviders(await getCurrentProtocol());
   if (providers.length === 0) {
     outputConsole.info("暂无可用服务商");
     return null;
@@ -262,11 +305,12 @@ const firstTimeSetup = async (): Promise<AiConfig | null> => {
   });
 
   // 通过 mrm 写入
-  setProviderApiKey(AI_PROTOCOL, provider.alias, apiKey);
+  const protocol = await getCurrentProtocol();
+  setProviderApiKey(protocol, provider.alias, apiKey);
   const state = switchModel(AI_CLIENT, model);
   writeClientConfig(AI_CLIENT, state);
 
-  return { model, baseUrl: provider.baseUrl, apiKey };
+  return { protocol, model, baseUrl: provider.baseUrl, apiKey };
 };
 
 /**
@@ -288,8 +332,10 @@ const chatHandler = async () => {
     outputConsole.info("");
   }
 
+  const protocol = aiConfig.protocol || Protocol.OPENAI;
+
   outputConsole.info(
-    `模型: ${aiConfig.model} | 输入消息开始对话 (${ChatKeywordEnum.EXIT} 退出, ${ChatKeywordEnum.PROVIDER} 切换服务商, ${ChatKeywordEnum.MODEL} 切换模型, ${ChatKeywordEnum.CLEAR} 清屏)\n`,
+    `协议: ${protocol} | 模型: ${aiConfig.model} | 输入消息开始对话 (${ChatKeywordEnum.EXIT} 退出, ${ChatKeywordEnum.PROTOCOL} 切换协议, ${ChatKeywordEnum.PROVIDER} 切换服务商, ${ChatKeywordEnum.MODEL} 切换模型, ${ChatKeywordEnum.CLEAR} 清屏)\n`,
   );
 
   // 对话循环
@@ -308,6 +354,13 @@ const chatHandler = async () => {
     if (trimmed === ChatKeywordEnum.EXIT) {
       outputConsole.info("对话结束");
       return;
+    }
+
+    if (trimmed === ChatKeywordEnum.PROTOCOL) {
+      await handleProtocolSwitch();
+      config = await readGlobalConfig();
+      aiConfig = config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG];
+      continue;
     }
 
     if (trimmed === ChatKeywordEnum.PROVIDER) {
@@ -351,8 +404,8 @@ const chatHandler = async () => {
         outputConsole.info("API Key 无效，请重新输入\n");
         const state = readRegistry().clientState[AI_CLIENT];
         if (state?.provider) {
-          setProviderApiKey(AI_PROTOCOL, state.provider, "");
-          await ensureApiKey(AI_PROTOCOL, state.provider);
+          setProviderApiKey(await getCurrentProtocol(), state.provider, "");
+          await ensureApiKey(await getCurrentProtocol(), state.provider);
         }
         config = await readGlobalConfig();
         aiConfig = config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG];

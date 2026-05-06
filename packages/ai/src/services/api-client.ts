@@ -1,5 +1,7 @@
 import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 import type { AiConfig } from "@done-coding/cli-utils";
+import { Protocol } from "@done-coding/cli-mrm";
 
 /** 流式聊天请求参数 */
 export interface StreamChatParams {
@@ -11,8 +13,8 @@ export interface StreamChatParams {
   onToken: (token: string) => void;
 }
 
-/** SSE 流式聊天：逐 token 回调 onToken */
-export const streamChat = async (params: StreamChatParams): Promise<void> => {
+/** SSE 流式聊天：OpenAI 协议 */
+const streamChatOpenAI = async (params: StreamChatParams): Promise<void> => {
   const { config, message, onToken } = params;
 
   const client = new OpenAI({
@@ -34,4 +36,37 @@ export const streamChat = async (params: StreamChatParams): Promise<void> => {
       onToken(content);
     }
   }
+};
+
+/** SSE 流式聊天：Anthropic 协议 */
+const streamChatAnthropic = async (params: StreamChatParams): Promise<void> => {
+  const { config, message, onToken } = params;
+
+  const client = new Anthropic({
+    apiKey: config.apiKey,
+    baseURL: config.baseUrl,
+  });
+
+  const stream = client.messages.stream({
+    model: config.model,
+    max_tokens: 4096,
+    messages: [{ role: "user", content: message }],
+  });
+
+  for await (const event of stream) {
+    if (
+      event.type === "content_block_delta" &&
+      event.delta.type === "text_delta"
+    ) {
+      onToken(event.delta.text);
+    }
+  }
+};
+
+/** SSE 流式聊天：按协议路由 */
+export const streamChat = async (params: StreamChatParams): Promise<void> => {
+  if (params.config.protocol === Protocol.ANTHROPIC) {
+    return streamChatAnthropic(params);
+  }
+  return streamChatOpenAI(params);
 };
