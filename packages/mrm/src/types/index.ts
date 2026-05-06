@@ -135,3 +135,8 @@ export interface ModelUseOptions {
   model: string;
   provider?: string;
 }
+
+/** CLI --client 通用选项 */
+export interface ClientOptions {
+  client?: ClientName;
+}

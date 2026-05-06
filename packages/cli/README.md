@@ -58,7 +58,7 @@ done-coding --help
 ## 功能特性
 
 - ✅ **统一入口**: 集成 11 个专业工具包，提供统一的命令行入口
-- 🤖 **AI 对话**: 无子命令时唤起 AI 对话，支持多服务商、SSE 流式响应
+- 🤖 **AI 对话**: 无子命令时唤起 AI 对话，模型切换委托 mrm，SSE 流式响应；对话内支持 `/子包名` 查看其他工具帮助
 - 🚀 **跨平台兼容**: 支持 Windows、macOS、Linux，自动处理系统差异
 - 🔧 **模块化设计**: 每个子包独立开发，可单独使用或集成使用
 - 📦 **完整工作流**: 涵盖项目创建、开发、构建、发布的完整流程
@@ -109,7 +109,7 @@ done-coding --help
 ### 🧠 模型源管理
 
 - **命令**: `DC mrm`
-- **描述**: AI 模型源管理器，管理服务商和模型切换
+- **描述**: AI 模型源管理器，管理服务商和模型切换；支持 `--client` 选项指定客户端
 - **包地址**: [@done-coding/cli-mrm](https://www.npmjs.com/package/@done-coding/cli-mrm)
 
 ### 📦 项目发布
@@ -121,7 +121,7 @@ done-coding --help
 ### 🤖 AI 对话
 
 - **命令**: `DC ai` 或直接输入 `DC`（无子命令）
-- **描述**: AI 对话命令行工具
+- **描述**: AI 对话命令行工具，模型切换委托 mrm；对话内输入 `/子包名` 可查看其他 CLI 帮助
 - **包地址**: [@done-coding/cli-ai](https://www.npmjs.com/package/@done-coding/cli-ai)
 
 ### 📝 模板处理
@@ -306,14 +306,28 @@ graph TD
     A --> K["@done-coding/cli-template"]
     A --> L["@done-coding/cli-utils"]
 
-    D -.-> F
+    C --> I
+    C -.-> B
+    C -.-> D
+    C -.-> E
+    C -.-> F
+    C -.-> H
+    C -.-> J
+    C -.-> K
 
+    style C fill:#fff3e0
+    style I fill:#e8f5e8
     style D fill:#e1f5fe
     style F fill:#e8f5e8
 ```
 
 ### 包间协作关系
 
+- **@done-coding/cli-ai** → **@done-coding/cli-mrm**:
+  - ai 包的 `/provider`、`/model` 委托 mrm 管理服务商和模型
+  - ai 只读配置，写入通过 mrm 导出方法（switchProvider/switchModel/writeClientConfig）
+- **@done-coding/cli-ai** → 各子包 bin:
+  - ai 包通过 `/子包名` 调用其他子包 bin 输出版本号和帮助信息
 - **@done-coding/cli-config** → **@done-coding/cli-git**:
   - config 包的 `merge-lint` 模块调用 git 包的 `check reverse-merge` 命令
   - 实现工程化配置中的 git 合并规范检测

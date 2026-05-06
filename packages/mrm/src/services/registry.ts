@@ -232,6 +232,22 @@ export function addModel(
   writeRegistry(registry);
 }
 
+/** 设置 provider 的 apiKey */
+export function setProviderApiKey(
+  protocol: Protocol,
+  alias: string,
+  apiKey: string,
+): void {
+  const registry = readRegistry();
+  const providers = registry.providers[protocol] ?? [];
+  const provider = providers.find((p) => p.alias === alias);
+  if (!provider) {
+    throw new Error(`服务商 "${alias}" 在 ${protocol} 协议下不存在`);
+  }
+  provider.apiKey = apiKey;
+  writeRegistry(registry);
+}
+
 /** 删除 provider 下的模型 */
 export function removeModel(opts: {
   protocol: Protocol;

@@ -4,16 +4,23 @@ import type {
   YargsOptionsRecord,
 } from "@done-coding/cli-utils";
 import { outputConsole } from "@done-coding/cli-utils";
-import { SubcommandEnum, type ModelAddOptions } from "@/types";
+import {
+  SubcommandEnum,
+  ClientName,
+  type ModelAddOptions,
+  type ClientOptions,
+} from "@/types";
 import {
   getCurrentClient,
-  getCurrentProtocol,
-  getCurrentState,
   findProvider,
   addModel,
+  readRegistry,
 } from "@/services/registry";
+import { getClientProtocol } from "@/services/presets";
 
-export const getOptions = (): YargsOptionsRecord<ModelAddOptions> => ({
+export const getOptions = (): YargsOptionsRecord<
+  ModelAddOptions & ClientOptions
+> => ({
   providerAlias: {
     type: "string",
     describe: "服务商别名",
@@ -24,12 +31,19 @@ export const getOptions = (): YargsOptionsRecord<ModelAddOptions> => ({
     describe: "模型名称",
     demandOption: true,
   },
+  client: {
+    type: "string",
+    choices: Object.values(ClientName),
+    describe: "指定目标 client",
+  },
 });
 
-export const handler = async (argv: CliHandlerArgv<ModelAddOptions>) => {
+export const handler = async (
+  argv: CliHandlerArgv<ModelAddOptions & ClientOptions>,
+) => {
   const { providerAlias, modelName } = argv;
-  const clientName = getCurrentClient();
-  const protocol = getCurrentProtocol();
+  const clientName = argv.client ?? getCurrentClient();
+  const protocol = getClientProtocol(clientName as ClientName);
 
   /** 前置校验：provider 必须存在 */
   if (!findProvider(protocol, providerAlias)) {
@@ -44,7 +58,10 @@ export const handler = async (argv: CliHandlerArgv<ModelAddOptions>) => {
   for (const m of models) {
     addModel(protocol, providerAlias, m);
   }
-  const state = getCurrentState();
+  const state = readRegistry().clientState[clientName] ?? {
+    provider: "",
+    model: "",
+  };
   outputConsole.info(
     `模型添加成功 → 当前: ${clientName} → ${state.provider} → ${state.model}`,
   );
