@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-mrm",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "(AI)模型源管理器",
   "private": false,
   "module": "es/index.mjs",
