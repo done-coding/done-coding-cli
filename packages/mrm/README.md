@@ -53,11 +53,12 @@ Protocol（协议） → Provider（服务商） → Model（模型）
 ## 功能特性
 
 - 📋 **模型列表**: 查看所有可用服务商和模型，支持扁平化和树状两种视角
-- 🔀 **快速切换**: 一键切换模型，支持跨服务商切换
+- 🔀 **快速切换**: 一键切换模型，支持跨服务商、跨客户端切换
+- 🎯 **多客户端**: `--client` 选项指定操作 claude-code 或 done-coding-ai
 - ➕ **服务商管理**: 添加、删除自定义 API 服务商
 - 🤖 **模型管理**: 为服务商添加或删除模型
 - 💾 **状态持久化**: 服务商/模型选择按客户端记忆，切换回来自动恢复
-- 🎨 **视觉标记**: 当前项绿色高亮，内置项紫色标记，1M 上下文模型标注
+- 🎨 **视觉标记**: 当前项绿色高亮，内置项紫色标记
 
 ## API 文档
 
@@ -68,8 +69,9 @@ Protocol（协议） → Provider（服务商） → Model（模型）
 列出当前协议下所有可用模型
 
 ```bash
-dc-mrm ls                  # 扁平化视图（默认）
-dc-mrm ls --view=provider  # 树状视图
+dc-mrm ls                         # 扁平化视图（默认）
+dc-mrm ls --view=provider         # 树状视图
+dc-mrm ls --client done-coding-ai # 查看指定客户端
 ```
 
 输出示例：
@@ -183,6 +185,18 @@ dc-mrm switch done-coding-ai
 | qwen | qwen-turbo, qwen-plus, qwen-max |
 | kimi | moonshot-v1-8k, moonshot-v1-32k, moonshot-v1-128k |
 
+### `--client` 选项
+
+所有命令（除 `switch`）支持 `--client` 指定目标客户端：
+
+```bash
+dc-mrm ls --client done-coding-ai
+dc-mrm model use sonnet --client claude-code
+dc-mrm provider use deepseek --client done-coding-ai
+```
+
+不传 `--client` 时默认操作当前客户端。
+
 ## 配置
 
 注册表存储在 `~/.done-coding/mrm/sources.json`，客户端配置由 `provider use` / `model use` 自动写入：
@@ -195,19 +209,23 @@ dc-mrm switch done-coding-ai
 ```javascript
 import {
   handler,
-  lsHandler,
-  switchHandler,
-  providerAddHandler,
-  providerUseHandler,
-  providerRemoveHandler,
-  modelAddHandler,
-  modelRemoveHandler,
-  modelUseHandler,
+  readRegistry,
+  switchProvider,
+  switchModel,
+  setProviderApiKey,
+  writeClientConfig,
+  getProviders,
+  findProvider,
 } from "@done-coding/cli-mrm";
 
 // 程序化调用
 await handler("model use", { model: "sonnet" });
-await handler("ls", { view: "model" });
+
+// 直接调用底层函数（已被 @done-coding/cli-ai 使用）
+const providers = getProviders(Protocol.OPENAI);
+const state = switchModel(ClientName.DONE_CODING_AI, "deepseek-v4-pro");
+setProviderApiKey(Protocol.OPENAI, "deepseek", "sk-xxx");
+writeClientConfig(ClientName.DONE_CODING_AI, state);
 ```
 
 ## 开发环境设置
