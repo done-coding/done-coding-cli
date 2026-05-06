@@ -6,19 +6,23 @@ import type {
 import { outputConsole, xPrompts } from "@done-coding/cli-utils";
 import {
   SubcommandEnum,
+  ClientName,
   type ProviderAddOptions,
+  type ClientOptions,
   type Provider,
 } from "@/types";
 import {
   getCurrentClient,
-  getCurrentProtocol,
-  getCurrentState,
   findProvider,
   addProvider,
+  readRegistry,
 } from "@/services/registry";
+import { getClientProtocol } from "@/services/presets";
 import { promptApiKey } from "@/utils/prompts";
 
-export const getOptions = (): YargsOptionsRecord<ProviderAddOptions> => ({
+export const getOptions = (): YargsOptionsRecord<
+  ProviderAddOptions & ClientOptions
+> => ({
   alias: {
     type: "string",
     describe: "服务商别名",
@@ -29,12 +33,19 @@ export const getOptions = (): YargsOptionsRecord<ProviderAddOptions> => ({
     describe: "API 端点地址",
     demandOption: true,
   },
+  client: {
+    type: "string",
+    choices: Object.values(ClientName),
+    describe: "指定目标 client",
+  },
 });
 
-export const handler = async (argv: CliHandlerArgv<ProviderAddOptions>) => {
+export const handler = async (
+  argv: CliHandlerArgv<ProviderAddOptions & ClientOptions>,
+) => {
   const { alias, url } = argv;
-  const clientName = getCurrentClient();
-  const protocol = getCurrentProtocol();
+  const clientName = argv.client ?? getCurrentClient();
+  const protocol = getClientProtocol(clientName as ClientName);
 
   /** 前置校验：避免用户交互输入后才发现冲突 */
   if (findProvider(protocol, alias)) {
@@ -72,7 +83,10 @@ export const handler = async (argv: CliHandlerArgv<ProviderAddOptions>) => {
   };
 
   addProvider(protocol, provider);
-  const state = getCurrentState();
+  const state = readRegistry().clientState[clientName] ?? {
+    provider: "",
+    model: "",
+  };
   outputConsole.info(
     `服务商 "${alias}" 添加成功 → 当前: ${clientName} → ${state.provider} → ${state.model}`,
   );

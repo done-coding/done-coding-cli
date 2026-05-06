@@ -1,18 +1,29 @@
-import type { CliHandlerArgv, SubCliInfo } from "@done-coding/cli-utils";
+import type {
+  CliHandlerArgv,
+  SubCliInfo,
+  YargsOptionsRecord,
+} from "@done-coding/cli-utils";
 import { outputConsole } from "@done-coding/cli-utils";
-import { SubcommandEnum, type ModelRemoveOptions } from "@/types";
+import {
+  SubcommandEnum,
+  ClientName,
+  type ModelRemoveOptions,
+  type ClientOptions,
+} from "@/types";
 import {
   getCurrentClient,
-  getCurrentProtocol,
   findProvider,
   removeModel,
 } from "@/services/registry";
+import { getClientProtocol } from "@/services/presets";
 import { promptConfirm } from "@/utils/prompts";
 
-export const handler = async (argv: CliHandlerArgv<ModelRemoveOptions>) => {
+export const handler = async (
+  argv: CliHandlerArgv<ModelRemoveOptions & ClientOptions>,
+) => {
   const { providerAlias, modelName } = argv;
-  const clientName = getCurrentClient();
-  const protocol = getCurrentProtocol();
+  const clientName = argv.client ?? getCurrentClient();
+  const protocol = getClientProtocol(clientName as ClientName);
 
   /** 前置校验：provider 和 model 必须存在 */
   const provider = findProvider(protocol, providerAlias);
@@ -48,8 +59,17 @@ export const handler = async (argv: CliHandlerArgv<ModelRemoveOptions>) => {
   );
 };
 
+export const getOptions = (): YargsOptionsRecord<ClientOptions> => ({
+  client: {
+    type: "string",
+    choices: Object.values(ClientName),
+    describe: "指定目标 client",
+  },
+});
+
 export const commandCliInfo: SubCliInfo = {
   command: `${SubcommandEnum.MODEL_REMOVE} <providerAlias> <modelName>`,
   describe: "删除服务商的模型",
+  options: getOptions(),
   handler: handler as SubCliInfo["handler"],
 };

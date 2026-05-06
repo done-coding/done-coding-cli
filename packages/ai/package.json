@@ -38,7 +38,6 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:0.6.2",
     "@types/node": "^18.0.0",
     "@types/prompts": "^2.4.6",
     "@types/yargs": "^17.0.28",
@@ -49,7 +48,15 @@
     "vitest": "^1.6.1"
   },
   "dependencies": {
+    "@done-coding/cli-mrm": "workspace:0.0.2",
+    "@done-coding/cli-component": "workspace:0.5.2",
+    "@done-coding/cli-config": "workspace:0.2.2",
+    "@done-coding/cli-extract": "workspace:0.2.2",
+    "@done-coding/cli-inject": "workspace:0.6.2",
+    "@done-coding/cli-publish": "workspace:0.8.2",
+    "@done-coding/cli-template": "workspace:0.9.2",
     "@done-coding/cli-utils": "workspace:0.9.2",
+    "create-done-coding": "workspace:0.12.2",
     "openai": "^4.77.0"
   },
   "engines": {

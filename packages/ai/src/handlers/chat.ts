@@ -5,26 +5,47 @@ import type {
 } from "@done-coding/cli-utils";
 import {
   outputConsole,
+  chalk,
   xPrompts,
   readJsonFileAsync,
   getGlobalConfigFilePath,
   DoneCodingCliGlobalConfigKeyEnum,
+  execSyncHijack,
 } from "@done-coding/cli-utils";
 import { writeFileSync, existsSync, mkdirSync } from "node:fs";
-import { dirname } from "node:path";
+import { dirname, resolve } from "node:path";
 import { ChatKeywordEnum, SubcommandEnum } from "@/types";
-import {
-  PROVIDER_PRESETS,
-  CUSTOM_PROVIDER_INDEX,
-  CUSTOM_PROVIDER_LABEL,
-} from "@/services/model-presets";
-import type { ProviderPreset } from "@/services/model-presets";
 import { AuthenticationError } from "openai";
 import { streamChat } from "@/services/api-client";
+import {
+  ClientName,
+  Protocol,
+  readRegistry,
+  getProviders,
+  findProvider,
+  switchProvider,
+  switchModel,
+  writeClientConfig,
+  setProviderApiKey,
+} from "@done-coding/cli-mrm";
+
+const AI_CLIENT = ClientName.DONE_CODING_AI;
+const AI_PROTOCOL = Protocol.OPENAI;
+
+/** 子包名 → bin 命令映射（排除 ai、cli、git） */
+const SUBPACKAGE_HELP_MAP: Record<string, string> = {
+  mrm: "dc-mrm",
+  component: "dc-component",
+  config: "dc-config",
+  create: "create-done-coding",
+  extract: "dc-extract",
+  inject: "dc-inject",
+  publish: "dc-publish",
+  template: "dc-template",
+};
 
 /**
  * 读取全局配置文件
- * @returns 全局配置对象，文件不存在时返回空对象
  */
 const readGlobalConfig = async (): Promise<DoneCodingCliGlobalConfig> => {
   try {
@@ -39,7 +60,6 @@ const readGlobalConfig = async (): Promise<DoneCodingCliGlobalConfig> => {
 
 /**
  * 写入全局配置文件（目录不存在时自动创建）
- * @param config 全局配置对象
  */
 const writeGlobalConfig = async (config: DoneCodingCliGlobalConfig) => {
   const filePath = getGlobalConfigFilePath();
@@ -51,72 +71,197 @@ const writeGlobalConfig = async (config: DoneCodingCliGlobalConfig) => {
 };
 
 /**
- * 选择模型（在当前服务商下）
- * @param provider 当前服务商
- * @returns 模型标识名
+ * 确保 apiKey 不为空：读 config → 为空则 xPrompts 输入 → setProviderApiKey + writeClientConfig
  */
-const selectModelForProvider = async (
-  provider: ProviderPreset,
+const ensureApiKey = async (
+  protocol: Protocol,
+  providerAlias: string,
 ): Promise<string> => {
-  const modelChoices = provider.models.map((m, i) => ({
-    title: m.label,
+  const config = await readGlobalConfig();
+  const aiConfig = config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG];
+  if (aiConfig?.apiKey) return aiConfig.apiKey;
+
+  outputConsole.info("");
+  const { apiKey } = await xPrompts({
+    type: "password",
+    name: "apiKey",
+    message: "输入 API Key",
+    validate: (v: string) => (v?.trim().length > 0 ? true : "API Key 不能为空"),
+  });
+
+  setProviderApiKey(protocol, providerAlias, apiKey);
+  const registry = readRegistry();
+  const state = registry.clientState[AI_CLIENT];
+  writeClientConfig(AI_CLIENT, state);
+  return apiKey;
+};
+
+/**
+ * /provider 处理：列出 OPENAI 协议服务商 → 选择 → 切换
+ */
+const handleProviderSwitch = async () => {
+  const providers = getProviders(AI_PROTOCOL);
+  if (providers.length === 0) {
+    outputConsole.info("暂无可用服务商，请先用 dc-mrm provider add 添加");
+    return;
+  }
+
+  const choices = providers.map((p, i) => ({
+    title: p.alias + (p.builtin ? " [内置]" : ""),
+    value: i,
+  }));
+
+  const { providerIndex } = await xPrompts({
+    type: "select",
+    name: "providerIndex",
+    message: "选择服务商",
+    choices,
+  });
+
+  const provider = providers[providerIndex];
+  try {
+    const state = switchProvider(AI_CLIENT, provider.alias);
+    writeClientConfig(AI_CLIENT, state);
+    outputConsole.info(`已切换服务商 → ${state.provider} → ${state.model}`);
+    await ensureApiKey(AI_PROTOCOL, provider.alias);
+  } catch (e: any) {
+    outputConsole.error(e.message);
+  }
+};
+
+/**
+ * /model 处理：列当前服务商模型 → 选择 → 切换
+ */
+const handleModelSwitch = async () => {
+  const registry = readRegistry();
+  const state = registry.clientState[AI_CLIENT];
+  if (!state?.provider) {
+    outputConsole.info("未配置服务商，请先用 /provider 选择");
+    return;
+  }
+
+  const provider = findProvider(AI_PROTOCOL, state.provider);
+  if (!provider || provider.models.length === 0) {
+    outputConsole.info(`服务商 "${state.provider}" 下暂无模型`);
+    return;
+  }
+
+  const choices = provider.models.map((m, i) => ({
+    title: m + (i === 0 ? " (默认)" : ""),
     value: i,
   }));
 
   const { modelIndex } = await xPrompts({
     type: "select",
     name: "modelIndex",
-    message: `选择 ${provider.label} 模型`,
-    choices: modelChoices,
+    message: `选择 ${state.provider} 模型`,
+    choices,
   });
 
-  return provider.models[modelIndex].model;
+  const modelName = provider.models[modelIndex];
+  try {
+    const newState = switchModel(AI_CLIENT, modelName);
+    writeClientConfig(AI_CLIENT, newState);
+    outputConsole.info(`已切换模型 → ${newState.model}`);
+    await ensureApiKey(AI_PROTOCOL, state.provider);
+  } catch (e: any) {
+    outputConsole.error(e.message);
+  }
 };
 
 /**
- * 选择服务商 + 模型
- * @returns { model, baseUrl } 或 null（用户取消）
+ * /xxx 子包帮助处理
  */
-const selectProviderAndModel = async (): Promise<{
-  model: string;
-  baseUrl: string;
-} | null> => {
-  const providerChoices = PROVIDER_PRESETS.map((p, i) => ({
-    title: p.label,
+const handleSubpackageHelp = (input: string): boolean => {
+  const name = input.slice(1).trim();
+  const bin = SUBPACKAGE_HELP_MAP[name];
+  if (!bin) return false;
+
+  outputConsole.info(chalk.yellow("当前相关cli未完全ai工具化，敬请期待。"));
+  outputConsole.info(chalk.cyan("以下是其版本及使用帮助：\n"));
+
+  // 从 cwd 向上查找 node_modules/.bin/<bin>
+  let binPath = "";
+  let dir = process.cwd();
+  while (dir.length > 1) {
+    const candidate = resolve(dir, "node_modules", ".bin", bin);
+    if (existsSync(candidate)) {
+      binPath = candidate;
+      break;
+    }
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+
+  if (!binPath) {
+    outputConsole.error(`无法获取 ${name} 帮助信息`);
+    return true;
+  }
+
+  try {
+    const version = execSyncHijack(`${binPath} --version`, {
+      encoding: "utf-8",
+      stdio: ["ignore", "pipe", "pipe"],
+      timeout: 5000,
+    });
+    outputConsole.info(
+      chalk.green(`版本: ${(version as Buffer).toString().trim()}\n`),
+    );
+  } catch {
+    // 版本获取失败不阻塞
+  }
+
+  try {
+    const help = execSyncHijack(`${binPath} --help`, {
+      encoding: "utf-8",
+      stdio: ["ignore", "pipe", "pipe"],
+      timeout: 10000,
+    });
+    outputConsole.info((help as Buffer).toString());
+  } catch {
+    outputConsole.error(`无法获取 ${name} 帮助信息`);
+  }
+  return true;
+};
+
+/**
+ * 首次引导流程：用 mrm registry 选服务商 → 选模型 → 输入 apiKey
+ */
+const firstTimeSetup = async (): Promise<AiConfig | null> => {
+  const providers = getProviders(AI_PROTOCOL);
+  if (providers.length === 0) {
+    outputConsole.info("暂无可用服务商");
+    return null;
+  }
+
+  const providerChoices = providers.map((p, i) => ({
+    title: p.alias + (p.builtin ? " [内置]" : ""),
     value: i,
   }));
-  providerChoices.push({
-    title: CUSTOM_PROVIDER_LABEL,
-    value: CUSTOM_PROVIDER_INDEX,
-  });
 
   const { providerIndex } = await xPrompts({
     type: "select",
     name: "providerIndex",
-    message: "选择模型服务商",
+    message: "首次使用，选择模型服务商",
     choices: providerChoices,
   });
 
-  if (providerIndex === CUSTOM_PROVIDER_INDEX) {
-    const custom = await xPrompts([
-      { type: "text", name: "model", message: "输入模型标识名" },
-      { type: "text", name: "baseUrl", message: "输入 API Base URL" },
-    ]);
-    return { model: custom.model, baseUrl: custom.baseUrl };
-  }
+  const provider = providers[providerIndex];
 
-  const provider = PROVIDER_PRESETS[providerIndex];
-  const model = await selectModelForProvider(provider);
-  return { model, baseUrl: provider.baseUrl };
-};
+  const modelChoices = provider.models.map((m, i) => ({
+    title: m,
+    value: i,
+  }));
 
-/**
- * 首次引导流程：选服务商 → 选模型 → 输入 API Key
- * @returns AiConfig 配置对象，用户取消时返回 null
- */
-const firstTimeSetup = async (): Promise<AiConfig | null> => {
-  const result = await selectProviderAndModel();
-  if (!result) return null;
+  const { modelIndex } = await xPrompts({
+    type: "select",
+    name: "modelIndex",
+    message: `选择 ${provider.alias} 模型`,
+    choices: modelChoices,
+  });
+
+  const model = provider.models[modelIndex];
 
   const { apiKey } = await xPrompts({
     type: "password",
@@ -125,12 +270,16 @@ const firstTimeSetup = async (): Promise<AiConfig | null> => {
     validate: (v: string) => (v?.trim().length > 0 ? true : "API Key 不能为空"),
   });
 
-  return { ...result, apiKey };
+  // 通过 mrm 写入
+  setProviderApiKey(AI_PROTOCOL, provider.alias, apiKey);
+  const state = switchModel(AI_CLIENT, model);
+  writeClientConfig(AI_CLIENT, state);
+
+  return { model, baseUrl: provider.baseUrl, apiKey };
 };
 
 /**
  * AI 对话主处理器
- * 流程：读取配置 → 首次引导（如需） → 对话循环（xPrompts 交互 + SSE 流式响应）
  */
 const chatHandler = async () => {
   let config = await readGlobalConfig();
@@ -171,37 +320,17 @@ const chatHandler = async () => {
     }
 
     if (trimmed === ChatKeywordEnum.PROVIDER) {
-      const result = await selectProviderAndModel();
-      if (result) {
-        aiConfig = { ...aiConfig, ...result };
-        config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG] = aiConfig;
-        await writeGlobalConfig(config);
-        outputConsole.info(`已切换至 ${aiConfig.model}\n`);
-      }
+      await handleProviderSwitch();
+      // 重新加载 config（mrm 已更新）
+      config = await readGlobalConfig();
+      aiConfig = config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG];
       continue;
     }
 
     if (trimmed === ChatKeywordEnum.MODEL) {
-      // 在当前服务商下切换模型
-      const provider = PROVIDER_PRESETS.find(
-        (p) => p.baseUrl === aiConfig?.baseUrl,
-      );
-      if (provider) {
-        const model = await selectModelForProvider(provider);
-        aiConfig = { ...aiConfig, model };
-        config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG] = aiConfig;
-        await writeGlobalConfig(config);
-        outputConsole.info(`已切换至 ${model}\n`);
-      } else {
-        // 自定义 baseUrl 无法定位服务商，走完整流程
-        const result = await selectProviderAndModel();
-        if (result) {
-          aiConfig = { ...aiConfig, ...result };
-          config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG] = aiConfig;
-          await writeGlobalConfig(config);
-          outputConsole.info(`已切换至 ${aiConfig.model}\n`);
-        }
-      }
+      await handleModelSwitch();
+      config = await readGlobalConfig();
+      aiConfig = config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG];
       continue;
     }
 
@@ -210,11 +339,16 @@ const chatHandler = async () => {
       continue;
     }
 
+    // /xxx 子包帮助
+    if (trimmed.startsWith("/") && handleSubpackageHelp(trimmed)) {
+      continue;
+    }
+
     // 发送 AI 请求
     outputConsole.stage("思考中...");
     try {
       await streamChat({
-        config: aiConfig,
+        config: aiConfig!,
         message: trimmed,
         onToken: (token) => process.stdout.write(token),
       });
@@ -224,12 +358,13 @@ const chatHandler = async () => {
         error instanceof AuthenticationError || error?.status === 401;
       if (isAuthError) {
         outputConsole.info("API Key 无效，请重新输入\n");
-        const result = await firstTimeSetup();
-        if (!result) return;
-        aiConfig = result;
-        config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG] = aiConfig;
-        await writeGlobalConfig(config);
-        outputConsole.info(`已切换至 ${aiConfig.model}\n`);
+        const state = readRegistry().clientState[AI_CLIENT];
+        if (state?.provider) {
+          setProviderApiKey(AI_PROTOCOL, state.provider, "");
+          await ensureApiKey(AI_PROTOCOL, state.provider);
+        }
+        config = await readGlobalConfig();
+        aiConfig = config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG];
       } else {
         outputConsole.error(`请求失败: ${error?.message || error}`);
       }
