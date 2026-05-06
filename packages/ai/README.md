@@ -44,10 +44,11 @@ dc-ai --help
 ## 功能特性
 
 - 🤖 **多服务商支持**: 通过 mrm（模型源管理器）统一管理服务商和模型
+- 🔀 **双协议支持**: 支持 OpenAI 和 Anthropic 协议，`/protocol` 一键切换
 - 🔐 **API Key 持久化**: 首次输入后保存到 `~/.done-coding/config.json`，后续自动使用
 - 📡 **SSE 流式响应**: 逐 token 实时输出，体验接近 ChatGPT
 - 🎯 **模型切换委托 mrm**: `/provider`、`/model` 内部委托 `@done-coding/cli-mrm` 管理
-- ⌨️ **内置命令**: `/provider` 切换服务商、`/model` 切换模型、`/clear` 清屏、`/exit` 退出
+- ⌨️ **内置命令**: `/protocol` 切换协议、`/provider` 切换服务商、`/model` 切换模型、`/clear` 清屏、`/exit` 退出
 - 📦 **子包帮助**: 输入 `/子包名` 查看其他 CLI 工具的版本号和帮助信息
 - 🔄 **401 自动重试**: API Key 无效时自动重新引导输入
 
@@ -73,7 +74,8 @@ dc-ai chat
 |---|---|
 | `Ctrl+C` | 取消当前输入 |
 | `/exit` | 退出对话 |
-| `/provider` | 切换服务商（通过 mrm 管理） |
+| `/protocol` | 切换协议（OpenAI / Anthropic） |
+| `/provider` | 切换服务商（通过 mrm 管理，列出当前协议的服务商） |
 | `/model` | 在当前服务商下切换模型（通过 mrm 管理） |
 | `/clear` | 清屏 |
 | `/mrm` | 查看 mrm 模型源管理器的帮助 |
@@ -158,7 +160,8 @@ await handler("chat");
 - **@done-coding/cli-mrm**: 模型源管理器（服务商/模型管理、配置写入）
 - **@done-coding/cli-utils**: 通用工具函数（xPrompts、outputConsole、全局配置读写）
 - **@done-coding/cli-component/config/create/extract/inject/publish/template**: 通过 `/子包名` 输出帮助信息
-- **openai**: OpenAI 兼容 SDK（^4.x），负责 SSE 流式调用
+- **openai**: OpenAI 兼容 SDK（^4.x），负责 OpenAI 协议 SSE 流式调用
+- **@anthropic-ai/sdk**: Anthropic 官方 SDK，负责 Anthropic 协议流式调用
 
 ## 故障排除
 
