@@ -180,12 +180,26 @@ const handleSubpackageHelp = (input: string): boolean => {
   outputConsole.info(chalk.yellow("当前相关cli未完全ai工具化，敬请期待。"));
   outputConsole.info(chalk.cyan("以下是其版本及使用帮助：\n"));
 
+  const runBin = (args: string) => {
+    try {
+      return execSyncHijack(`${bin} ${args}`, {
+        encoding: "utf-8",
+        stdio: ["ignore", "pipe", "pipe"],
+        timeout: 10000,
+      });
+    } catch {
+      // 开发环境 fallback：cwd 向下找 node_modules/.bin/<bin>
+      const fallback = `${process.cwd()}/node_modules/.bin/${bin}`;
+      return execSyncHijack(`${fallback} ${args}`, {
+        encoding: "utf-8",
+        stdio: ["ignore", "pipe", "pipe"],
+        timeout: 10000,
+      });
+    }
+  };
+
   try {
-    const version = execSyncHijack(`${bin} --version`, {
-      encoding: "utf-8",
-      stdio: ["ignore", "pipe", "pipe"],
-      timeout: 5000,
-    });
+    const version = runBin("--version");
     outputConsole.info(
       chalk.green(`版本: ${(version as Buffer).toString().trim()}\n`),
     );
@@ -194,11 +208,7 @@ const handleSubpackageHelp = (input: string): boolean => {
   }
 
   try {
-    const help = execSyncHijack(`${bin} --help`, {
-      encoding: "utf-8",
-      stdio: ["ignore", "pipe", "pipe"],
-      timeout: 10000,
-    });
+    const help = runBin("--help");
     outputConsole.info((help as Buffer).toString());
   } catch {
     outputConsole.error(`无法获取 ${name} 帮助信息`);
