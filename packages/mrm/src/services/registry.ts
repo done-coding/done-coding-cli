@@ -163,9 +163,14 @@ export function addProvider(protocol: Protocol, provider: Provider): void {
 }
 
 /** 切换 provider */
-export function switchProvider(clientName: string, alias: string): ClientState {
+export function switchProvider(
+  clientName: string,
+  alias: string,
+  protocolOverride?: Protocol,
+): ClientState {
   const registry = readRegistry();
-  const protocol = getClientProtocol(clientName as ClientName);
+  const protocol =
+    protocolOverride ?? getClientProtocol(clientName as ClientName);
   const provider = findProvider(protocol, alias);
   if (!provider) {
     throw new Error(`服务商 "${alias}" 在 ${protocol} 协议下不存在`);
@@ -298,10 +303,15 @@ export function removeModel(opts: {
 export function switchModel(
   clientName: string,
   modelName: string,
-  targetProviderAlias?: string,
+  opts?: {
+    targetProviderAlias?: string;
+    protocolOverride?: Protocol;
+  },
 ): ClientState {
   const registry = readRegistry();
-  const protocol = getClientProtocol(clientName as ClientName);
+  const targetProviderAlias = opts?.targetProviderAlias;
+  const protocol =
+    opts?.protocolOverride ?? getClientProtocol(clientName as ClientName);
   const state = registry.clientState[clientName];
   if (!state) {
     throw new Error(`client "${clientName}" 未初始化`);

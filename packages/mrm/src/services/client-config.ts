@@ -97,6 +97,7 @@ function writeDoneCodingAiConfig(
   const updated: DoneCodingAiGlobalConfig = {
     ...existing,
     AI_CONFIG: {
+      ...existing.AI_CONFIG,
       model,
       baseUrl,
       apiKey,

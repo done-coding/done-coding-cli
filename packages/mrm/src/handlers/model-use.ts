@@ -20,7 +20,9 @@ export const handler = async (
   const clientName = argv.client ?? getCurrentClient();
 
   try {
-    const state = switchModel(clientName, model, provider);
+    const state = switchModel(clientName, model, {
+      targetProviderAlias: provider,
+    });
     outputConsole.info(
       `已切换 → 当前: ${clientName} → ${state.provider} → ${state.model}`,
     );

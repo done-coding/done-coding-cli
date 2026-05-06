@@ -126,10 +126,11 @@ const handleProviderSwitch = async () => {
 
   const provider = providers[providerIndex];
   try {
-    const state = switchProvider(AI_CLIENT, provider.alias);
+    const currentProtocol = await getCurrentProtocol();
+    const state = switchProvider(AI_CLIENT, provider.alias, currentProtocol);
     writeClientConfig(AI_CLIENT, state);
     outputConsole.info(`已切换服务商 → ${state.provider} → ${state.model}`);
-    await ensureApiKey(await getCurrentProtocol(), provider.alias);
+    await ensureApiKey(currentProtocol, provider.alias);
   } catch (e: any) {
     outputConsole.error(e.message);
   }
@@ -166,10 +167,13 @@ const handleModelSwitch = async () => {
 
   const modelName = provider.models[modelIndex];
   try {
-    const newState = switchModel(AI_CLIENT, modelName);
+    const currentProtocol = await getCurrentProtocol();
+    const newState = switchModel(AI_CLIENT, modelName, {
+      protocolOverride: currentProtocol,
+    });
     writeClientConfig(AI_CLIENT, newState);
     outputConsole.info(`已切换模型 → ${newState.model}`);
-    await ensureApiKey(await getCurrentProtocol(), state.provider);
+    await ensureApiKey(currentProtocol, state.provider);
   } catch (e: any) {
     outputConsole.error(e.message);
   }
@@ -307,7 +311,7 @@ const firstTimeSetup = async (): Promise<AiConfig | null> => {
   // 通过 mrm 写入
   const protocol = await getCurrentProtocol();
   setProviderApiKey(protocol, provider.alias, apiKey);
-  const state = switchModel(AI_CLIENT, model);
+  const state = switchModel(AI_CLIENT, model, { protocolOverride: protocol });
   writeClientConfig(AI_CLIENT, state);
 
   return { protocol, model, baseUrl: provider.baseUrl, apiKey };

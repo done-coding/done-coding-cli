@@ -94,6 +94,8 @@ export interface DoneCodingAiGlobalConfig {
     model: string;
     apiKey: string;
     baseUrl: string;
+    /** 协议（openai / anthropic），默认 openai */
+    protocol?: Protocol;
   };
   [key: string]: unknown;
 }
