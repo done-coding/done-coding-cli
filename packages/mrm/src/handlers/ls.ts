@@ -6,20 +6,17 @@ import type {
 import { chalk, outputConsole } from "@done-coding/cli-utils";
 import {
   SubcommandEnum,
-  ClientName,
   type LsOptions,
   type ClientOptions,
   type Provider,
 } from "@/types";
-import {
-  BUILTIN_CLIENTS,
-  BUILTIN_PROVIDERS_BY_PROTOCOL,
-  getClientProtocol,
-} from "@/services/presets";
+import { BUILTIN_PROVIDERS_BY_PROTOCOL } from "@/services/presets";
 import {
   getCurrentClient,
   getProviders,
   readRegistry,
+  getAllClients,
+  resolveClientProtocol,
 } from "@/services/registry";
 
 export const getOptions = (): YargsOptionsRecord<
@@ -33,7 +30,6 @@ export const getOptions = (): YargsOptionsRecord<
   },
   client: {
     type: "string",
-    choices: Object.values(ClientName),
     describe: "指定目标 client",
   },
 });
@@ -42,12 +38,12 @@ export const handler = async (
   argv: CliHandlerArgv<LsOptions & ClientOptions>,
 ) => {
   const clientName = argv.client ?? getCurrentClient();
-  const client = BUILTIN_CLIENTS.find((c) => c.name === clientName);
+  const client = getAllClients().find((c) => c.name === clientName);
   if (!client) {
     outputConsole.error(`不支持的 client: ${clientName}`);
     process.exit(1);
   }
-  const protocol = getClientProtocol(clientName as ClientName);
+  const protocol = resolveClientProtocol(clientName);
   const providers = getProviders(protocol);
   const registry = readRegistry();
   const state = registry.clientState[clientName] ?? { provider: "", model: "" };

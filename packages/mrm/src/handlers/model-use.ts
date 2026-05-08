@@ -6,7 +6,6 @@ import type {
 import { outputConsole } from "@done-coding/cli-utils";
 import {
   SubcommandEnum,
-  ClientName,
   type ModelUseOptions,
   type ClientOptions,
 } from "@/types";
@@ -20,7 +19,9 @@ export const handler = async (
   const clientName = argv.client ?? getCurrentClient();
 
   try {
-    const state = switchModel(clientName, model, provider);
+    const state = switchModel(clientName, model, {
+      targetProviderAlias: provider,
+    });
     outputConsole.info(
       `已切换 → 当前: ${clientName} → ${state.provider} → ${state.model}`,
     );
@@ -48,7 +49,6 @@ export const getModelUseOptions = (): YargsOptionsRecord<
   },
   client: {
     type: "string",
-    choices: Object.values(ClientName),
     describe: "指定目标 client",
   },
 });

@@ -1,19 +1,12 @@
-import type {
-  SubCliInfo,
-  DoneCodingCliGlobalConfig,
-  AiConfig,
-} from "@done-coding/cli-utils";
+import type { SubCliInfo, AiConfig } from "@done-coding/cli-utils";
 import {
   outputConsole,
   chalk,
   xPrompts,
-  readJsonFileAsync,
-  getGlobalConfigFilePath,
-  DoneCodingCliGlobalConfigKeyEnum,
+  readAiConfig,
+  writeAiConfig,
   execSyncHijack,
 } from "@done-coding/cli-utils";
-import { writeFileSync, existsSync, mkdirSync } from "node:fs";
-import { dirname } from "node:path";
 import { ChatKeywordEnum, SubcommandEnum } from "@/types";
 import { AuthenticationError } from "openai";
 import { streamChat } from "@/services/api-client";
@@ -30,7 +23,12 @@ import {
 } from "@done-coding/cli-mrm";
 
 const AI_CLIENT = ClientName.DONE_CODING_AI;
-const AI_PROTOCOL = Protocol.OPENAI;
+
+/** 从 config 读取当前协议，默认 OPENAI */
+const getCurrentProtocol = async (): Promise<Protocol> => {
+  const aiConfig = await readAiConfig();
+  return (aiConfig.protocol as Protocol) || Protocol.OPENAI;
+};
 
 /** 子包名 → bin 命令映射（排除 ai、cli、git） */
 const SUBPACKAGE_HELP_MAP: Record<string, string> = {
@@ -45,41 +43,14 @@ const SUBPACKAGE_HELP_MAP: Record<string, string> = {
 };
 
 /**
- * 读取全局配置文件
- */
-const readGlobalConfig = async (): Promise<DoneCodingCliGlobalConfig> => {
-  try {
-    return await readJsonFileAsync<DoneCodingCliGlobalConfig>(
-      getGlobalConfigFilePath(),
-    );
-  } catch {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    return {} as DoneCodingCliGlobalConfig;
-  }
-};
-
-/**
- * 写入全局配置文件（目录不存在时自动创建）
- */
-const writeGlobalConfig = async (config: DoneCodingCliGlobalConfig) => {
-  const filePath = getGlobalConfigFilePath();
-  const dir = dirname(filePath);
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
-  }
-  writeFileSync(filePath, JSON.stringify(config, null, 2), "utf-8");
-};
-
-/**
  * 确保 apiKey 不为空：读 config → 为空则 xPrompts 输入 → setProviderApiKey + writeClientConfig
  */
 const ensureApiKey = async (
   protocol: Protocol,
   providerAlias: string,
 ): Promise<string> => {
-  const config = await readGlobalConfig();
-  const aiConfig = config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG];
-  if (aiConfig?.apiKey) return aiConfig.apiKey;
+  const aiConfig = await readAiConfig();
+  if (aiConfig.apiKey) return aiConfig.apiKey;
 
   outputConsole.info("");
   const { apiKey } = await xPrompts({
@@ -100,7 +71,7 @@ const ensureApiKey = async (
  * /provider 处理：列出 OPENAI 协议服务商 → 选择 → 切换
  */
 const handleProviderSwitch = async () => {
-  const providers = getProviders(AI_PROTOCOL);
+  const providers = getProviders(await getCurrentProtocol());
   if (providers.length === 0) {
     outputConsole.info("暂无可用服务商，请先用 dc-mrm provider add 添加");
     return;
@@ -120,10 +91,11 @@ const handleProviderSwitch = async () => {
 
   const provider = providers[providerIndex];
   try {
-    const state = switchProvider(AI_CLIENT, provider.alias);
+    const currentProtocol = await getCurrentProtocol();
+    const state = switchProvider(AI_CLIENT, provider.alias, currentProtocol);
     writeClientConfig(AI_CLIENT, state);
     outputConsole.info(`已切换服务商 → ${state.provider} → ${state.model}`);
-    await ensureApiKey(AI_PROTOCOL, provider.alias);
+    await ensureApiKey(currentProtocol, provider.alias);
   } catch (e: any) {
     outputConsole.error(e.message);
   }
@@ -140,7 +112,7 @@ const handleModelSwitch = async () => {
     return;
   }
 
-  const provider = findProvider(AI_PROTOCOL, state.provider);
+  const provider = findProvider(await getCurrentProtocol(), state.provider);
   if (!provider || provider.models.length === 0) {
     outputConsole.info(`服务商 "${state.provider}" 下暂无模型`);
     return;
@@ -160,13 +132,45 @@ const handleModelSwitch = async () => {
 
   const modelName = provider.models[modelIndex];
   try {
-    const newState = switchModel(AI_CLIENT, modelName);
+    const currentProtocol = await getCurrentProtocol();
+    const newState = switchModel(AI_CLIENT, modelName, {
+      protocolOverride: currentProtocol,
+    });
     writeClientConfig(AI_CLIENT, newState);
     outputConsole.info(`已切换模型 → ${newState.model}`);
-    await ensureApiKey(AI_PROTOCOL, state.provider);
+    await ensureApiKey(currentProtocol, state.provider);
   } catch (e: any) {
     outputConsole.error(e.message);
   }
+};
+
+/**
+ * /protocol 处理：切换协议（OPENAI / ANTHROPIC）
+ */
+const handleProtocolSwitch = async () => {
+  const currentProtocol = await getCurrentProtocol();
+  const choices = [
+    {
+      title: `OpenAI${currentProtocol === Protocol.OPENAI ? " (当前)" : ""}`,
+      value: Protocol.OPENAI,
+    },
+    {
+      title: `Anthropic${currentProtocol === Protocol.ANTHROPIC ? " (当前)" : ""}`,
+      value: Protocol.ANTHROPIC,
+    },
+  ];
+
+  const { protocol } = await xPrompts({
+    type: "select",
+    name: "protocol",
+    message: "选择协议",
+    choices,
+  });
+
+  if (protocol === currentProtocol) return;
+
+  await writeAiConfig({ protocol, model: undefined, baseUrl: undefined });
+  outputConsole.info(`已切换协议 → ${protocol}`);
 };
 
 /**
@@ -220,7 +224,7 @@ const handleSubpackageHelp = (input: string): boolean => {
  * 首次引导流程：用 mrm registry 选服务商 → 选模型 → 输入 apiKey
  */
 const firstTimeSetup = async (): Promise<AiConfig | null> => {
-  const providers = getProviders(AI_PROTOCOL);
+  const providers = getProviders(await getCurrentProtocol());
   if (providers.length === 0) {
     outputConsole.info("暂无可用服务商");
     return null;
@@ -262,34 +266,35 @@ const firstTimeSetup = async (): Promise<AiConfig | null> => {
   });
 
   // 通过 mrm 写入
-  setProviderApiKey(AI_PROTOCOL, provider.alias, apiKey);
-  const state = switchModel(AI_CLIENT, model);
+  const protocol = await getCurrentProtocol();
+  setProviderApiKey(protocol, provider.alias, apiKey);
+  const state = switchModel(AI_CLIENT, model, { protocolOverride: protocol });
   writeClientConfig(AI_CLIENT, state);
 
-  return { model, baseUrl: provider.baseUrl, apiKey };
+  return { protocol, model, baseUrl: provider.baseUrl, apiKey };
 };
 
 /**
  * AI 对话主处理器
  */
 const chatHandler = async () => {
-  let config = await readGlobalConfig();
-  let aiConfig = config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG];
+  let aiConfig = await readAiConfig();
 
   // 首次配置
-  if (!aiConfig?.apiKey) {
+  if (!aiConfig.apiKey) {
     outputConsole.info("首次使用需配置模型和 API Key\n");
     const result = await firstTimeSetup();
     if (!result) return;
 
     aiConfig = result;
-    config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG] = aiConfig;
-    await writeGlobalConfig(config);
+    await writeAiConfig(aiConfig);
     outputConsole.info("");
   }
 
+  const protocol = aiConfig.protocol || Protocol.OPENAI;
+
   outputConsole.info(
-    `模型: ${aiConfig.model} | 输入消息开始对话 (${ChatKeywordEnum.EXIT} 退出, ${ChatKeywordEnum.PROVIDER} 切换服务商, ${ChatKeywordEnum.MODEL} 切换模型, ${ChatKeywordEnum.CLEAR} 清屏)\n`,
+    `协议: ${protocol} | 模型: ${aiConfig.model} | 输入消息开始对话 (${ChatKeywordEnum.EXIT} 退出, ${ChatKeywordEnum.PROTOCOL} 切换协议, ${ChatKeywordEnum.PROVIDER} 切换服务商, ${ChatKeywordEnum.MODEL} 切换模型, ${ChatKeywordEnum.CLEAR} 清屏)\n`,
   );
 
   // 对话循环
@@ -310,18 +315,21 @@ const chatHandler = async () => {
       return;
     }
 
+    if (trimmed === ChatKeywordEnum.PROTOCOL) {
+      await handleProtocolSwitch();
+      aiConfig = await readAiConfig();
+      continue;
+    }
+
     if (trimmed === ChatKeywordEnum.PROVIDER) {
       await handleProviderSwitch();
-      // 重新加载 config（mrm 已更新）
-      config = await readGlobalConfig();
-      aiConfig = config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG];
+      aiConfig = await readAiConfig();
       continue;
     }
 
     if (trimmed === ChatKeywordEnum.MODEL) {
       await handleModelSwitch();
-      config = await readGlobalConfig();
-      aiConfig = config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG];
+      aiConfig = await readAiConfig();
       continue;
     }
 
@@ -351,11 +359,10 @@ const chatHandler = async () => {
         outputConsole.info("API Key 无效，请重新输入\n");
         const state = readRegistry().clientState[AI_CLIENT];
         if (state?.provider) {
-          setProviderApiKey(AI_PROTOCOL, state.provider, "");
-          await ensureApiKey(AI_PROTOCOL, state.provider);
+          setProviderApiKey(await getCurrentProtocol(), state.provider, "");
+          await ensureApiKey(await getCurrentProtocol(), state.provider);
         }
-        config = await readGlobalConfig();
-        aiConfig = config[DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG];
+        aiConfig = await readAiConfig();
       } else {
         outputConsole.error(`请求失败: ${error?.message || error}`);
       }

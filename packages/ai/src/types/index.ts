@@ -8,6 +8,8 @@ export enum SubcommandEnum {
 export enum ChatKeywordEnum {
   /** 退出对话 */
   EXIT = "/exit",
+  /** 切换协议 */
+  PROTOCOL = "/protocol",
   /** 切换服务商 */
   PROVIDER = "/provider",
   /** 切换模型 */

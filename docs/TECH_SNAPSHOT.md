@@ -1,7 +1,7 @@
 # 技术架构快照
 
 > 最后更新：2026-05-06
-> 关联任务：ai 模型切换委托 mrm + 子包帮助命令
+> 关联任务：ai 新增 Anthropic 协议支持 + /protocol 命令
 
 ## 1. 系统上下文（C4 Level 1）
 
@@ -313,13 +313,13 @@ DC inject:
 | **决策** | `@done-coding/cli-ai` 的 `/provider`、`/model` 内部委托 `@done-coding/cli-mrm` 的 registry API 实现，ai 包只读 config、所有写入通过 mrm 导出方法 |
 | **背景** | ai 包内置的 `model-presets.ts` 与 mrm 功能重复且数据不同步。统一由 mrm 管理服务商/模型，ai 作为消费方。切换流程：switchProvider/switchModel → writeClientConfig → 检查 apiKey。 |
 
-### ADR-6：AI 对话使用 openai SDK + OpenAI 兼容协议
+### ADR-6：AI 对话双协议支持（OpenAI + Anthropic）
 
 | 项 | 内容 |
 |---|---|
 | **状态** | `活跃` |
-| **决策** | `@done-coding/cli-ai` 使用 `openai` npm SDK（^4.x）+ SSE 流式 |
-| **背景** | 绝大多数模型厂商支持 OpenAI 兼容协议；SDK 提供 `.stream()` 流式调用、完整 TS 类型、baseURL 可改为任意兼容端点。暂不支持 Anthropic Messages API。 |
+| **决策** | `@done-coding/cli-ai` 同时支持 OpenAI 协议（`openai` SDK）和 Anthropic 协议（`@anthropic-ai/sdk`），通过 `/protocol` 命令在两种协议间切换，`api-client.ts` 按 `config.protocol` 字段路由到对应 SDK |
+| **背景** | 需要同时支持 OpenAI 兼容服务商（DeepSeek/Qwen/Kimi）和 Anthropic 协议服务商（Anthropic 官方/DeepSeek Anthropic 端点）。用户通过 `/protocol` 切换后，`/provider`、`/model` 列出对应协议的服务商和模型（由 mrm 管理）。 |
 
 ## 8. 质量属性与非功能需求
 

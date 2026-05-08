@@ -1,34 +1,48 @@
-import { writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { writeFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { homedir } from "node:os";
-import { readJsonFile } from "@done-coding/cli-utils";
-import {
-  ClientName,
-  type ClientState,
-  type ClaudeCodeSettings,
-  type DoneCodingAiGlobalConfig,
-} from "@/types";
-import { findProvider } from "./registry";
-import { BUILTIN_CLIENTS } from "./presets";
+import { getAiConfigFilePath } from "@done-coding/cli-utils";
+import { ClientName, type Protocol, type ClientState } from "@/types";
+import { findProvider, getAllClients, resolveClientProtocol } from "./registry";
 
-/** 根据 clientState 写入对应 client 配置 */
+/**
+ * 根据 clientState 写入对应 client 配置
+ * - done-coding-ai → ~/.done-coding/ai/config.json（浅合并，保留已有字段）
+ * - claude-code → ~/.claude/settings.json（浅合并，保留已有字段）
+ * - 自定义 client → 用户指定的 configPath（浅合并，保留已有字段）
+ */
 export function writeClientConfig(
   clientName: string,
   state: ClientState,
 ): void {
-  const client = BUILTIN_CLIENTS.find((c) => c.name === clientName);
+  const client = getAllClients().find((c) => c.name === clientName);
   if (!client) throw new Error(`不支持的 client: ${clientName}`);
 
-  const provider = findProvider(client.protocol, state.provider);
+  const protocol = resolveClientProtocol(clientName);
+  const provider = findProvider(protocol, state.provider);
   if (!provider) throw new Error(`服务商 "${state.provider}" 不存在`);
 
-  switch (client.name) {
-    case ClientName.CLAUDE_CODE:
-      writeClaudeCodeConfig(state.model, provider.baseUrl, provider.apiKey);
-      break;
-    case ClientName.DONE_CODING_AI:
-      writeDoneCodingAiConfig(state.model, provider.baseUrl, provider.apiKey);
-      break;
+  if (client.builtin) {
+    switch (client.name) {
+      case ClientName.CLAUDE_CODE:
+        writeClaudeCodeConfig(state.model, provider.baseUrl, provider.apiKey);
+        break;
+      case ClientName.DONE_CODING_AI:
+        writeDoneCodingAiConfig({
+          model: state.model,
+          baseUrl: provider.baseUrl,
+          apiKey: provider.apiKey,
+          protocol,
+        });
+        break;
+    }
+  } else {
+    writeGenericConfig(client.configPath, {
+      model: state.model,
+      apiKey: provider.apiKey,
+      baseUrl: provider.baseUrl,
+      protocol,
+    });
   }
 }
 
@@ -49,10 +63,10 @@ function writeClaudeCodeConfig(
   apiKey: string,
 ): void {
   const configPath = `${homedir()}/.claude/settings.json`;
-  const existing = readJsonFile<ClaudeCodeSettings>(configPath, {})!;
+  const existing = readJsonFile(configPath);
 
   const env: Record<string, string> = {
-    ...(existing.env ?? {}),
+    ...((existing.env as Record<string, string>) ?? {}),
     ANTHROPIC_BASE_URL: baseUrl,
     ANTHROPIC_API_KEY: apiKey,
   };
@@ -73,7 +87,7 @@ function writeClaudeCodeConfig(
     }
   }
 
-  const updated: ClaudeCodeSettings = {
+  const updated: Record<string, unknown> = {
     ...existing,
     model,
     env,
@@ -87,22 +101,42 @@ function writeClaudeCodeConfig(
   writeFile(configPath, updated);
 }
 
-function writeDoneCodingAiConfig(
-  model: string,
-  baseUrl: string,
-  apiKey: string,
-): void {
-  const configPath = `${homedir()}/.done-coding/config.json`;
-  const existing = readJsonFile<DoneCodingAiGlobalConfig>(configPath, {})!;
-  const updated: DoneCodingAiGlobalConfig = {
+function writeDoneCodingAiConfig(opts: {
+  model: string;
+  baseUrl: string;
+  apiKey: string;
+  protocol: Protocol;
+}): void {
+  const configPath = getAiConfigFilePath();
+  const existing = readJsonFile(configPath);
+
+  const updated: Record<string, unknown> = {
     ...existing,
-    AI_CONFIG: {
-      model,
-      baseUrl,
-      apiKey,
-    },
+    model: opts.model,
+    baseUrl: opts.baseUrl,
+    apiKey: opts.apiKey,
+    protocol: opts.protocol,
   };
+
   writeFile(configPath, updated);
+}
+
+function writeGenericConfig(
+  configPath: string,
+  data: Record<string, unknown>,
+): void {
+  const existing = existsSync(configPath) ? readJsonFile(configPath) : {};
+  const updated = { ...existing, ...data };
+  writeFile(configPath, updated);
+}
+
+function readJsonFile(path: string): Record<string, unknown> {
+  try {
+    if (!existsSync(path)) return {};
+    return JSON.parse(readFileSync(path, "utf-8"));
+  } catch {
+    return {};
+  }
 }
 
 function writeFile(path: string, data: unknown): void {

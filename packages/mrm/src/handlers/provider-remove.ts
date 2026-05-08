@@ -6,7 +6,6 @@ import type {
 import { outputConsole } from "@done-coding/cli-utils";
 import {
   SubcommandEnum,
-  ClientName,
   type ProviderRemoveOptions,
   type ClientOptions,
 } from "@/types";
@@ -23,7 +22,7 @@ export const handler = async (
 ) => {
   const { alias } = argv;
   const clientName = argv.client ?? getCurrentClient();
-  const protocol = getClientProtocol(clientName as ClientName);
+  const protocol = getClientProtocol(clientName);
 
   /** 前置校验：provider 必须存在且非内置 */
   const provider = findProvider(protocol, alias);
@@ -51,7 +50,6 @@ export const handler = async (
 export const getOptions = (): YargsOptionsRecord<ClientOptions> => ({
   client: {
     type: "string",
-    choices: Object.values(ClientName),
     describe: "指定目标 client",
   },
 });

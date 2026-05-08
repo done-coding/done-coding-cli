@@ -1,87 +1,236 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
-import { homedir } from "node:os";
-import type { Registry, Provider, ClientState } from "@/types";
+import path from "node:path";
+import type { Registry, Provider, ClientState, Client } from "@/types";
 import { Protocol, ClientName } from "@/types";
 import {
   BUILTIN_CLIENTS,
   BUILTIN_PROVIDERS_BY_PROTOCOL,
   DEFAULT_CLIENT_STATE,
-  getClientProtocol,
 } from "./presets";
+import {
+  getMrmConfigDirPath,
+  getAiConfigFilePath,
+} from "@done-coding/cli-utils";
 
-const REGISTRY_DIR = `${homedir()}/.done-coding/mrm`;
-const REGISTRY_PATH = `${REGISTRY_DIR}/sources.json`;
+// ===== 文件路径 =====
 
-/** 获取默认注册表 */
-function getDefaultRegistry(): Registry {
-  const clientState: Record<string, ClientState> = {};
-  for (const client of BUILTIN_CLIENTS) {
-    const def = DEFAULT_CLIENT_STATE[client.name];
-    clientState[client.name] = {
-      provider: def?.provider ?? "",
-      model: def?.model ?? "",
-    };
-  }
-  return {
-    currentClient: ClientName.CLAUDE_CODE,
-    clientState,
-    providers: structuredClone(BUILTIN_PROVIDERS_BY_PROTOCOL),
-  };
+function clientsPath(): string {
+  return path.join(getMrmConfigDirPath(), "clients.json");
 }
+
+function registryPath(): string {
+  return path.join(getMrmConfigDirPath(), "registry.json");
+}
+
+function providerPath(protocol: Protocol): string {
+  return path.join(getMrmConfigDirPath(), "providers", `${protocol}.json`);
+}
+
+function ensureDir(dir: string): void {
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
+}
+
+// ===== 文件级读写 =====
+
+function readJsonFile<T>(filePath: string, fallback: T): T {
+  try {
+    if (!existsSync(filePath)) return fallback;
+    return JSON.parse(readFileSync(filePath, "utf-8")) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeJsonFile(filePath: string, data: unknown): void {
+  ensureDir(path.dirname(filePath));
+  writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+}
+
+function readClientsFile(): Client[] {
+  return readJsonFile<Client[]>(clientsPath(), []);
+}
+
+function writeClientsFile(clients: Client[]): void {
+  writeJsonFile(clientsPath(), clients);
+}
+
+function readRegistryFile(): {
+  currentClient: string;
+  clientState: Record<string, ClientState>;
+} {
+  return readJsonFile(registryPath(), {
+    currentClient: ClientName.CLAUDE_CODE,
+    clientState: {},
+  });
+}
+
+function writeRegistryFile(data: {
+  currentClient: string;
+  clientState: Record<string, ClientState>;
+}): void {
+  writeJsonFile(registryPath(), data);
+}
+
+function readProvidersFile(protocol: Protocol): Provider[] {
+  return readJsonFile<Provider[]>(providerPath(protocol), []);
+}
+
+function writeProvidersFile(protocol: Protocol, providers: Provider[]): void {
+  writeJsonFile(providerPath(protocol), providers);
+}
+
+// ===== 合并 builtin + 自定义 client =====
+
+function mergeClientsWithBuiltins(persistedClients: Client[]): Client[] {
+  const result = [...BUILTIN_CLIENTS];
+  for (const c of persistedClients) {
+    if (!result.find((b) => b.name === c.name)) {
+      result.push(c);
+    }
+  }
+  return result;
+}
+
+// ===== 加载所有协议 provider =====
+
+function loadAllProviders(): Record<Protocol, Provider[]> {
+  const result: Record<Protocol, Provider[]> = {
+    [Protocol.ANTHROPIC]: [],
+    [Protocol.OPENAI]: [],
+  };
+  for (const proto of [Protocol.ANTHROPIC, Protocol.OPENAI]) {
+    const persisted = readProvidersFile(proto);
+    // 补齐内置 provider
+    const merged = mergeProvidersWithBuiltins(proto, persisted);
+    result[proto] = merged;
+  }
+  return result;
+}
+
+function mergeProvidersWithBuiltins(
+  protocol: Protocol,
+  persisted: Provider[],
+): Provider[] {
+  const result = [...persisted];
+  for (const builtin of BUILTIN_PROVIDERS_BY_PROTOCOL[protocol]) {
+    if (!result.find((p) => p.alias === builtin.alias)) {
+      result.push(structuredClone(builtin));
+    }
+  }
+  return result;
+}
+
+// ===== 协议解析 =====
+
+/** 解析 client 的实际协议（done-coding-ai 从 AI 配置文件动态检测） */
+export function resolveClientProtocol(clientName: string): Protocol {
+  if (clientName === ClientName.DONE_CODING_AI) {
+    const aiPath = getAiConfigFilePath();
+    try {
+      if (existsSync(aiPath)) {
+        const aiConfig = JSON.parse(readFileSync(aiPath, "utf-8")) as Record<
+          string,
+          unknown
+        >;
+        const proto = aiConfig.protocol;
+        if (proto === Protocol.ANTHROPIC) return Protocol.ANTHROPIC;
+        if (proto === Protocol.OPENAI) return Protocol.OPENAI;
+      }
+    } catch (_) {
+      /* 文件损坏回退 */
+    }
+    return Protocol.OPENAI;
+  }
+
+  const client = getAllClients().find((c) => c.name === clientName);
+  if (!client) throw new Error(`不支持的 client: ${clientName}`);
+  return client.protocol;
+}
+
+// ===== 获取 client 默认状态 =====
+
+function getDefaultStateForClient(client: Client): ClientState {
+  // 优先使用 DEFAULT_CLIENT_STATE 中定义的默认值
+  const def = DEFAULT_CLIENT_STATE[client.name];
+  if (def) return { provider: def.provider, model: def.model };
+
+  // 自定义 client：取协议下第一个 provider 的第一个 model
+  const protocol =
+    client.name === ClientName.DONE_CODING_AI
+      ? resolveClientProtocol(client.name)
+      : client.protocol;
+
+  const builtinProviders = BUILTIN_PROVIDERS_BY_PROTOCOL[protocol];
+  const defaultAlias = builtinProviders[0]?.alias ?? "";
+  const defaultModel = builtinProviders[0]?.models[0] ?? "";
+
+  return { provider: defaultAlias, model: defaultModel };
+}
+
+// ===== 获取所有已注册 client =====
+
+export function getAllClients(): Client[] {
+  return readRegistry().clients;
+}
+
+// ===== 读写注册表 =====
 
 /** 读取注册表 */
 export function readRegistry(): Registry {
-  try {
-    if (!existsSync(REGISTRY_PATH)) {
-      const def = getDefaultRegistry();
-      writeRegistry(def);
-      return def;
+  const needInit = !existsSync(clientsPath()) || !existsSync(registryPath());
+
+  const persistedClients = readClientsFile();
+  const persistedRegistry = readRegistryFile();
+
+  const allClients = mergeClientsWithBuiltins(persistedClients);
+
+  // 补齐 clientState
+  for (const client of allClients) {
+    if (!persistedRegistry.clientState[client.name]) {
+      persistedRegistry.clientState[client.name] =
+        getDefaultStateForClient(client);
     }
-    const data = readFileSync(REGISTRY_PATH, "utf-8");
-    const parsed = JSON.parse(data) as Registry;
-    /** 补齐可能新增的内置 provider */
-    return mergeBuiltins(parsed);
-  } catch {
-    return getDefaultRegistry();
   }
+
+  // 补齐内置 provider
+  const providers = loadAllProviders();
+
+  const registry: Registry = {
+    currentClient: persistedRegistry.currentClient,
+    clientState: persistedRegistry.clientState,
+    clients: allClients,
+    providers,
+  };
+
+  // 首次使用时自动创建完整目录结构
+  if (needInit) {
+    writeRegistry(registry);
+  }
+
+  return registry;
 }
 
 /** 写入注册表 */
 export function writeRegistry(registry: Registry): void {
-  if (!existsSync(REGISTRY_DIR)) {
-    mkdirSync(REGISTRY_DIR, { recursive: true });
+  // 仅持久化自定义 client（非内置）
+  const customClients = registry.clients.filter((c) => !c.builtin);
+  writeClientsFile(customClients);
+
+  // 持久化注册状态
+  writeRegistryFile({
+    currentClient: registry.currentClient,
+    clientState: registry.clientState,
+  });
+
+  // 持久化 provider（按协议拆分）
+  for (const proto of [Protocol.ANTHROPIC, Protocol.OPENAI]) {
+    writeProvidersFile(proto, registry.providers[proto] ?? []);
   }
-  writeFileSync(REGISTRY_PATH, JSON.stringify(registry, null, 2), "utf-8");
 }
 
-/** 补齐内置 provider（升级场景） */
-function mergeBuiltins(registry: Registry): Registry {
-  const merged = structuredClone(registry);
-  for (const proto of [Protocol.ANTHROPIC, Protocol.OPENAI]) {
-    if (!merged.providers[proto]) {
-      merged.providers[proto] = [];
-    }
-    for (const builtin of BUILTIN_PROVIDERS_BY_PROTOCOL[proto]) {
-      const exists = merged.providers[proto].find(
-        (p) => p.alias === builtin.alias,
-      );
-      if (!exists) {
-        merged.providers[proto].push(structuredClone(builtin));
-      }
-    }
-  }
-  /** 补齐 clientState */
-  for (const client of BUILTIN_CLIENTS) {
-    if (!merged.clientState[client.name]) {
-      const def = DEFAULT_CLIENT_STATE[client.name];
-      merged.clientState[client.name] = {
-        provider: def?.provider ?? "",
-        model: def?.model ?? "",
-      };
-    }
-  }
-  return merged;
-}
+// ===== Client 操作 =====
 
 /** 获取当前 client */
 export function getCurrentClient(): string {
@@ -98,9 +247,7 @@ export function getProviders(protocol?: Protocol): Provider[] {
 /** 获取当前 client 的 protocol */
 export function getCurrentProtocol(): Protocol {
   const registry = readRegistry();
-  const client = BUILTIN_CLIENTS.find((c) => c.name === registry.currentClient);
-  if (!client) throw new Error(`不支持的 client: ${registry.currentClient}`);
-  return client.protocol;
+  return resolveClientProtocol(registry.currentClient);
 }
 
 /** 获取当前 client 状态 */
@@ -114,29 +261,95 @@ export function getCurrentState(): ClientState {
   );
 }
 
-// ===== Client 操作 =====
-
 /** 切换 client */
 export function switchClient(clientName: string): ClientState {
   const registry = readRegistry();
-  if (!BUILTIN_CLIENTS.find((c) => c.name === clientName)) {
-    throw new Error(
-      `不支持的 client: ${clientName}，合法值: ${Object.values(ClientName).join(" | ")}`,
-    );
+  const client = registry.clients.find((c) => c.name === clientName);
+  if (!client) {
+    const available = registry.clients.map((c) => c.name).join(" | ");
+    throw new Error(`不支持的 client: ${clientName}，可用: ${available}`);
   }
   registry.currentClient = clientName;
 
-  /** 确保目标 client 有状态 */
   if (!registry.clientState[clientName]) {
-    const def = DEFAULT_CLIENT_STATE[clientName];
-    registry.clientState[clientName] = {
-      provider: def?.provider ?? "",
-      model: def?.model ?? "",
-    };
+    registry.clientState[clientName] = getDefaultStateForClient(client);
   }
 
   writeRegistry(registry);
   return registry.clientState[clientName];
+}
+
+/** 添加自定义 client */
+export function addClient(client: Client): void {
+  const registry = readRegistry();
+
+  if (registry.clients.find((c) => c.name === client.name)) {
+    throw new Error(`client: ${client.name} 已存在`);
+  }
+
+  if (!/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/.test(client.name)) {
+    throw new Error(
+      `client 名称必须为 kebab-case 格式（小写字母、数字、连字符），不能以连字符开头或结尾`,
+    );
+  }
+
+  registry.clients.push(client);
+
+  registry.clientState[client.name] = getDefaultStateForClient(client);
+
+  writeRegistry(registry);
+}
+
+/** 删除自定义 client */
+export function removeClient(name: string): void {
+  const registry = readRegistry();
+  const client = registry.clients.find((c) => c.name === name);
+
+  if (!client) {
+    throw new Error(`client: ${name} 不存在`);
+  }
+
+  if (client.builtin) {
+    throw new Error(`不能删除内置 client: ${name}`);
+  }
+
+  registry.clients = registry.clients.filter((c) => c.name !== name);
+  delete registry.clientState[name];
+
+  if (registry.currentClient === name) {
+    registry.currentClient = ClientName.CLAUDE_CODE;
+    if (!registry.clientState[ClientName.CLAUDE_CODE]) {
+      const cc = registry.clients.find(
+        (c) => c.name === ClientName.CLAUDE_CODE,
+      );
+      if (cc) {
+        registry.clientState[ClientName.CLAUDE_CODE] =
+          getDefaultStateForClient(cc);
+      }
+    }
+  }
+
+  writeRegistry(registry);
+}
+
+/** 切换当前 client（focus） */
+export function focusClient(name: string): ClientState {
+  const registry = readRegistry();
+  const client = registry.clients.find((c) => c.name === name);
+
+  if (!client) {
+    const available = registry.clients.map((c) => c.name).join(", ");
+    throw new Error(`client: ${name} 不存在，可用: ${available}`);
+  }
+
+  registry.currentClient = name;
+
+  if (!registry.clientState[name]) {
+    registry.clientState[name] = getDefaultStateForClient(client);
+  }
+
+  writeRegistry(registry);
+  return registry.clientState[name];
 }
 
 // ===== Provider 操作 =====
@@ -163,9 +376,13 @@ export function addProvider(protocol: Protocol, provider: Provider): void {
 }
 
 /** 切换 provider */
-export function switchProvider(clientName: string, alias: string): ClientState {
+export function switchProvider(
+  clientName: string,
+  alias: string,
+  protocolOverride?: Protocol,
+): ClientState {
   const registry = readRegistry();
-  const protocol = getClientProtocol(clientName as ClientName);
+  const protocol = protocolOverride ?? resolveClientProtocol(clientName);
   const provider = findProvider(protocol, alias);
   if (!provider) {
     throw new Error(`服务商 "${alias}" 在 ${protocol} 协议下不存在`);
@@ -185,7 +402,7 @@ export function switchProvider(clientName: string, alias: string): ClientState {
 /** 删除 provider */
 export function removeProvider(clientName: string, alias: string): ClientState {
   const registry = readRegistry();
-  const protocol = getClientProtocol(clientName as ClientName);
+  const protocol = resolveClientProtocol(clientName);
   const providers = registry.providers[protocol] ?? [];
   const idx = providers.findIndex((p) => p.alias === alias);
   if (idx < 0) {
@@ -198,7 +415,6 @@ export function removeProvider(clientName: string, alias: string): ClientState {
   providers.splice(idx, 1);
   registry.providers[protocol] = providers;
 
-  /** 如果删除的是当前使用的 provider，回退到默认 */
   const state = registry.clientState[clientName];
   if (state && state.provider === alias) {
     const def = DEFAULT_CLIENT_STATE[clientName];
@@ -268,7 +484,6 @@ export function removeModel(opts: {
     throw new Error(`模型 "${modelName}" 在服务商 "${providerAlias}" 下不存在`);
   }
 
-  /** 内置 provider 的内置模型不可删除 */
   if (provider.builtin) {
     const builtinProvider = BUILTIN_PROVIDERS_BY_PROTOCOL[protocol].find(
       (p) => p.alias === providerAlias,
@@ -284,7 +499,6 @@ export function removeModel(opts: {
     throw new Error(`服务商 "${providerAlias}" 下必须有至少一个模型`);
   }
 
-  /** 如果删除的是当前使用的模型，回退到该 provider 的第一个模型 */
   const state = registry.clientState[clientName];
   if (state && state.provider === providerAlias && state.model === modelName) {
     state.model = provider.models[0];
@@ -298,16 +512,19 @@ export function removeModel(opts: {
 export function switchModel(
   clientName: string,
   modelName: string,
-  targetProviderAlias?: string,
+  opts?: {
+    targetProviderAlias?: string;
+    protocolOverride?: Protocol;
+  },
 ): ClientState {
   const registry = readRegistry();
-  const protocol = getClientProtocol(clientName as ClientName);
+  const targetProviderAlias = opts?.targetProviderAlias;
+  const protocol = opts?.protocolOverride ?? resolveClientProtocol(clientName);
   const state = registry.clientState[clientName];
   if (!state) {
     throw new Error(`client "${clientName}" 未初始化`);
   }
 
-  /** IF --provider 指定，先切 provider */
   if (targetProviderAlias) {
     const provider = findProvider(protocol, targetProviderAlias);
     if (!provider) {
@@ -323,7 +540,6 @@ export function switchModel(
     state.provider = targetProviderAlias;
     state.model = modelName;
   } else {
-    /** 在当前 provider 下查找 */
     const provider = findProvider(protocol, state.provider);
     if (!provider) {
       throw new Error(`当前服务商 "${state.provider}" 不存在`);

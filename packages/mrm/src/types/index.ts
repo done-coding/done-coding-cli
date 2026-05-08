@@ -15,6 +15,9 @@ export enum SubcommandEnum {
   LS = "ls",
   USE = "use",
   SWITCH = "switch",
+  CLIENT_ADD = "client add",
+  CLIENT_REMOVE = "client remove",
+  CLIENT_FOCUS = "client focus",
   PROVIDER_ADD = "provider add",
   PROVIDER_USE = "provider use",
   PROVIDER_REMOVE = "provider remove",
@@ -25,10 +28,12 @@ export enum SubcommandEnum {
 
 /** 客户端 */
 export interface Client {
-  name: ClientName;
+  name: string;
   protocol: Protocol;
   /** 配置文件绝对路径，运行时 homedir 解析 */
   configPath: string;
+  /** 是否内置（内置不可删除） */
+  builtin: boolean;
 }
 
 /** 服务商 */
@@ -61,6 +66,8 @@ export interface Registry {
   currentClient: string;
   /** 各 client 状态 */
   clientState: Record<string, ClientState>;
+  /** 已注册 client 列表（内置 + 自定义） */
+  clients: Client[];
   /** 服务商按协议分组，多 client 共享 */
   providers: Record<Protocol, Provider[]>;
 }
@@ -86,16 +93,6 @@ export interface ClaudeCodeEnv {
   API_TIMEOUT_MS?: string;
   CLAUDE_CODE_EFFORT_LEVEL?: string;
   [key: string]: string | undefined;
-}
-
-/** done-coding-ai 全局配置文件结构 */
-export interface DoneCodingAiGlobalConfig {
-  AI_CONFIG?: {
-    model: string;
-    apiKey: string;
-    baseUrl: string;
-  };
-  [key: string]: unknown;
 }
 
 /** ===== Options 接口 ===== */
@@ -138,5 +135,22 @@ export interface ModelUseOptions {
 
 /** CLI --client 通用选项 */
 export interface ClientOptions {
-  client?: ClientName;
+  client?: string;
+}
+
+/** client add 命令选项 */
+export interface ClientAddOptions {
+  name: string;
+  protocol: Protocol;
+  configPath: string;
+}
+
+/** client remove 命令选项 */
+export interface ClientRemoveOptions {
+  name: string;
+}
+
+/** client focus 命令选项 */
+export interface ClientFocusOptions {
+  name: string;
 }
