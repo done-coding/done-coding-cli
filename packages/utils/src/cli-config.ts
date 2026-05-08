@@ -1,11 +1,13 @@
 import path from "node:path";
-import fs from "node:fs";
+import { writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { tmpdir, homedir } from "node:os";
 import { assetIsExitsAsync, readJsonFileAsync } from "@/file-operate";
 import {
   ASSETS_CONFIG_REPO_URL_DEFAULT,
   DONE_CODING_CLI_TEMP_ASSETS_CONFIG_RELATIVE_DIR,
   DONE_CODING_CLI_GLOBAL_CONFIG_RELATIVE_PATH,
+  DONE_CODING_AI_CONFIG_RELATIVE_PATH,
+  DONE_CODING_MRM_CONFIG_RELATIVE_DIR,
   DONE_CODING_CLI_ASSETS_CONFIG_REPO_DIR_NAME,
   DONE_CODING_CLI_ASSETS_CONFIG_REPO_MODULE_ENTRY,
 } from "@/const";
@@ -20,11 +22,11 @@ export interface AiConfig {
   /** 协议，如 "openai" / "anthropic"，默认 "openai" */
   protocol?: string;
   /** 模型名称，如 "deepseek-chat" */
-  model: string;
+  model?: string;
   /** API Key */
-  apiKey: string;
+  apiKey?: string;
   /** API Base URL，如 "https://api.deepseek.com" */
-  baseUrl: string;
+  baseUrl?: string;
 }
 
 /** done-coding-cli 全局配置 key 枚举 */
@@ -36,14 +38,11 @@ export enum DoneCodingCliGlobalConfigKeyEnum {
    * 2. 若非上述 则认为本地【绝对】路径
    */
   ASSETS_CONFIG_REPO_URL = "ASSETS_CONFIG_REPO_URL",
-  /** AI 对话配置 */
-  AI_CONFIG = "AI_CONFIG",
 }
 
 /** done-coding-cli 全局配置 */
 export interface DoneCodingCliGlobalConfig {
   [DoneCodingCliGlobalConfigKeyEnum.ASSETS_CONFIG_REPO_URL]: string;
-  [DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG]?: AiConfig;
 }
 
 /** 获取cli模块【临时】目录[绝对路径] */
@@ -60,6 +59,68 @@ export const getGlobalConfigFilePath = () => {
   return path.resolve(homedir(), DONE_CODING_CLI_GLOBAL_CONFIG_RELATIVE_PATH);
 };
 
+/** 获取 AI 配置文件路径 */
+export const getAiConfigFilePath = (): string => {
+  return path.resolve(homedir(), DONE_CODING_AI_CONFIG_RELATIVE_PATH);
+};
+
+/** 获取 mrm 数据目录路径 */
+export const getMrmConfigDirPath = (): string => {
+  return path.resolve(homedir(), DONE_CODING_MRM_CONFIG_RELATIVE_DIR);
+};
+
+/** 读取 AI 配置，文件不存在时返回空对象 */
+export const readAiConfig = async (): Promise<AiConfig> => {
+  const filePath = getAiConfigFilePath();
+  try {
+    if (await assetIsExitsAsync(filePath)) {
+      return await readJsonFileAsync<AiConfig>(filePath, {});
+    }
+  } catch (_) {
+    /* 文件损坏等异常，返回默认 */
+  }
+  return {};
+};
+
+/** 写入 AI 配置（浅合并：保留已有非 mrm 字段） */
+export const writeAiConfig = async (
+  config: Partial<AiConfig>,
+): Promise<void> => {
+  const filePath = getAiConfigFilePath();
+  const dir = path.dirname(filePath);
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
+  const existing = await readAiConfig();
+  const merged = { ...existing, ...config };
+  writeFileSync(filePath, JSON.stringify(merged, null, 2), "utf-8");
+};
+
+/** 检测旧配置格式并输出一次性 warning */
+export const checkLegacyAiConfig = async (): Promise<void> => {
+  const globalPath = getGlobalConfigFilePath();
+  const aiPath = getAiConfigFilePath();
+
+  // 仅在 AI 配置新文件尚不存在时检测
+  if (await assetIsExitsAsync(aiPath)) return;
+  if (!(await assetIsExitsAsync(globalPath))) return;
+
+  try {
+    const global = await readJsonFileAsync<Record<string, unknown>>(
+      globalPath,
+      {},
+    );
+    if ("AI_CONFIG" in global) {
+      process.stderr.write(
+        "[WARN] 检测到 ~/.done-coding/config.json 包含旧的 AI_CONFIG 字段，" +
+          "该字段已迁移到 ~/.done-coding/ai/config.json。请手动迁移后删除旧字段。\n",
+      );
+    }
+  } catch (_) {
+    /* 读取失败静默 */
+  }
+};
+
 /** 获取全局配置文件 */
 const getGlobalConfig = async (): Promise<DoneCodingCliGlobalConfig> => {
   const filePath = getGlobalConfigFilePath();
@@ -67,7 +128,6 @@ const getGlobalConfig = async (): Promise<DoneCodingCliGlobalConfig> => {
   const config: DoneCodingCliGlobalConfig = {
     [DoneCodingCliGlobalConfigKeyEnum.ASSETS_CONFIG_REPO_URL]:
       ASSETS_CONFIG_REPO_URL_DEFAULT,
-    [DoneCodingCliGlobalConfigKeyEnum.AI_CONFIG]: undefined,
   };
   try {
     if (await assetIsExitsAsync(filePath)) {
@@ -105,7 +165,7 @@ const createLocalAssetsConfigTempRepo = async (configTemporaryDir: string) => {
       },
     );
   } else {
-    fs.mkdirSync(configTemporaryDir, { recursive: true });
+    mkdirSync(configTemporaryDir, { recursive: true });
     execSyncHijack(`cp -r ${assetConfigRepoUrl}/ ${configTemporaryDir}/`);
   }
 

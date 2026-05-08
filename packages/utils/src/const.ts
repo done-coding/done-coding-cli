@@ -38,6 +38,12 @@ export const DONE_CODING_CLI_ASSETS_CONFIG_REPO_MODULE_ENTRY = "index.json";
 /** done-coding-cli 【全局】配置文件相对路径 */
 export const DONE_CODING_CLI_GLOBAL_CONFIG_RELATIVE_PATH = `${DONE_CODING_CONFIG_RELATIVE_DIR}/config.json`;
 
+/** done-coding AI 配置相对路径 */
+export const DONE_CODING_AI_CONFIG_RELATIVE_PATH = `${DONE_CODING_CONFIG_RELATIVE_DIR}/ai/config.json`;
+
+/** done-coding mrm 数据目录相对路径 */
+export const DONE_CODING_MRM_CONFIG_RELATIVE_DIR = `${DONE_CODING_CONFIG_RELATIVE_DIR}/mrm`;
+
 /** done-coding 日志输出文件夹名 */
 export const DONE_CODING_LOG_OUTPUT_DIR_NAME = "output/log";
 

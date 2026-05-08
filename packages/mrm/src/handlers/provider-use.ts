@@ -6,7 +6,6 @@ import type {
 import { outputConsole } from "@done-coding/cli-utils";
 import {
   SubcommandEnum,
-  ClientName,
   type ProviderUseOptions,
   type ClientOptions,
 } from "@/types";
@@ -35,7 +34,6 @@ export const handler = async (
 export const getOptions = (): YargsOptionsRecord<ClientOptions> => ({
   client: {
     type: "string",
-    choices: Object.values(ClientName),
     describe: "指定目标 client",
   },
 });

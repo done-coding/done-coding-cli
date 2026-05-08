@@ -4,6 +4,18 @@ import {
   commandCliInfo as switchCommandCliInfo,
 } from "./switch";
 import {
+  handler as clientAddHandler,
+  commandCliInfo as clientAddCommandCliInfo,
+} from "./client-add";
+import {
+  handler as clientRemoveHandler,
+  commandCliInfo as clientRemoveCommandCliInfo,
+} from "./client-remove";
+import {
+  handler as clientFocusHandler,
+  commandCliInfo as clientFocusCommandCliInfo,
+} from "./client-focus";
+import {
   handler as providerAddHandler,
   commandCliInfo as providerAddCommandCliInfo,
 } from "./provider-add";
@@ -40,6 +52,9 @@ import {
 export {
   lsHandler,
   switchHandler,
+  clientAddHandler,
+  clientRemoveHandler,
+  clientFocusHandler,
   providerAddHandler,
   providerUseHandler,
   providerRemoveHandler,
@@ -58,6 +73,12 @@ export const handler = async (
       return lsHandler(argv);
     case SubcommandEnum.SWITCH:
       return switchHandler(argv);
+    case SubcommandEnum.CLIENT_ADD:
+      return clientAddHandler(argv);
+    case SubcommandEnum.CLIENT_REMOVE:
+      return clientRemoveHandler(argv);
+    case SubcommandEnum.CLIENT_FOCUS:
+      return clientFocusHandler(argv);
     case SubcommandEnum.USE:
     case SubcommandEnum.MODEL_USE:
       return modelUseHandler(argv);
@@ -84,6 +105,9 @@ export const commandCliInfo: Omit<CliInfo, "usage"> = {
   subcommands: [
     switchCommandCliInfo,
     lsCommandCliInfo,
+    clientAddCommandCliInfo,
+    clientRemoveCommandCliInfo,
+    clientFocusCommandCliInfo,
     providerAddCommandCliInfo,
     providerUseCommandCliInfo,
     providerRemoveCommandCliInfo,

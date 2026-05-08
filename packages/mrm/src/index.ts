@@ -17,6 +17,11 @@ export {
   removeModel,
   switchModel,
   setProviderApiKey,
+  getAllClients,
+  resolveClientProtocol,
+  addClient,
+  removeClient,
+  focusClient,
 } from "@/services/registry";
 export { writeClientConfig } from "@/services/client-config";
 export {

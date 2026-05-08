@@ -6,7 +6,6 @@ import type {
 import { outputConsole } from "@done-coding/cli-utils";
 import {
   SubcommandEnum,
-  ClientName,
   type ModelAddOptions,
   type ClientOptions,
 } from "@/types";
@@ -33,7 +32,6 @@ export const getOptions = (): YargsOptionsRecord<
   },
   client: {
     type: "string",
-    choices: Object.values(ClientName),
     describe: "指定目标 client",
   },
 });
@@ -43,7 +41,7 @@ export const handler = async (
 ) => {
   const { providerAlias, modelName } = argv;
   const clientName = argv.client ?? getCurrentClient();
-  const protocol = getClientProtocol(clientName as ClientName);
+  const protocol = getClientProtocol(clientName);
 
   /** 前置校验：provider 必须存在 */
   if (!findProvider(protocol, providerAlias)) {

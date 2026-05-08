@@ -6,7 +6,6 @@ import type {
 import { outputConsole, xPrompts } from "@done-coding/cli-utils";
 import {
   SubcommandEnum,
-  ClientName,
   type ProviderAddOptions,
   type ClientOptions,
   type Provider,
@@ -35,7 +34,6 @@ export const getOptions = (): YargsOptionsRecord<
   },
   client: {
     type: "string",
-    choices: Object.values(ClientName),
     describe: "指定目标 client",
   },
 });
@@ -45,7 +43,7 @@ export const handler = async (
 ) => {
   const { alias, url } = argv;
   const clientName = argv.client ?? getCurrentClient();
-  const protocol = getClientProtocol(clientName as ClientName);
+  const protocol = getClientProtocol(clientName);
 
   /** 前置校验：避免用户交互输入后才发现冲突 */
   if (findProvider(protocol, alias)) {

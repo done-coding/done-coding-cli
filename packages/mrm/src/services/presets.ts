@@ -1,5 +1,6 @@
 import { homedir } from "node:os";
 import { Protocol, ClientName, type Client, type Provider } from "@/types";
+import { resolveClientProtocol } from "./registry";
 
 /** 内置 Client */
 export const BUILTIN_CLIENTS: Client[] = [
@@ -7,11 +8,13 @@ export const BUILTIN_CLIENTS: Client[] = [
     name: ClientName.CLAUDE_CODE,
     protocol: Protocol.ANTHROPIC,
     configPath: `${homedir()}/.claude/settings.json`,
+    builtin: true,
   },
   {
     name: ClientName.DONE_CODING_AI,
     protocol: Protocol.OPENAI,
-    configPath: `${homedir()}/.done-coding/config.json`,
+    configPath: `${homedir()}/.done-coding/ai/config.json`,
+    builtin: true,
   },
 ];
 
@@ -94,9 +97,7 @@ export const DEFAULT_CLIENT_STATE: Record<
   },
 };
 
-/** 获取 client 绑定的 protocol */
-export function getClientProtocol(clientName: ClientName): Protocol {
-  const client = BUILTIN_CLIENTS.find((c) => c.name === clientName);
-  if (!client) throw new Error(`不支持的 client: ${clientName}`);
-  return client.protocol;
+/** 获取 client 绑定的 protocol（委托 registry 的动态解析） */
+export function getClientProtocol(clientName: string): Protocol {
+  return resolveClientProtocol(clientName);
 }

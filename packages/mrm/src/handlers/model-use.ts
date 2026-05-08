@@ -6,7 +6,6 @@ import type {
 import { outputConsole } from "@done-coding/cli-utils";
 import {
   SubcommandEnum,
-  ClientName,
   type ModelUseOptions,
   type ClientOptions,
 } from "@/types";
@@ -50,7 +49,6 @@ export const getModelUseOptions = (): YargsOptionsRecord<
   },
   client: {
     type: "string",
-    choices: Object.values(ClientName),
     describe: "指定目标 client",
   },
 });
