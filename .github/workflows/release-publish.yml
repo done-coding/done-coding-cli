@@ -139,3 +139,12 @@ jobs:
           git checkout master
           git merge --ff-only origin/release
           git push origin master
+
+      # --------------------------------------------------------
+      # 步骤 10：将 prerelease 分支重置到 master
+      # --------------------------------------------------------
+      # prerelease 为预发环境部署分支，始终镜像 master 最新状态。
+      # 使用 --force 覆盖是安全的：功能分支不会删除，远端无独立提交需要保留。
+      # --------------------------------------------------------
+      - name: Sync prerelease to master
+        run: git push origin master:prerelease --force
