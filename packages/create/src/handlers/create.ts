@@ -1,51 +1,89 @@
 import {
   getRemoveDirForm,
   projectNameForm,
-  saveGitHistoryForm,
   getTemplateChoices,
   getTemplateForm,
   SOMEONE_PUBLIC_REPO_NAME,
   customUrlForm,
   getGitCommitMessageForm,
-  transHttp2SshUrlForm,
   CUSTOM_TEMPLATE_NAME,
-  getIsChangeBranchName,
-  localBranchNameForm,
   getTemplateGitBranchForm,
+  materializeTemplateToProject,
+  resolveTemplateSourceFromUrl,
+  type TemplateSourceInfo,
 } from "@/utils";
 import type {
   CliHandlerArgv,
   CliInfo,
+  HandlerContextInit,
   SubCliInfo,
 } from "@done-coding/cli-utils";
-import { rmSync, existsSync } from "node:fs";
-import path, { resolve } from "node:path";
 import {
-  getConfigPath,
-  batchCompileHandler,
-  MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
-} from "@done-coding/cli-template";
-import {
-  http2sshGitUrl,
-  isHttpGitUrl,
-  outputConsole,
-  lookForParentTarget,
-  rmGitCtrlAsync,
-  getSafePath,
-  generateGetAnswerSwiftFn,
   execSyncHijack,
+  generateGetAnswerSwiftFn,
+  getSafePath,
+  lookForParentTarget,
+  outputConsole,
+  readConfigFile,
+  resolveHandlerContext,
+  rmGitCtrlAsync,
 } from "@done-coding/cli-utils";
+import {
+  batchCompileHandler,
+  getConfigPath,
+  MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
+  normalizeCollectEnvDataForm,
+  type CompileTemplateConfig,
+  type CollectEnvDataQuestion,
+} from "@done-coding/cli-template";
 import { getTargetRepoUrl } from "@done-coding/cli-git";
 import { cloneDoneCodingSeries } from "@done-coding/cli-git/helpers";
-import injectInfo from "@/injectInfo.json";
+import { randomUUID } from "node:crypto";
 import {
-  FormNameEnum,
-  GitRemoteRepoAliasNameEnum,
-  type CreateOptions,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import path, { resolve } from "node:path";
+import injectInfo from "@/injectInfo.json";
+import { FormNameEnum } from "@/types";
+import type {
+  CreateTemplateSourceTypeEnum,
+  CreateCompleteOptions,
+  CreateOptions,
+  CreatePrepareResult,
 } from "@/types";
+
+const CREATE_DRAFT_RELATIVE_DIR = ".done-coding/default/tmp/create";
+const CREATE_DRAFT_STATE_FILE_NAME = "draft.json";
+
+interface CreateDraftState {
+  draftId: string;
+  rootDir: string;
+  projectName: string;
+  targetProjectPath: string;
+  draftDir: string;
+  draftProjectPath: string;
+  templateSourceType: CreateTemplateSourceTypeEnum;
+  templateUrl: string;
+  templateBranch?: string;
+  templateDirectory?: string;
+  parentGitDir?: string;
+  configPath: string;
+  skipTemplateCompile: boolean;
+  openGitDetailOptimize: boolean;
+}
 
 const getOptions = (): CliInfo["options"] => {
   return {
+    rootDir: {
+      type: "string",
+      describe: "创建项目的根目录",
+      hidden: true,
+    },
     [FormNameEnum.PROJECT_NAME]: {
       alias: "n",
       type: "string",
@@ -58,15 +96,24 @@ const getOptions = (): CliInfo["options"] => {
       default: false,
       hidden: true,
     },
-    [FormNameEnum.TEMPLATE_GIT_PATH]: {
+    [FormNameEnum.TEMPLATE_URL]: {
       alias: "p",
       type: "string",
+      describe: "模板地址",
+    },
+    [FormNameEnum.TEMPLATE_GIT_PATH]: {
+      type: "string",
       describe: "模板仓库地址",
+      hidden: true,
     },
     [FormNameEnum.TEMPLATE_GIT_BRANCH]: {
       alias: "b",
       type: "string",
       describe: "模板仓库分支",
+    },
+    templateDirectory: {
+      type: "string",
+      describe: "仓库内模板目录",
     },
     skipTemplateCompile: {
       type: "boolean",
@@ -79,24 +126,6 @@ const getOptions = (): CliInfo["options"] => {
       describe: "开启git细节优化",
       default: true,
     },
-    [FormNameEnum.IS_CHANGE_BRANCH_NAME]: {
-      type: "boolean",
-      describe: "git细节优化:是否更改分支名",
-      default: false,
-    },
-    [FormNameEnum.LOCAL_BRANCH_NAME]: {
-      type: "string",
-      describe: "git细节优化:需要更改本地分支名时的更改值",
-    },
-    [FormNameEnum.IS_SAVE_GIT_HISTORY]: {
-      type: "boolean",
-      describe: "git细节优化:是否保存模板仓库git历史记录",
-      default: false,
-    },
-    [FormNameEnum.IS_TRANS_HTTP_URL_TO_SSH_URL]: {
-      type: "boolean",
-      describe: "git细节优化:是否将http url转换为ssh url",
-    },
     [FormNameEnum.GIT_COMMIT_MESSAGE]: {
       alias: "m",
       type: "string",
@@ -105,17 +134,417 @@ const getOptions = (): CliInfo["options"] => {
   };
 };
 
-// const getPositionals = (): CliInfo["positionals"] => {
-//   return {
-//     [FormNameEnum.PROJECT_NAME]: {
-//       describe: "项目名称",
-//       type: "string",
-//     },
-//   };
-// };
+const getDraftRootDir = (rootDir: string) => {
+  return path.resolve(rootDir, CREATE_DRAFT_RELATIVE_DIR);
+};
+
+const getDraftDir = (rootDir: string, draftId: string) => {
+  return path.resolve(getDraftRootDir(rootDir), draftId);
+};
+
+const getDraftStatePath = (draftDir: string) => {
+  return path.resolve(draftDir, CREATE_DRAFT_STATE_FILE_NAME);
+};
+
+const writeDraftState = (state: CreateDraftState) => {
+  mkdirSync(state.draftDir, { recursive: true });
+  writeFileSync(
+    getDraftStatePath(state.draftDir),
+    JSON.stringify(state, null, 2),
+  );
+};
+
+const readDraftState = ({
+  rootDir,
+  draftId,
+}: {
+  rootDir: string;
+  draftId: string;
+}): CreateDraftState => {
+  const draftDir = getDraftDir(rootDir, draftId);
+  const draftStatePath = getDraftStatePath(draftDir);
+  if (!existsSync(draftStatePath)) {
+    throw new Error(`创建草稿不存在: ${draftId}`);
+  }
+  return JSON.parse(readFileSync(draftStatePath, "utf-8")) as CreateDraftState;
+};
+
+const getCreateRootDir = (
+  argv: CliHandlerArgv<Pick<CreateOptions, "rootDir">>,
+  ctxInit?: HandlerContextInit,
+) => {
+  const ctx = resolveHandlerContext(ctxInit);
+  return resolve(ctx.cwd, argv.rootDir ?? ctx.cwd);
+};
+
+const ensureTargetProjectNotExists = async ({
+  projectName,
+  projectNamePath,
+  argv,
+  ctxInit,
+}: {
+  projectName: string;
+  projectNamePath: string;
+  argv: CliHandlerArgv<CreateOptions>;
+  ctxInit?: HandlerContextInit;
+}) => {
+  if (!existsSync(projectNamePath)) {
+    return;
+  }
+
+  const getAnswerSwift = generateGetAnswerSwiftFn({
+    presetAnswer: argv,
+    ctx: ctxInit,
+  });
+
+  const isRemove = await getAnswerSwift<boolean>(
+    FormNameEnum.IS_REMOVE_SAME_NAME_DIR,
+    getRemoveDirForm(),
+  );
+
+  if (isRemove === true) {
+    rmSync(projectNamePath, { recursive: true, force: true });
+    return;
+  }
+
+  throw new Error(`项目${projectName}已存在`);
+};
+
+const resolveTemplateSourceInfo = async ({
+  argv,
+  ctxInit,
+}: {
+  argv: CliHandlerArgv<CreateOptions>;
+  ctxInit?: HandlerContextInit;
+}): Promise<TemplateSourceInfo> => {
+  const getAnswerSwift = generateGetAnswerSwiftFn({
+    presetAnswer: argv,
+    ctx: ctxInit,
+  });
+
+  let templateUrl: string | undefined =
+    (await getAnswerSwift(FormNameEnum.TEMPLATE_URL)) ??
+    (await getAnswerSwift(FormNameEnum.TEMPLATE_GIT_PATH));
+  let templateBranch: string | undefined = await getAnswerSwift(
+    FormNameEnum.TEMPLATE_GIT_BRANCH,
+  );
+  let templateDirectory = argv.templateDirectory;
+
+  if (!templateUrl) {
+    const template = await getAnswerSwift<string>(
+      FormNameEnum.TEMPLATE,
+      await getTemplateForm(),
+    );
+
+    if (template === CUSTOM_TEMPLATE_NAME) {
+      templateUrl = await getAnswerSwift<string>(
+        FormNameEnum.CUSTOM_GIT_URL_INPUT,
+        customUrlForm,
+      );
+    } else if (template === SOMEONE_PUBLIC_REPO_NAME) {
+      templateUrl = await getTargetRepoUrl();
+    } else {
+      const target = (await getTemplateChoices()).find(
+        (item) => item.name === template,
+      );
+      if (!target) {
+        throw new Error(`模板${template}不存在`);
+      }
+
+      if (!target.url) {
+        throw new Error(`模板${template}地址不存在`);
+      }
+      templateUrl = target.url;
+      if (typeof target.branch === "string") {
+        templateBranch = target.branch;
+      } else if (Array.isArray(target.branch) && target.branch.length > 0) {
+        templateBranch = await getAnswerSwift(
+          FormNameEnum.TEMPLATE_GIT_BRANCH,
+          getTemplateGitBranchForm(target.branch),
+        );
+      }
+      templateDirectory = target.directory;
+    }
+  }
+
+  if (!templateUrl) {
+    throw new Error(`模板地址不存在`);
+  }
+
+  return resolveTemplateSourceFromUrl({
+    templateUrl,
+    templateBranch,
+    directory: templateDirectory,
+  });
+};
+
+const moveDraftProjectToTarget = (state: CreateDraftState) => {
+  if (existsSync(state.targetProjectPath)) {
+    throw new Error(`目标项目目录已存在: ${state.targetProjectPath}`);
+  }
+  renameSync(state.draftProjectPath, state.targetProjectPath);
+  rmSync(state.draftDir, { recursive: true, force: true });
+};
+
+/** 准备创建项目：非交互模式下克隆模板、读取模板预置问题并返回草稿信息 */
+export const prepareCreateProject = async (
+  argv: CliHandlerArgv<CreateOptions>,
+  ctxInit?: HandlerContextInit,
+): Promise<CreatePrepareResult> => {
+  const ctx = resolveHandlerContext(ctxInit);
+  const rootDir = getCreateRootDir(argv, ctx);
+  const getAnswerSwift = generateGetAnswerSwiftFn({
+    presetAnswer: argv,
+    ctx,
+  });
+
+  const projectNameNoTrim = await getAnswerSwift(
+    FormNameEnum.PROJECT_NAME,
+    projectNameForm,
+    argv[FormNameEnum.PROJECT_NAME],
+  );
+
+  let projectName = projectNameNoTrim?.trim();
+  if (!projectName) {
+    throw new Error(`项目名称不能为空`);
+  }
+
+  const projectNameSafe = getSafePath(projectName);
+  if (projectNameSafe !== projectName) {
+    outputConsole.warn(
+      `项目名称\`${projectName}\`包含非法字符，已自动转换为\`${projectNameSafe}\``,
+    );
+    projectName = projectNameSafe;
+  }
+
+  const targetProjectPath = resolve(rootDir, projectName);
+  await ensureTargetProjectNotExists({
+    projectName,
+    projectNamePath: targetProjectPath,
+    argv,
+    ctxInit: ctx,
+  });
+
+  const templateSource = await resolveTemplateSourceInfo({
+    argv,
+    ctxInit: ctx,
+  });
+
+  const parentGitDir = lookForParentTarget(".git", { currentDir: rootDir });
+  const draftId = randomUUID();
+  const draftDir = getDraftDir(rootDir, draftId);
+  const draftProjectPath = resolve(draftDir, projectName);
+  const skipTemplateCompile = argv.skipTemplateCompile ?? false;
+  const openGitDetailOptimize = argv.openGitDetailOptimize ?? true;
+
+  outputConsole.stage("正在初始化项目，请稍等...");
+  const templateInstance = materializeTemplateToProject({
+    templateSource,
+    rootDir,
+    targetPath: draftProjectPath,
+  });
+  outputConsole.stage(`模板已生成: ${projectName}`);
+
+  const configPath = MODULE_DEFAULT_CONFIG_RELATIVE_PATH;
+  const state: CreateDraftState = {
+    draftId,
+    rootDir,
+    projectName,
+    targetProjectPath,
+    draftDir,
+    draftProjectPath,
+    templateSourceType: templateInstance.type,
+    templateUrl: templateInstance.url,
+    templateBranch: templateInstance.branch,
+    templateDirectory: templateInstance.directory,
+    parentGitDir,
+    configPath,
+    skipTemplateCompile,
+    openGitDetailOptimize,
+  };
+  writeDraftState(state);
+
+  const configPathFinal = getConfigPath({
+    rootDir: draftProjectPath,
+    configPath,
+  });
+
+  if (!configPathFinal || skipTemplateCompile) {
+    return {
+      status: "ready",
+      draftId,
+      projectPath: targetProjectPath,
+      draftProjectPath,
+    };
+  }
+
+  const config = await readConfigFile<CompileTemplateConfig>({
+    rootDir: draftProjectPath,
+    configPath,
+  });
+  const questions: CollectEnvDataQuestion[] = normalizeCollectEnvDataForm(
+    config?.collectEnvDataForm,
+  );
+
+  if (questions.length === 0) {
+    return {
+      status: "ready",
+      draftId,
+      projectPath: targetProjectPath,
+      draftProjectPath,
+    };
+  }
+
+  outputConsole.stage(`当前模板项目配置了预设问题`);
+
+  return {
+    status: "need_input",
+    draftId,
+    projectPath: targetProjectPath,
+    draftProjectPath,
+    questions,
+  };
+};
+
+const getCompleteAnswerSwift = (
+  argv: CliHandlerArgv<CreateCompleteOptions>,
+  ctxInit?: HandlerContextInit,
+) => {
+  return generateGetAnswerSwiftFn({
+    presetAnswer: argv,
+    ctx: ctxInit,
+  });
+};
+
+const applyTemplateCompile = async ({
+  state,
+  argv,
+  ctxInit,
+}: {
+  state: CreateDraftState;
+  argv: CliHandlerArgv<CreateCompleteOptions>;
+  ctxInit?: HandlerContextInit;
+}) => {
+  const configPathFinal = getConfigPath({
+    rootDir: state.draftProjectPath,
+    configPath: state.configPath,
+  });
+
+  if (!configPathFinal) {
+    return;
+  }
+
+  if (state.skipTemplateCompile) {
+    outputConsole.stage(`用户设置:跳过模板编译`);
+    return;
+  }
+
+  outputConsole.stage(`开始进行模板编译`);
+  await batchCompileHandler(
+    {
+      rootDir: state.draftProjectPath,
+      configPath: state.configPath,
+      extraEnvData: {
+        $projectName: state.projectName,
+      },
+      collectEnvData: argv.envData,
+    },
+    undefined,
+    ctxInit,
+  );
+  rmSync(configPathFinal, { force: true });
+  outputConsole.stage("模板项目配置编译成功, 编译配置文件已删除");
+};
+
+const applyGitDetailOptimize = async ({
+  state,
+  argv,
+  ctxInit,
+}: {
+  state: CreateDraftState;
+  argv: CliHandlerArgv<CreateCompleteOptions>;
+  ctxInit?: HandlerContextInit;
+}) => {
+  const ctx = resolveHandlerContext(ctxInit);
+  const getAnswerSwift = getCompleteAnswerSwift(argv, ctx);
+
+  if (!state.openGitDetailOptimize) {
+    outputConsole.stage(`跳过git细节优化`);
+    return;
+  }
+
+  outputConsole.stage("项目初始化完成");
+
+  await rmGitCtrlAsync(state.draftProjectPath);
+  if (state.parentGitDir) {
+    outputConsole.stage(
+      `项目创建在父级git仓库${state.parentGitDir}中，已跳过${state.projectName}目录git初始化`,
+    );
+    return;
+  }
+  execSyncHijack(`git init`, {
+    cwd: state.draftProjectPath,
+    stdio: "inherit",
+  });
+
+  const gitCommitMessage = await getAnswerSwift<string>(
+    FormNameEnum.GIT_COMMIT_MESSAGE,
+    ctx.interactive ? getGitCommitMessageForm(state.projectName) : undefined,
+    ctx.interactive ? undefined : `feat: 初始化项目${state.projectName}`,
+  );
+
+  execSyncHijack(`git add . && git commit -m '${gitCommitMessage}'`, {
+    cwd: state.draftProjectPath,
+    stdio: "inherit",
+  });
+};
+
+/** 完成创建项目：使用 prepare 阶段草稿和模板参数完成编译、git 初始化与目录落位 */
+export const completeCreateProject = async (
+  argv: CliHandlerArgv<CreateCompleteOptions>,
+  ctxInit?: HandlerContextInit,
+) => {
+  const ctx = resolveHandlerContext(ctxInit);
+  const rootDir = getCreateRootDir(argv, ctx);
+  const state = readDraftState({
+    rootDir,
+    draftId: argv.draftId,
+  });
+
+  await applyTemplateCompile({
+    state,
+    argv,
+    ctxInit: ctx,
+  });
+
+  await applyGitDetailOptimize({
+    state,
+    argv,
+    ctxInit: ctx,
+  });
+
+  moveDraftProjectToTarget(state);
+
+  outputConsole.success(`项目${state.projectName}初始化完成`);
+  outputConsole.info(`
+使用步骤: 
+  1. cd ${state.projectName}
+  2. pnpm install
+  3. pnpm run dev
+  `);
+
+  return {
+    success: true,
+    projectPath: state.targetProjectPath,
+    draftId: state.draftId,
+    message: `项目${state.projectName}初始化完成`,
+  };
+};
 
 // eslint-disable-next-line complexity
-export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
+const interactiveCreateHandler = async (
+  argv: CliHandlerArgv<CreateOptions>,
+) => {
   outputConsole.info(`版本: ${injectInfo.version}`);
 
   const {
@@ -123,7 +552,6 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     justCloneFromDoneCoding,
   } = argv;
 
-  // !!! mcp不考虑克隆模式 justCloneFromDoneCoding【默认值为false 即不更改】
   if (justCloneFromDoneCoding) {
     outputConsole.info(`仅仅(从done-coding系列项目列表中)克隆远程仓库`);
     await cloneDoneCodingSeries(projectNameInit);
@@ -134,7 +562,6 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     presetAnswer: argv,
   });
 
-  // const projectNameNoTrim = projectNameInit ?? (await xPrompts(projectNameForm))[FormNameEnum.PROJECT_NAME]
   const projectNameNoTrim = await getAnswerSwift(
     FormNameEnum.PROJECT_NAME,
     projectNameForm,
@@ -148,10 +575,8 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     return process.exit(1);
   }
 
-  // 安全路径名
   const projectNameSafe = getSafePath(projectName);
 
-  // 如果安全路径与原始路径不一致，则提示用户并自动转换
   if (projectNameSafe !== projectName) {
     outputConsole.warn(
       `项目名称\`${projectName}\`包含非法字符，已自动转换为\`${projectNameSafe}\``,
@@ -159,13 +584,9 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     projectName = projectNameSafe;
   }
 
-  // 项目路径
   const projectNamePath = resolve(process.cwd(), projectName);
 
-  // 检测是否同名文件存在
   if (existsSync(projectNamePath)) {
-    // const isRemove = (await xPrompts(getRemoveDirForm()))[FormNameEnum.IS_REMOVE_SAME_NAME_DIR]
-    // !!! 是否删除 不设默认值 即不帮用户决定删除与否
     const isRemove = await getAnswerSwift<boolean>(
       FormNameEnum.IS_REMOVE_SAME_NAME_DIR,
       getRemoveDirForm(),
@@ -179,98 +600,15 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     }
   }
 
-  // 获取远程地址/分支
-  let remoteUrl: string | undefined = await getAnswerSwift(
-    FormNameEnum.TEMPLATE_GIT_PATH,
-  );
-  let templateBranch: string | undefined = await getAnswerSwift(
-    FormNameEnum.TEMPLATE_GIT_BRANCH,
-  );
-
-  // 如果入参未设置 仓库地址 则拉取模板 同时如果模板配置分支多选 也会更新
-  if (!remoteUrl) {
-    // const template = (await xPrompts(
-    //   await getTemplateForm(),
-    // ))[FormNameEnum.TEMPLATE];
-    const template = await getAnswerSwift<string>(
-      FormNameEnum.TEMPLATE,
-      await getTemplateForm(),
-    );
-
-    // 获取最终 模板仓库地址及分支名
-    if (template === CUSTOM_TEMPLATE_NAME) {
-      // remoteUrl =
-      //   (await xPrompts(customUrlForm))[FormNameEnum.CUSTOM_GIT_URL_INPUT];
-
-      remoteUrl = await getAnswerSwift<string>(
-        FormNameEnum.CUSTOM_GIT_URL_INPUT,
-        customUrlForm,
-      );
-    } else if (template === SOMEONE_PUBLIC_REPO_NAME) {
-      remoteUrl = await getTargetRepoUrl();
-    } else {
-      const target = (await getTemplateChoices()).find(
-        (item) => item.name === template,
-      );
-      if (!target) {
-        outputConsole.error(`模板${template}不存在`);
-        return process.exit(1);
-      }
-      if (!target.url) {
-        outputConsole.error(`模板${template}仓库地址不存在`);
-        return process.exit(1);
-      }
-      remoteUrl = target.url;
-      if (typeof target.branch === "string") {
-        templateBranch = target.branch;
-      } else if (Array.isArray(target.branch) && target.branch.length > 0) {
-        // templateBranch = (await xPrompts(getTemplateGitBranchForm(target.branch)))[FormNameEnum.TEMPLATE_GIT_BRANCH];
-        templateBranch = await getAnswerSwift(
-          FormNameEnum.TEMPLATE_GIT_BRANCH,
-          getTemplateGitBranchForm(target.branch),
-        );
-      }
-    }
-  }
-
-  if (!remoteUrl) {
-    outputConsole.error(`模板仓库地址不存在`);
-    return process.exit(1);
-  }
-
-  /** 父级git目录 */
+  const templateSource = await resolveTemplateSourceInfo({ argv });
   const parentGitDir = lookForParentTarget(".git");
-
   outputConsole.stage("正在初始化项目，请稍等...");
-
-  execSyncHijack(
-    `git clone${
-      templateBranch ? ` -b ${templateBranch}` : ""
-    } ${remoteUrl} ${projectName} --depth=1`,
-    { stdio: "inherit" },
-  );
-
-  /** 开启git细节优化 且 如果有没有父级仓库 且知名了克隆的远程分支 则询问是否需要更改本地分支名 */
-  if (argv.openGitDetailOptimize && !parentGitDir && templateBranch) {
-    // const isChangeBranchName = (await xPrompts(getIsChangeBranchName(templateBranch)))[FormNameEnum.IS_CHANGE_BRANCH_NAME];
-    const isChangeBranchName = await getAnswerSwift<boolean>(
-      FormNameEnum.IS_CHANGE_BRANCH_NAME,
-      getIsChangeBranchName(templateBranch),
-    );
-
-    if (isChangeBranchName) {
-      // const { localBranchName } = (await xPrompts(localBranchNameForm))[FormNameEnum.LOCAL_BRANCH_NAME];
-      const localBranchName = await getAnswerSwift<string>(
-        FormNameEnum.LOCAL_BRANCH_NAME,
-        localBranchNameForm,
-      );
-
-      execSyncHijack(`git branch -m ${localBranchName}`, {
-        cwd: projectNamePath,
-        stdio: "inherit",
-      });
-    }
-  }
+  materializeTemplateToProject({
+    templateSource,
+    rootDir: process.cwd(),
+    targetPath: projectNamePath,
+  });
+  outputConsole.stage(`模板已生成: ${projectName}`);
 
   const configPath = MODULE_DEFAULT_CONFIG_RELATIVE_PATH;
 
@@ -282,14 +620,13 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   if (configPathFinal) {
     outputConsole.stage(`当前模板项目配置了预设问题`);
 
-    // 跳过模板编译 - 不进行模板编译
     if (argv.skipTemplateCompile) {
       outputConsole.stage(`用户设置:跳过模板编译`);
     } else {
       outputConsole.stage(`开始进行模板编译`);
       await batchCompileHandler({
         rootDir: projectNamePath,
-        configPath: configPath,
+        configPath,
         extraEnvData: {
           $projectName: projectName,
         },
@@ -299,108 +636,30 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
     }
   }
 
-  // 未开启git细节优化 - 此处结束 - 移除git控制退出
   if (!argv.openGitDetailOptimize) {
-    outputConsole.stage(`移除克隆仓库的git控制`);
-    await rmGitCtrlAsync(projectNamePath);
-    outputConsole.success(`项目创建成功，移除克隆仓库的git控制成功`);
+    outputConsole.stage(`跳过git细节优化`);
     return process.exit(0);
   }
 
   outputConsole.stage("项目初始化完成");
 
+  await rmGitCtrlAsync(projectNamePath);
   if (parentGitDir) {
-    /** 当前项目git目录 */
-    const currentGitDir = path.resolve(projectNamePath);
-    /** 当前项目git信息目录 */
-    const currentGitInfoDir = path.resolve(currentGitDir, ".git");
-
-    if (!existsSync(currentGitInfoDir)) {
-      throw new Error("git目录不存在");
-    }
-
-    rmSync(currentGitInfoDir, { recursive: true, force: true });
     outputConsole.stage(
-      `项目创建在父级git仓库${parentGitDir}中，已删除${projectName}目录下的.git(${currentGitInfoDir})`,
+      `项目创建在父级git仓库${parentGitDir}中，已跳过${projectName}目录git初始化`,
     );
   } else {
-    // 如果项目不在git仓库中，则询问是否保存git历史记录
-
-    // const saveGitHistory = (await xPrompts(saveGitHistoryForm))[
-    //   FormNameEnum.IS_SAVE_GIT_HISTORY
-    // ];
-
-    const saveGitHistory = await getAnswerSwift<boolean>(
-      FormNameEnum.IS_SAVE_GIT_HISTORY,
-      saveGitHistoryForm,
-    );
-
-    if (saveGitHistory) {
-      // 保存git记录则重命名origin为upstream 同时完整克隆仓库
-      execSyncHijack(
-        `git remote rename ${GitRemoteRepoAliasNameEnum.ORIGIN} ${GitRemoteRepoAliasNameEnum.UPSTREAM} && git fetch --unshallow`,
-        {
-          cwd: projectNamePath,
-          stdio: "inherit",
-        },
-      );
-
-      outputConsole.stage(
-        `已经将origin重命名为upstream，后续可以与模板git仓库有完整的交互`,
-      );
-
-      outputConsole.success(`已保存git历史记录`);
-
-      if (isHttpGitUrl(remoteUrl)) {
-        const sshUrl = http2sshGitUrl(remoteUrl);
-        // const isTransToSshUrl = (
-        //   await xPrompts(
-        //     transHttp2SshUrlForm({
-        //       httpUrl: remoteUrl,
-        //       sshUrl,
-        //     }),
-        //   )
-        // )[FormNameEnum.IS_TRANS_HTTP_URL_TO_SSH_URL];
-        const isTransToSshUrl = await getAnswerSwift<boolean>(
-          FormNameEnum.IS_TRANS_HTTP_URL_TO_SSH_URL,
-          transHttp2SshUrlForm({
-            httpUrl: remoteUrl,
-            sshUrl,
-          }),
-        );
-        if (isTransToSshUrl) {
-          execSyncHijack(
-            `git remote set-url ${GitRemoteRepoAliasNameEnum.UPSTREAM} ${sshUrl}`,
-            {
-              cwd: projectNamePath,
-              stdio: "inherit",
-            },
-          );
-        }
-        outputConsole.success(`已将模板远程仓库地址更换为${sshUrl}`);
-      }
-    } else {
-      // 项目git目录
-      // const projectNameGitPath = path.resolve(projectNamePath, ".git");
-      // rmSync(projectNameGitPath, { recursive: true, force: true });
-
-      await rmGitCtrlAsync(projectNamePath);
-
-      execSyncHijack(`git init`, {
-        cwd: projectNamePath,
-        stdio: "inherit",
-      });
-    }
+    execSyncHijack(`git init`, {
+      cwd: projectNamePath,
+      stdio: "inherit",
+    });
   }
 
-  // const gitCommitMessage =
-  //   (await xPrompts(getGitCommitMessageForm(projectName)))[FormNameEnum.GIT_COMMIT_MESSAGE];
   const gitCommitMessage = await getAnswerSwift<string>(
     FormNameEnum.GIT_COMMIT_MESSAGE,
     getGitCommitMessageForm(projectName),
   );
 
-  // 提交代码
   execSyncHijack(`git add . && git commit -m '${gitCommitMessage}'`, {
     cwd: projectNamePath,
     stdio: "inherit",
@@ -416,10 +675,41 @@ export const handler = async (argv: CliHandlerArgv<CreateOptions>) => {
   `);
 };
 
+/** create 命令 handler：交互模式保持原 CLI 流程，非交互模式走 prepare/complete 协议 */
+export const handler = async (
+  argv: CliHandlerArgv<CreateOptions>,
+  ctxInit?: HandlerContextInit,
+) => {
+  const ctx = resolveHandlerContext(ctxInit);
+  if (ctx.interactive) {
+    return interactiveCreateHandler(argv);
+  }
+
+  outputConsole.info(`版本: ${injectInfo.version}`);
+
+  if (argv.justCloneFromDoneCoding) {
+    throw new Error(`非交互模式暂不支持 justCloneFromDoneCoding`);
+  }
+
+  const prepareResult = await prepareCreateProject(argv, ctx);
+
+  if (prepareResult.status === "need_input") {
+    return prepareResult;
+  }
+
+  return completeCreateProject(
+    {
+      ...argv,
+      draftId: prepareResult.draftId,
+    },
+    ctx,
+  );
+};
+
+/** create 子命令配置 */
 export const commandCliInfo: SubCliInfo = {
   command: `$0`,
   describe: injectInfo.description,
   options: getOptions(),
-  // positionals: getPositionals(),
   handler,
 };

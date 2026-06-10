@@ -20,11 +20,9 @@ export enum FormNameEnum {
   CUSTOM_GIT_URL_INPUT = "customUrl",
   /** git的提交信息 */
   GIT_COMMIT_MESSAGE = "gitCommitMessage",
-  /**
-   *  模板仓库地址
-   * ----
-   * 为mcp拓展所加
-   */
+  /** 模板地址 */
+  TEMPLATE_URL = "templateUrl",
+  /** 模板仓库地址 @deprecated 使用 TEMPLATE_URL */
   TEMPLATE_GIT_PATH = "templateGitPath",
   /** 模板仓库分支 */
   TEMPLATE_GIT_BRANCH = "templateGitBranch",

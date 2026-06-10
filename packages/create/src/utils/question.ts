@@ -55,7 +55,11 @@ export const projectNameForm: PromptObject<FormNameEnum.PROJECT_NAME> = {
 export const getTemplateTitle = ({
   name,
   branch,
+  url,
 }: CreateTemplateChoiceItem) => {
+  if (url?.startsWith("/")) {
+    return `${name}(${chalk.white("local")})`;
+  }
   const branchConfigType = typeof branch;
   if (branchConfigType === "string") {
     return `${name}(${chalk.white(branch)})`;
