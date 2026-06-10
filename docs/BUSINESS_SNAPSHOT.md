@@ -38,7 +38,7 @@ done-coding-cli 是一个面向 **Node.js 前端/全栈开发者**的 CLI 工具
 | 角色 | 目标 | 典型调用 |
 |---|---|---|
 | **新手开发者** | 一行创建项目，不想手动配 lint/format | `npm create done-coding` |
-| **日常开发者** | 统一入口执行各项操作 | 全局装 `@done-coding/cli`，用 `DC <cmd>` |
+| **日常开发者** | 统一入口执行各项操作 | 全局装 `done-coding`，用 `DC <cmd>` |
 | **Tech Lead** | 强制团队工程规范 + 分支合并规则 | `DC config add -g`（提交到 git）、`DC git hooks` 配合 husky |
 | **AI Agent** | 通过 MCP 无阻塞调用任何 CLI 子命令 | 所有子命令的 hijack 模式 |
 | **贡献者** | 修改源码或新增子包 | `pnpm dev`、Conventional Commits、PR |
@@ -49,7 +49,7 @@ done-coding-cli 是一个面向 **Node.js 前端/全栈开发者**的 CLI 工具
 
 | 入口 | 示例 | 适用场景 |
 |---|---|---|
-| 主全局 CL I | `npm i -g @done-coding/cli` → `DC <subcommand>` | 日常使用 |
+| 主全局 CL I | `npm i -g done-coding` → `DC <subcommand>` | 日常使用 |
 | 子包独立 bin | `dc-component add Button`、`dc-git clone github user` | 只装单个子包时 |
 | npm create 约定 | `npm create done-coding`、`pnpm create done-coding` | 零安装创建项目 |
 
@@ -69,7 +69,7 @@ done-coding-cli 是一个面向 **Node.js 前端/全栈开发者**的 CLI 工具
 | `DC git` | `@done-coding/cli-git` | `init`、`clone`、`hooks`、`check` |
 | `DC ai` | `@done-coding/cli-ai` | `chat`（默认） |
 | `DC mrm` | `@done-coding/cli-mrm` | `ls`、`use`、`switch`、`model add/use/remove`、`provider add/use/remove` |
-| `DC`（无子命令） | `@done-coding/cli` 自身 | 交互式提问 → AI 对话或 --help |
+| `DC`（无子命令） | `done-coding` 自身 | 交互式提问 → AI 对话或 --help |
 
 ## 4. 功能清单
 

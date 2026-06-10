@@ -13,7 +13,7 @@ done-coding-cli 是一个基于 Lerna 管理的 monorepo 项目，包含多个�
 
 ### 主 CLI 工具
 
-- **[@done-coding/cli](./packages/cli)** - 主命令行工具，集成所有子工具
+- **[done-coding](./packages/cli)** - 主命令行工具，集成所有子工具
 
 ### 核心工具包
 
@@ -38,7 +38,7 @@ done-coding-cli 是一个基于 Lerna 管理的 monorepo 项目，包含多个�
 
 ```bash
 # 全局安装
-npm install -g @done-coding/cli
+npm install -g done-coding
 
 # 验证安装
 DC --version
@@ -128,7 +128,7 @@ done-coding-cli/
 
 ```mermaid
 graph TD
-    A["@done-coding/cli"] --> B["create-done-coding"]
+    A["done-coding"] --> B["create-done-coding"]
     A --> C["@done-coding/cli-ai"]
     A --> D["@done-coding/cli-component"]
     A --> E["@done-coding/cli-config"]
