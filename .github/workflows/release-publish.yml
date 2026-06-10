@@ -114,7 +114,7 @@ jobs:
         # --------------------------------------------------------
         run: |
           npx lerna run build
-          npx lerna publish --yes --conventional-graduate --no-push --message "chore(release): publish [skip ci]"
+          npx lerna publish --yes --no-push --message "chore(release): publish [skip ci]"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           GH_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
