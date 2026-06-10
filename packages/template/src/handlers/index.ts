@@ -19,6 +19,7 @@ import {
   type CliInfo,
 } from "@done-coding/cli-utils";
 
+/** template 包 handler 导出 */
 export {
   initHandler,
   initCommandCliInfo,
@@ -27,6 +28,13 @@ export {
   batchCompileHandler,
 };
 
+/** collectEnvDataForm 归一化工具导出 */
+export { normalizeCollectEnvDataForm } from "./batch-compile";
+
+/** collectEnvDataForm 归一化问题类型导出 */
+export type { CollectEnvDataQuestion } from "./batch-compile";
+
+/** template 包根 handler */
 export const handler = async (
   command: SubcommandEnum,
   argv: CliHandlerArgv<any>,
@@ -49,6 +57,7 @@ export const handler = async (
 
 const { version, description: describe } = injectInfo;
 
+/** template 包根命令配置 */
 export const commandCliInfo: Omit<CliInfo, "usage"> = {
   describe,
   version,

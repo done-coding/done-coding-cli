@@ -1,5 +1,7 @@
 import {
   SubcommandEnum,
+  type CollectFormItem,
+  type CompileBatchHandlerOptions,
   type CompileBatchOptions,
   type CompileTemplateConfig,
 } from "@/types";
@@ -8,14 +10,42 @@ import type {
   CliHandlerArgv,
   SubCliInfo,
   YargsOptionsRecord,
+  HandlerContextInit,
 } from "@done-coding/cli-utils";
 import {
   getConfigFileCommonOptions,
   outputConsole,
   readConfigFile,
   xPrompts,
+  resolveHandlerContext,
 } from "@done-coding/cli-utils";
 import _assign from "lodash.assign";
+
+/** 模板预置环境变量采集问题 */
+export interface CollectEnvDataQuestion {
+  key: string;
+  label: string;
+  initial?: string;
+}
+
+/** 将模板配置中的 collectEnvDataForm 归一化为 MCP/CLI 可复用的问题列表 */
+export const normalizeCollectEnvDataForm = (
+  collectEnvDataForm: (CollectFormItem | string)[] = [],
+): CollectEnvDataQuestion[] => {
+  return collectEnvDataForm.map((formItem) => {
+    if (typeof formItem === "string") {
+      return {
+        key: formItem,
+        label: formItem,
+      };
+    }
+    return {
+      key: formItem.key,
+      label: formItem.label,
+      initial: formItem.initial,
+    };
+  });
+};
 
 /** 获取编译选项 */
 export const getOptions = (): YargsOptionsRecord<CompileBatchOptions> => {
@@ -52,16 +82,14 @@ export const getOptions = (): YargsOptionsRecord<CompileBatchOptions> => {
 export const handler = async (
   {
     extraEnvData = {},
+    collectEnvData: collectEnvDataInit = {},
     ...args
-  }: CliHandlerArgv<
-    CompileBatchOptions & {
-      /** 额外的环境变量 */
-      extraEnvData?: object;
-    }
-  >,
+  }: CliHandlerArgv<CompileBatchHandlerOptions>,
 
   paramsConfig?: CompileTemplateConfig,
+  ctxInit?: HandlerContextInit,
 ) => {
+  const ctx = resolveHandlerContext(ctxInit);
   const defaultOptions = getOptions();
   const {
     rootDir = defaultOptions.rootDir.default,
@@ -95,21 +123,18 @@ export const handler = async (
 
   const collectEnvData: Record<string, any> = {};
 
-  for (const formItem of collectEnvDataForm) {
-    /** 键名 */
-    let keyName: string;
-    /** 标签 */
-    let label: string;
-    /** 初始值 */
-    let initial: string | undefined;
-    if (typeof formItem === "string") {
-      keyName = formItem;
-      label = formItem;
-      initial = undefined;
-    } else {
-      keyName = formItem.key;
-      label = formItem.label;
-      initial = formItem.initial;
+  for (const { key: keyName, label, initial } of normalizeCollectEnvDataForm(
+    collectEnvDataForm,
+  )) {
+    const answer = collectEnvDataInit[keyName];
+    if (answer !== undefined && answer !== null) {
+      collectEnvData[keyName] = answer;
+      continue;
+    }
+    if (!ctx.interactive) {
+      throw new Error(
+        `缺少模板预置参数 ${keyName}(${label})，当前为非交互模式，不能等待终端输入`,
+      );
     }
     collectEnvData[keyName] = (
       await xPrompts({
@@ -148,10 +173,14 @@ export const handler = async (
 
   const listResult = [];
   for (const item of list) {
-    const result = await compileTemplate(item, {
-      rootDir,
-      rollback,
-    });
+    const result = await compileTemplate(
+      item,
+      {
+        rootDir,
+        rollback,
+      },
+      ctx,
+    );
     listResult.push(result);
   }
   return listResult;

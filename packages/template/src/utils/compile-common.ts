@@ -5,7 +5,12 @@ import type {
   CompileTemplateConfigListItem,
 } from "@/types";
 import { OutputModeEnum } from "@/types";
-import { outputConsole, xPrompts } from "@done-coding/cli-utils";
+import {
+  outputConsole,
+  resolveHandlerContext,
+  xPrompts,
+  type HandlerContextInit,
+} from "@done-coding/cli-utils";
 import { getData } from "./get-data";
 import _template from "lodash.template";
 import {
@@ -24,7 +29,9 @@ export const compileTemplate = async (
       | (() => CompileTemplateConfigListItem["envData"]);
   },
   { rootDir, rollback }: CompilePublicConfig,
+  ctxInit?: HandlerContextInit,
 ) => {
+  const ctx = resolveHandlerContext(ctxInit);
   const {
     env,
     input,
@@ -80,13 +87,19 @@ rollback: ${rollback}
           if (
             rollbackDelAskAsYes
               ? true
-              : (
-                  await xPrompts({
-                    type: "confirm",
-                    name: "remove",
-                    message: `${mode}模式下回滚将删除${outputPath}，是否继续？`,
-                  })
-                ).remove
+              : ctx.interactive
+                ? (
+                    await xPrompts({
+                      type: "confirm",
+                      name: "remove",
+                      message: `${mode}模式下回滚将删除${outputPath}，是否继续？`,
+                    })
+                  ).remove
+                : (() => {
+                    throw new Error(
+                      `${mode}模式回滚需要确认删除 ${outputPath}，当前为非交互模式`,
+                    );
+                  })()
           ) {
             fs.rmSync(outputPath, { force: true });
             outputConsole.success(`${mode}模式下${outputPath}已删除`);

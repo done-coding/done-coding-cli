@@ -77,10 +77,17 @@ export interface CompilePublicConfig {
 
 export interface CompileBatchOptions extends CompilePublicConfig {}
 
+/** 批量编译 handler 额外选项 */
+export interface CompileBatchHandlerOptions extends CompileBatchOptions {
+  /** 额外的环境变量 */
+  extraEnvData?: Record<string, any>;
+  /** collectEnvDataForm 对应的已收集答案 */
+  collectEnvData?: Record<string, any>;
+}
+
 /** 编译模板配置项 */
 export interface CompileOptions
-  extends CompilePublicConfig,
-    CompileTemplateConfigListItemRaw {
+  extends CompilePublicConfig, CompileTemplateConfigListItemRaw {
   /**
    * 是否批量处理
    * --
