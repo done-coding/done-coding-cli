@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.5](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-ai@0.1.4...@done-coding/cli-ai@0.1.5) (2026-06-10)
+
+**Note:** Version bump only for package @done-coding/cli-ai
+
 ## [0.1.4](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-ai@0.1.3...@done-coding/cli-ai@0.1.4) (2026-05-06)
 
 **Note:** Version bump only for package @done-coding/cli-ai

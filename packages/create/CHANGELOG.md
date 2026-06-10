@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.13.0](https://github.com/done-coding/done-coding-cli/compare/create-done-coding@0.12.2...create-done-coding@0.13.0) (2026-06-10)
+
+### Bug Fixes
+
+- **create:** guard recursive project directory removal ([cca73f8](https://github.com/done-coding/done-coding-cli/commit/cca73f81219cc88247e25053b7a3e61cf823d4f5))
+
+### Features
+
+- **create:** add mcp-ready project preparation ([08b2a23](https://github.com/done-coding/done-coding-cli/commit/08b2a232447b840a4cbf9065bfb9dc9974d29c6f))
+
 ## [0.12.2](https://github.com/done-coding/done-coding-cli/compare/create-done-coding@0.12.1...create-done-coding@0.12.2) (2026-05-04)
 
 **Note:** Version bump only for package create-done-coding

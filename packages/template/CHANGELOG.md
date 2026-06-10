@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.10.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-template@0.9.2...@done-coding/cli-template@0.10.0) (2026-06-10)
+
+### Features
+
+- **template:** support non-interactive batch compile ([3886170](https://github.com/done-coding/done-coding-cli/commit/38861708644b291f2f25c5b0ececffccaf5cb152))
+
 ## [0.9.2](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-template@0.9.1...@done-coding/cli-template@0.9.2) (2026-05-04)
 
 **Note:** Version bump only for package @done-coding/cli-template

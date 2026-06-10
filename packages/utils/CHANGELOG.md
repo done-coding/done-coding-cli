@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.10.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-utils@0.9.2...@done-coding/cli-utils@0.10.0) (2026-06-10)
+
+### Features
+
+- **utils:** add handler context ([4362e55](https://github.com/done-coding/done-coding-cli/commit/4362e5518525ab742c2146929c59db327b72cc58))
+- **utils:** add safe directory removal guard ([f379c26](https://github.com/done-coding/done-coding-cli/commit/f379c26d9c8af86af2553c857fed56ea282b9854))
+
 ## [0.9.2](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-utils@0.9.1...@done-coding/cli-utils@0.9.2) (2026-05-04)
 
 ### Bug Fixes
