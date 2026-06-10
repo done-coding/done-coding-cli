@@ -27,6 +27,7 @@ import {
   readConfigFile,
   resolveHandlerContext,
   rmGitCtrlAsync,
+  safeRemoveDirSync,
 } from "@done-coding/cli-utils";
 import {
   batchCompileHandler,
@@ -203,7 +204,11 @@ const ensureTargetProjectNotExists = async ({
   );
 
   if (isRemove === true) {
-    rmSync(projectNamePath, { recursive: true, force: true });
+    safeRemoveDirSync({
+      targetPath: projectNamePath,
+      parentDir: path.dirname(projectNamePath),
+      label: "同名项目目录",
+    });
     return;
   }
 
@@ -283,7 +288,11 @@ const moveDraftProjectToTarget = (state: CreateDraftState) => {
     throw new Error(`目标项目目录已存在: ${state.targetProjectPath}`);
   }
   renameSync(state.draftProjectPath, state.targetProjectPath);
-  rmSync(state.draftDir, { recursive: true, force: true });
+  safeRemoveDirSync({
+    targetPath: state.draftDir,
+    parentDir: getDraftRootDir(state.rootDir),
+    label: "创建项目草稿目录",
+  });
 };
 
 /** 准备创建项目：非交互模式下克隆模板、读取模板预置问题并返回草稿信息 */
@@ -593,7 +602,11 @@ const interactiveCreateHandler = async (
     );
 
     if (isRemove === true) {
-      rmSync(projectNamePath, { recursive: true, force: true });
+      safeRemoveDirSync({
+        targetPath: projectNamePath,
+        parentDir: path.dirname(projectNamePath),
+        label: "同名项目目录",
+      });
     } else {
       outputConsole.error(`项目${projectName}已存在`);
       return process.exit(1);
