@@ -52,6 +52,10 @@
       "name": "cli",
       "path": "packages/cli",
     },
+    {
+      "name": "mcp",
+      "path": "packages/mcp",
+    },
   ],
   "settings": {
     "files.eol": "\n",

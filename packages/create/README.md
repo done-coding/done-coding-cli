@@ -26,7 +26,7 @@ pnpm create done-coding my-project
 ### 作为 done-coding CLI 的一部分
 
 ```bash
-npm install -g @done-coding/cli
+npm install -g done-coding
 # 然后使用
 DC create [projectName]
 ```
@@ -221,7 +221,7 @@ MIT © [done-coding](https://github.com/done-coding)
 
 ## 相关链接
 
-- [主 CLI 工具](https://www.npmjs.com/package/@done-coding/cli)
+- [主 CLI 工具](https://www.npmjs.com/package/done-coding)
 - [Git 操作工具](https://www.npmjs.com/package/@done-coding/cli-git) - 本包依赖的 Git 功能
 - [模板处理工具](https://www.npmjs.com/package/@done-coding/cli-template) - 本包依赖的模板引擎
 - [信息注入工具](https://www.npmjs.com/package/@done-coding/cli-inject) - 本包依赖的信息注入功能

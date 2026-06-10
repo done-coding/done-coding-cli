@@ -61,7 +61,7 @@ import {} from /* 具体导出内容 */ "@done-coding/cli-utils";
 
 `@done-coding/cli-utils` 是基础工具库，被以下包依赖：
 
-- `@done-coding/cli` - 主 CLI 工具
+- `done-coding` - 主 CLI 工具
 - `@done-coding/cli-component` - 组件生成工具
 - `@done-coding/cli-config` - 工程配置工具
 - `@done-coding/cli-extract` - 信息提取工具
@@ -104,6 +104,6 @@ MIT © [done-coding](https://github.com/done-coding)
 
 ## 相关链接
 
-- [主 CLI 工具](https://www.npmjs.com/package/@done-coding/cli)
+- [主 CLI 工具](https://www.npmjs.com/package/done-coding)
 - [Github 仓库](https://github.com/done-coding/done-coding-cli)
 - [更新日志](./CHANGELOG.md)

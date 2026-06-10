@@ -1,8 +1,8 @@
-# @done-coding/cli
+# done-coding
 
 done-coding 命令行工具集 - 提供完整的开发工作流支持
 
-[![npm version](https://badge.fury.io/js/@done-coding%2Fcli.svg)](https://www.npmjs.com/package/@done-coding/cli)
+[![npm version](https://badge.fury.io/js/done-coding.svg)](https://www.npmjs.com/package/done-coding)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 安装
@@ -10,17 +10,17 @@ done-coding 命令行工具集 - 提供完整的开发工作流支持
 ### 全局安装（推荐）
 
 ```bash
-npm install -g @done-coding/cli
+npm install -g done-coding
 # 或使用 pnpm
-pnpm add -g @done-coding/cli
+pnpm add -g done-coding
 ```
 
 ### 本地安装
 
 ```bash
-npm install @done-coding/cli
+npm install done-coding
 # 或使用 pnpm
-pnpm add @done-coding/cli
+pnpm add done-coding
 ```
 
 ## 快速开始
@@ -66,7 +66,7 @@ done-coding --help
 
 ## API 文档
 
-@done-coding/cli 集成了多个工具，每个工具都专注于特定的开发任务：
+done-coding 集成了多个工具，每个工具都专注于特定的开发任务：
 
 ### 🚀 项目创建
 
@@ -294,7 +294,7 @@ done-coding CLI 采用模块化架构，每个子包都是独立的工具：
 
 ```mermaid
 graph TD
-    A["@done-coding/cli"] --> B["create-done-coding"]
+    A["done-coding"] --> B["create-done-coding"]
     A --> C["@done-coding/cli-ai"]
     A --> D["@done-coding/cli-component"]
     A --> E["@done-coding/cli-config"]
@@ -338,7 +338,7 @@ graph TD
 ### 目录结构
 
 ```
-@done-coding/cli (主包)
+done-coding (主包)
 ├── create-done-coding (项目创建)
 ├── @done-coding/cli-component (组件生成)
 ├── @done-coding/cli-config (工程配置)
@@ -360,18 +360,18 @@ graph TD
 
 ```bash
 # 确保全局安装
-npm list -g @done-coding/cli
+npm list -g done-coding
 
 # 重新安装
-npm uninstall -g @done-coding/cli
-npm install -g @done-coding/cli
+npm uninstall -g done-coding
+npm install -g done-coding
 ```
 
 **Q: 权限错误**
 
 ```bash
 # macOS/Linux 使用 sudo
-sudo npm install -g @done-coding/cli
+sudo npm install -g done-coding
 
 # 或配置 npm 全局路径
 npm config set prefix ~/.npm-global

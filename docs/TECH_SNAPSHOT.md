@@ -62,7 +62,7 @@
 ### 整体架构：分层 Monorepo
 
 ```
-入口层:  @done-coding/cli（主命令注册 + 子命令路由 + AI 对话入口）
+入口层:  done-coding（主命令注册 + 子命令路由 + AI 对话入口）
          create-done-coding（独立入口：npm create done-coding）
             │
 业务层:  @done-coding/cli-component  组件管理
@@ -141,7 +141,7 @@ export const commandCliInfo: Omit<CliInfo, "usage"> = {
 ### 依赖关系
 
 ```
-@done-coding/cli ────────────── 直接依赖所有业务包 ─────────────────┐
+done-coding ────────────── 直接依赖所有业务包 ─────────────────┐
     │                                                               │
     ├── create-done-coding ───── 依赖: git, template, utils          │
     ├── @done-coding/cli-component  依赖: template, utils            │

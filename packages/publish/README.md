@@ -18,7 +18,7 @@ pnpm add @done-coding/cli-publish
 ### 作为 done-coding CLI 的一部分
 
 ```bash
-npm install -g @done-coding/cli
+npm install -g done-coding
 # 然后使用
 DC publish [command]
 ```
@@ -253,6 +253,6 @@ MIT © [done-coding](https://github.com/done-coding)
 
 ## 相关链接
 
-- [主 CLI 工具](https://www.npmjs.com/package/@done-coding/cli)
+- [主 CLI 工具](https://www.npmjs.com/package/done-coding)
 - [Github 仓库](https://github.com/done-coding/done-coding-cli)
 - [更新日志](./CHANGELOG.md)

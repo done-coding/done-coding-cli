@@ -16,6 +16,8 @@ import {
   createPromptsEndWaitUserInputEvent,
   processSendCustomEvent,
 } from "@/_event";
+import type { HandlerContextInit } from "@/handler-context";
+import { resolveHandlerContext } from "@/handler-context";
 export type {
   Choice as PromptChoice,
   Options as PromptOptions,
@@ -33,6 +35,14 @@ export const xPrompts = async <T extends string = string>(
   ...args: Parameters<typeof prompts<T>>
 ) => {
   const [questions, options = {}] = args;
+  const ctx = resolveHandlerContext();
+  if (!ctx.interactive) {
+    const questionsInit = Array.isArray(questions) ? questions : [questions];
+    const questionText = questionsInit
+      .map((question) => `${question.name}: ${question.message}`)
+      .join(", ");
+    throw new Error(`当前为非交互模式，不能等待终端输入: ${questionText}`);
+  }
   const isHijackedProcess = processIsHijacked();
 
   // 是否劫持进程创建的，则发送开始等待用户输入事件
@@ -91,6 +101,8 @@ export interface GetAnswerOptions<V, T extends string> {
   defaultValue?: V;
   /** 表单问询配置 */
   questionConfig?: Parameters<typeof prompts<T>>[0];
+  /** handler 执行上下文 */
+  ctx?: HandlerContextInit;
 }
 
 /** 获取答案结果类型 */
@@ -111,22 +123,31 @@ export const getAnswer = async <V = unknown, T extends string = string>({
   presetAnswer,
   defaultValue,
   questionConfig,
+  ctx: ctxInit,
 }: GetAnswerOptions<V, T>): GetAnswerResult<V, T, typeof questionConfig> => {
   // 预设值
   const presetValue = presetAnswer?.[key];
-  return (
-    presetValue ??
-    defaultValue ??
-    (questionConfig !== undefined
-      ? (await xPrompts(questionConfig))[key]
-      : undefined)
-  );
+  if (presetValue !== undefined && presetValue !== null) {
+    return presetValue;
+  }
+  if (defaultValue !== undefined && defaultValue !== null) {
+    return defaultValue;
+  }
+  if (questionConfig !== undefined) {
+    const ctx = resolveHandlerContext(ctxInit);
+    if (!ctx.interactive) {
+      throw new Error(`缺少参数 ${key}，当前为非交互模式，不能等待终端输入`);
+    }
+    return (await xPrompts(questionConfig))[key];
+  }
+  return undefined as GetAnswerResult<V, T, typeof questionConfig>;
 };
 
 /** 生成 获取答案的快捷函数 */
 export const generateGetAnswerSwiftFn = ({
   presetAnswer,
-}: Pick<GetAnswerOptions<unknown, string>, "presetAnswer">) => {
+  ctx,
+}: Pick<GetAnswerOptions<unknown, string>, "presetAnswer" | "ctx">) => {
   return async <V = unknown, T extends string = string>(
     key: T,
     /** 表单问询配置 */
@@ -139,6 +160,7 @@ export const generateGetAnswerSwiftFn = ({
       questionConfig,
       defaultValue,
       presetAnswer,
+      ctx,
     }) as GetAnswerResult<V, T, typeof questionConfig>;
   };
 };
