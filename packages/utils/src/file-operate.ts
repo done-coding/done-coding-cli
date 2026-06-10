@@ -1,8 +1,92 @@
 import fs from "node:fs";
+import path from "node:path";
 import { outputConsole } from "@/env-config";
 
 // 定义执行权限的掩码
 const EXEC_PERMISSIONS = 0o111;
+
+/** 安全删除目录选项 */
+export interface SafeRemoveDirSyncOptions {
+  /** 需要删除的目录路径 */
+  targetPath: string;
+  /** 允许删除范围的父目录；targetPath 必须是它的子级目录 */
+  parentDir: string;
+  /** 删除对象名称，用于错误提示 */
+  label?: string;
+  /** 目录不存在时是否忽略 */
+  force?: boolean;
+}
+
+/** 判断目标路径是否位于父目录内部且不是父目录本身 */
+export const pathIsInsideParentDir = ({
+  targetPath,
+  parentDir,
+}: {
+  /** 目标路径 */
+  targetPath: string;
+  /** 父目录路径 */
+  parentDir: string;
+}) => {
+  const targetPathResolved = path.resolve(targetPath);
+  const parentDirResolved = path.resolve(parentDir);
+  const relativePath = path.relative(parentDirResolved, targetPathResolved);
+
+  return (
+    Boolean(relativePath) &&
+    !relativePath.startsWith("..") &&
+    !path.isAbsolute(relativePath)
+  );
+};
+
+/** 检测递归删除目录是否安全 */
+export const assertSafeRemoveDirSync = ({
+  targetPath,
+  parentDir,
+  label = "目录",
+}: SafeRemoveDirSyncOptions) => {
+  if (!targetPath?.trim()) {
+    throw new Error(`${label}删除失败: 删除路径不能为空`);
+  }
+
+  if (!parentDir?.trim()) {
+    throw new Error(`${label}删除失败: 父目录不能为空`);
+  }
+
+  const targetPathResolved = path.resolve(targetPath);
+  const rootPath = path.parse(targetPathResolved).root;
+
+  if (targetPathResolved === rootPath) {
+    throw new Error(`${label}删除失败: 禁止删除文件系统根目录 ${targetPath}`);
+  }
+
+  if (
+    !pathIsInsideParentDir({
+      targetPath: targetPathResolved,
+      parentDir,
+    })
+  ) {
+    throw new Error(
+      `${label}删除失败: ${targetPath} 不在允许目录 ${parentDir} 内`,
+    );
+  }
+};
+
+/** 安全递归删除目录 */
+export const safeRemoveDirSync = ({
+  targetPath,
+  parentDir,
+  label,
+  force = true,
+}: SafeRemoveDirSyncOptions) => {
+  assertSafeRemoveDirSync({
+    targetPath,
+    parentDir,
+    label,
+    force,
+  });
+
+  fs.rmSync(targetPath, { recursive: true, force });
+};
 
 /** 文件添加执行权限 */
 export const fileAddX = (filePath: string) => {
