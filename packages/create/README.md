@@ -120,11 +120,15 @@ npm create done-coding my-project -- -c
 
 ## 模板列表来源配置
 
-交互式创建时展示的「可选模板列表」有三个来源，按优先级解析（**单一来源，不做自动合并**）：
+### CLI 模式：三来源按优先级解析（**单一来源，不做自动合并**）
 
 1. **CLI 显式指定** `--templateConfig <本地配置文件路径>`（最高优先级）
 2. **home 指针文件** `~/.done-coding/create/index.json`（CLI 未传 `--templateConfig` 时）
 3. **内置远端配置**（前两者都没有时，回落默认远端模板仓库）
+
+### MCP 模式：完全隔离，[MUST NOT] 读全局/远程，不联网
+
+MCP 下模板来源**只能**经 `done_coding_list_create_templates`（必填 `configPath`，仅读本地）选出后，把模板 `url` 作为 `templateUrl` 传给 `done_coding_prepare_create_project`。MCP **不读** CLI 的 `--templateConfig`、**不读** home 全局指针、**不回落**远端默认列表（即不联网）。`prepare` 未提供 `templateUrl` 时直接报错，[MUST NOT] 静默联网。
 
 ### 配置文件格式
 

@@ -257,6 +257,15 @@ const resolveTemplateSourceInfo = async ({
   let templateDirectory = argv.templateDirectory;
 
   if (!templateUrl) {
+    // MCP 模式：模板来源 [MUST] 经 list 工具显式选定后由调用方传入 templateUrl。
+    // [MUST NOT] 读取 CLI 的 --templateConfig / 家目录全局配置 / 远程默认配置（更不联网）。
+    const ctx = resolveHandlerContext(ctxInit);
+    if (ctx.mode === "mcp") {
+      throw new Error(
+        "MCP 模式下必须经 list 工具显式提供模板来源(templateUrl)，不读取全局配置或远程默认模板列表",
+      );
+    }
+
     const template = await getAnswerSwift<string>(
       FormNameEnum.TEMPLATE,
       await getTemplateForm(argv.templateConfig),

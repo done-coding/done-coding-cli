@@ -84,7 +84,7 @@ export const registerCreateTools = (server: McpServer) => {
     {
       title: "Prepare done-coding project creation",
       description:
-        "Clone a project template, inspect template preset questions, and return a draftId for completion.",
+        "Clone a project template, inspect template preset questions, and return a draftId for completion. `templateUrl` is required in MCP mode — pick it from the `done_coding_list_create_templates` result. MCP never falls back to the home global config or the default remote template list (no network).",
       inputSchema: prepareInputSchema,
     },
     async (input) => {
