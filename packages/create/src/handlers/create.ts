@@ -117,6 +117,10 @@ const getOptions = (): CliInfo["options"] => {
       type: "string",
       describe: "仓库内模板目录",
     },
+    templateConfig: {
+      type: "string",
+      describe: "模板列表配置文件路径(本地)",
+    },
     skipTemplateCompile: {
       type: "boolean",
       describe: "是否跳过模板编译",
@@ -239,7 +243,7 @@ const resolveTemplateSourceInfo = async ({
   if (!templateUrl) {
     const template = await getAnswerSwift<string>(
       FormNameEnum.TEMPLATE,
-      await getTemplateForm(),
+      await getTemplateForm(argv.templateConfig),
     );
 
     if (template === CUSTOM_TEMPLATE_NAME) {
@@ -250,7 +254,7 @@ const resolveTemplateSourceInfo = async ({
     } else if (template === SOMEONE_PUBLIC_REPO_NAME) {
       templateUrl = await getTargetRepoUrl();
     } else {
-      const target = (await getTemplateChoices()).find(
+      const target = (await getTemplateChoices(argv.templateConfig)).find(
         (item) => item.name === template,
       );
       if (!target) {

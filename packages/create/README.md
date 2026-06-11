@@ -118,6 +118,61 @@ npm create done-coding my-project
 npm create done-coding my-project -- -c
 ```
 
+## 模板列表来源配置
+
+交互式创建时展示的「可选模板列表」有三个来源，按优先级解析（**单一来源，不做自动合并**）：
+
+1. **CLI 显式指定** `--templateConfig <本地配置文件路径>`（最高优先级）
+2. **home 指针文件** `~/.done-coding/create/index.json`（CLI 未传 `--templateConfig` 时）
+3. **内置远端配置**（前两者都没有时，回落默认远端模板仓库）
+
+### 配置文件格式
+
+模板列表配置文件是一个 JSON，形如：
+
+```json
+{
+  "templateList": [
+    {
+      "name": "我的本地模板",
+      "url": "/abs/path/to/local-template-repo",
+      "description": "本地 git 模板仓库",
+      "branch": "main"
+    },
+    {
+      "name": "远端模板",
+      "url": "https://github.com/you/your-template.git"
+    }
+  ]
+}
+```
+
+- `url` 支持本地 git 仓库根路径（`/` 开头）或远端 git 地址。
+- 文件不存在 / 非数组 / 解析失败时按空列表处理，不报错阻塞。
+
+### home 指针文件
+
+`~/.done-coding/create/index.json` 是一个**指针**，指向真正的配置文件：
+
+```json
+{ "configPath": "/abs/path/to/your-templates.json" }
+```
+
+### 需要合并多份配置？
+
+工具**不自动合并**多个配置文件。若需合并，自行维护一份合并好的配置文件，再用以下任一方式指向它：
+
+- `done-coding create --templateConfig /abs/merged.json`
+- 或让 `~/.done-coding/create/index.json` 的 `configPath` 指向它
+
+### CLI 选项
+
+- `--templateConfig <path>`: 模板列表配置文件路径（本地）。不传则回落 home 指针 / 内置远端。
+
+### MCP 工具
+
+MCP 列表工具 `done_coding_list_create_templates` 的 `configPath` 为**必填**，仅读本地、**不联网**；返回的模板供 `done_coding_prepare_create_project` 使用。
+
 ## 依赖的工具包
 
 本包集成了以下 done-coding CLI 工具：

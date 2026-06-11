@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   completeCreateProject,
   prepareCreateProject,
+  readTemplateListFromFile,
 } from "create-done-coding";
 import type { McpJsonResult } from "@/types";
 import {
@@ -56,6 +57,28 @@ const completeInputSchema = z.object({
 
 /** 注册 create 项目创建相关 MCP tools */
 export const registerCreateTools = (server: McpServer) => {
+  server.registerTool(
+    "done_coding_list_create_templates",
+    {
+      title: "List done-coding create templates from a local config file",
+      description:
+        "Return the project template list read from the LOCAL config file at `configPath` (a JSON file shaped `{ templateList: [...] }`). Required. No network access. Pick a template and pass its url as `templateUrl` to the prepare tool. Returns an empty list if the file is missing or invalid.",
+      inputSchema: z.object({
+        configPath: z
+          .string()
+          .describe("本地模板列表配置文件的绝对路径（必填，不联网）"),
+      }),
+    },
+    async (input) => {
+      const templateList = await readTemplateListFromFile(input.configPath);
+      return toJsonResult({
+        source: "local",
+        configPath: input.configPath,
+        templateList,
+      });
+    },
+  );
+
   server.registerTool(
     "done_coding_prepare_create_project",
     {

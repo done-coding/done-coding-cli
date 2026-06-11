@@ -41,6 +41,14 @@ export interface CreateOptions {
   [FormNameEnum.TEMPLATE_GIT_BRANCH]?: string;
   /** 仓库内模板目录 */
   templateDirectory?: string;
+  /**
+   * 模板列表配置文件路径（本地）
+   * ---
+   * 指向一个 `{ templateList: [...] }` 配置文件。优先级：本选项 > home 指针文件
+   * (`~/.done-coding/create/index.json`) > 内置远端配置。
+   * MCP 列表工具下为必填；CLI 选填（不传则回落 home 指针 / 内置远端）。
+   */
+  templateConfig?: string;
   /** 是否跳过模板编译(不跳过则会在克隆完成后进行模板编译)
    * --
    * 为MCP模式预留 设置为true则不会进行模板编译
