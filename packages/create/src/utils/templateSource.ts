@@ -1,13 +1,10 @@
-import { execSyncHijack, outputConsole } from "@done-coding/cli-utils";
-import { randomUUID } from "node:crypto";
 import {
-  cpSync,
-  existsSync,
-  mkdirSync,
-  realpathSync,
-  rmSync,
-  statSync,
-} from "node:fs";
+  execSyncHijack,
+  outputConsole,
+  safeRemoveDirSync,
+} from "@done-coding/cli-utils";
+import { randomUUID } from "node:crypto";
+import { cpSync, existsSync, mkdirSync, realpathSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path, { resolve } from "node:path";
 import { CreateTemplateSourceTypeEnum } from "@/types";
@@ -177,7 +174,26 @@ const cleanupLocalTemplateWorktree = ({
       },
     );
   } catch (error) {
-    outputConsole.warn(`临时worktree清理失败: ${worktreeDir}`);
+    // remove 失败（worktree 被锁 / 目录已被外部删除 / 上轮崩在 add 与 remove 之间）：
+    // 兜底删目录 + prune 清 stale 元数据，避免在用户模板仓累积 .git/worktrees 残骸
+    outputConsole.warn(`临时worktree清理失败，尝试兜底: ${worktreeDir}`);
+    try {
+      safeRemoveDirSync({
+        targetPath: worktreeDir,
+        parentDir: path.dirname(worktreeDir),
+        label: "临时worktree目录",
+      });
+    } catch (rmError) {
+      outputConsole.warn(`临时worktree目录删除失败: ${worktreeDir}`);
+    }
+    try {
+      execSyncHijack(`git worktree prune`, {
+        cwd: repoRoot,
+        stdio: "ignore",
+      });
+    } catch (pruneError) {
+      outputConsole.warn(`git worktree prune 失败: ${repoRoot}`);
+    }
   }
   try {
     execSyncHijack(`git branch -D ${quoteShellArg(worktreeBranch)}`, {
@@ -246,7 +262,15 @@ const materializeRemoteGitTemplate = ({
       targetPath,
     });
   } finally {
-    rmSync(tempRepoDir, { recursive: true, force: true });
+    try {
+      safeRemoveDirSync({
+        targetPath: tempRepoDir,
+        parentDir: path.dirname(tempRepoDir),
+        label: "临时模板仓库目录",
+      });
+    } catch (rmError) {
+      outputConsole.warn(`临时模板仓库目录删除失败: ${tempRepoDir}`);
+    }
   }
 };
 
