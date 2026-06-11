@@ -7,6 +7,7 @@ import {
   readConfigFile,
   getConfigFileCommonOptions,
   outputConsole,
+  safeCwd,
 } from "@done-coding/cli-utils";
 import {
   GenerateModeEnum,
@@ -39,7 +40,7 @@ export const getOptions = (): CliInfo["options"] => {
 
 /** 将提取的信息生成文件 */
 export const generateFile = async ({
-  rootDir = process.cwd(),
+  rootDir = safeCwd(),
   config,
 }: {
   rootDir?: string;

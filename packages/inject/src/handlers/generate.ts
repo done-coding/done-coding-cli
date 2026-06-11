@@ -11,6 +11,7 @@ import {
   readConfigFile,
   getConfigFileCommonOptions,
   outputConsole,
+  safeCwd,
   _set,
 } from "@done-coding/cli-utils";
 import path from "node:path";
@@ -33,7 +34,7 @@ export const getOptions = (): CliInfo["options"] => {
 
 /** 生成注入信息文件 */
 export const generateFile = async ({
-  rootDir = process.cwd(),
+  rootDir = safeCwd(),
   config = configDefault,
   keyConfigMap: extractKeyConfigMap = {},
 }: {

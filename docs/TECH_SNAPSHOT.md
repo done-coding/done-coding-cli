@@ -356,6 +356,7 @@ DC inject:
 | 使用内联字符串作业务判断 | 如 `if (cmd === "/exit")`，分散在多处难维护 | [MUST] 定义枚举，引用枚举值 |
 | 使用魔法数字 | 如 `value: -1` 标记"自定义"，语义不清 | [MUST] 定义为具名常量 |
 | 导出类型缺少 JSDoc | 其他开发者/AI agent 无法理解字段含义 | [MUST] `/** */` 注释每个 `export type`/`enum` 成员 |
+| 直接用 `process.cwd()` | cwd 被删/不可访问时抛 `uv_cwd`(EPERM) 崩溃 | [MUST] 用 `@done-coding/cli-utils` 的 `safeCwd()`（回落 PWD → homedir） |
 
 ## 10. 技术债务与风险
 
@@ -365,7 +366,6 @@ DC inject:
 | create-done-coding 远程模板列表依赖 Gitee | 低 | Gitee 不可用时模板选择不可用，应考虑 fallback 方案 |
 | vite 构建产物包含 `#!/usr/bin/env node` 在非 cli 入口文件中 | 低 | 仅 `cli.ts` 应包含 shebang，构建配置需过滤 |
 | 部分包 `.npmignore` 可能与 `files` 字段冲突 | 低 | 两个机制都在用，应以 `files` 为准 |
-| `ai`/`component`/`extract`/`inject` 仍用裸 `process.cwd()` | 中 | cwd 被删/不可访问时抛 `uv_cwd`(EPERM) 崩溃，应换用 `safeCwd()`（utils/create/mcp 已切换）。共 5 处：`ai/chat.ts:192`、`component/env-data.ts:26`、`component/operate.ts:35`、`extract/generate.ts:42`、`inject/generate.ts:36` |
 
 ## 11. 开发工作流
 

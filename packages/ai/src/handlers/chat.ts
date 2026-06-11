@@ -11,6 +11,7 @@ import {
   getGlobalConfigFilePath,
   DoneCodingCliGlobalConfigKeyEnum,
   execSyncHijack,
+  safeCwd,
 } from "@done-coding/cli-utils";
 import { writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
@@ -189,7 +190,7 @@ const handleSubpackageHelp = (input: string): boolean => {
       });
     } catch {
       // 开发环境 fallback：cwd 向下找 node_modules/.bin/<bin>
-      const fallback = `${process.cwd()}/node_modules/.bin/${bin}`;
+      const fallback = `${safeCwd()}/node_modules/.bin/${bin}`;
       return execSyncHijack(`${fallback} ${args}`, {
         encoding: "utf-8",
         stdio: ["ignore", "pipe", "pipe"],
