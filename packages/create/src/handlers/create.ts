@@ -27,6 +27,7 @@ import {
   readConfigFile,
   resolveHandlerContext,
   rmGitCtrlAsync,
+  safeCwd,
   safeRemoveDirSync,
 } from "@done-coding/cli-utils";
 import {
@@ -593,7 +594,7 @@ const interactiveCreateHandler = async (
     projectName = projectNameSafe;
   }
 
-  const projectNamePath = resolve(process.cwd(), projectName);
+  const projectNamePath = resolve(safeCwd(), projectName);
 
   if (existsSync(projectNamePath)) {
     const isRemove = await getAnswerSwift<boolean>(
@@ -618,7 +619,7 @@ const interactiveCreateHandler = async (
   outputConsole.stage("正在初始化项目，请稍等...");
   materializeTemplateToProject({
     templateSource,
-    rootDir: process.cwd(),
+    rootDir: safeCwd(),
     targetPath: projectNamePath,
   });
   outputConsole.stage(`模板已生成: ${projectName}`);

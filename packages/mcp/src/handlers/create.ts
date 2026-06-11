@@ -10,7 +10,7 @@ import {
   type CreateCompleteOptions,
   type CreateOptions,
 } from "create-done-coding";
-import { resolveHandlerContext } from "@done-coding/cli-utils";
+import { resolveHandlerContext, safeCwd } from "@done-coding/cli-utils";
 
 /** 将任意结果包装成 MCP JSON 文本响应 */
 const toJsonResult = (value: unknown): McpJsonResult => {
@@ -29,7 +29,7 @@ const createMcpContext = (rootDir?: string) => {
   return resolveHandlerContext({
     mode: "mcp",
     interactive: false,
-    cwd: rootDir ?? process.cwd(),
+    cwd: rootDir ?? safeCwd(),
   });
 };
 

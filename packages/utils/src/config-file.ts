@@ -5,6 +5,7 @@ import { getEditorType, openFileInEditor } from "./editor";
 import { xPrompts } from "@/prompts";
 import { json5 } from "@/json5";
 import { outputConsole } from "@/env-config";
+import { safeCwd } from "@/safe-cwd";
 
 /** 配置文件通用选项 */
 export interface ConfigFileCommonOptions {
@@ -26,7 +27,7 @@ export type ReadConfigFileOptions = ConfigFileCommonOptions;
 
 /** 获取 rootDir 选项 */
 export const getRootDirOptions = (
-  rootDirDefault = process.cwd(),
+  rootDirDefault = safeCwd(),
 ): {
   rootDir: YargsOptions;
 } => {

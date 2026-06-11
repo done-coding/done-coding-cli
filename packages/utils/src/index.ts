@@ -7,6 +7,7 @@
  */
 export * from "./env-config";
 export * from "./look-for";
+export * from "./safe-cwd";
 export * from "./aes";
 export * from "./prompts";
 export * from "./cli";
