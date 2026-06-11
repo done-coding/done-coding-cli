@@ -109,6 +109,10 @@ envData 解析助手（create handler 内或 utils）：读 `envFile`(JSON) 作�
 - 非交互单发失败时清理本次 draft（防 `.done-coding/default/tmp/create` 残骸累积），属 A2 副作用增强。
 - `--env-file` 经 yargs camel-case 展开等价 `--envFile`，help 显示 `--envFile`。
 
+### 后续增强（同任务追加）
+- 沉淀可复跑 e2e：`packages/create/test/noninteractive.e2e.test.ts`（vitest，仓库既有选型 ^1.6.1）。覆盖 --env / --env-file / initial 回落 / --env 覆盖 --env-file / 缺必填 fast-fail（spawnSync timeout 守死循环）/ --list-questions 纯 JSON。`beforeAll` 自动构建依赖链（`DC_SKIP_BUILD=1` 跳过加速）。`pnpm --filter create-done-coding test` 运行。
+- CLI 报错出口归正：`packages/utils/src/cli.ts` `failHandler` 由 `outputConsole.error`(stdout) 改为 **stderr**（保留文件日志），落实「stdout 只输出数据/机读、诊断走 stderr」。影响所有命令的报错通道（共享 util），属正确改进。
+
 ---
 
 ## 验收标准（可观察，e2e）

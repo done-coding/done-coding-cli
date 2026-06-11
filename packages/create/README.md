@@ -182,6 +182,7 @@ MCP 列表工具 `done_coding_list_create_templates` 的 `configPath` 为**必�
 - **无 TTY 自动进入非交互模式**：检测到 `stdin`/`stdout` 非 TTY 时不再等待终端输入，缺答案直接快速失败（不会死循环卡住）。
 - **必填判定**：预设问题**没有 `initial` 默认值的为必填**；有 `initial` 的非必填，未供答时自动回落到默认值。
 - **缺必填**：以非 0 退出，并在错误信息中列出**所有缺失的必填项**。
+- **输出分流**：诊断与报错走 **stderr**，**stdout 只输出数据**（如 `--list-questions` 的 JSON），便于管道/脚本区分。
 
 ### `--env` / `--env-file` 供答
 
