@@ -173,6 +173,57 @@ npm create done-coding my-project -- -c
 
 MCP 列表工具 `done_coding_list_create_templates` 的 `configPath` 为**必填**，仅读本地、**不联网**；返回的模板供 `done_coding_prepare_create_project` 使用。
 
+## 非交互供答（CI / AI / 无 TTY）
+
+当模板带有「预设问题」（模板仓 `.done-coding/template.json` 的 `collectEnvDataForm`，如 `organization` / `name`）时，在无 TTY 环境（CI、AI 工具、管道）下需要**一次性把答案传入**，否则无法继续。
+
+### 行为约定
+
+- **无 TTY 自动进入非交互模式**：检测到 `stdin`/`stdout` 非 TTY 时不再等待终端输入，缺答案直接快速失败（不会死循环卡住）。
+- **必填判定**：预设问题**没有 `initial` 默认值的为必填**；有 `initial` 的非必填，未供答时自动回落到默认值。
+- **缺必填**：以非 0 退出，并在错误信息中列出**所有缺失的必填项**。
+
+### `--env` / `--env-file` 供答
+
+key 必须对齐模板 `collectEnvDataForm[].key`（**是 key，不是中文 label**）。
+
+```bash
+# 内联 JSON
+create-done-coding -n my-app -p <模板地址> \
+  --env '{"organization":"acme","name":"my-app"}' \
+  --openGitDetailOptimize=false
+
+# 从 JSON 文件读取（文件内容为 { key: value } 对象）
+create-done-coding -n my-app -p <模板地址> --env-file ./answers.json
+```
+
+`--env` 与 `--env-file` 同时给出时，`--env` 的字段**浅覆盖** `--env-file`。
+
+### `--list-questions` 查询模板需要哪些答案
+
+不创建项目，仅向 **stdout** 打印该模板的预设问题清单（JSON，机读，便于 AI / 脚本先查询再供答）：
+
+```bash
+create-done-coding -p <模板地址> --list-questions
+```
+
+输出形如：
+
+```json
+[
+  { "key": "organization", "required": false, "default": "done-coding" },
+  { "key": "name", "required": true }
+]
+```
+
+### 选项一览
+
+- `--env <json>`：模板预设答案（JSON 字符串）。
+- `--env-file <path>`：模板预设答案 JSON 文件路径。
+- `--list-questions`：仅打印模板预设问题清单（JSON），不创建项目。
+
+> MCP 形态下使用 `done_coding_prepare_create_project` 拿到 `questions`，再用 `done_coding_complete_create_project` 的 `envData`（同一套 key）供答，等价于 CLI 的 `--env`。
+
 ## 依赖的工具包
 
 本包集成了以下 done-coding CLI 工具：

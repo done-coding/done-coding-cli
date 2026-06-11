@@ -49,6 +49,18 @@ export interface CreateOptions {
    * MCP 列表工具下为必填；CLI 选填（不传则回落 home 指针 / 内置远端）。
    */
   templateConfig?: string;
+  /**
+   * 模板预设答案(JSON 字符串)，非交互供答。
+   * ---
+   * 如 `--env '{"organization":"acme","name":"app"}'`。key 对齐模板
+   * `.done-coding/template.json` 的 `collectEnvDataForm[].key`（不是 label）。
+   * 与 `envFile` 同时给出时，本字段浅覆盖 `envFile`。
+   */
+  env?: string;
+  /** 模板预设答案 JSON 文件路径(非交互供答)，内容为 `{ key: value }` 对象 */
+  envFile?: string;
+  /** 仅打印该模板预设问题清单(JSON)到 stdout，不创建项目、不留草稿 */
+  listQuestions?: boolean;
   /** 是否跳过模板编译(不跳过则会在克隆完成后进行模板编译)
    * --
    * 为MCP模式预留 设置为true则不会进行模板编译

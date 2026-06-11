@@ -53,7 +53,10 @@ export const resolveHandlerContext = (
 
   return {
     mode,
-    interactive: ctx.interactive ?? getInteractiveFromEnv() ?? mode === "cli",
+    interactive:
+      ctx.interactive ??
+      getInteractiveFromEnv() ??
+      (mode === "cli" && !!process.stdout.isTTY && !!process.stdin.isTTY),
     cwd: ctx.cwd ?? safeCwd(),
     logger: ctx.logger ?? outputConsole,
     allowDangerous: ctx.allowDangerous ?? false,
