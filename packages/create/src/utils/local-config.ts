@@ -87,3 +87,30 @@ export const readTemplateListFromFile = async (
     return [];
   }
 };
+
+/** create-mcp「模板列表资源」读取结果的载荷结构 */
+export interface CreateTemplateListResource {
+  /** 固定为 "local"：本资源只读本地、不联网、不读全局/远程 */
+  source: "local";
+  /** 解析所用的本地配置文件绝对路径 */
+  configPath: string;
+  /** 模板列表（缺失/非数组/解析失败 → 空数组） */
+  templateList: CreateTemplateChoiceItem[];
+}
+
+/**
+ * create-mcp「模板列表资源」的纯读取逻辑。
+ * ---
+ * 只调 `readTemplateListFromFile`（本地、不联网、不读家目录全局指针、不读远程默认）。
+ * `configPath` 缺失/为空 → 抛错（不静默联网、不回落）。供 MCP 资源回调与单测复用。
+ */
+export const readTemplateListResource = async (
+  configPath: string,
+): Promise<CreateTemplateListResource> => {
+  const normalized = (configPath ?? "").trim();
+  if (!normalized) {
+    throw new Error("读取模板列表资源需要本地 configPath（绝对路径）");
+  }
+  const templateList = await readTemplateListFromFile(normalized);
+  return { source: "local", configPath: normalized, templateList };
+};

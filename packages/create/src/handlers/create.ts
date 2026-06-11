@@ -257,15 +257,12 @@ const resolveTemplateSourceInfo = async ({
   let templateDirectory = argv.templateDirectory;
 
   if (!templateUrl) {
-    // MCP 模式：模板来源 [MUST] 经 list 工具显式选定后由调用方传入 templateUrl。
-    // [MUST NOT] 读取 CLI 的 --templateConfig / 家目录全局配置 / 远程默认配置（更不联网）。
-    const ctx = resolveHandlerContext(ctxInit);
-    if (ctx.mode === "mcp") {
-      throw new Error(
-        "MCP 模式下必须经 list 工具显式提供模板来源(templateUrl)，不读取全局配置或远程默认模板列表",
-      );
-    }
-
+    // 注意：此处不再按 mode 分叉。MCP 与 CLI 共用同一解析路径。
+    // MCP 的模板来源隔离由 *结构边界* 保证——prepare MCP 工具的 zod schema 强制
+    // templateUrl 必填，故 MCP 运行时永远带 templateUrl 进来、走不到这个分支，
+    // 也就触达不到全局/远程模板列表（不联网）。
+    // 诚实边界：本导出函数被编程式直接调用（绕过 MCP 工具 zod）时无此隔离；
+    // MCP 运行时唯一入口是 zod-guarded 的 prepare 工具，故运行时保证成立。
     const template = await getAnswerSwift<string>(
       FormNameEnum.TEMPLATE,
       await getTemplateForm(argv.templateConfig),

@@ -126,9 +126,17 @@ npm create done-coding my-project -- -c
 2. **home 指针文件** `~/.done-coding/create/index.json`（CLI 未传 `--templateConfig` 时）
 3. **内置远端配置**（前两者都没有时，回落默认远端模板仓库）
 
-### MCP 模式：完全隔离，[MUST NOT] 读全局/远程，不联网
+### MCP 模式：三原语 + 结构性隔离，[MUST NOT] 读全局/远程，不联网
 
-MCP 下模板来源**只能**经 `done_coding_list_create_templates`（必填 `configPath`，仅读本地）选出后，把模板 `url` 作为 `templateUrl` 传给 `done_coding_prepare_create_project`。MCP **不读** CLI 的 `--templateConfig`、**不读** home 全局指针、**不回落**远端默认列表（即不联网）。`prepare` 未提供 `templateUrl` 时直接报错，[MUST NOT] 静默联网。
+MCP server 暴露三类原语：
+
+- **Resource（模板发现）**：参数化资源 `done-coding-create-template-list://{configPath}`。读取时在 URI 中传入**本地** `configPath`（绝对路径），返回该文件 `{ templateList: [...] }` 的模板列表。仅读本地，**不联网、不读 home 全局指针、不读远端默认**。`configPath` 缺失即报错（不静默联网/不回落）。
+- **Tools**：`done_coding_prepare_create_project` / `done_coding_complete_create_project`。`prepare` 的 `templateUrl` 为 **zod 必填**——从上面资源选出模板后取其 `url` 传入。
+- **Prompt（引导）**：`create-done-coding-project`，串起「读模板列表资源 → 选模板 prepare → 按 need_input 供 envData → complete」。
+
+**隔离机制（结构性）**：`prepare` 的 `templateUrl` zod 必填 ⇒ MCP 运行时永远带 `templateUrl` 进入 handler，结构性地触达不到全局/远程模板列表（不联网）。CLI handler 内**无 mcp/cli 模式分叉**。
+
+> 诚实边界：导出函数 `prepareCreateProject` 被编程式直接调用（绕过 MCP 工具 zod）时不再有 mode 隔离；MCP 运行时唯一入口是 zod-guarded 的 prepare 工具，故运行时隔离保证成立。
 
 ### 配置文件格式
 
@@ -173,9 +181,9 @@ MCP 下模板来源**只能**经 `done_coding_list_create_templates`（必填 `c
 
 - `--templateConfig <path>`: 模板列表配置文件路径（本地）。不传则回落 home 指针 / 内置远端。
 
-### MCP 工具
+### MCP 模板发现
 
-MCP 列表工具 `done_coding_list_create_templates` 的 `configPath` 为**必填**，仅读本地、**不联网**；返回的模板供 `done_coding_prepare_create_project` 使用。
+模板列表经 **Resource**（而非工具）发现：读取 `done-coding-create-template-list://{configPath}` 时传入**必填**的本地 `configPath`，仅读本地、**不联网**；从返回列表中取模板 `url` 作为 `templateUrl` 传给 `done_coding_prepare_create_project`（必填）。
 
 ## 非交互供答（CI / AI / 无 TTY）
 
