@@ -6,7 +6,7 @@ import type {
 } from "yargs";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { outputConsole } from "@/env-config";
+import { logger } from "@/env-config";
 import type { PackageJson } from "./package-json";
 
 export { ArgumentsCamelCase, CommandModule, YargsOptions, YargsArgv };
@@ -58,14 +58,14 @@ export interface SubCliInfo extends CliInfo {
 export type CliHandlerArgv<O> = ArgumentsCamelCase<O> | O;
 
 const failHandler = (msg: string, err: Error) => {
-  if (msg) {
-    outputConsole.error(msg);
-  } else {
-    outputConsole.error(err.message);
-  }
+  const message = msg || err?.message || "未知错误";
+  // 诊断信息走 stderr：stdout 留给数据 / 机读输出，便于管道与脚本区分正常输出和报错
+  process.stderr.write(`${message}\n`);
   if (err?.stack) {
-    outputConsole.error(err.stack);
+    process.stderr.write(`${err.stack}\n`);
   }
+  // 同时落日志文件，便于事后排查
+  logger.info({ level: "error", message, stack: err?.stack });
   process.exit(1);
 };
 

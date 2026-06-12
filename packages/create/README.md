@@ -118,6 +118,125 @@ npm create done-coding my-project
 npm create done-coding my-project -- -c
 ```
 
+## 模板列表来源配置
+
+### CLI 模式：三来源按优先级解析（**单一来源，不做自动合并**）
+
+1. **CLI 显式指定** `--templateConfig <本地配置文件路径>`（最高优先级）
+2. **home 指针文件** `~/.done-coding/create/index.json`（CLI 未传 `--templateConfig` 时）
+3. **内置远端配置**（前两者都没有时，回落默认远端模板仓库）
+
+### MCP 模式：三原语 + 结构性隔离，[MUST NOT] 读全局/远程，不联网
+
+MCP server 暴露三类原语：
+
+- **Resource（模板发现）**：参数化资源 `done-coding-create-template-list://{configPath}`。读取时在 URI 中传入**本地** `configPath`（绝对路径），返回该文件 `{ templateList: [...] }` 的模板列表。仅读本地，**不联网、不读 home 全局指针、不读远端默认**。`configPath` 缺失即报错（不静默联网/不回落）。
+- **Tools**：`done_coding_prepare_create_project` / `done_coding_complete_create_project`。`prepare` 的 `templateUrl` 为 **zod 必填**——从上面资源选出模板后取其 `url` 传入。
+- **Prompt（引导）**：`create-done-coding-project`，串起「读模板列表资源 → 选模板 prepare → 按 need_input 供 envData → complete」。
+
+**隔离机制（结构性）**：`prepare` 的 `templateUrl` zod 必填 ⇒ MCP 运行时永远带 `templateUrl` 进入 handler，结构性地触达不到全局/远程模板列表（不联网）。CLI handler 内**无 mcp/cli 模式分叉**。
+
+> 诚实边界：导出函数 `prepareCreateProject` 被编程式直接调用（绕过 MCP 工具 zod）时不再有 mode 隔离；MCP 运行时唯一入口是 zod-guarded 的 prepare 工具，故运行时隔离保证成立。
+
+### 配置文件格式
+
+模板列表配置文件是一个 JSON，形如：
+
+```json
+{
+  "templateList": [
+    {
+      "name": "我的本地模板",
+      "url": "/abs/path/to/local-template-repo",
+      "description": "本地 git 模板仓库",
+      "branch": "main"
+    },
+    {
+      "name": "远端模板",
+      "url": "https://github.com/you/your-template.git"
+    }
+  ]
+}
+```
+
+- `url` 支持本地 git 仓库根路径（`/` 开头）或远端 git 地址。
+- 文件不存在 / 非数组 / 解析失败时按空列表处理，不报错阻塞。
+
+### home 指针文件
+
+`~/.done-coding/create/index.json` 是一个**指针**，指向真正的配置文件：
+
+```json
+{ "configPath": "/abs/path/to/your-templates.json" }
+```
+
+### 需要合并多份配置？
+
+工具**不自动合并**多个配置文件。若需合并，自行维护一份合并好的配置文件，再用以下任一方式指向它：
+
+- `done-coding create --templateConfig /abs/merged.json`
+- 或让 `~/.done-coding/create/index.json` 的 `configPath` 指向它
+
+### CLI 选项
+
+- `--templateConfig <path>`: 模板列表配置文件路径（本地）。不传则回落 home 指针 / 内置远端。
+
+### MCP 模板发现
+
+模板列表经 **Resource**（而非工具）发现：读取 `done-coding-create-template-list://{configPath}` 时传入**必填**的本地 `configPath`，仅读本地、**不联网**；从返回列表中取模板 `url` 作为 `templateUrl` 传给 `done_coding_prepare_create_project`（必填）。
+
+## 非交互供答（CI / AI / 无 TTY）
+
+当模板带有「预设问题」（模板仓 `.done-coding/template.json` 的 `collectEnvDataForm`，如 `organization` / `name`）时，在无 TTY 环境（CI、AI 工具、管道）下需要**一次性把答案传入**，否则无法继续。
+
+### 行为约定
+
+- **无 TTY 自动进入非交互模式**：检测到 `stdin`/`stdout` 非 TTY 时不再等待终端输入，缺答案直接快速失败（不会死循环卡住）。
+- **必填判定**：预设问题**没有 `initial` 默认值的为必填**；有 `initial` 的非必填，未供答时自动回落到默认值。
+- **缺必填**：以非 0 退出，并在错误信息中列出**所有缺失的必填项**。
+- **输出分流**：诊断与报错走 **stderr**，**stdout 只输出数据**（如 `--list-questions` 的 JSON），便于管道/脚本区分。
+
+### `--env` / `--env-file` 供答
+
+key 必须对齐模板 `collectEnvDataForm[].key`（**是 key，不是中文 label**）。
+
+```bash
+# 内联 JSON
+create-done-coding -n my-app -p <模板地址> \
+  --env '{"organization":"acme","name":"my-app"}' \
+  --openGitDetailOptimize=false
+
+# 从 JSON 文件读取（文件内容为 { key: value } 对象）
+create-done-coding -n my-app -p <模板地址> --env-file ./answers.json
+```
+
+`--env` 与 `--env-file` 同时给出时，`--env` 的字段**浅覆盖** `--env-file`。
+
+### `--list-questions` 查询模板需要哪些答案
+
+不创建项目，仅向 **stdout** 打印该模板的预设问题清单（JSON，机读，便于 AI / 脚本先查询再供答）：
+
+```bash
+create-done-coding -p <模板地址> --list-questions
+```
+
+输出形如：
+
+```json
+[
+  { "key": "organization", "required": false, "default": "done-coding" },
+  { "key": "name", "required": true }
+]
+```
+
+### 选项一览
+
+- `--env <json>`：模板预设答案（JSON 字符串）。
+- `--env-file <path>`：模板预设答案 JSON 文件路径。
+- `--list-questions`：仅打印模板预设问题清单（JSON），不创建项目。
+
+> MCP 形态下使用 `done_coding_prepare_create_project` 拿到 `questions`，再用 `done_coding_complete_create_project` 的 `envData`（同一套 key）供答，等价于 CLI 的 `--env`。
+
 ## 依赖的工具包
 
 本包集成了以下 done-coding CLI 工具：

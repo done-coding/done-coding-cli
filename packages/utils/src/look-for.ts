@@ -7,6 +7,7 @@
  */
 import path from "node:path";
 import fs from "node:fs";
+import { safeCwd } from "@/safe-cwd";
 
 /**
  * 查找目标文件或目录
@@ -16,7 +17,7 @@ export const lookForParentTarget = (
   target: string,
   {
     /** 当前目录 */
-    currentDir = process.cwd(),
+    currentDir = safeCwd(),
     /** 优先找最远的父目录 */
     isFindFarthest = true,
   }: {

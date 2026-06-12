@@ -22,6 +22,8 @@
   "scripts": {
     "dev": "vite build -w -m hotBuild",
     "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "prepack": "pnpm build"
   },
   "repository": {
@@ -42,7 +44,8 @@
     "@types/yargs": "^17.0.28",
     "typescript": "^5.8.3",
     "vite": "^4.4.11",
-    "vite-plugin-dts": "^3.6.0"
+    "vite-plugin-dts": "^3.6.0",
+    "vitest": "^1.6.1"
   },
   "dependencies": {
     "@done-coding/cli-git": "workspace:0.7.3",

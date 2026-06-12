@@ -27,7 +27,9 @@ import {
   readConfigFile,
   resolveHandlerContext,
   rmGitCtrlAsync,
+  safeCwd,
   safeRemoveDirSync,
+  updateEnvConfig,
 } from "@done-coding/cli-utils";
 import {
   batchCompileHandler,
@@ -115,6 +117,25 @@ const getOptions = (): CliInfo["options"] => {
     templateDirectory: {
       type: "string",
       describe: "仓库内模板目录",
+    },
+    templateConfig: {
+      type: "string",
+      describe: "模板列表配置文件路径(本地)",
+    },
+    env: {
+      type: "string",
+      describe:
+        '模板预设答案(JSON)，非交互供答。如 --env \'{"organization":"acme","name":"app"}\'。key 对齐模板 collectEnvDataForm[].key',
+    },
+    envFile: {
+      type: "string",
+      describe:
+        "模板预设答案 JSON 文件路径(非交互供答)，内容为 { key: value } 对象",
+    },
+    listQuestions: {
+      type: "boolean",
+      describe: "仅打印该模板预设问题清单(JSON)到 stdout，不创建项目",
+      default: false,
     },
     skipTemplateCompile: {
       type: "boolean",
@@ -236,9 +257,15 @@ const resolveTemplateSourceInfo = async ({
   let templateDirectory = argv.templateDirectory;
 
   if (!templateUrl) {
+    // 注意：此处不再按 mode 分叉。MCP 与 CLI 共用同一解析路径。
+    // MCP 的模板来源隔离由 *结构边界* 保证——prepare MCP 工具的 zod schema 强制
+    // templateUrl 必填，故 MCP 运行时永远带 templateUrl 进来、走不到这个分支，
+    // 也就触达不到全局/远程模板列表（不联网）。
+    // 诚实边界：本导出函数被编程式直接调用（绕过 MCP 工具 zod）时无此隔离；
+    // MCP 运行时唯一入口是 zod-guarded 的 prepare 工具，故运行时保证成立。
     const template = await getAnswerSwift<string>(
       FormNameEnum.TEMPLATE,
-      await getTemplateForm(),
+      await getTemplateForm(argv.templateConfig),
     );
 
     if (template === CUSTOM_TEMPLATE_NAME) {
@@ -249,7 +276,7 @@ const resolveTemplateSourceInfo = async ({
     } else if (template === SOMEONE_PUBLIC_REPO_NAME) {
       templateUrl = await getTargetRepoUrl();
     } else {
-      const target = (await getTemplateChoices()).find(
+      const target = (await getTemplateChoices(argv.templateConfig)).find(
         (item) => item.name === template,
       );
       if (!target) {
@@ -593,7 +620,7 @@ const interactiveCreateHandler = async (
     projectName = projectNameSafe;
   }
 
-  const projectNamePath = resolve(process.cwd(), projectName);
+  const projectNamePath = resolve(safeCwd(), projectName);
 
   if (existsSync(projectNamePath)) {
     const isRemove = await getAnswerSwift<boolean>(
@@ -618,7 +645,7 @@ const interactiveCreateHandler = async (
   outputConsole.stage("正在初始化项目，请稍等...");
   materializeTemplateToProject({
     templateSource,
-    rootDir: process.cwd(),
+    rootDir: safeCwd(),
     targetPath: projectNamePath,
   });
   outputConsole.stage(`模板已生成: ${projectName}`);
@@ -688,6 +715,103 @@ const interactiveCreateHandler = async (
   `);
 };
 
+/** 将 JSON 字符串解析为对象，失败或非对象时抛出明确错误 */
+const parseEnvJsonObject = (
+  raw: string,
+  label: string,
+): Record<string, unknown> => {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    throw new Error(`${label} 解析失败(需为合法 JSON 对象): ${raw}`);
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error(`${label} 必须是 JSON 对象`);
+  }
+  return parsed as Record<string, unknown>;
+};
+
+/** 解析 CLI 非交互供答的 envData：--envFile 作底，--env 浅覆盖；都未给则返回 undefined */
+const resolveCliEnvData = (
+  argv: CliHandlerArgv<CreateOptions>,
+): Record<string, unknown> | undefined => {
+  if (!argv.envFile && !argv.env) {
+    return undefined;
+  }
+  let result: Record<string, unknown> = {};
+  if (argv.envFile) {
+    const envFilePath = resolve(safeCwd(), argv.envFile);
+    if (!existsSync(envFilePath)) {
+      throw new Error(`模板预设答案文件不存在: ${envFilePath}`);
+    }
+    result = {
+      ...result,
+      ...parseEnvJsonObject(
+        readFileSync(envFilePath, "utf-8"),
+        `模板预设答案文件 ${envFilePath}`,
+      ),
+    };
+  }
+  if (argv.env) {
+    result = {
+      ...result,
+      ...parseEnvJsonObject(argv.env, "--env"),
+    };
+  }
+  return result;
+};
+
+const LIST_QUESTIONS_PROBE_PROJECT_NAME = "__list_questions_probe__";
+
+/** --list-questions：打印模板预设问题清单(JSON)到 stdout，不创建项目、清理草稿 */
+const listTemplateQuestions = async (
+  argv: CliHandlerArgv<CreateOptions>,
+  ctxInit?: HandlerContextInit,
+) => {
+  // 静默装饰性 stage 日志，保证 stdout 为纯 JSON
+  updateEnvConfig({ consoleLog: false });
+  try {
+    // 仅查询问题清单，无需真实项目名；用合成名跑 prepare，结束后清理草稿
+    const probeArgv: CliHandlerArgv<CreateOptions> = {
+      ...argv,
+      [FormNameEnum.PROJECT_NAME]:
+        argv[FormNameEnum.PROJECT_NAME] ?? LIST_QUESTIONS_PROBE_PROJECT_NAME,
+    };
+    const prepareResult = await prepareCreateProject(probeArgv, ctxInit);
+    const questions =
+      prepareResult.status === "need_input" ? prepareResult.questions : [];
+    const output = questions.map((question) => ({
+      key: question.key,
+      required: question.initial === undefined,
+      ...(question.initial !== undefined ? { default: question.initial } : {}),
+    }));
+
+    // 清理 prepare 物化的草稿，避免残骸
+    try {
+      const rootDir = getCreateRootDir(probeArgv, ctxInit);
+      safeRemoveDirSync({
+        targetPath: getDraftDir(rootDir, prepareResult.draftId),
+        parentDir: getDraftRootDir(rootDir),
+        label: "create --list-questions 草稿目录",
+      });
+    } catch (cleanupError) {
+      // 清理失败不阻塞清单输出
+    }
+
+    process.stdout.write(`${JSON.stringify(output, null, 2)}\n`);
+    return output;
+  } catch (error) {
+    // console 已静默，错误直接写 stderr，保证可见且 stdout 不被污染
+    process.stderr.write(
+      `获取模板预设问题失败: ${
+        error instanceof Error ? error.message : String(error)
+      }\n`,
+    );
+    return process.exit(1);
+  }
+};
+
 /** create 命令 handler：交互模式保持原 CLI 流程，非交互模式走 prepare/complete 协议 */
 export const handler = async (
   argv: CliHandlerArgv<CreateOptions>,
@@ -698,25 +822,43 @@ export const handler = async (
     return interactiveCreateHandler(argv);
   }
 
+  if (argv.listQuestions) {
+    return listTemplateQuestions(argv, ctx);
+  }
+
   outputConsole.info(`版本: ${injectInfo.version}`);
 
   if (argv.justCloneFromDoneCoding) {
     throw new Error(`非交互模式暂不支持 justCloneFromDoneCoding`);
   }
 
+  const envData = resolveCliEnvData(argv);
   const prepareResult = await prepareCreateProject(argv, ctx);
 
-  if (prepareResult.status === "need_input") {
-    return prepareResult;
+  // 非交互单发：prepare 后直接 complete，预设答案缺失由模板编译 fast-fail 兜底
+  try {
+    return await completeCreateProject(
+      {
+        ...argv,
+        draftId: prepareResult.draftId,
+        envData,
+      },
+      ctx,
+    );
+  } catch (error) {
+    // 单发失败（如缺必填快速失败）：清理本次草稿，避免在项目下累积 tmp 残骸
+    try {
+      const rootDir = getCreateRootDir(argv, ctx);
+      safeRemoveDirSync({
+        targetPath: getDraftDir(rootDir, prepareResult.draftId),
+        parentDir: getDraftRootDir(rootDir),
+        label: "create 非交互失败草稿目录",
+      });
+    } catch (cleanupError) {
+      // 清理失败不阻塞错误传播
+    }
+    throw error;
   }
-
-  return completeCreateProject(
-    {
-      ...argv,
-      draftId: prepareResult.draftId,
-    },
-    ctx,
-  );
 };
 
 /** create 子命令配置 */
