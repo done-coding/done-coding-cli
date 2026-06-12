@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.3.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-mcp@0.2.0...@done-coding/cli-mcp@0.3.0) (2026-06-12)
+
+### Bug Fixes
+
+- **cli:** guard process.cwd() against uv_cwd crash ([9b03bd2](https://github.com/done-coding/done-coding-cli/commit/9b03bd28a80da99fa7dc28473f1a15a37833b20f))
+- **mcp:** prepare 工具描述改指向模板列表资源 ([2d38ef3](https://github.com/done-coding/done-coding-cli/commit/2d38ef345fe06803495cca9215a41312b828a290))
+
+### Features
+
+- **create/mcp:** 为 create-mcp 引入资源/提示词三原语并结构化隔离模板来源 ([38c8b80](https://github.com/done-coding/done-coding-cli/commit/38c8b8088491375c88e7534e754e8ad11a9f6157))
+- **create/mcp:** 隔离 MCP 模板来源与全局/远程配置 ([4fd5b0e](https://github.com/done-coding/done-coding-cli/commit/4fd5b0e155bdf200a7359040f88738eaa6e87688))
+- **create:** configurable local template list source ([0404e77](https://github.com/done-coding/done-coding-cli/commit/0404e7727d4d2755bbbc23fefb5b9e7e2af01c68))
+
 # 0.2.0 (2026-06-10)
 
 ### Bug Fixes

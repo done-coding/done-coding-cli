@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.6](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-ai@0.1.5...@done-coding/cli-ai@0.1.6) (2026-06-12)
+
+### Bug Fixes
+
+- **cli:** 其余包裸 process.cwd() 统一切换 safeCwd ([af057df](https://github.com/done-coding/done-coding-cli/commit/af057df5e26c98f149881a01b90944dfeb278fba))
+
 ## [0.1.5](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-ai@0.1.4...@done-coding/cli-ai@0.1.5) (2026-06-10)
 
 **Note:** Version bump only for package @done-coding/cli-ai
