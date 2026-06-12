@@ -11,16 +11,21 @@ import { CreateTemplateSourceTypeEnum } from "@/types";
 
 const TEMPLATE_SOURCE_WORK_DIR = "done-coding-create-template-source";
 
-const TEMPLATE_COPY_IGNORE_SET = new Set([
-  ".git",
-  "node_modules",
-  "dist",
-  "es",
-  "lib",
-  "types",
-  "release",
-  "coverage",
-]);
+/**
+ * 模板拷贝时需剥离的 VCS 元数据。
+ * ---
+ * 两条 materialize 路径（`git clone --depth=1` / `git worktree add`）拿到的都是干净的
+ * git 检出：被 gitignore 的构建产物（es/lib/types/dist/coverage）与 node_modules 本就
+ * 不在追踪内、不会出现，无需再按名过滤；且按 basename 过滤会**误删任意深度的同名源码目录**
+ * （如 `src/types`）。唯一需剥离的非内容物是 `.git`（clone 为目录、worktree 为文件，
+ * basename 均为 `.git`）。
+ */
+const TEMPLATE_COPY_IGNORE_SET = new Set([".git"]);
+
+/** 判断模板拷贝时是否应跳过该条目（按顶层 VCS 元数据名匹配） */
+export const isTemplateCopyIgnored = (source: string): boolean => {
+  return TEMPLATE_COPY_IGNORE_SET.has(path.basename(source));
+};
 
 /** 转义 shell 参数，避免路径或分支名中的特殊字符破坏命令 */
 const quoteShellArg = (value: string) => {
@@ -228,7 +233,7 @@ const copyTemplateSourceRoot = ({
   cpSync(sourceRoot, targetPath, {
     recursive: true,
     filter(source) {
-      return !TEMPLATE_COPY_IGNORE_SET.has(path.basename(source));
+      return !isTemplateCopyIgnored(source);
     },
   });
 };

@@ -80,8 +80,9 @@ AI 在 chat.ts 中使用 `outputConsole.log()` 打印普通信息，但 `outputC
 - 与 `.gitignore` 无关：create 全程没有任何代码读 `.gitignore`（已 grep 确认）；改 hub 根/子包 `.gitignore` 不影响此行为（已实证：改后重新 scaffold 仍缺失）。
 
 **建议改进：**
-- `.git` / `node_modules` 可按任意层级忽略；但 `es/lib/types/dist/release/coverage` 属构建产物，**仅应忽略模板源根的直接子目录**（depth===1）。filter 改为：计算相对 `sourceRoot` 的路径，构建产物名只在顶层匹配，避免误伤 `src/types` 等。
-- 暂用绕过：cli-skills 已手动补回 `src/types/index.ts`。
+- 黑名单按 basename 全删是病根；构建产物/依赖在干净 git 检出里本就不存在，无需按名过滤。
+
+**状态：已修复。** `TEMPLATE_COPY_IGNORE_SET` 收敛为仅 `.git`（clone 目录 / worktree 文件），抽出 `isTemplateCopyIgnored` 谓词 + 单测；dogfood 实证重新 scaffold 后 `src/types` 留存。cli-skills 之前的手动补回可保留。
 
 ---
 
