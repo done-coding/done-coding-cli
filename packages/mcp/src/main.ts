@@ -1,7 +1,11 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { updateEnvConfig } from "@done-coding/cli-utils";
-import { registerCreateTools } from "@/handlers";
+import {
+  registerCreateTools,
+  registerCreateResources,
+  registerCreatePrompts,
+} from "@/handlers";
 import injectInfo from "@/injectInfo.json";
 
 /** 创建并启动 done-coding MCP stdio server */
@@ -17,6 +21,8 @@ export const createMcpServer = async () => {
   });
 
   registerCreateTools(server);
+  registerCreateResources(server);
+  registerCreatePrompts(server);
 
   const transport = new StdioServerTransport();
   await server.connect(transport);

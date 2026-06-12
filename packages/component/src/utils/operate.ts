@@ -11,7 +11,7 @@ import { SubcommandEnum } from "@/types";
 import type { CompileOptions } from "@done-coding/cli-template";
 import { compileHandler, OutputModeEnum } from "@done-coding/cli-template";
 import _template from "lodash.template";
-import { outputConsole } from "@done-coding/cli-utils";
+import { outputConsole, safeCwd } from "@done-coding/cli-utils";
 
 /** 操作组件 */
 export const operateComponent = async ({
@@ -32,7 +32,7 @@ export const operateComponent = async ({
     name,
   });
 
-  const rootDir = process.cwd();
+  const rootDir = safeCwd();
 
   const envDataStr = JSON.stringify(envData);
 

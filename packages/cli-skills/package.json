@@ -1,0 +1,62 @@
+{
+  "name": "@done-coding/cli-skills",
+  "version": "0.0.0",
+  "description": "done-coding CLI 各命令的 Agent Skills 聚合包与安装器",
+  "private": false,
+  "module": "es/index.mjs",
+  "types": "types/index.d.ts",
+  "type": "module",
+  "bin": {
+    "dc-cli-skills": "es/cli.mjs"
+  },
+  "exports": {
+    ".": {
+      "import": "./es/index.mjs",
+      "types": "./types/index.d.ts"
+    }
+  },
+  "files": [
+    "es",
+    "lib",
+    "types",
+    "skills"
+  ],
+  "scripts": {
+    "predev": "dc-inject",
+    "dev": "vite build -w -m hotBuild",
+    "prebuild": "dc-inject",
+    "build": "vite build",
+    "prepack": "pnpm build",
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@gitee.com:done-coding/done-coding-cli.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "author": "JustSoSu",
+  "license": "MIT",
+  "sideEffects": false,
+  "devDependencies": {
+    "@done-coding/cli-inject": "^0.5.17",
+    "@types/node": "^18.0.0",
+    "@types/prompts": "^2.4.6",
+    "@types/yargs": "^17.0.28",
+    "@vitest/coverage-v8": "^1.6.1",
+    "typescript": "^5.8.3",
+    "vite": "^5.0.10",
+    "vite-plugin-dts": "^3.7.0",
+    "vitest": "^1.6.1"
+  },
+  "peerDependencies": {},
+  "dependencies": {
+    "@done-coding/cli-utils": "workspace:0.10.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

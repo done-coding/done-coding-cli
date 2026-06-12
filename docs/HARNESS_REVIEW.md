@@ -62,3 +62,41 @@ AI 在 chat.ts 中使用 `outputConsole.log()` 打印普通信息，但 `outputC
 - 或者在设计阶段要求列出将要使用的模块接口作为 checklist
 
 > 特例复现 → 项目改进；跨项目出现 → 全局改进
+
+---
+
+## 2026-06-12: create 拷贝模板用 basename 黑名单 — 漏拷任意深度的 `types`/`es`/`lib` 等同名源码目录
+
+**层级：** 项目改进
+
+**现象：**
+用 create CLI 从 hub 子目录模板 `npm-node-cli` scaffold 出的项目缺失 `src/types/index.ts`（模板里该文件被 git 正常追踪），导致生成项目引用 `@/types` 处编译失败——每次从该模板生成都不可用。dogfooding（用 create 自举建 cli-skills 包）时发现。
+
+**根因（实证定位，非 gitignore）：**
+- `packages/create/src/utils/templateSource.ts` 的 `copyTemplateSourceRoot` 用 `cpSync` 的 `filter` 按 **basename** 过滤：
+  `TEMPLATE_COPY_IGNORE_SET = {.git, node_modules, dist, es, lib, types, release, coverage}`，
+  `filter: !SET.has(path.basename(source))`。
+- 该集合**只比对目录名、不限层级**，故任意深度的同名目录都会被丢——`src/types`（basename=`types`）、若有 `src/es`/`src/lib` 同理。
+- 与 `.gitignore` 无关：create 全程没有任何代码读 `.gitignore`（已 grep 确认）；改 hub 根/子包 `.gitignore` 不影响此行为（已实证：改后重新 scaffold 仍缺失）。
+
+**建议改进：**
+- 黑名单按 basename 全删是病根；构建产物/依赖在干净 git 检出里本就不存在，无需按名过滤。
+
+**状态：已修复。** `TEMPLATE_COPY_IGNORE_SET` 收敛为仅 `.git`（clone 目录 / worktree 文件），抽出 `isTemplateCopyIgnored` 谓词 + 单测；dogfood 实证重新 scaffold 后 `src/types` 留存。cli-skills 之前的手动补回可保留。
+
+---
+
+## 2026-06-12: npm-node-cli 模板 cli-utils 依赖写死 `^0.7.4` — 不链 workspace、运行期缺 outputConsole
+
+**层级：** 项目改进
+
+**现象：**
+从 `npm-node-cli` 模板生成的包，`@done-coding/cli-utils` 依赖为 `^0.7.4`。workspace 当前 cli-utils 是 0.10.0，不满足 `^0.7.4`（`>=0.7.4 <0.8.0`），pnpm 遂从 npm 装了旧发布版 0.7.8（不导出 `outputConsole`）。构建通过、**运行期**才报 `does not provide an export named 'outputConsole'`。
+
+**根因：**
+- 模板把第三方/内部依赖版本**写死为旧的固定范围**，未随 workspace 演进；本仓惯例是 `workspace:<ver>` 协议。
+- 范围不匹配时 pnpm 静默回落 npm 发布版，错误推迟到运行期。
+
+**建议改进：**
+- 模板内 workspace 内部依赖改用 `workspace:*`（或生成时由 create 注入当前 workspace 版本），避免写死。
+- 暂用绕过：cli-skills 已改为 `workspace:0.10.0`。

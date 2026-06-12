@@ -356,6 +356,7 @@ DC inject:
 | 使用内联字符串作业务判断 | 如 `if (cmd === "/exit")`，分散在多处难维护 | [MUST] 定义枚举，引用枚举值 |
 | 使用魔法数字 | 如 `value: -1` 标记"自定义"，语义不清 | [MUST] 定义为具名常量 |
 | 导出类型缺少 JSDoc | 其他开发者/AI agent 无法理解字段含义 | [MUST] `/** */` 注释每个 `export type`/`enum` 成员 |
+| 直接用 `process.cwd()` | cwd 被删/不可访问时抛 `uv_cwd`(EPERM) 崩溃 | [MUST] 用 `@done-coding/cli-utils` 的 `safeCwd()`（回落 PWD → homedir） |
 
 ## 10. 技术债务与风险
 

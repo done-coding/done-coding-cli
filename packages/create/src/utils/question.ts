@@ -5,6 +5,10 @@ import {
   type PromptObject,
 } from "@done-coding/cli-utils";
 import { CUSTOM_TEMPLATE_NAME, SOMEONE_PUBLIC_REPO_NAME } from "./const";
+import {
+  resolveTemplateConfigPath,
+  readTemplateListFromFile,
+} from "./local-config";
 import type {
   CreateConfigJson,
   CreateTemplateBranchInfo,
@@ -15,9 +19,11 @@ import { FormNameEnum } from "@/types";
 
 let templateList: CreateTemplateChoiceItem[];
 
-/** 获取模版选项 */
-export const getTemplateList = async () => {
-  if (!templateList) {
+/** 拉取远端内置模板列表，失败则降级为空数组（不阻塞主流程） */
+const fetchRemoteTemplateList = async (): Promise<
+  CreateTemplateChoiceItem[]
+> => {
+  try {
     const config = await readCliModuleAssetsConfig<CreateConfigJson>({
       moduleName: injectInfo.cliConfig.moduleName,
       onSuccess({ config, moduleEntryFileRelativePath, repoUrl }) {
@@ -28,14 +34,32 @@ export const getTemplateList = async () => {
         outputConsole.success(`模板列表拉取成功！`);
       },
     });
-    templateList = config.templateList;
+    return config.templateList;
+  } catch (error) {
+    outputConsole.warn(`远端内置模板列表拉取失败，已降级为空列表`);
+    return [];
+  }
+};
+
+/**
+ * 获取模版选项（单一来源，不做合并）。
+ * ---
+ * 优先级：显式 `configPath`(CLI `--template-config` / MCP) > home 指针文件
+ * (`~/.done-coding/create/index.json`) > 内置远端配置。
+ */
+export const getTemplateList = async (configPath?: string) => {
+  if (!templateList) {
+    const resolvedConfigPath = await resolveTemplateConfigPath(configPath);
+    templateList = resolvedConfigPath
+      ? await readTemplateListFromFile(resolvedConfigPath)
+      : await fetchRemoteTemplateList();
   }
   return templateList;
 };
 
 /** 模版选项 */
-export const getTemplateChoices = async () => {
-  const templateList = await getTemplateList();
+export const getTemplateChoices = async (configPath?: string) => {
+  const templateList = await getTemplateList(configPath);
   return [
     ...templateList,
     { name: CUSTOM_TEMPLATE_NAME },
@@ -72,10 +96,10 @@ export const getTemplateTitle = ({
   }
 };
 
-export const getTemplateForm: () => Promise<
-  PromptObject<FormNameEnum.TEMPLATE>
-> = async () => {
-  const templateChoices = await getTemplateChoices();
+export const getTemplateForm: (
+  configPath?: string,
+) => Promise<PromptObject<FormNameEnum.TEMPLATE>> = async (configPath) => {
+  const templateChoices = await getTemplateChoices(configPath);
   return {
     type: "select",
     name: FormNameEnum.TEMPLATE,

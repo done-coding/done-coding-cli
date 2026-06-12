@@ -3,6 +3,7 @@ import _camelCase from "lodash.camelcase";
 import _kebabCase from "lodash.kebabcase";
 import _lowerFirst from "lodash.lowerfirst";
 import path from "node:path";
+import { safeCwd } from "@done-coding/cli-utils";
 import type { Config, CommonOptions } from "@/types";
 import injectInfo from "@/injectInfo.json";
 const { namespaceDir, moduleName } = injectInfo.cliConfig;
@@ -23,7 +24,7 @@ export interface PathEnvData {
 /** 获取路径环境变量 */
 export const getPathEnvData = () => {
   return {
-    execDir: process.cwd(),
+    execDir: safeCwd(),
     templateDir: getTemplateDirAbsolutePath(),
   };
 };

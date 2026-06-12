@@ -1,4 +1,5 @@
 import { outputConsole } from "@/env-config";
+import { safeCwd } from "@/safe-cwd";
 
 /** handler 执行模式 */
 export type HandlerMode = "cli" | "mcp" | "test";
@@ -52,8 +53,11 @@ export const resolveHandlerContext = (
 
   return {
     mode,
-    interactive: ctx.interactive ?? getInteractiveFromEnv() ?? mode === "cli",
-    cwd: ctx.cwd ?? process.cwd(),
+    interactive:
+      ctx.interactive ??
+      getInteractiveFromEnv() ??
+      (mode === "cli" && !!process.stdout.isTTY && !!process.stdin.isTTY),
+    cwd: ctx.cwd ?? safeCwd(),
     logger: ctx.logger ?? outputConsole,
     allowDangerous: ctx.allowDangerous ?? false,
   };

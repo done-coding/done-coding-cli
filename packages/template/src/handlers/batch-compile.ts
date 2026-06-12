@@ -122,30 +122,49 @@ export const handler = async (
   } = config;
 
   const collectEnvData: Record<string, any> = {};
+  const normalizedForm = normalizeCollectEnvDataForm(collectEnvDataForm);
 
-  for (const { key: keyName, label, initial } of normalizeCollectEnvDataForm(
-    collectEnvDataForm,
-  )) {
-    const answer = collectEnvDataInit[keyName];
+  // 先消费已传入的答案，未传入的归集为"缺失项"
+  const missingQuestions: CollectEnvDataQuestion[] = [];
+  for (const question of normalizedForm) {
+    const answer = collectEnvDataInit[question.key];
     if (answer !== undefined && answer !== null) {
-      collectEnvData[keyName] = answer;
+      collectEnvData[question.key] = answer;
       continue;
     }
-    if (!ctx.interactive) {
+    missingQuestions.push(question);
+  }
+
+  if (!ctx.interactive) {
+    // 非交互：有 initial 的视为非必填，回落默认值；无 initial 的为真正缺失，聚合后一次抛
+    const trulyMissing: CollectEnvDataQuestion[] = [];
+    for (const question of missingQuestions) {
+      if (question.initial !== undefined) {
+        collectEnvData[question.key] = question.initial;
+      } else {
+        trulyMissing.push(question);
+      }
+    }
+    if (trulyMissing.length > 0) {
       throw new Error(
-        `缺少模板预置参数 ${keyName}(${label})，当前为非交互模式，不能等待终端输入`,
+        `缺少模板预置参数，当前为非交互模式，不能等待终端输入：${trulyMissing
+          .map(({ key, label }) => `${key}(${label})`)
+          .join("、")}`,
       );
     }
-    collectEnvData[keyName] = (
-      await xPrompts({
-        type: "text",
-        name: keyName,
-        message: `请输入${label}`,
-        initial,
-        format: (value) => value.trim(),
-        validate: (value) => value.length > 0 || `${label}不能为空`,
-      })
-    )[keyName];
+  } else {
+    for (const { key: keyName, label, initial } of missingQuestions) {
+      collectEnvData[keyName] = (
+        await xPrompts({
+          type: "text",
+          name: keyName,
+          message: `请输入${label}`,
+          initial,
+          format: (value) => value.trim(),
+          validate: (value) => value.length > 0 || `${label}不能为空`,
+        })
+      )[keyName];
+    }
   }
 
   const list = listInit.map((item) => {
