@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-mcp",
-  "version": "0.2.0",
+  "version": "0.2.1-alpha.0",
   "description": "done-coding MCP服务",
   "module": "es/index.mjs",
   "type": "module",
@@ -39,7 +39,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:0.6.3",
+    "@done-coding/cli-inject": "workspace:0.6.4-alpha.0",
     "@types/node": "^18.0.0",
     "typescript": "^5.8.3",
     "vite": "^4.4.11",
@@ -47,9 +47,9 @@
     "vitest": "^1.6.1"
   },
   "dependencies": {
-    "@done-coding/cli-utils": "workspace:0.10.0",
+    "@done-coding/cli-utils": "workspace:0.10.1-alpha.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "create-done-coding": "workspace:0.13.0",
+    "create-done-coding": "workspace:0.13.1-alpha.0",
     "zod": "^4.4.3"
   },
   "engines": {

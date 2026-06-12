@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.4-alpha.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-git@0.7.3...@done-coding/cli-git@0.7.4-alpha.0) (2026-06-12)
+
+**Note:** Version bump only for package @done-coding/cli-git
+
 ## [0.7.3](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-git@0.7.2...@done-coding/cli-git@0.7.3) (2026-06-10)
 
 **Note:** Version bump only for package @done-coding/cli-git
