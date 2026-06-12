@@ -18,7 +18,8 @@
   "files": [
     "es",
     "lib",
-    "types"
+    "types",
+    "skills"
   ],
   "scripts": {
     "predev": "dc-inject",
@@ -53,7 +54,7 @@
   },
   "peerDependencies": {},
   "dependencies": {
-    "@done-coding/cli-utils": "^0.7.4"
+    "@done-coding/cli-utils": "workspace:0.10.0"
   },
   "engines": {
     "node": ">=18.0.0"
