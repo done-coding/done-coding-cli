@@ -161,8 +161,60 @@ export const registerCreateResources = (server: McpServer) => {
   );
 };
 
+/** 本机全局指针文件路径（供 prompt 文本提示客户端去读；MCP server 自身不读它）。 */
+export const LOCAL_POINTER_CONFIG_DISPLAY_PATH =
+  "~/.done-coding/create/index.json";
+
 /**
- * 注册 create 引导 Prompt：串起「读模板列表资源 → prepare → complete」全流程。
+ * 生成 create 引导 prompt 文本（纯函数，供注册回调与单测复用）。
+ * ---
+ * 模板来源解析分三种情形（均由客户端在本地完成，MCP server 不读指针、不联网）：
+ * - 已给 `configPath` → 直接以它读模板列表资源、选模板取 url。
+ * - 未给 `configPath` → 客户端查全局指针文件，取其 `configPath` 再读资源选模板。
+ * - 指针不存在/未配置 → 反问用户「哪个本地仓库的哪个目录当作模板」，跳过列表。
+ */
+export const buildCreateProjectPromptText = (params: {
+  configPath?: string;
+  projectName?: string;
+}): string => {
+  const { configPath, projectName } = params;
+  const projectNameLine = projectName
+    ? `项目名称：${projectName}`
+    : "项目名称：请向用户确认后填入 prepare 的 projectName";
+
+  const sourceSteps = configPath
+    ? [
+        `本次已指定本地模板列表配置：${configPath}`,
+        `1. 读取模板列表资源 done-coding-create-template-list://${configPath} ，查看 templateList 中可选模板。`,
+        "2. 与用户确认选定模板，取其 `url` 作为 `templateUrl`（子目录模板另取 `directory` 作 templateDirectory、分支取 `branch`）。",
+      ]
+    : [
+        "本次未直接给定模板列表配置，按以下顺序在本地确定模板来源（不联网）：",
+        `1. 先查全局指针文件 ${LOCAL_POINTER_CONFIG_DISPLAY_PATH}（内容形如 { "configPath": "<本地注册表绝对路径>" }）：`,
+        "   - 若存在且含 `configPath` → 以该 configPath 读取模板列表资源 done-coding-create-template-list://<configPath> ，与用户确认选模板，取其 `url` 作 `templateUrl`（另取 `directory`/`branch`）。",
+        "   - 若不存在 / 无 `configPath`（= 全局未配置模板列表）→ [MUST] 反问用户：「把本地哪个仓库（绝对路径或 git 地址）的哪个目录当作模板？」，将仓库路径作 `templateUrl`、目录作 `templateDirectory`（无子目录则留空），跳过模板列表。",
+        "   注：MCP server 自身不读该指针、不联网——上述读指针与询问用户均由你（客户端）在本地完成。",
+      ];
+
+  return [
+    "请按以下步骤用 done-coding MCP 创建一个项目（全程仅本地、不联网、不读远程默认列表）：",
+    "",
+    "【确定模板来源】",
+    ...sourceSteps,
+    "",
+    "【创建】",
+    "3. 用上一步得到的 `templateUrl`（及可选 `templateDirectory` / `templateGitBranch`）与 `projectName`，调用工具 `done_coding_prepare_create_project`。",
+    "4. 若 prepare 返回 status=need_input，按其 `questions` 收集答案为 `envData`（key 对齐 questions[].key），连同 `draftId` 调用 `done_coding_complete_create_project`。",
+    "5. 若 prepare 返回 status=ready，直接用其 `draftId` 调用 `done_coding_complete_create_project`。",
+    "",
+    projectNameLine,
+  ].join("\n");
+};
+
+/**
+ * 注册 create 引导 Prompt：串起「确定模板来源 → prepare → complete」全流程。
+ * ---
+ * `configPath` 可选：不给则提示客户端查全局指针，仍无则反问用户 repo+目录。
  */
 export const registerCreatePrompts = (server: McpServer) => {
   server.registerPrompt(
@@ -170,35 +222,26 @@ export const registerCreatePrompts = (server: McpServer) => {
     {
       title: "创建 done-coding 项目（引导）",
       description:
-        "引导客户端完成 done-coding 项目创建：先读模板列表资源（带本地 configPath），选模板取 url 作为 templateUrl 调 prepare，再按 need_input 收集 envData 调 complete。全程不读全局/远程、不联网。",
+        "引导客户端创建 done-coding 项目：先确定模板来源（已给 configPath 则用之；否则查全局指针 ~/.done-coding/create/index.json；仍无则反问用户 repo+目录），再 prepare→complete。MCP server 不读全局指针、不联网。",
       argsSchema: {
         configPath: z
           .string()
-          .describe("本地模板列表配置文件绝对路径（取模板列表资源用）"),
+          .optional()
+          .describe(
+            "本地模板列表配置文件绝对路径（可选）；不给则由客户端查全局指针 ~/.done-coding/create/index.json，仍无则反问用户 repo+目录",
+          ),
         projectName: z.string().optional().describe("待创建的项目名称（可选）"),
       },
     },
     ({ configPath, projectName }) => {
-      const resourceUri = `done-coding-create-template-list://${configPath}`;
-      const projectNameLine = projectName
-        ? `项目名称：${projectName}`
-        : "项目名称：请向用户确认后填入 prepare 的 projectName";
-      const text = [
-        "请按以下步骤创建一个 done-coding 项目（全程仅读本地、不联网、不读全局/远程）：",
-        "",
-        `1. 读取模板列表资源 ${resourceUri} ，查看 templateList 中可选模板。`,
-        "2. 与用户确认选定模板，取其 `url` 作为 `templateUrl`，调用工具 `done_coding_prepare_create_project`（带该 templateUrl 与 projectName）。",
-        "3. 若 prepare 返回 status=need_input，按其 `questions` 收集答案，作为 `envData`（key 对齐 questions[].key）连同 `draftId` 调用 `done_coding_complete_create_project`。",
-        "4. 若 prepare 返回 status=ready，直接用其 `draftId` 调用 `done_coding_complete_create_project`。",
-        "",
-        projectNameLine,
-        `模板列表配置文件（本地）：${configPath}`,
-      ].join("\n");
       return {
         messages: [
           {
             role: "user",
-            content: { type: "text", text },
+            content: {
+              type: "text",
+              text: buildCreateProjectPromptText({ configPath, projectName }),
+            },
           },
         ],
       };

@@ -7,6 +7,8 @@ import { beforeAll, describe, expect, it } from "vitest";
 import {
   prepareInputSchema,
   CREATE_TEMPLATE_LIST_RESOURCE_URI_TEMPLATE,
+  buildCreateProjectPromptText,
+  LOCAL_POINTER_CONFIG_DISPLAY_PATH,
 } from "@/handlers";
 
 /**
@@ -62,6 +64,39 @@ describe("prepare 工具 zod schema：templateUrl 必填", () => {
       templateUrl: "/abs/path/to/template-repo",
     });
     expect(parsed.success).toBe(true);
+  });
+});
+
+describe("create 引导 prompt 文本：模板来源三情形", () => {
+  it("已给 configPath：引导读模板列表资源、不提指针/反问", () => {
+    const cfg = "/Users/me/proj/create-templates.json";
+    const text = buildCreateProjectPromptText({
+      configPath: cfg,
+      projectName: "demo",
+    });
+    expect(text).toContain(`done-coding-create-template-list://${cfg}`);
+    expect(text).toContain("项目名称：demo");
+    expect(text).not.toContain(LOCAL_POINTER_CONFIG_DISPLAY_PATH);
+    expect(text).not.toContain("反问用户");
+  });
+
+  it("未给 configPath：引导先查全局指针、无配置则反问用户 repo+目录", () => {
+    const text = buildCreateProjectPromptText({});
+    expect(text).toContain(LOCAL_POINTER_CONFIG_DISPLAY_PATH);
+    expect(text).toContain("哪个仓库");
+    expect(text).toContain("templateDirectory");
+    // 未给项目名 → 占位提示
+    expect(text).toContain("请向用户确认后填入 prepare 的 projectName");
+  });
+
+  it("两情形都串到 prepare→complete 两个工具", () => {
+    for (const text of [
+      buildCreateProjectPromptText({ configPath: "/abs/x.json" }),
+      buildCreateProjectPromptText({}),
+    ]) {
+      expect(text).toContain("done_coding_prepare_create_project");
+      expect(text).toContain("done_coding_complete_create_project");
+    }
   });
 });
 
