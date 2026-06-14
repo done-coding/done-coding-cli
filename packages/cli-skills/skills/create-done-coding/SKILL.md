@@ -23,7 +23,10 @@ description: Use when scaffolding / creating / initializing a new done-coding pr
 模板来源是 git 地址或本地 git 仓库**根路径**（`/` 开头）。两种拿法：
 
 ⓐ **用户已指明模板**（给了 git 地址 / 本地路径）→ 直接作为 `-p` 的值。
-ⓑ **从本地模板列表挑**：用户维护的模板列表是一个 JSON：
+ⓑ **从本地模板列表挑**：模板列表的**入口是全局指针文件** `~/.done-coding/create/index.json`，解析分两跳：
+
+1. **第一跳（指针）** 读 `~/.done-coding/create/index.json`，内容形如 `{ "configPath": "<注册表绝对路径>" }`，取出 `configPath`。
+2. **第二跳（注册表）** 读 `configPath` 指向的 JSON，取 `templateList`：
 
 ```json
 { "templateList": [
@@ -31,7 +34,12 @@ description: Use when scaffolding / creating / initializing a new done-coding pr
 ] }
 ```
 
-读这个文件，与用户确认选哪一个，取其 `url`（及 `directory` / `branch`）。
+按 `name` 选定一项，取出它的 `url` / `branch` / `directory`。
+
+> **AI 非交互调用（主场景）[MUST] 自己解析 name→url**：把选中项的 `url` 传 `-p`、`branch` 传 `-b`、`directory` 传 `--templateDirectory`。**不要**指望 `--templateConfig` + `--env '{"template":"<name>"}'` 按 name 选——已实测：非交互模式下 CLI 不吃这个，报 `缺少参数 template` 直接失败（`--templateConfig` 只为**交互式选单**供数据，无 TTY 时选不了）。
+> [MUST NOT] 跳过指针链、凭记忆或上下文里已有的路径硬编码——来源要现查、可复述。
+
+ⓒ **全局没配指针 / 目标不在列表**（第一跳 `~/.done-coding/create/index.json` 不存在，或列表里找不到要的模板）→ [MUST] **反问用户**：「把本地哪个仓库（绝对路径或 git 地址）的哪个目录当作模板？」，仓库作 `-p`、目录作 `--templateDirectory`（无子目录则不传）。[MUST NOT] 自己静默回落远端默认列表，也别自己编仓库路径。
 
 > [MUST] 显式传 `-p <url>`（或 `--templateConfig <本地列表路径>`）。不要依赖「不传任何来源时静默回落远端默认列表」——来源要可见、可复述。
 > 子目录模板用 `--templateDirectory <子目录>`（如 monorepo 子包 `packages/xxx`），**不要**把子目录拼进 `url`；本地来源的 `url` 必须是 git 仓库根。
