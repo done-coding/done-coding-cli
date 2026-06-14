@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-mcp@0.3.0...@done-coding/cli-mcp@0.4.0) (2026-06-14)
+
+### Features
+
+- **mcp:** create 引导 prompt 支持模板来源三情形解析 ([ddec3ba](https://github.com/done-coding/done-coding-cli/commit/ddec3bae66f03c9f378c438050d331867c43a4ba))
+
 # [0.3.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-mcp@0.2.0...@done-coding/cli-mcp@0.3.0) (2026-06-12)
 
 ### Bug Fixes

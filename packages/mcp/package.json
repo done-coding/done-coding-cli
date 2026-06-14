@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-mcp",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "done-coding MCP服务",
   "module": "es/index.mjs",
   "type": "module",
