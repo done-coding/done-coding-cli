@@ -35,7 +35,7 @@
     "local:init": "node ./scripts/local-init-inject.mjs",
     "predev": "pnpm run local:init",
     "dev": "vite build -w -m hotBuild",
-    "prebuild": "pnpm run local:init",
+    "prebuild": "rimraf types && pnpm run local:init",
     "build": "vite build",
     "prepack": "pnpm build"
   },
@@ -54,6 +54,7 @@
   "devDependencies": {
     "@types/node": "^18.0.0",
     "@types/yargs": "^17.0.28",
+    "rimraf": "^5.0.1",
     "typescript": "^5.8.3",
     "vite": "^4.4.11",
     "vite-plugin-dts": "^3.6.0"

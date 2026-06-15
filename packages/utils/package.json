@@ -20,7 +20,8 @@
   "scripts": {
     "dev": "vite build -w -m hotBuild",
     "build": "vite build",
-    "prepack": "pnpm build"
+    "prepack": "pnpm build",
+    "prebuild": "rimraf types"
   },
   "repository": {
     "type": "git",
@@ -46,6 +47,7 @@
     "@types/semver": "^7.5.3",
     "@types/signal-exit": "^4.0.0",
     "@types/yargs": "^17.0.28",
+    "rimraf": "^5.0.1",
     "typescript": "^5.8.3",
     "vite": "^4.4.11",
     "vite-plugin-dts": "^3.6.0"
