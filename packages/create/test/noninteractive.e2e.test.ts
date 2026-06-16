@@ -119,8 +119,62 @@ const createLocalTemplateRepo = (baseDir: string): string => {
   return tpl;
 };
 
+/** 通用建仓助手：写入 form + 文件（可带 globalEnvData）并 git 提交，返回仓库路径 */
+const writeTemplateRepo = (
+  dir: string,
+  config: {
+    form: Record<string, unknown>[];
+    files: { input: string; output: string; content: string }[];
+    globalEnvData?: Record<string, unknown>;
+  },
+): string => {
+  const { form, files, globalEnvData = {} } = config;
+  mkdirSync(path.join(dir, ".done-coding"), { recursive: true });
+  for (const f of files) {
+    const full = path.join(dir, f.input);
+    mkdirSync(path.dirname(full), { recursive: true });
+    writeFileSync(full, f.content);
+  }
+  writeFileSync(
+    path.join(dir, ".done-coding", "template.json"),
+    JSON.stringify(
+      {
+        globalEnvData,
+        collectEnvDataForm: form,
+        list: files.map((f) => ({
+          input: f.input,
+          output: f.output,
+          mode: "overwrite",
+        })),
+      },
+      null,
+      2,
+    ),
+  );
+  const git = (gitArgs: string[]) =>
+    spawnSync("git", gitArgs, { cwd: dir, encoding: "utf-8" });
+  git(["init", "-q"]);
+  git(["add", "-A"]);
+  git([
+    "-c",
+    "user.email=test@done-coding.dev",
+    "-c",
+    "user.name=test",
+    "commit",
+    "-qm",
+    "init template",
+  ]);
+  return dir;
+};
+
 let workspaceRoot: string;
 let templateRepo: string;
+/** 级联默认值仓：name←内置 $projectName、cacheNamespace←前序答案 name、org←全局 author */
+let cascadeRepo: string;
+/** 坏引用仓：某问题 initial 引用不存在的变量 */
+let badRefRepo: string;
+/** 向后引用仓：靠前问题 initial 引用靠后的变量（违反"只能引用前面"） */
+let forwardRefRepo: string;
 
 beforeAll(() => {
   if (process.env.DC_SKIP_BUILD !== "1") {
@@ -150,6 +204,51 @@ beforeAll(() => {
 
   workspaceRoot = mkdtempSync(path.join(tmpdir(), "dc-create-e2e-"));
   templateRepo = createLocalTemplateRepo(workspaceRoot);
+
+  cascadeRepo = writeTemplateRepo(path.join(workspaceRoot, "cascade-tpl"), {
+    // 三种来源各一：内置 $projectName / 前序答案 name / 全局 author
+    form: [
+      { key: "name", label: "包名", initial: ph("$projectName") },
+      { key: "cacheNamespace", label: "缓存命名空间", initial: ph("name") },
+      { key: "org", label: "组织", initial: ph("author") },
+    ],
+    files: [
+      {
+        input: "ns.tpl.txt",
+        output: "ns.txt",
+        content: `name=${ph("name")}\nns=__${ph("cacheNamespace")}__\norg=${ph("org")}\n`,
+      },
+    ],
+    globalEnvData: { author: "globalauthor" },
+  });
+
+  // 靠前的 a 引用靠后的 b——即便供答了 b，处理 a 时 b 尚未进上下文，应当失败
+  forwardRefRepo = writeTemplateRepo(
+    path.join(workspaceRoot, "forwardref-tpl"),
+    {
+      form: [
+        { key: "a", label: "甲", initial: ph("b") },
+        { key: "b", label: "乙" },
+      ],
+      files: [
+        { input: "ns.tpl.txt", output: "ns.txt", content: `a=${ph("a")}\n` },
+      ],
+    },
+  );
+
+  badRefRepo = writeTemplateRepo(path.join(workspaceRoot, "badref-tpl"), {
+    form: [
+      { key: "name", label: "包名" },
+      { key: "cacheNamespace", label: "缓存命名空间", initial: ph("nope") },
+    ],
+    files: [
+      {
+        input: "ns.tpl.txt",
+        output: "ns.txt",
+        content: `ns=${ph("cacheNamespace")}\n`,
+      },
+    ],
+  });
 }, 120000);
 
 afterAll(() => {
@@ -318,5 +417,111 @@ describe("create-done-coding 非交互供答 e2e", () => {
     ]);
     // 未创建任何项目，无 probe 残留
     expect(existsSync(path.join(work, "__list_questions_probe__"))).toBe(false);
+  });
+
+  it("级联默认值：三来源（内置 $projectName / 前序答案 name / 全局 author）全程不答即逐级回落", () => {
+    const work = makeWork("cascade-default");
+    const r = runCli(
+      [
+        "-n",
+        "casapp",
+        "-p",
+        cascadeRepo,
+        "--env",
+        JSON.stringify({}), // 全不答：三个 initial 各引各的来源
+        "--openGitDetailOptimize=false",
+      ],
+      work,
+    );
+    expect(r.signal).toBeNull();
+    expect(r.status).toBe(0);
+    const ns = readFileSync(path.join(work, "casapp", "ns.txt"), "utf-8");
+    expect(ns).toContain("name=casapp"); // name←内置 $projectName(-n)
+    expect(ns).toContain("ns=__casapp__"); // cacheNamespace←前序答案 name
+    expect(ns).toContain("org=globalauthor"); // org←全局 author
+    expect(ns).not.toContain("${");
+  });
+
+  it("级联默认值：答 name 时，引用它的 cacheNamespace 跟着取到该答案", () => {
+    const work = makeWork("cascade-chain");
+    const r = runCli(
+      [
+        "-n",
+        "casapp-chain",
+        "-p",
+        cascadeRepo,
+        "--env",
+        JSON.stringify({ name: "mypkg" }), // 答 name，cacheNamespace 走 initial 引用它
+        "--openGitDetailOptimize=false",
+      ],
+      work,
+    );
+    expect(r.signal).toBeNull();
+    expect(r.status).toBe(0);
+    const ns = readFileSync(path.join(work, "casapp-chain", "ns.txt"), "utf-8");
+    expect(ns).toContain("name=mypkg");
+    expect(ns).toContain("ns=__mypkg__"); // 取到了前序答案 name=mypkg
+  });
+
+  it("级联默认值：显式供答覆盖 initial 引用", () => {
+    const work = makeWork("cascade-override");
+    const r = runCli(
+      [
+        "-n",
+        "casapp2",
+        "-p",
+        cascadeRepo,
+        "--env",
+        JSON.stringify({ name: "mypkg", cacheNamespace: "custom" }),
+        "--openGitDetailOptimize=false",
+      ],
+      work,
+    );
+    expect(r.signal).toBeNull();
+    expect(r.status).toBe(0);
+    const ns = readFileSync(path.join(work, "casapp2", "ns.txt"), "utf-8");
+    expect(ns).toContain("ns=__custom__");
+  });
+
+  it("只能引用前面：靠前的 a 引用靠后的 b——即便供答 b 也失败，不生成项目", () => {
+    const work = makeWork("forwardref");
+    const r = runCli(
+      [
+        "-n",
+        "fwdapp",
+        "-p",
+        forwardRefRepo,
+        "--env",
+        JSON.stringify({ b: "laterval" }), // 即使答了 b，处理 a 时 b 尚未进上下文
+        "--openGitDetailOptimize=false",
+      ],
+      work,
+    );
+    expect(r.signal).toBeNull();
+    expect(r.status).not.toBe(0);
+    expect(r.stderr).toContain("a"); // 指出是 a 的 initial 出错
+    expect(r.stderr).toContain("b"); // 引用的 b 不在（前序）上下文
+    expect(existsSync(path.join(work, "fwdapp"))).toBe(false);
+  });
+
+  it("initial 引用不存在的变量：非 0 退出、stderr 指出是哪个 key 引用了缺失变量、不生成项目", () => {
+    const work = makeWork("badref");
+    const r = runCli(
+      [
+        "-n",
+        "badapp",
+        "-p",
+        badRefRepo,
+        "--env",
+        JSON.stringify({ name: "mypkg" }), // 省略 cacheNamespace → 触发其坏 initial 渲染
+        "--openGitDetailOptimize=false",
+      ],
+      work,
+    );
+    expect(r.signal).toBeNull(); // 无死循环
+    expect(r.status).not.toBe(0);
+    expect(r.stderr).toContain("cacheNamespace"); // 指出是哪个 key 的 initial
+    expect(r.stderr).toContain("nope"); // 指出缺失的引用变量
+    expect(existsSync(path.join(work, "badapp"))).toBe(false);
   });
 });
