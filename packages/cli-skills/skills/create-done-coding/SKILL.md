@@ -5,7 +5,13 @@ description: Use when scaffolding / creating / initializing a new done-coding pr
 
 # 创建 done-coding 项目（create-done-coding）
 
-用 `create-done-coding` CLI 从模板**非交互**地生成 done-coding 项目。全程经 `npx ...@latest` 现取现用，无需预装 CLI、无需常驻 MCP。
+用 `create-done-coding` CLI 从模板**非交互**地生成 done-coding 项目，无需常驻 MCP。
+
+> **调用入口（重要）**：有两个**参数完全一致**的等价入口——
+> - 本机已全局装 `done-coding` → 优先 **`done-coding create ...`**（最稳）。
+> - 否则 **`npx create-done-coding@latest ...`**（现取现用、无需预装）。
+>
+> ⚠️ 已发布的 `create-done-coding`（npx 拉取）部分版本有构建缺陷，编译模板时报 `assignWith is not defined` 直接失败。**遇此错 → 改用全局 `done-coding create`（同参数）**。下文示例均以 `npx create-done-coding@latest` 书写，整体替换为 `done-coding create` 即等价。
 
 ## 何时用
 
