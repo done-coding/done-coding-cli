@@ -20,6 +20,7 @@ import {
   resolveHandlerContext,
 } from "@done-coding/cli-utils";
 import _assign from "lodash.assign";
+import _template from "lodash.template";
 
 /** 模板预置环境变量采集问题 */
 export interface CollectEnvDataQuestion {
@@ -121,6 +122,13 @@ export const handler = async (
     collectEnvDataForm = [],
   } = config;
 
+  // initial 默认值允许引用「内置变量」（globalEnvData + extraEnvData，如 create 注入的
+  // $projectName）——这些是 100% 必然存在的；[MUST NOT] 引用用户答案（顺序相关、可能缺失）。
+  // 仅对含 `${` 的 initial 走渲染，纯字符串原样放过（向后兼容）。
+  const builtinCtx = _assign({}, globalEnvData, extraEnvData);
+  const resolveInitial = (s?: string) =>
+    typeof s === "string" && s.includes("${") ? _template(s)(builtinCtx) : s;
+
   const collectEnvData: Record<string, any> = {};
   const normalizedForm = normalizeCollectEnvDataForm(collectEnvDataForm);
 
@@ -140,7 +148,7 @@ export const handler = async (
     const trulyMissing: CollectEnvDataQuestion[] = [];
     for (const question of missingQuestions) {
       if (question.initial !== undefined) {
-        collectEnvData[question.key] = question.initial;
+        collectEnvData[question.key] = resolveInitial(question.initial);
       } else {
         trulyMissing.push(question);
       }
@@ -159,7 +167,7 @@ export const handler = async (
           type: "text",
           name: keyName,
           message: `请输入${label}`,
-          initial,
+          initial: resolveInitial(initial),
           format: (value) => value.trim(),
           validate: (value) => value.length > 0 || `${label}不能为空`,
         })
