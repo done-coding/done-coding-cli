@@ -313,16 +313,23 @@ describe("[B1] flush 原子 swap + 元数据落地", () => {
   });
 });
 
-describe("[B1] manifest 读写落 output 外 .assemble/manifests/", () => {
+describe("[B1] manifest 读写落 output 外 .done-coding/generator/assemble/manifests/", () => {
   let root: string;
   beforeEach(() => {
     root = fs.mkdtempSync(path.join(os.tmpdir(), "vfs-manifest-"));
   });
   afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
 
-  it("writeManifest 落 <cwd>/.assemble/manifests/<id>.json，readManifest 读回", () => {
+  it("writeManifest 落 <cwd>/.done-coding/generator/assemble/manifests/<id>.json，readManifest 读回", () => {
     writeManifest(root, { recipeId: "foo", output: "out", files: ["a.txt"] });
-    const p = path.join(root, ".assemble", "manifests", "foo.json");
+    const p = path.join(
+      root,
+      ".done-coding",
+      "generator",
+      "assemble",
+      "manifests",
+      "foo.json",
+    );
     expect(fs.existsSync(p)).toBe(true);
     expect(readManifest(root, "foo")?.files).toEqual(["a.txt"]);
     expect(readManifest(root, "missing")).toBeUndefined();

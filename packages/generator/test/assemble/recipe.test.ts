@@ -290,7 +290,7 @@ describe("[C0] validateRecipe 边缘校验分支补齐", () => {
 });
 
 describe("[C0] discoverRecipes / 约定路径", () => {
-  it("约定 assemble/recipes/*.json5（字典序）；非 json5 忽略", () => {
+  it("约定 .done-coding/generator/assemble/recipes/*.json5（字典序）；非 json5 忽略", () => {
     writeRecipe(
       "b.json5",
       `{ id:"b", base:{kind:"empty"}, output:"ob", ops:[] }`,
@@ -309,9 +309,11 @@ describe("[C0] discoverRecipes / 约定路径", () => {
   });
 
   it("fragmentRoot/recipeDir 约定", () => {
-    expect(recipeDir(root)).toBe(path.resolve(root, "assemble", "recipes"));
+    expect(recipeDir(root)).toBe(
+      path.resolve(root, ".done-coding", "generator", "assemble", "recipes"),
+    );
     expect(fragmentRoot(root)).toBe(
-      path.resolve(root, "assemble", "fragments"),
+      path.resolve(root, ".done-coding", "generator", "assemble", "fragments"),
     );
   });
 });

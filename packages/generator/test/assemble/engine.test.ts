@@ -36,7 +36,14 @@ afterEach(() => {
 
 /** 在 fragmentRoot 下写碎片文件。 */
 const frag = (rel: string, content: string): void => {
-  const abs = path.join(root, "assemble", "fragments", rel);
+  const abs = path.join(
+    root,
+    ".done-coding",
+    "generator",
+    "assemble",
+    "fragments",
+    rel,
+  );
   fs.mkdirSync(path.dirname(abs), { recursive: true });
   fs.writeFileSync(abs, content, "utf-8");
 };
@@ -334,7 +341,17 @@ describe("[R1⑤] raw addFragment 端到端字节保真（零转义 + CRLF + mod
     const shSrc = "#!/bin/sh\r\necho ${name}\r\n";
     frag("tpl.txt", tplSrc);
     frag("run.sh", shSrc);
-    fs.chmodSync(path.join(root, "assemble", "fragments", "run.sh"), 0o755);
+    fs.chmodSync(
+      path.join(
+        root,
+        ".done-coding",
+        "generator",
+        "assemble",
+        "fragments",
+        "run.sh",
+      ),
+      0o755,
+    );
     const recipe: Recipe = {
       id: "raw",
       base: { kind: "empty" },

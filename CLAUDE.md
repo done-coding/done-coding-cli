@@ -19,6 +19,30 @@ WHEN 执行任何包的测试、单测、回归（尤其 cli-generator(gen/assem
    - assemble — **clean regenerate 到临时目录 → 与已提交产物 diff，任意 diff fail**（需求 A5③ 漂移闸）。
    - 两者均在临时目录比对，[MUST NOT] 在工作树原地比对。
 
+## 配置目录布局约定（[MUST]）
+
+各子 cli 的**项目本地配置**统一落项目根的 `.done-coding` 命名空间，按 **cli 名 + 特性**两级分目录：
+
+```
+<projectRoot>/.done-coding/<cliName>/<feature>/...
+```
+
+- `<cliName>` = 该 cli **自身名称**（`@done-coding/cli-generator` → `generator`）。
+- `<feature>` = 该 cli 的特性 / 子命令（generator 的 assemble → `assemble`）。
+- **解析 = cwd-only**：调用方 [MUST] 在**项目根**执行；本约定**不向上逐级搜**（区别于 gen 批次层的 `.done-coding/<type>/` 就近向上+全局解析——两层语义不同：批次是"具名可复用能力"，本约定是"项目本地构建配置"）。
+
+**generator/assemble 落点**（权威常量见 `assemble/recipe.ts` recipeDir/fragmentRoot、`assemble/vfs.ts` manifestPath）：
+
+```
+<projectRoot>/.done-coding/generator/assemble/
+  recipes/*.json5        # 配方
+  fragments/...          # 碎片（readFragment 越界基准 = fragmentRoot）
+  manifests/<recipeId>.json   # 生成清单（漂移闸基准，入版控）
+```
+
+- 本轮（未发布、唯一消费方本地）一次性收敛到此布局，无兼容旧 `assemble/`、`.assemble/` 的双位 fallback。
+- gen 批次层（component 等 `.done-coding/<type>/`）**本轮不动**（已发布，另议）。
+
 ## 运行时路径安全（[MUST]）
 
 WHEN 写 / 审 cli 仓涉文件系统的代码：

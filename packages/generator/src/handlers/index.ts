@@ -199,11 +199,13 @@ const assembleOptions: YargsOptionsRecord<
 > = {
   recipe: {
     type: "string",
-    describe: "指定配方路径（覆盖约定 assemble/recipes/）",
+    describe:
+      "指定配方路径（覆盖约定 .done-coding/generator/assemble/recipes/）",
   },
   all: {
     type: "boolean",
-    describe: "批量跑 assemble/recipes/ 下全部配方（output 冲突校验）",
+    describe:
+      "批量跑 .done-coding/generator/assemble/recipes/ 下全部配方（output 冲突校验）",
     default: false,
   },
   outDir: {

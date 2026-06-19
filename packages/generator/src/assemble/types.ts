@@ -284,7 +284,7 @@ export interface Vfs {
 
 // ───────────────────────── manifest（D-L2 / D-H1） ─────────────────────────
 
-/** 生成清单（落 .assemble/manifests/<recipeId>.json，output 外，入版控） */
+/** 生成清单（落 .done-coding/generator/assemble/manifests/<recipeId>.json，output 外，入版控） */
 export interface AssembleManifest {
   recipeId: string;
   output: string;

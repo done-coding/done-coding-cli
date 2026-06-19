@@ -23,13 +23,26 @@ afterEach(() => {
 });
 
 const frag = (rel: string, content: string): void => {
-  const abs = path.join(root, "assemble", "fragments", rel);
+  const abs = path.join(
+    root,
+    ".done-coding",
+    "generator",
+    "assemble",
+    "fragments",
+    rel,
+  );
   fs.mkdirSync(path.dirname(abs), { recursive: true });
   fs.writeFileSync(abs, content, "utf-8");
 };
 
 const recipeFile = (name: string, content: string): string => {
-  const dir = path.join(root, "assemble", "recipes");
+  const dir = path.join(
+    root,
+    ".done-coding",
+    "generator",
+    "assemble",
+    "recipes",
+  );
   fs.mkdirSync(dir, { recursive: true });
   const p = path.join(dir, name);
   fs.writeFileSync(p, content, "utf-8");

@@ -3,7 +3,7 @@
  *
  * 设计依据：design-p4a §4.4 + §14 D-H1（孤儿删除 / untracked 保护）/ D-H2（元数据纳入比对）/
  * D-H7（mode/symlink/空目录）/ D-M3（flush 原子 swap，sibling temp→rename，同父）/
- * D-M7（base 越界/循环 + 默认 exclude）/ D-L2（manifest 落 output 外 .assemble/manifests/）/
+ * D-M7（base 越界/循环 + 默认 exclude）/ D-L2（manifest 落 output 外 .done-coding/generator/assemble/manifests/）/
  * D-L4（provenance：lastOpId + contributingOpIds 累积）。
  *
  *  - createVfs：实现 types.ts 的 Vfs 接口（function-property 形态）。
@@ -11,7 +11,7 @@
  *  - flush：写 sibling temp dir → 校验 → rename 顶替（跨设备 rename 失败回退到逐文件复制）。
  *  - 孤儿删除：仅删 prevManifest 列出且本次 VFS 不再产出者；output 存在 manifest 未记录文件
  *    → 默认 throw fail-loud（提示 --force-clean）；forceClean 全清且要求 gitClean 或 allowUntrackedDelete。
- *  - readManifest/writeManifest：<cwd>/.assemble/manifests/<recipeId>.json（output 外）。
+ *  - readManifest/writeManifest：<cwd>/.done-coding/generator/assemble/manifests/<recipeId>.json（output 外）。
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -172,7 +172,14 @@ export const loadBaseDir = (
 // ───────────────────────── manifest（D-L2 / D-H1） ─────────────────────────
 
 const manifestPath = (cwd: string, recipeId: string): string =>
-  path.join(path.resolve(cwd), ".assemble", "manifests", `${recipeId}.json`);
+  path.join(
+    path.resolve(cwd),
+    ".done-coding",
+    "generator",
+    "assemble",
+    "manifests",
+    `${recipeId}.json`,
+  );
 
 /** 读 manifest（不存在返回 undefined）。 */
 export const readManifest = (
@@ -184,7 +191,7 @@ export const readManifest = (
   return JSON.parse(fs.readFileSync(p, "utf-8")) as AssembleManifest;
 };
 
-/** 写 manifest（落 output 外 .assemble/manifests/，入版控）。 */
+/** 写 manifest（落 output 外 .done-coding/generator/assemble/manifests/，入版控）。 */
 export const writeManifest = (
   cwd: string,
   manifest: AssembleManifest,

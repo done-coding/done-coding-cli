@@ -39,14 +39,28 @@ afterEach(() => {
 
 /** 在夹具内写碎片文件。 */
 const writeFragment = (rel: string, content: string): void => {
-  const abs = path.join(fixture, "assemble", "fragments", rel);
+  const abs = path.join(
+    fixture,
+    ".done-coding",
+    "generator",
+    "assemble",
+    "fragments",
+    rel,
+  );
   fs.mkdirSync(path.dirname(abs), { recursive: true });
   fs.writeFileSync(abs, content, "utf-8");
 };
 
 /** 在夹具内写碎片（Buffer，可指定 mode）——精确控制字节/EOL/权限位，供 raw 保真用例。 */
 const writeFragmentBuf = (rel: string, buf: Buffer, mode?: number): void => {
-  const abs = path.join(fixture, "assemble", "fragments", rel);
+  const abs = path.join(
+    fixture,
+    ".done-coding",
+    "generator",
+    "assemble",
+    "fragments",
+    rel,
+  );
   fs.mkdirSync(path.dirname(abs), { recursive: true });
   fs.writeFileSync(abs, buf);
   if (mode !== undefined) fs.chmodSync(abs, mode);
@@ -54,7 +68,13 @@ const writeFragmentBuf = (rel: string, buf: Buffer, mode?: number): void => {
 
 /** 在夹具内写配方文件。 */
 const writeRecipe = (name: string, content: string): void => {
-  const dir = path.join(fixture, "assemble", "recipes");
+  const dir = path.join(
+    fixture,
+    ".done-coding",
+    "generator",
+    "assemble",
+    "recipes",
+  );
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, name), content, "utf-8");
 };

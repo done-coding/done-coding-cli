@@ -39,7 +39,7 @@ import { assertCwdNotSuspiciousRoot } from "@/core/safe-root";
 export interface EngineCtx {
   /** 工作目录（约定 recipeDir/fragmentRoot/output/manifest 的基准） */
   cwd: string;
-  /** 覆盖碎片根（缺省 `<cwd>/assemble/fragments`） */
+  /** 覆盖碎片根（缺省 `<cwd>/.done-coding/generator/assemble/fragments`） */
   fragmentRoot?: string;
   /** 显式逃逸可疑根守卫（修订-1，仅 runBuild destructive 入口生效；默认 false） */
   allowDangerous?: boolean;

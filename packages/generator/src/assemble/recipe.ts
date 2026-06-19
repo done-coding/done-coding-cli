@@ -4,7 +4,7 @@
  *  - loadRecipe(absPath)：JSON5 解析（复用 cli-utils json5）→ 结构校验（必填 id/base/output/ops；
  *    op id 配方内唯一；each op 有 type/target；jsonMerge/deleteField source/target/pointer 约束）。
  *    fail-loud（throw，[MUST NOT] process.exit）。
- *  - discoverRecipes(cwd)：约定 `<cwd>/assemble/recipes/*.json5`（--all 用，字典序）。
+ *  - discoverRecipes(cwd)：约定 `<cwd>/.done-coding/generator/assemble/recipes/*.json5`（--all 用，字典序）。
  *  - recipeDir / fragmentRoot 约定（§3.3）。
  */
 import fs from "node:fs";
@@ -12,13 +12,13 @@ import path from "node:path";
 import { json5 } from "@done-coding/cli-utils";
 import type { AssembleOp, Recipe, RecipeBase } from "./types";
 
-/** 约定：配方根目录 `<cwd>/assemble/recipes`（§3.3）。 */
+/** 约定：配方根目录 `<cwd>/.done-coding/generator/assemble/recipes`（§3.3）。 */
 export const recipeDir = (cwd: string): string =>
-  path.resolve(cwd, "assemble", "recipes");
+  path.resolve(cwd, ".done-coding", "generator", "assemble", "recipes");
 
-/** 约定：碎片根目录 `<cwd>/assemble/fragments`（§3.3，readFragment 越界基准）。 */
+/** 约定：碎片根目录 `<cwd>/.done-coding/generator/assemble/fragments`（§3.3，readFragment 越界基准）。 */
 export const fragmentRoot = (cwd: string): string =>
-  path.resolve(cwd, "assemble", "fragments");
+  path.resolve(cwd, ".done-coding", "generator", "assemble", "fragments");
 
 /** 发现约定目录下全部 `*.json5` 配方（绝对路径，字典序；目录不存在返回空）。 */
 export const discoverRecipes = (cwd: string): string[] => {
