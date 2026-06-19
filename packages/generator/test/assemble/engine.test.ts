@@ -77,6 +77,7 @@ describe("[C1] runBuild", () => {
       id: "foo",
       base: { kind: "empty" },
       output: "out/foo",
+      render: true,
       vars: { title: "Foo", name: "foo" },
       ops: [
         {
@@ -111,6 +112,7 @@ describe("[C1] runBuild", () => {
       id: "reg",
       base: { kind: "empty" },
       output: "out/reg",
+      render: true,
       vars: { name: "demo" },
       ops: [
         { type: "addFragment", id: "core", source: "core", target: "." },
@@ -307,12 +309,13 @@ describe("[M3] plan 期 dry-apply 预检 fail-loud", () => {
 });
 
 describe("[M4] 文本碎片 LF 规范化", () => {
-  it("CRLF 文本碎片 addFragment → 产物 LF", () => {
+  it("render:true CRLF 文本碎片 addFragment → 产物 LF", () => {
     frag("crlf.txt", "line1\r\nline2\r\n");
     const recipe: Recipe = {
       id: "r",
       base: { kind: "empty" },
       output: "out",
+      render: true,
       ops: [
         { type: "addFragment", id: "a", source: "crlf.txt", target: "o.txt" },
       ],
@@ -321,6 +324,34 @@ describe("[M4] 文本碎片 LF 规范化", () => {
     expect(fs.readFileSync(outAbs("out/o.txt"), "utf-8")).toBe(
       "line1\nline2\n",
     );
+  });
+});
+
+describe("[R1⑤] raw addFragment 端到端字节保真（零转义 + CRLF + mode）", () => {
+  it("默认 raw：${}/<% + CRLF + 0755 源 → 产物逐字节一致 + mode 保留", () => {
+    // 源含 generator 模板语法字面量 + CRLF；默认 raw 不渲染不 normalize。
+    const tplSrc = "org=${organization}\r\n<%- title %>\r\n";
+    const shSrc = "#!/bin/sh\r\necho ${name}\r\n";
+    frag("tpl.txt", tplSrc);
+    frag("run.sh", shSrc);
+    fs.chmodSync(path.join(root, "assemble", "fragments", "run.sh"), 0o755);
+    const recipe: Recipe = {
+      id: "raw",
+      base: { kind: "empty" },
+      output: "out",
+      // render 缺省 = false（raw）；vars 存在也不应被消费。
+      vars: { organization: "ORG", title: "T", name: "N" },
+      ops: [
+        { type: "addFragment", id: "t", source: "tpl.txt", target: "tpl.txt" },
+        { type: "addFragment", id: "r", source: "run.sh", target: "run.sh" },
+      ],
+    };
+    runBuild(recipe, ctx);
+    // 逐字节一致：零转义（${}/<% 原样）、CRLF 保留。
+    expect(fs.readFileSync(outAbs("out/tpl.txt"), "utf-8")).toBe(tplSrc);
+    expect(fs.readFileSync(outAbs("out/run.sh"), "utf-8")).toBe(shSrc);
+    // mode 保留（0755 可执行位不落 umask）。
+    expect(fs.statSync(outAbs("out/run.sh")).mode & 0o777).toBe(0o755);
   });
 });
 

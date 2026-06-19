@@ -49,9 +49,12 @@ describe("[B3] addFragment", () => {
       ...over,
     }) as AssembleOp;
 
-  it("单文件 + render 变量", () => {
+  it("单文件 + render:true 显式渲染变量", () => {
     fs.writeFileSync(path.join(root, "a.txt"), "hi <%= name %>");
-    addFragmentHandler.apply(ctx, op({ source: "a.txt", target: "out.txt" }));
+    addFragmentHandler.apply(
+      ctx,
+      op({ source: "a.txt", target: "out.txt", render: true }),
+    );
     expect(ctx.vfs.get("out.txt")?.content?.toString()).toBe("hi Foo");
   });
 
@@ -224,9 +227,12 @@ describe("[B3] addFragment", () => {
     expect(out?.equals(bin)).toBe(true);
   });
 
-  it("M4 CRLF 文本碎片 → 产物 LF", () => {
+  it("M4 render:true CRLF 文本碎片 → 产物 LF", () => {
     fs.writeFileSync(path.join(root, "t.txt"), "a\r\nb\r\n");
-    addFragmentHandler.apply(ctx, op({ source: "t.txt", target: "o.txt" }));
+    addFragmentHandler.apply(
+      ctx,
+      op({ source: "t.txt", target: "o.txt", render: true }),
+    );
     expect(ctx.vfs.get("o.txt")?.content?.toString("utf-8")).toBe("a\nb\n");
   });
 
@@ -243,5 +249,120 @@ describe("[B3] addFragment", () => {
         op({ source: "../escape", target: "x" }),
       ),
     ).toThrow(/越界/);
+  });
+
+  // ───────────────── R1：raw 默认 + render 链（op > recipe > false） ─────────────────
+
+  it("R1①默认 raw：含 ${}/<% 文本碎片原样字节（零转义）", () => {
+    const src = "org=${organization}\n<%- title %>\n";
+    fs.writeFileSync(path.join(root, "raw.txt"), src);
+    addFragmentHandler.apply(ctx, op({ source: "raw.txt", target: "o.txt" }));
+    expect(ctx.vfs.get("o.txt")?.content?.toString("utf-8")).toBe(src);
+  });
+
+  it("R1①默认 raw：CRLF 文本碎片保留 CRLF（不 normalize）", () => {
+    fs.writeFileSync(path.join(root, "crlf.txt"), "a\r\nb\r\n");
+    addFragmentHandler.apply(ctx, op({ source: "crlf.txt", target: "o.txt" }));
+    expect(ctx.vfs.get("o.txt")?.content?.toString("utf-8")).toBe("a\r\nb\r\n");
+  });
+
+  it("R1②recipe.render=true + op 未设 → 渲染", () => {
+    const renderCtx: OpContext = {
+      ...ctx,
+      recipe: { ...recipe, render: true },
+    };
+    fs.writeFileSync(path.join(root, "a.txt"), "hi <%= name %>");
+    addFragmentHandler.apply(
+      renderCtx,
+      op({ source: "a.txt", target: "o.txt" }),
+    );
+    expect(ctx.vfs.get("o.txt")?.content?.toString()).toBe("hi Foo");
+  });
+
+  it("R1②recipe.render=true + op.render=false → op 覆盖为 raw", () => {
+    const renderCtx: OpContext = {
+      ...ctx,
+      recipe: { ...recipe, render: true },
+    };
+    fs.writeFileSync(path.join(root, "a.txt"), "hi <%= name %>");
+    addFragmentHandler.apply(
+      renderCtx,
+      op({ source: "a.txt", target: "o.txt", render: false }),
+    );
+    expect(ctx.vfs.get("o.txt")?.content?.toString()).toBe("hi <%= name %>");
+  });
+
+  // ───────────────── R2：resolveMode 默认保源 mode ─────────────────
+
+  it("R2 spread 默认保留源 mode：0755 → 0755", () => {
+    fs.mkdirSync(path.join(root, "bin"));
+    fs.writeFileSync(path.join(root, "bin", "run.sh"), "#!/bin/sh\n");
+    fs.chmodSync(path.join(root, "bin", "run.sh"), 0o755);
+    addFragmentHandler.apply(ctx, op({ source: "bin", target: "dst" }));
+    expect(ctx.vfs.get("dst/run.sh")?.mode).toBe(0o755);
+  });
+
+  it("R2 spread 默认保留源 mode：0644 → 0644", () => {
+    fs.mkdirSync(path.join(root, "d"));
+    fs.writeFileSync(path.join(root, "d", "a.txt"), "a");
+    fs.chmodSync(path.join(root, "d", "a.txt"), 0o644);
+    addFragmentHandler.apply(ctx, op({ source: "d", target: "dst" }));
+    expect(ctx.vfs.get("dst/a.txt")?.mode).toBe(0o644);
+  });
+
+  it("R2 op.mode 显式 number 仍优先于源 mode", () => {
+    fs.writeFileSync(path.join(root, "run.sh"), "#!/bin/sh\n");
+    fs.chmodSync(path.join(root, "run.sh"), 0o755);
+    addFragmentHandler.apply(
+      ctx,
+      op({ source: "run.sh", target: "o.sh", mode: 0o600 }),
+    );
+    expect(ctx.vfs.get("o.sh")?.mode).toBe(0o600);
+  });
+
+  it("R2 render:true 文本也保源 mode（0755）", () => {
+    const renderCtx: OpContext = {
+      ...ctx,
+      recipe: { ...recipe, render: true },
+    };
+    fs.writeFileSync(path.join(root, "run.sh"), "#!/bin/sh <%= name %>\n");
+    fs.chmodSync(path.join(root, "run.sh"), 0o755);
+    addFragmentHandler.apply(
+      renderCtx,
+      op({ source: "run.sh", target: "o.sh", render: true }),
+    );
+    expect(ctx.vfs.get("o.sh")?.mode).toBe(0o755);
+    expect(ctx.vfs.get("o.sh")?.content?.toString()).toBe("#!/bin/sh Foo\n");
+  });
+
+  // ───────────────── R3：exclude 滤空不残壳 / 源本空保真 ─────────────────
+
+  it("R3①exclude 滤空 → 不产空壳（a/ 仅含被 exclude 文件）", () => {
+    fs.mkdirSync(path.join(root, "a"));
+    fs.writeFileSync(path.join(root, "a", "x.log"), "x");
+    addFragmentHandler.apply(
+      ctx,
+      op({ source: ".", target: "dst", exclude: ["**/*.log"] }),
+    );
+    expect(ctx.vfs.has("dst/a")).toBe(false);
+  });
+
+  it("R3②源本空目录 → 保留（emptyDirPolicy 默认 keep）", () => {
+    fs.mkdirSync(path.join(root, "b"));
+    addFragmentHandler.apply(ctx, op({ source: ".", target: "dst" }));
+    expect(ctx.vfs.get("dst/b")?.kind).toBe("dir");
+  });
+
+  it("R3③嵌套：c/x.log(excluded) + c/empty/(源本空) → 产 c/empty（c 经其保留）", () => {
+    fs.mkdirSync(path.join(root, "c"));
+    fs.writeFileSync(path.join(root, "c", "x.log"), "x");
+    fs.mkdirSync(path.join(root, "c", "empty"));
+    addFragmentHandler.apply(
+      ctx,
+      op({ source: ".", target: "dst", exclude: ["**/*.log"] }),
+    );
+    // c/empty（源本空）产 dir 节点 → c 作为其前缀在产物保留（flush 期递归 mkdir）。
+    // 对比：仅含被 exclude 文件的子树（无源本空后代）则不产任何节点。
+    expect(ctx.vfs.get("dst/c/empty")?.kind).toBe("dir");
   });
 });

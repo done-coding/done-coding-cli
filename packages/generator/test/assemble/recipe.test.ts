@@ -200,6 +200,21 @@ describe("[C0] validateRecipe 边缘校验分支补齐", () => {
     });
   });
 
+  it("修订-1：recipe.render=true 布尔被解析纳入返回（否则 op>recipe 链不可达）", () => {
+    const r = validateRecipe(minimal({ render: true }), "t");
+    expect(r.render).toBe(true);
+  });
+
+  it("修订-1：recipe.render 缺省 → 不带 render 字段（落内建 false）", () => {
+    const r = validateRecipe(minimal({}), "t");
+    expect(r.render).toBeUndefined();
+  });
+
+  it("修订-1：recipe.render 非布尔（如字符串）→ 忽略不纳入", () => {
+    const r = validateRecipe(minimal({ render: "yes" }), "t");
+    expect(r.render).toBeUndefined();
+  });
+
   it("op 非对象 → fail-loud", () => {
     expect(() => validateRecipe(minimal({ ops: ["not-obj"] }), "t")).toThrow(
       /ops\[0\] \[MUST\] 为对象/,

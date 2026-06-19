@@ -33,14 +33,15 @@ const sourceAbs = (ctx: PlanContext, rel: string): string =>
 const applyRename = (rel: string, rename?: Record<string, string>): string =>
   rename?.[rel] ?? rel;
 
-/** 解析 mode：preserve → 源 mode；number → 指定；undefined → 不设。 */
-const resolveMode = (
-  op: AddFragmentOp,
-  srcMode: number,
-): number | undefined => {
+/**
+ * 解析 mode（R2/D2/修订-4）：preserve → 源 mode；number → 指定；
+ * 默认（未指定）→ 保留源 mode（原为 undefined 落 umask，会丢可执行位）。
+ * 仅作用 file 与 deref 后的 file；symlink preserve 不涉 mode，dir 不涉。
+ */
+const resolveMode = (op: AddFragmentOp, srcMode: number): number => {
   if (op.mode === "preserve") return srcMode & 0o777;
   if (typeof op.mode === "number") return op.mode;
-  return undefined;
+  return srcMode & 0o777;
 };
 
 /**
@@ -62,13 +63,19 @@ const guardIfExists = (
   return false; // keep：保留既有
 };
 
-/** CRLF/CR → LF 规范化（M4 / D-H2，文本默认统一 LF）。 */
+/** CRLF/CR → LF 规范化（M4 / D-H2，仅 render:true 路径统一 LF）。 */
 const normalizeEol = (text: string): string => text.replace(/\r\n?/g, "\n");
 
+/** 解析是否渲染（R1②/D1）：op.render > recipe.render > 内建 false。 */
+const resolveRender = (
+  op: AddFragmentOp,
+  recipe: OpContext["recipe"],
+): boolean => op.render ?? recipe.render ?? false;
+
 /**
- * 写单个文件到 VFS（H3 守卫 + M1 二进制原样 / M4 文本 LF 规范化）。
- *  - 二进制碎片（含 NUL）：Buffer 原样复制，不渲染不改 EOL（逐字节保留）。
- *  - 文本碎片：readFragment(utf-8) → render → normalize LF → setFile。
+ * 写单个文件到 VFS（H3 守卫 + R1 raw 默认 / M1 二进制原样）。
+ *  - raw（默认 / 二进制 / render 关）：Buffer 原样复制，不渲染不改 EOL（逐字节保留）。
+ *  - render:true 文本碎片：readFragment(utf-8) → render → normalize LF → setFile。
  */
 const writeFile = (
   ctx: OpContext,
@@ -77,9 +84,11 @@ const writeFile = (
 ): boolean => {
   if (!guardIfExists(ctx, op, arg.target)) return false;
   const buf = ctx.readFragmentBuffer(arg.sourceRel);
-  const content = isBinaryBuffer(buf)
-    ? buf // 二进制：原样，不渲染/不改 EOL
-    : Buffer.from(normalizeEol(ctx.render(buf.toString("utf-8"))), "utf-8");
+  const doRender = resolveRender(op, ctx.recipe);
+  const content =
+    isBinaryBuffer(buf) || !doRender
+      ? buf // raw：原样字节，不渲染/不改 EOL（逐字节保留）
+      : Buffer.from(normalizeEol(ctx.render(buf.toString("utf-8"))), "utf-8");
   ctx.vfs.setFile(arg.target, content, op.id, { mode: arg.mode });
   return true;
 };
@@ -169,7 +178,9 @@ const walkDir = (unit: WalkUnit, relUnderRoot: string): boolean => {
     if (walkEntry(unit, childRel)) produced += 1;
   }
   if (produced === 0 && relUnderRoot !== "") {
-    return emitEmptyDir(unit, relUnderRoot);
+    // R3/D3/修订-3：源本空 → 按 emptyDirPolicy 保真产 dir；被 exclude/skip 滤空 → 不产空壳。
+    const sourceWasEmpty = names.length === 0;
+    return sourceWasEmpty ? emitEmptyDir(unit, relUnderRoot) : false;
   }
   return produced > 0;
 };

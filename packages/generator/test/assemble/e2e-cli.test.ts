@@ -26,9 +26,9 @@ const packageRoot = path.resolve(
 const binPath = path.join(packageRoot, "es", "cli.mjs");
 
 beforeAll(() => {
-  if (!fs.existsSync(binPath)) {
-    execFileSync("pnpm", ["build"], { cwd: packageRoot, stdio: "inherit" });
-  }
+  // 总是 build：e2e spawn 真 bin，须保证测的是当前源码产物。
+  // 仅"缺失才 build"会让 stale es/cli.mjs 复用 → 改源后单跑 e2e 假绿（codex 复验记录的残留风险，已封死）。
+  execFileSync("pnpm", ["build"], { cwd: packageRoot, stdio: "inherit" });
   expect(fs.existsSync(binPath)).toBe(true);
 });
 
@@ -42,6 +42,14 @@ const writeFragment = (rel: string, content: string): void => {
   const abs = path.join(fixture, "assemble", "fragments", rel);
   fs.mkdirSync(path.dirname(abs), { recursive: true });
   fs.writeFileSync(abs, content, "utf-8");
+};
+
+/** 在夹具内写碎片（Buffer，可指定 mode）——精确控制字节/EOL/权限位，供 raw 保真用例。 */
+const writeFragmentBuf = (rel: string, buf: Buffer, mode?: number): void => {
+  const abs = path.join(fixture, "assemble", "fragments", rel);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, buf);
+  if (mode !== undefined) fs.chmodSync(abs, mode);
 };
 
 /** 在夹具内写配方文件。 */
@@ -63,6 +71,7 @@ const scaffoldFixture = (): void => {
       id: "demo",
       base: { kind: "empty" },
       output: "out",
+      render: true,
       vars: { name: "world" },
       ops: [
         { type: "addFragment", id: "hi", source: "hi.txt", target: "hi.txt" },
@@ -151,5 +160,43 @@ describe("[C3-e2e] spawn dc-gen assemble <action>", () => {
     expect(r.status).not.toBe(0);
     expect(r.signal).toBe(null);
     expect(r.stderr).toMatch(/解析失败/);
+  });
+
+  it("⑤ raw 默认：CLI 边界字节保真（${}/<% 原样 + CRLF 保留 + mode 0755）", () => {
+    fixture = fs.mkdtempSync(path.join(os.tmpdir(), "asm-e2e-"));
+    // 含 generator 模板语法 ${}、EJS <%、CRLF 的源——raw 默认下须原样、零转义、零 EOL 改。
+    const tplSrc = Buffer.from(
+      "org=${organization}\r\n<%- title %>\r\nshell ${1}\r\n",
+      "utf-8",
+    );
+    const shSrc = Buffer.from("#!/bin/sh\r\necho ${name}\r\n", "utf-8");
+    writeFragmentBuf("tpl.txt", tplSrc);
+    writeFragmentBuf("run.sh", shSrc, 0o755);
+    // render 省略 → 默认 false（raw）；vars 存在也不应被消费。
+    writeRecipe(
+      "raw.json5",
+      `{
+        id: "raw",
+        base: { kind: "empty" },
+        output: "out",
+        vars: { organization: "X", title: "T", name: "N" },
+        ops: [
+          { type: "addFragment", id: "t", source: "tpl.txt", target: "tpl.txt" },
+          { type: "addFragment", id: "s", source: "run.sh", target: "run.sh" },
+        ],
+      }`,
+    );
+    const r = runCli(["assemble", "build"]);
+    expect(r.status).toBe(0);
+    const outDir = path.join(fixture, "out");
+    // 逐字节比对：未渲染（${}/<% 原样）、未 normalizeEol（CRLF 保留）。
+    expect(fs.readFileSync(path.join(outDir, "tpl.txt")).equals(tplSrc)).toBe(
+      true,
+    );
+    expect(fs.readFileSync(path.join(outDir, "run.sh")).equals(shSrc)).toBe(
+      true,
+    );
+    // mode 默认保源（R2/修订-4）：可执行位保留。
+    expect(fs.statSync(path.join(outDir, "run.sh")).mode & 0o777).toBe(0o755);
   });
 });

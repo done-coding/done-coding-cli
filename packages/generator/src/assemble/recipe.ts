@@ -172,6 +172,8 @@ export const validateRecipe = (parsed: unknown, label: string): Recipe => {
     base,
     output: parsed.output,
     ops,
+    // 修订-1：同步解析 recipe 级 render，否则 op>recipe>false 链不可达。
+    ...(typeof parsed.render === "boolean" ? { render: parsed.render } : {}),
     ...(vars ? { vars } : {}),
     ...(createTemplate ? { createTemplate } : {}),
   };

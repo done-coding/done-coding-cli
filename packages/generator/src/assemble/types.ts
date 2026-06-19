@@ -43,6 +43,8 @@ export interface Recipe {
   output: string;
   /** 渲染变量（喂 lodash.template；helper 挂 `_`，见 render.ts） */
   vars?: Record<string, unknown>;
+  /** 配方级渲染默认（R1②/D1，缺省 false）；op 级 render 覆盖之。 */
+  render?: boolean;
   /** 有序 op 列表（[MUST] 按声明顺序执行，D-H5 顺序模拟） */
   ops: AssembleOp[];
   /** create templateList 同步声明（D-H4，可选） */
@@ -67,6 +69,8 @@ export interface AssembleOpBase {
 export interface AddFragmentOp extends AssembleOpBase {
   type: "addFragment";
   source: string;
+  /** 渲染开关（R1①/D1，缺省 false=raw 字节保真）；覆盖 recipe.render。 */
+  render?: boolean;
   /** glob 过滤源（落位前筛选，A1/D-H7） */
   include?: string[];
   exclude?: string[];
