@@ -28,3 +28,4 @@ export * from "./text";
 export * from "./time";
 export * from "./process";
 export * from "./handler-context";
+export * from "./dir-resolver";
