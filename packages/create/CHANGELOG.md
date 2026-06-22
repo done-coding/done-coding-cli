@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.14.1-alpha.0](https://github.com/done-coding/done-coding-cli/compare/create-done-coding@0.14.0...create-done-coding@0.14.1-alpha.0) (2026-06-22)
+
+### Features
+
+- **cli-template:** collectEnvData 的 initial 支持引用前序已答变量 ([d26a8c4](https://github.com/done-coding/done-coding-cli/commit/d26a8c488e9ebfd087eee3683f1aa48b48779ce0))
+
 # [0.14.0](https://github.com/done-coding/done-coding-cli/compare/create-done-coding@0.13.0...create-done-coding@0.14.0) (2026-06-12)
 
 ### Bug Fixes

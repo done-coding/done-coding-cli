@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-ai",
-  "version": "0.1.6",
+  "version": "0.1.7-alpha.0",
   "description": "ai命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -50,15 +50,15 @@
     "vitest": "^1.6.1"
   },
   "dependencies": {
-    "@done-coding/cli-component": "workspace:0.5.4",
-    "@done-coding/cli-config": "workspace:0.2.4",
-    "@done-coding/cli-extract": "workspace:0.2.4",
-    "@done-coding/cli-inject": "workspace:0.6.4",
-    "@done-coding/cli-mrm": "workspace:0.0.5",
-    "@done-coding/cli-publish": "workspace:0.8.4",
-    "@done-coding/cli-template": "workspace:0.11.0",
-    "@done-coding/cli-utils": "workspace:0.11.0",
-    "create-done-coding": "workspace:0.14.0",
+    "@done-coding/cli-component": "workspace:0.5.5-alpha.0",
+    "@done-coding/cli-config": "workspace:0.2.5-alpha.0",
+    "@done-coding/cli-extract": "workspace:0.2.5-alpha.0",
+    "@done-coding/cli-inject": "workspace:0.6.5-alpha.0",
+    "@done-coding/cli-mrm": "workspace:0.0.6-alpha.0",
+    "@done-coding/cli-publish": "workspace:0.8.5-alpha.0",
+    "@done-coding/cli-template": "workspace:0.11.1-alpha.0",
+    "@done-coding/cli-utils": "workspace:0.11.1-alpha.0",
+    "create-done-coding": "workspace:0.14.1-alpha.0",
     "openai": "^4.77.0"
   },
   "engines": {

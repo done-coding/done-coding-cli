@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.4.1-alpha.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-mcp@0.4.0...@done-coding/cli-mcp@0.4.1-alpha.0) (2026-06-22)
+
+### Features
+
+- **mcp:** dc-gen MCP 工具接线（P3） ([877e9b9](https://github.com/done-coding/done-coding-cli/commit/877e9b93cf8e27e197835c49c83147e42ccef9a6))
+
 # [0.4.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-mcp@0.3.0...@done-coding/cli-mcp@0.4.0) (2026-06-14)
 
 ### Features

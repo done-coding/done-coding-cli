@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.1-alpha.0](https://gitee.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.1.0...@done-coding/cli-skills@0.1.1-alpha.0) (2026-06-22)
+
+### Features
+
+- **cli-skills:** cli-generator SKILL 接线（P3） ([c8b40dd](https://gitee.com/done-coding/done-coding-cli/commits/c8b40dd96d26e5bf5e780dbde2d8012425256e3c))
+
 # 0.1.0 (2026-06-12)
 
 ### Features
