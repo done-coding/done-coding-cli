@@ -1,89 +1,122 @@
+// 本文件由旧形态机械迁移而来（design §6.1 旧→新映射表）。
+// 旧形态：componentDir + series:"Dc" + nameExcludes + list[{entry,index}] 7 项 + nameListJsonOutputPath。
+// 新形态：BatchConfig（instanceDir + files[] + globalEnvData + listSerializer）。
+// 逐字节验收锚定的是【生成产物】（含 list -o 的 component-name-list.json），非本 config 文件本身（见 spec R5 / design §6 H3）。
+// template/*.md 模板资产零改一字不动——是产物内容的唯一来源。
 {
-  /** 组件系列 */
-  series: "Dc",
-  /** 组件名排除列表 */
+  /** 实例落地目录（复刻旧 componentDir 父目录 + operate/remove 隐式拼 ${nameKebab} 实例子目录） */
+  instanceDir: "${execDir}/src/components/${nameKebab}",
+  /** 复刻旧 remove.ts:65 rmdirSync（删空实例目录） */
+  removeEmptyDir: true,
+  /** content-free 选项；复刻旧 operate.ts:46 publicOptions 每项写死 dealMarkdown:true（K3，BatchConfig 级默认） */
+  dealMarkdown: true,
+  /** 复刻旧 operate.ts:44-45 每项写死 rollbackDelNullFile/rollbackDelAskAsYes:true（非交互 remove 免引擎需确认分支抛错） */
+  rollbackDelNullFile: true,
+  rollbackDelAskAsYes: true,
+  /** 复刻旧 list.ts 扫子目录枚举 + nameExcludes 过滤 */
+  list: { mode: "subdir", nameExcludes: ["index"] },
+  /** 名称排除（沿用 ensureNameLegal 语义） */
   nameExcludes: ["index"],
-  /** 组件目录 */
-  componentDir: "${execDir}/src/components",
-  /** 配置列表 */
-  list: [
-    /** 组件逻辑文件 */
+  /** 全局环境变量：声明式复刻旧 getComponentEnvData 的 series/fullName/fullNameKebab/cls 派生链。
+   *  name/nameLowerFirst/nameKebab 用内建 canonical，不在此重声明（K8）。 */
+  globalEnvData: {
+    /** 旧 series:"Dc" → upperFirst(camelCase("Dc")) = "Dc" */
+    series: "${_.upperFirst(_.camelCase('Dc'))}",
+    /** 旧 fullName = series ? series+name : ""（空 series 用条件式，不可裸拼） */
+    fullName: "${series ? series + name : ''}",
+    /** 旧 fullNameKebab = kebabCase(fullName) */
+    fullNameKebab: "${_.kebabCase(series ? series + name : '')}",
+    /** 旧 cls == fullNameKebab */
+    cls: "${_.kebabCase(series ? series + name : '')}",
+  },
+  /** 旧 list[{entry,index}] 7 项展开为扁平 files[]：
+   *  对每个原 list item，先放其 entry（strategy:"append"），再放其 index（strategy:"create"），item 间保序，
+   *  复刻旧 operate.ts:39-82「按 list 顺序、每项 entry(APPEND) 先于 index(OVERWRITE)」。 */
+  files: [
+    // ── item 1：组件逻辑文件 ──
     {
-      entry: {
-        inputData: '\n\
+      strategy: "append",
+      inputData: '\n\
 export { default as ${name} } from "./${nameKebab}"',
-        output: "${execDir}/src/components/index.ts",
-      },
-      index: {
-        input: "${templateDir}/template/component.vue.md",
-        output: "${execDir}/src/components/${nameKebab}/Component.vue",
-      },
+      output: "${execDir}/src/components/index.ts",
     },
-    /** 组件入口主体文件 */
     {
-      index: {
-        input: "${templateDir}/template/index.ts.md",
-        output: "${execDir}/src/components/${nameKebab}/index.ts",
-      },
+      strategy: "create",
+      input: "${templateDir}/template/component.vue.md",
+      output: "${execDir}/src/components/${nameKebab}/Component.vue",
     },
-    /** 组件样式文件 */
+    // ── item 2：组件入口主体文件（仅 index，无 entry） ──
     {
-      entry: {
-        inputData: '\n\
+      strategy: "create",
+      input: "${templateDir}/template/index.ts.md",
+      output: "${execDir}/src/components/${nameKebab}/index.ts",
+    },
+    // ── item 3：组件样式文件 ──
+    {
+      strategy: "append",
+      inputData: '\n\
 @import "../components/${nameKebab}/style.less";',
-        output: "${execDir}/src/styles/index.less",
-      },
-      index: {
-        input: "${templateDir}/template/style.less.md",
-        output: "${execDir}/src/components/${nameKebab}/style.less",
-      },
+      output: "${execDir}/src/styles/index.less",
     },
-    /** 样式变量文件 */
     {
-      entry: {
-        inputData: "\n\
+      strategy: "create",
+      input: "${templateDir}/template/style.less.md",
+      output: "${execDir}/src/components/${nameKebab}/style.less",
+    },
+    // ── item 4：样式变量文件（仅 entry，无 index） ──
+    {
+      strategy: "append",
+      inputData: "\n\
 \n\
 // ------------------ ${name} ------------------\n\
 @${nameLowerFirst}Prefix: ~'@{prefix}-${nameKebab}';",
-        output: "./src/styles/var.less",
-      },
+      output: "./src/styles/var.less",
     },
-    /** 组件示例 */
+    // ── item 5：组件示例 ──
     {
-      entry: {
-        inputData: '\n\
+      strategy: "append",
+      inputData: '\n\
 export { default as ${name} } from "@/components/${nameKebab}/Example.vue";',
-        output: "${execDir}/src/examples/components.ts",
-      },
-      index: {
-        input: "${templateDir}/template/example.vue.md",
-        output: "${execDir}/src/components/${nameKebab}/Example.vue",
-      },
+      output: "${execDir}/src/examples/components.ts",
     },
-    /** 组件类型文件 */
     {
-      entry: {
-        inputData: '\n\
+      strategy: "create",
+      input: "${templateDir}/template/example.vue.md",
+      output: "${execDir}/src/components/${nameKebab}/Example.vue",
+    },
+    // ── item 6：组件类型文件 ──
+    {
+      strategy: "append",
+      inputData: '\n\
 export * from "@/components/${nameKebab}/type";',
-        output: "${execDir}/src/types/index.ts",
-      },
-      index: {
-        input: "${templateDir}/template/type.ts.md",
-        output: "${execDir}/src/components/${nameKebab}/type.ts",
-      },
+      output: "${execDir}/src/types/index.ts",
     },
-    /** 语言文件 */
     {
-      entry: {
-        inputData: '\n\
+      strategy: "create",
+      input: "${templateDir}/template/type.ts.md",
+      output: "${execDir}/src/components/${nameKebab}/type.ts",
+    },
+    // ── item 7：语言文件 ──
+    {
+      strategy: "append",
+      inputData: '\n\
 export { default as ${nameLowerFirst} } from "@/components/${nameKebab}/locale";',
-        output: "${execDir}/src/locales/index.ts",
-      },
-      index: {
-        input: "${templateDir}/template/locale.ts.md",
-        output: "${execDir}/src/components/${nameKebab}/locale.ts",
-      },
+      output: "${execDir}/src/locales/index.ts",
+    },
+    {
+      strategy: "create",
+      input: "${templateDir}/template/locale.ts.md",
+      output: "${execDir}/src/components/${nameKebab}/locale.ts",
     },
   ],
+  /** 批次实例 list 序列化（复刻旧 dc-component list -o：list.ts:80-113）。
+   *  字段序严格 {name,nameKebab,fullName}、不排序（readdir 原序）、2 空格缩进、path.resolve(outputPath) 按 cwd。 */
+  listSerializer: {
+    fields: ["name", "nameKebab", "fullName"],
+    sort: false,
+    indent: 2,
+    pathResolveBase: "cwd",
+  },
+  /** list -o 输出 json 相对路径（平移旧值，按 cwd path.resolve） */
   nameListJsonOutputPath: "./src/vite/component-name-list.json",
 }
