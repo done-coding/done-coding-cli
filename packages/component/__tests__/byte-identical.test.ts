@@ -4,10 +4,10 @@
  * 验收口径：新 dc-component（cli-generator 的 component 预设薄包装）跑
  *   add Alpha → add BetaBox → list -o → remove Alpha
  * 的全部落地产物（含 list -o 的 component-name-list.json），与冻结在
- *   test/golden/src/** 下的旧 dc-component 产物 **逐字节一致**。
+ *   __tests__/golden/src/** 下的旧 dc-component 产物 **逐字节一致**。
  *
  * golden 来源（committed 夹具）：在旧 worktree（git 4087989，旧码 + 旧 config）
- *   用旧 dc-component 跑同序同名操作收得的产物树，存为 test/golden/src/**。
+ *   用旧 dc-component 跑同序同名操作收得的产物树，存为 __tests__/golden/src/**。
  *   其 SHA 已与新产物核对一致（见 RETROSPECTIVE）。
  *
  * 沙盒铁律（项目 CLAUDE.md / K7）：spawn 真实 bin 落 tmp 项目，afterEach 清理；

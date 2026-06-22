@@ -2,10 +2,7 @@ import { describe, it, expect, afterEach } from "vitest";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import {
-  resolveDoneCodingDir,
-  listDoneCodingDirs,
-} from "@/dir-resolver";
+import { resolveDoneCodingDir, listDoneCodingDirs } from "@/dir-resolver";
 
 /**
  * 全部夹具落临时目录（mkdtempSync），afterEach 清理。

@@ -9,7 +9,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["test/**/*.test.ts"],
+    include: ["__tests__/**/*.test.ts"],
     // e2e 用例会 spawn 真实 CLI + git，放宽单用例超时
     testTimeout: 60000,
     hookTimeout: 120000,

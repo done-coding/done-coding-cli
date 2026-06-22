@@ -9,7 +9,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["test/**/*.test.ts"],
+    include: ["__tests__/**/*.test.ts"],
     // byte-identical 用例 spawn 真实 dc-component bin，放宽超时
     testTimeout: 60000,
     hookTimeout: 120000,

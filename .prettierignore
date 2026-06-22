@@ -1,2 +1,2 @@
 # golden 字节级回归夹具：由旧 dc-component 产出、逐字节比对的基准，[MUST NOT] 被格式化（否则破坏 R5 byte-identical 测试）
-**/test/golden/**
+**/__tests__/golden/**
