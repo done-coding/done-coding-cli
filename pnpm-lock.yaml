@@ -98,6 +98,9 @@ importers:
       "@vitest/coverage-v8":
         specifier: ^1.6.1
         version: 1.6.1(vitest@1.6.1(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0))
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.10
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -150,6 +153,9 @@ importers:
       "@types/node":
         specifier: ^18.0.0
         version: 18.19.4
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.10
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -181,6 +187,9 @@ importers:
       "@vitest/coverage-v8":
         specifier: ^1.6.1
         version: 1.6.1(vitest@1.6.1(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0))
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.10
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -196,52 +205,25 @@ importers:
 
   packages/component:
     dependencies:
-      "@done-coding/cli-template":
-        specifier: workspace:0.11.0
-        version: link:../template
+      "@done-coding/cli-generator":
+        specifier: workspace:*
+        version: link:../generator
       "@done-coding/cli-utils":
         specifier: workspace:0.11.0
         version: link:../utils
-      lodash.camelcase:
-        specifier: ^4.3.0
-        version: 4.3.0
-      lodash.kebabcase:
-        specifier: ^4.1.1
-        version: 4.1.1
-      lodash.lowerfirst:
-        specifier: ^4.3.1
-        version: 4.3.1
-      lodash.template:
-        specifier: ^4.5.0
-        version: 4.5.0
-      lodash.upperfirst:
-        specifier: ^4.3.1
-        version: 4.3.1
     devDependencies:
       "@done-coding/cli-inject":
         specifier: workspace:0.6.4
         version: link:../inject
-      "@types/lodash.camelcase":
-        specifier: ^4.3.8
-        version: 4.3.9
-      "@types/lodash.kebabcase":
-        specifier: ^4.1.8
-        version: 4.1.9
-      "@types/lodash.lowerfirst":
-        specifier: ^4.3.8
-        version: 4.3.9
-      "@types/lodash.template":
-        specifier: ^4.5.2
-        version: 4.5.3
-      "@types/lodash.upperfirst":
-        specifier: ^4.3.8
-        version: 4.3.9
       "@types/node":
         specifier: ^18.0.0
         version: 18.19.4
       "@types/yargs":
         specifier: ^17.0.28
         version: 17.0.33
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.10
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -251,6 +233,9 @@ importers:
       vite-plugin-dts:
         specifier: ^3.6.0
         version: 3.7.0(@types/node@18.19.4)(rollup@4.48.1)(typescript@5.8.3)(vite@4.5.10(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0))
+      vitest:
+        specifier: ^1.6.1
+        version: 1.6.1(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0)
 
   packages/config:
     dependencies:
@@ -267,6 +252,9 @@ importers:
       "@types/yargs":
         specifier: ^17.0.28
         version: 17.0.33
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.10
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -298,6 +286,9 @@ importers:
       "@types/yargs":
         specifier: ^17.0.28
         version: 17.0.33
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.10
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -329,6 +320,9 @@ importers:
       "@types/yargs":
         specifier: ^17.0.28
         version: 17.0.33
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.10
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -338,6 +332,73 @@ importers:
       vite-plugin-dts:
         specifier: ^3.6.0
         version: 3.7.0(@types/node@18.19.4)(rollup@4.48.1)(typescript@5.8.3)(vite@4.5.10(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0))
+
+  packages/generator:
+    dependencies:
+      "@done-coding/cli-template":
+        specifier: workspace:*
+        version: link:../template
+      "@done-coding/cli-utils":
+        specifier: workspace:*
+        version: link:../utils
+      lodash.camelcase:
+        specifier: ^4.3.0
+        version: 4.3.0
+      lodash.kebabcase:
+        specifier: ^4.1.1
+        version: 4.1.1
+      lodash.lowerfirst:
+        specifier: ^4.3.1
+        version: 4.3.1
+      lodash.template:
+        specifier: ^4.5.0
+        version: 4.5.0
+      lodash.upperfirst:
+        specifier: ^4.3.1
+        version: 4.3.1
+    devDependencies:
+      "@done-coding/cli-inject":
+        specifier: workspace:0.6.3
+        version: link:../inject
+      "@types/lodash.camelcase":
+        specifier: ^4.3.8
+        version: 4.3.9
+      "@types/lodash.kebabcase":
+        specifier: ^4.1.8
+        version: 4.1.9
+      "@types/lodash.lowerfirst":
+        specifier: ^4.3.8
+        version: 4.3.9
+      "@types/lodash.template":
+        specifier: ^4.5.2
+        version: 4.5.3
+      "@types/lodash.upperfirst":
+        specifier: ^4.3.8
+        version: 4.3.9
+      "@types/node":
+        specifier: ^18.0.0
+        version: 18.19.4
+      "@types/yargs":
+        specifier: ^17.0.28
+        version: 17.0.33
+      "@vitest/coverage-v8":
+        specifier: 1.6.1
+        version: 1.6.1(vitest@1.6.1(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0))
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.10
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+      vite:
+        specifier: ^4.4.11
+        version: 4.5.10(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0)
+      vite-plugin-dts:
+        specifier: ^3.6.0
+        version: 3.7.0(@types/node@18.19.4)(rollup@4.48.1)(typescript@5.8.3)(vite@4.5.10(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0))
+      vitest:
+        specifier: ^1.6.1
+        version: 1.6.1(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0)
 
   packages/git:
     dependencies:
@@ -360,6 +421,9 @@ importers:
       "@types/yargs":
         specifier: ^17.0.28
         version: 17.0.33
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.10
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -382,6 +446,9 @@ importers:
       "@types/yargs":
         specifier: ^17.0.28
         version: 17.0.33
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.10
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -394,6 +461,9 @@ importers:
 
   packages/mcp:
     dependencies:
+      "@done-coding/cli-generator":
+        specifier: workspace:*
+        version: link:../generator
       "@done-coding/cli-utils":
         specifier: workspace:0.11.0
         version: link:../utils
@@ -413,6 +483,9 @@ importers:
       "@types/node":
         specifier: ^18.0.0
         version: 18.19.4
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.10
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -447,6 +520,9 @@ importers:
       "@vitest/coverage-v8":
         specifier: ^1.6.1
         version: 1.6.1(vitest@1.6.1(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0))
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.10
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -481,6 +557,9 @@ importers:
       "@types/yargs":
         specifier: ^17.0.28
         version: 17.0.33
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.10
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -497,10 +576,10 @@ importers:
         specifier: workspace:0.11.0
         version: link:../utils
       lodash.assign:
-        specifier: ^4.2.0
+        specifier: 4.2.0
         version: 4.2.0
       lodash.template:
-        specifier: ^4.5.0
+        specifier: 4.5.0
         version: 4.5.0
     devDependencies:
       "@done-coding/cli-inject":
@@ -518,6 +597,9 @@ importers:
       "@types/yargs":
         specifier: ^17.0.28
         version: 17.0.33
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.10
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -527,6 +609,9 @@ importers:
       vite-plugin-dts:
         specifier: ^3.6.0
         version: 3.7.0(@types/node@18.19.4)(rollup@4.48.1)(typescript@5.8.3)(vite@4.5.10(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0))
+      vitest:
+        specifier: ^1.6.1
+        version: 1.6.1(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0)
 
   packages/utils:
     dependencies:
@@ -606,6 +691,9 @@ importers:
       "@types/yargs":
         specifier: ^17.0.28
         version: 17.0.33
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.10
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -615,6 +703,9 @@ importers:
       vite-plugin-dts:
         specifier: ^3.6.0
         version: 3.7.0(@types/node@18.19.4)(rollup@4.48.1)(typescript@5.8.3)(vite@4.5.10(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0))
+      vitest:
+        specifier: ^1.6.1
+        version: 1.6.1(@types/node@18.19.4)(less@4.5.1)(terser@5.46.0)
 
 packages:
   "@aashutoshrathi/word-wrap@1.2.6":
@@ -4646,7 +4737,6 @@ packages:
         integrity: sha512-fa46+tv1Ak0UPK1TOy/pZrIybNNt4HCv7SDzwyfiOZkvZLEbjsZkJBPtDHVshZjbecAoAGSC20MjLDG/qr679g==,
       }
     engines: { node: ">=16 || 14 >=14.17" }
-    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@7.1.4:
@@ -4654,7 +4744,7 @@ packages:
       {
         integrity: sha512-hkLPepehmnKk41pUGm3sYxoFs/umurYfYJCerbXEyFIWcAzvpipAgVkBqqT9RBKMGjnq6kMuyYwha6csxbiM1A==,
       }
-    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+    deprecated: Glob versions prior to v9 are no longer supported
 
   glob@7.2.3:
     resolution:
@@ -4669,7 +4759,7 @@ packages:
         integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==,
       }
     engines: { node: ">=12" }
-    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+    deprecated: Glob versions prior to v9 are no longer supported
 
   glob@9.3.5:
     resolution:
@@ -7496,6 +7586,13 @@ packages:
         integrity: sha512-Gk8NlF062+T9CqNGn6h4tls3k6T1+/nXdOcSZVikNVtlRdYpA7wRJJMoXmuvOnLW844rPjdQ7JgXCYM6PPC/og==,
       }
     engines: { node: ">=14" }
+    hasBin: true
+
+  rimraf@5.0.10:
+    resolution:
+      {
+        integrity: sha512-l0OE8wL34P4nJH/H2ffoaniAokM2qSmrtXHmlpvYr5AVVX8msAyW0l8NVJFDxlSK4u3Uh/f41cQheDVdnYijwQ==,
+      }
     hasBin: true
 
   rollup@3.29.5:
@@ -13540,6 +13637,10 @@ snapshots:
   rimraf@4.4.1:
     dependencies:
       glob: 9.3.5
+
+  rimraf@5.0.10:
+    dependencies:
+      glob: 10.3.10
 
   rollup@3.29.5:
     optionalDependencies:

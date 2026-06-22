@@ -11,6 +11,7 @@ import {
   handler as batchHandler,
   getOptions as getBatchOptions,
 } from "./batch-compile";
+import { DEFAULT_MARKER_NS } from "@/utils/marker";
 
 /** 获取编译选项 */
 const getOptions = (): YargsOptionsRecord<CompileOptions> => {
@@ -86,7 +87,7 @@ export const handler = async (argv: CliHandlerArgv<CompileOptions>) => {
 
   if (batch) {
     outputConsole.stage(`开始批量处理`);
-    return batchHandler(publicConfig);
+    return batchHandler({ ...publicConfig, markerNs: DEFAULT_MARKER_NS });
   }
   outputConsole.stage(`开始单个处理`);
 
@@ -101,6 +102,9 @@ export const handler = async (argv: CliHandlerArgv<CompileOptions>) => {
     dealMarkdown,
   });
 
+  // 不传 markerNs 是有意的：单发 compile 的 mode choices（OVERWRITE/APPEND/REPLACE/RETURN，见上方
+  // options 定义）不含 INSERT，故永远进不了引擎的 INSERT/回退分支（markerNs 必填的唯一路径）。
+  // [MUST NOT] 在此补 markerNs“修 bug”——会误导后人以为单发支持 INSERT；INSERT 仅经 --batch。
   return compileTemplate(
     {
       input,

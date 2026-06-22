@@ -114,6 +114,19 @@ jobs:
         # --------------------------------------------------------
         run: |
           npx lerna run build
+          # 构建会重新生成已提交的自动产物 d.ts（如 components.d.ts / auto-imports.d.ts），
+          # 弄脏工作树会让 lerna publish 因 "working tree has uncommitted changes" 中止。
+          # 这类 d.ts 不影响运行逻辑：若 dirty 仅限 *.d.ts → 回退保持工作树干净；否则报错退出。
+          dirty=$(git diff --name-only)
+          if [ -n "$dirty" ]; then
+            if echo "$dirty" | grep -qvE '\.d\.ts$'; then
+              echo "unexpected non-d.ts dirty files after build:" >&2
+              echo "$dirty" >&2
+              exit 1
+            fi
+            echo "$dirty" | xargs git checkout --
+            echo "reset auto-generated d.ts to keep working tree clean"
+          fi
           npx lerna publish --yes --no-push --message "chore(release): publish [skip ci]"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
