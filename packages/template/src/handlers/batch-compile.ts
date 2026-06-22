@@ -84,6 +84,7 @@ export const handler = async (
   {
     extraEnvData = {},
     collectEnvData: collectEnvDataInit = {},
+    markerNs: topMarkerNs,
     ...args
   }: CliHandlerArgv<CompileBatchHandlerOptions>,
 
@@ -215,6 +216,7 @@ export const handler = async (
         collectEnvData,
         itemEnvData,
       ),
+      markerNs: rest.markerNs ?? topMarkerNs,
       rollback,
     };
   });
