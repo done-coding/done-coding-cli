@@ -49,6 +49,7 @@
     "vitest": "^1.6.1"
   },
   "dependencies": {
+    "@done-coding/cli-generator": "workspace:*",
     "@done-coding/cli-utils": "workspace:0.11.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "create-done-coding": "workspace:0.14.0",
