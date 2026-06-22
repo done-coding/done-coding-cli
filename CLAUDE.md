@@ -19,6 +19,30 @@ WHEN 执行任何包的测试、单测、回归（尤其 cli-generator(gen/assem
    - assemble — **clean regenerate 到临时目录 → 与已提交产物 diff，任意 diff fail**（需求 A5③ 漂移闸）。
    - 两者均在临时目录比对，[MUST NOT] 在工作树原地比对。
 
+## 运行时路径安全（[MUST]）
+
+WHEN 写 / 审 cli 仓涉文件系统的代码：
+
+1. **cwd 解析**：涉 cwd [MUST] 经 `safeCwd()` / `resolveHandlerContext`，[MUST NOT] 裸 `process.cwd()`。
+2. **删除 / 整体写盘前**：[MUST] `isInside(受控根, 目标)` 且 目标 ≠ 受控根；涉 symlink 可逃逸路径 [MUST] 先 `fs.realpathSync` 双解再比较，[MUST NOT] 无界 rm / 字面前缀放行。
+3. **destructive 入口**（`flush` 整目录替换 / `rmdir` 等）：[MUST] 拒可疑根（家目录本体 / 文件系统根）；逃逸 [MUST] 显式 opt-in（`--allow-dangerous` / `allowDangerous`），默认不开。
+
+## I/O 异步约定（前瞻，约束新增代码）
+
+1. server / 库 / 并发可达路径的文件 I/O [MUST] 用 `fs/promises`，[MUST NOT] 新增裸 `*Sync`。
+2. 一次性交互 CLI 快路径可 sync。
+3. 对齐 coding-dna 的 sync/async 双版本约定；**本约定约束新增代码**，既有 sync 不强制本批迁移。
+
+> **翻转点注脚（什么时候才该考虑把 sync 改 async）**：决策依据是「**并发公民性**」——
+> 该进程在一次 IO 进行时是否需要同时干别的——**不是**「资源利用率 / IO 密集度」。
+> sync 不是高效、是「够用且简单」；cli-gen 单次操作文件少、亚秒级、且原子性（rename swap +
+> 回滚 + 顺序 op）用 sync 写得线性清晰，盲目 async 反增竞态与复杂度。
+> 仅当跨过以下任一条线才需要 async（且届时只迁「并发可达路径」，非全链无脑 async）：
+> ⓐ MCP server 要并发处理多请求 / 在长操作中响应 cancel·进度·健康探针；
+> ⓑ cli-gen **库化被嵌进某个 async 宿主进程** import 调用（sync 会阻塞**宿主**事件循环，不只自己）。
+> ⚠️ 「async 化」≠「并发化」：把 `*Sync` 换成串行 `await` 而无真并发 = 纯增复杂度、零收益。
+> 当前形态（CLI 一次性 + MCP 单请求串行）未跨任何线 → 全 sync 合规，async 全链迁移继续挂产品化轨。
+
 ## 发布
 
 - `pnpm push`（lerna publish）。[MUST NOT] 在常规任务中发布；发布需另行单次明文授权（push 永不豁免）。

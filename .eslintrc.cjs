@@ -127,6 +127,7 @@ module.exports = {
     "locales",
     "styles",
     "coverage",
+    "**/test/golden/**",
     "**/__test__/**",
     "**/jest.config.js",
     "**/index.html",
