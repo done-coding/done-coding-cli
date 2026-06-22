@@ -177,21 +177,23 @@ const walkDir = (unit: WalkUnit, relUnderRoot: string): boolean => {
     const childRel = joinRel(relUnderRoot, name);
     if (walkEntry(unit, childRel)) produced += 1;
   }
-  if (produced === 0 && relUnderRoot !== "") {
-    // R3/D3/修订-3：源本空 → 按 emptyDirPolicy 保真产 dir；被 exclude/skip 滤空 → 不产空壳。
+  if (produced === 0) {
+    // R3/D3/修订-3：源本空 → 按 emptyDirPolicy 保真产 dir（含顶层 source 自身为空，
+    // relUnderRoot==="" → target=destRoot）；被 exclude/skip 滤空 → 不产空壳。
     const sourceWasEmpty = names.length === 0;
     return sourceWasEmpty ? emitEmptyDir(unit, relUnderRoot) : false;
   }
-  return produced > 0;
+  return true;
 };
 
 /** 空目录产出（emptyDirPolicy=keep 才产出 dir 节点）；经统一存在性守卫（H3）。 */
 const emitEmptyDir = (unit: WalkUnit, relUnderRoot: string): boolean => {
   if ((unit.op.emptyDirPolicy ?? "keep") !== "keep") return false;
-  const target = joinRel(
-    unit.destRoot,
-    applyRename(relUnderRoot, unit.op.rename),
-  );
+  // 顶层 source 自身为空（relUnderRoot===""）→ target 直接 destRoot，避免 joinRel 产畸形 `destRoot/`。
+  const target =
+    relUnderRoot === ""
+      ? unit.destRoot
+      : joinRel(unit.destRoot, applyRename(relUnderRoot, unit.op.rename));
   if (!guardIfExists(unit.ctx, unit.op, target)) return false;
   const node: VfsNode = {
     kind: "dir",

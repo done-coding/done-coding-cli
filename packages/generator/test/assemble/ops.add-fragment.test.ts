@@ -353,6 +353,24 @@ describe("[B3] addFragment", () => {
     expect(ctx.vfs.get("dst/b")?.kind).toBe("dir");
   });
 
+  it("R3④顶层 source 自身为空目录 → 产出 target dir（默认 keep，target=destRoot 不畸形）", () => {
+    const emptyRoot = path.join(root, "solo-empty");
+    fs.mkdirSync(emptyRoot);
+    addFragmentHandler.apply(ctx, op({ source: "solo-empty", target: "dst" }));
+    expect(ctx.vfs.get("dst")?.kind).toBe("dir");
+    // 字面 key 为 "dst"（非畸形 "dst/"）；VFS 写入即归一，这里确认产物 key 集合干净。
+    expect(ctx.vfs.paths()).toContain("dst");
+  });
+
+  it("R3④反向：顶层空 source + emptyDirPolicy skip → 不产出", () => {
+    fs.mkdirSync(path.join(root, "solo-empty2"));
+    addFragmentHandler.apply(
+      ctx,
+      op({ source: "solo-empty2", target: "dst", emptyDirPolicy: "skip" }),
+    );
+    expect(ctx.vfs.has("dst")).toBe(false);
+  });
+
   it("R3③嵌套：c/x.log(excluded) + c/empty/(源本空) → 产 c/empty（c 经其保留）", () => {
     fs.mkdirSync(path.join(root, "c"));
     fs.writeFileSync(path.join(root, "c", "x.log"), "x");
