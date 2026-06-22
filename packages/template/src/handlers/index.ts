@@ -18,6 +18,7 @@ import {
   type CliHandlerArgv,
   type CliInfo,
 } from "@done-coding/cli-utils";
+import { DEFAULT_MARKER_NS } from "@/utils/marker";
 
 /** template 包 handler 导出 */
 export {
@@ -47,7 +48,7 @@ export const handler = async (
       return compileHandler(argv);
     }
     case SubcommandEnum.BATCH: {
-      return batchCompileHandler(argv);
+      return batchCompileHandler({ ...argv, markerNs: DEFAULT_MARKER_NS });
     }
     default: {
       throw new Error(`不支持的命令 ${command}`);

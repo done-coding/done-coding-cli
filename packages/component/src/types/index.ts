@@ -1,6 +1,15 @@
-import type { CompileOptions } from "@done-coding/cli-template";
+/**
+ * [T7] dc-component 退化为 cli-generator 的 component 预设后，本包不再持有业务类型。
+ *
+ * - `SubcommandEnum`：dc-component 命令面仍用（add/remove/list），保留。
+ * - 其余批次 / 渲染 / config 类型一律改为从 @done-coding/cli-generator 兼容 re-export，
+ *   避免下游（如有）继续 import 旧类型时断裂。
+ *
+ * 仓内核实：外部仅 packages/cli 依赖本包的 `handler` / `createAsSubcommand`（值），
+ * 未 import 本包类型；旧 Config/TemplateConfig/ConfigListItem 等随旧 JS 逻辑一并下线。
+ */
 
-/** 子命令枚举 */
+/** 子命令枚举（dc-component 命令面：add/remove/list/modify） */
 export enum SubcommandEnum {
   /** 新增组件 */
   ADD = "add",
@@ -8,78 +17,16 @@ export enum SubcommandEnum {
   REMOVE = "remove",
   /** 展示列表 */
   LIST = "list",
+  /** 原位修改 inject 块 */
+  MODIFY = "modify",
 }
 
-/** 组件通用选项 */
-export interface CommonOptions {
-  /**
-   * 组件名
-   */
-  name: string;
-}
-
-export interface AddOptions extends CommonOptions {}
-
-export interface RemoveOptions extends Partial<CommonOptions> {}
-
-export interface ListOptions {
-  /** 输出(组件名列表)json */
-  outputJson?: boolean;
-  /**
-   * 输出路径
-   * ---
-   * @default './component-name-list.json'
-   */
-  outputPath?: string;
-}
-
-/** 模版配置输入路径 */
-export type TemplateConfigInputByPath = Pick<
-  CompileOptions,
-  "input" | "output"
->;
-
-/** 模版配置输入数据 */
-export type TemplateConfigInputByData = Pick<
-  CompileOptions,
-  "inputData" | "output"
->;
-
-/** 模版配置 */
-export type TemplateConfig =
-  | TemplateConfigInputByPath
-  | TemplateConfigInputByData;
-
-/** 模版配置完整 */
-export type TemplateConfigFull = Pick<
-  CompileOptions,
-  "input" | "inputData" | "output"
->;
-
-/** 列表item */
-export interface ConfigListItem {
-  /** 入口文件 */
-  entry: TemplateConfig;
-  /** 索引文件 */
-  index?: TemplateConfig;
-}
-
-/** 组件配置 */
-export interface Config {
-  /** 组件系列 */
-  series: string;
-  /** 组件名排除列表 */
-  nameExcludes: string[];
-  /** 组件目录 */
-  componentDir: string;
-  /** 配置列表 */
-  list: ConfigListItem[];
-  /**
-   * 组件名列表json 输出相对路径 (.json)
-   * ----
-   * 基于运行目录
-   * ---
-   * 该功能应用场景， 用于生成组件名列表 来用在vite按需加载组件判断
-   */
-  nameListJsonOutputPath?: string;
-}
+// 兼容 re-export：批次 / 渲染 / config 权威类型现由 generator 持有（content-free）
+export type {
+  BatchConfig,
+  FileEntry,
+  Strategy,
+  EnvContext,
+  ListSerializerConfig,
+  GeneratorHandlerArgv,
+} from "@done-coding/cli-generator";

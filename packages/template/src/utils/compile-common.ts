@@ -18,6 +18,12 @@ import {
   ensureOutputNotEqualsInput,
   ensureOutputNotNull,
 } from "./ensure";
+import {
+  computeInsert,
+  computeRollback,
+  resolveMarkerComment,
+  validateMarkerKey,
+} from "./marker";
 import path from "node:path";
 import fs from "node:fs";
 
@@ -41,6 +47,11 @@ export const compileTemplate = async (
     rollbackDelNullFile,
     rollbackDelAskAsYes,
     dealMarkdown,
+    rollbackRequireHit,
+    anchor,
+    markerKey,
+    markerComment,
+    markerNs,
     envData: envDataInit,
   } = completeOptions;
 
@@ -49,6 +60,38 @@ export const compileTemplate = async (
       case OutputModeEnum.REPLACE:
       case OutputModeEnum.RETURN: {
         outputConsole.error(`${mode}模式不支持回滚`);
+        return;
+      }
+      // A1（design §12）：INSERT 回退独立于模板内容——在 getData/_template **之前**短路，
+      // 只认 marker，免疫块内手改/模板缺失/渲染失败。其余 mode 流程一字不动。
+      case OutputModeEnum.INSERT: {
+        ensureOutputNotNull(mode, output);
+        const outputPath = path.resolve(rootDir, output!);
+        if (!fs.existsSync(outputPath)) {
+          outputConsole.warn(`${mode}模式下${outputPath}不存在，无需回滚`);
+          return;
+        }
+        if (!markerNs) {
+          throw new Error(
+            `INSERT/回退需注入 markerNs（调用方未提供，禁默认兜底）：${outputPath}`,
+          );
+        }
+        const comment = resolveMarkerComment(outputPath, markerComment);
+        const key = validateMarkerKey(markerKey, comment, outputPath, markerNs);
+        const oldContent = fs.readFileSync(outputPath, "utf-8");
+        const newContent = computeRollback(oldContent, {
+          comment,
+          markerKey: key,
+          markerNs,
+          outputPath,
+        });
+        if (newContent || !rollbackDelNullFile) {
+          fs.writeFileSync(outputPath, newContent, "utf-8");
+        } else {
+          outputConsole.stage(`${mode}模式下 文件为空 删除`);
+          fs.unlinkSync(outputPath);
+        }
+        outputConsole.success(`${mode}模式下${outputPath}回滚完成`);
         return;
       }
     }
@@ -130,6 +173,13 @@ rollback: ${rollback}
       if (fs.existsSync(outputPath)) {
         const oldContent = fs.readFileSync(outputPath, "utf-8");
         if (rollback) {
+          // additive：仅当显式开启命中检测时校验；不开 = 旧行为逐字节不变（L3 守约）
+          if (rollbackRequireHit && !oldContent.includes(outputContent)) {
+            outputConsole.error(
+              `${mode}模式回滚未命中目标内容，可能已被手动修改：${outputPath}。请手动确认后删除。`,
+            );
+            throw new Error(`APPEND rollback 未命中：${outputPath}`); // fail-loud，不静默
+          }
           const newContent = oldContent.replace(outputContent, "");
 
           if (newContent || !rollbackDelNullFile) {
@@ -185,6 +235,38 @@ rollback: ${rollback}
     case OutputModeEnum.RETURN: {
       outputConsole.success(`模板处理完成，返回结果(函数调用才会拿到返回值)`);
       return outputContent;
+    }
+    case OutputModeEnum.INSERT: {
+      // 正向 inject（rollback 已在 switch 前短路，A1）：锚点定位 + marker 包裹插入。
+      ensureOutputNotNull(mode, output);
+      ensureOutputNotEqualsInput(output, input);
+      const outputPath = path.resolve(rootDir, output!);
+      if (!fs.existsSync(outputPath)) {
+        // E3：inject 需既有锚点文件，[MUST NOT] 创建
+        outputConsole.error(
+          `${mode}模式目标文件不存在，inject 需既有锚点文件：${outputPath}`,
+        );
+        throw new Error(`inject 目标文件不存在：${outputPath}`);
+      }
+      if (!markerNs) {
+        throw new Error(
+          `INSERT/回退需注入 markerNs（调用方未提供，禁默认兜底）：${outputPath}`,
+        );
+      }
+      const comment = resolveMarkerComment(outputPath, markerComment);
+      const key = validateMarkerKey(markerKey, comment, outputPath, markerNs);
+      const oldContent = fs.readFileSync(outputPath, "utf-8");
+      const newContent = computeInsert(oldContent, outputContent, {
+        comment,
+        markerKey: key,
+        markerNs,
+        anchor,
+        outputPath,
+        onNotice: (msg) => outputConsole.info(msg),
+      });
+      fs.writeFileSync(outputPath, newContent, "utf-8");
+      outputConsole.success(`模板处理完成，inject 到 ${outputPath}`);
+      break;
     }
     default: {
       outputConsole.error(`mode ${mode} 不支持`);

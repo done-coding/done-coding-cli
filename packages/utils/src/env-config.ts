@@ -264,7 +264,10 @@ const getApplyConfig = (): EnvConfig => {
 export const updateEnvConfig = ({
   series = DONE_CODING_SERIES_DEFAULT,
   consoleLog = true,
-}: Partial<Pick<EnvConfig, "consoleLog" | "series">>) => {
+  processCreateByHijack,
+}: Partial<
+  Pick<EnvConfig, "consoleLog" | "series" | "processCreateByHijack">
+>) => {
   const logOutputDir = getEnvConfigLogOutputDir(series);
 
   const nextConfig = {
@@ -272,6 +275,10 @@ export const updateEnvConfig = ({
     series,
     consoleLog,
     logOutputDir,
+    // 可选覆盖（additive，旧调用不传=行为不变）：MCP stdio 入口须显式置 false，
+    // 否则继承 hijack preset 会让 isAllowOutputConsoleType 无视 consoleLog:false
+    // 强制控制台输出、污染 JSON-RPC（P3 B5）。
+    ...(processCreateByHijack !== undefined ? { processCreateByHijack } : {}),
   };
 
   return setEnvConfig(nextConfig);

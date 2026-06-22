@@ -1,0 +1,72 @@
+{
+  "name": "@done-coding/cli-generator",
+  "version": "0.0.0",
+  "description": "通用具名批次生成器（content-free 机制层）",
+  "private": false,
+  "module": "es/index.mjs",
+  "type": "module",
+  "types": "types/index.d.ts",
+  "bin": {
+    "dc-gen": "es/cli.mjs"
+  },
+  "exports": {
+    ".": {
+      "import": "./es/index.mjs",
+      "types": "./types/index.d.ts"
+    }
+  },
+  "files": [
+    "es",
+    "lib",
+    "types"
+  ],
+  "scripts": {
+    "dev": "vite build -w -m hotBuild",
+    "build": "vite build",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "prepack": "pnpm build",
+    "prebuild": "rimraf types"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/done-coding/done-coding-cli.git",
+    "directory": "packages/generator"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "author": "JustSoSu",
+  "license": "MIT",
+  "sideEffects": false,
+  "devDependencies": {
+    "@done-coding/cli-inject": "workspace:0.6.3",
+    "@types/lodash.camelcase": "^4.3.8",
+    "@types/lodash.kebabcase": "^4.1.8",
+    "@types/lodash.lowerfirst": "^4.3.8",
+    "@types/lodash.template": "^4.5.2",
+    "@types/lodash.upperfirst": "^4.3.8",
+    "@types/node": "^18.0.0",
+    "@types/yargs": "^17.0.28",
+    "@vitest/coverage-v8": "1.6.1",
+    "rimraf": "^5.0.1",
+    "typescript": "^5.8.3",
+    "vite": "^4.4.11",
+    "vite-plugin-dts": "^3.6.0",
+    "vitest": "^1.6.1"
+  },
+  "dependencies": {
+    "@done-coding/cli-template": "workspace:*",
+    "@done-coding/cli-utils": "workspace:*",
+    "lodash.camelcase": "^4.3.0",
+    "lodash.kebabcase": "^4.1.1",
+    "lodash.lowerfirst": "^4.3.1",
+    "lodash.template": "^4.5.0",
+    "lodash.upperfirst": "^4.3.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

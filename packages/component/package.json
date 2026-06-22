@@ -18,12 +18,16 @@
   "files": [
     "es",
     "lib",
-    "types"
+    "types",
+    ".done-coding"
   ],
   "scripts": {
     "dev": "vite build -w -m hotBuild",
     "build": "vite build",
-    "prepack": "pnpm build"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepack": "pnpm build",
+    "prebuild": "rimraf types"
   },
   "repository": {
     "type": "git",
@@ -39,25 +43,17 @@
   "sideEffects": false,
   "devDependencies": {
     "@done-coding/cli-inject": "workspace:0.6.4",
-    "@types/lodash.camelcase": "^4.3.8",
-    "@types/lodash.kebabcase": "^4.1.8",
-    "@types/lodash.lowerfirst": "^4.3.8",
-    "@types/lodash.template": "^4.5.2",
-    "@types/lodash.upperfirst": "^4.3.8",
     "@types/node": "^18.0.0",
     "@types/yargs": "^17.0.28",
+    "rimraf": "^5.0.1",
     "typescript": "^5.8.3",
     "vite": "^4.4.11",
-    "vite-plugin-dts": "^3.6.0"
+    "vite-plugin-dts": "^3.6.0",
+    "vitest": "^1.6.1"
   },
   "dependencies": {
-    "@done-coding/cli-template": "workspace:0.11.0",
-    "@done-coding/cli-utils": "workspace:0.11.0",
-    "lodash.camelcase": "^4.3.0",
-    "lodash.kebabcase": "^4.1.1",
-    "lodash.lowerfirst": "^4.3.1",
-    "lodash.template": "^4.5.0",
-    "lodash.upperfirst": "^4.3.1"
+    "@done-coding/cli-generator": "workspace:*",
+    "@done-coding/cli-utils": "workspace:0.11.0"
   },
   "engines": {
     "node": ">=18.0.0"

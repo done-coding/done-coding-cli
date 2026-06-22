@@ -140,7 +140,7 @@ export const getAnswer = async <V = unknown, T extends string = string>({
     }
     return (await xPrompts(questionConfig))[key];
   }
-  return undefined as GetAnswerResult<V, T, typeof questionConfig>;
+  return undefined as Awaited<GetAnswerResult<V, T, typeof questionConfig>>;
 };
 
 /** 生成 获取答案的快捷函数 */

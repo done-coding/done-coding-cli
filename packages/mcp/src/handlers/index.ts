@@ -8,3 +8,15 @@ export {
   prepareInputSchema,
   CREATE_TEMPLATE_LIST_RESOURCE_URI_TEMPLATE,
 } from "./create";
+
+/** dc-gen（cli-generator）MCP tools / prompt 注册方法导出（P3） */
+export {
+  registerGeneratorTools,
+  registerGeneratorPrompts,
+  buildGeneratePromptText,
+  listBatchesInputSchema,
+  listQuestionsInputSchema,
+  addInputSchema,
+  removeInputSchema,
+  initInputSchema,
+} from "./generator";

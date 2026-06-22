@@ -24,7 +24,7 @@
   "scripts": {
     "predev": "dc-inject",
     "dev": "vite build -w -m hotBuild",
-    "prebuild": "dc-inject",
+    "prebuild": "rimraf types && dc-inject",
     "build": "vite build",
     "prepack": "pnpm build",
     "test": "vitest",
@@ -47,6 +47,7 @@
     "@types/prompts": "^2.4.6",
     "@types/yargs": "^17.0.28",
     "@vitest/coverage-v8": "^1.6.1",
+    "rimraf": "^5.0.1",
     "typescript": "^5.8.3",
     "vite": "^5.0.10",
     "vite-plugin-dts": "^3.7.0",
