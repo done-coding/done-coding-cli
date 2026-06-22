@@ -10,6 +10,20 @@
 4. **命名去冗余**：`done-coding-dir-resolver.ts` → `dir-resolver.ts`（符号 `resolveDoneCodingDir` 等保留，用户选只改文件名），折叠进 utils 批。
 5. **新规则**：`.harness/workspace-claude.md` 加「命名去冗余（禁 done-coding 冗余冠名）」节（commit `f50442f`，含例外 + 判据 + 适用范围：只约束新增、存量不回改、无痛透明才改）。
 
+## ✅ 更新（2026-06-22 当日稍后）：assemble 分叉已整合完成
+
+第二节记的「重大未决分叉」**已解决**。实测推翻了「非平凡需仲裁」判断：
+
+- 真分叉点是 `40879898`（非原记 `eb11c7a`）；对 merge-base 的巨大 diff 是两侧共享 P1~P4a 的噪声，不是真冲突。
+- raw-assemble 2 个 feat commit（`d82b555` 原样拷+保真守卫 / `76add84` 配置收敛）**零冲突 cherry-pick** 到 `feat/cli-generator-batches`，落为 `15cd3b7`+`940cc95`。
+- 验证：generator 35 文件 / 329 测试全绿、eslint 干净。
+- 待办 B（配置目录约定文档）一并解决：`76add84` 已把约定写进 `done-coding-cli/CLAUDE.md`。
+- 探针分支 `scratch/assemble-integ-probe` 已删；`feat/cli-cli-gen` 侧支 raw-assemble 已回收 → 其 worktree `.claude/worktrees/cli-gen-raw-assemble` **现可删**。
+
+下方第二/三节为整合前原始记录，留档。
+
+---
+
 ## 二、🔴 重大未决发现：assemble 两线分叉（最高优先，压缩勿丢）
 
 P4a 之后开发分两条线，分叉点 = `eb11c7a`（2026-06-18，安全收尾 spec）：
