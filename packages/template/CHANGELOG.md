@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.12.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-template@0.11.0...@done-coding/cli-template@0.12.0) (2026-06-22)
+
+### Bug Fixes
+
+- **cli-template:** 钉死 lodash.template/assign 防 npx 浮到坏版本 ([bf44585](https://github.com/done-coding/done-coding-cli/commit/bf445858088b8172e3f522c07ee7a92fede8b2e7))
+
+### Features
+
+- **cli-template:** collectEnvData 的 initial 支持引用内置变量 ([e06ec73](https://github.com/done-coding/done-coding-cli/commit/e06ec73bead80d50abe620e97c8bd1f9aa63aa67))
+- **cli-template:** collectEnvData 的 initial 支持引用前序已答变量 ([d26a8c4](https://github.com/done-coding/done-coding-cli/commit/d26a8c488e9ebfd087eee3683f1aa48b48779ce0))
+- **template:** INSERT 引擎 + marker === 外壳 + namespace 参数化 ([2c8fcce](https://github.com/done-coding/done-coding-cli/commit/2c8fcce110e13f7bb0506851e2a648f9a0fffba8))
+
 # [0.11.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-template@0.10.0...@done-coding/cli-template@0.11.0) (2026-06-12)
 
 ### Features

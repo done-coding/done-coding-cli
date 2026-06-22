@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.12.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-utils@0.11.0...@done-coding/cli-utils@0.12.0) (2026-06-22)
+
+### Bug Fixes
+
+- **utils:** getAnswer 末路径断言改 Awaited，修预存 TS2352 ([a4e73ff](https://github.com/done-coding/done-coding-cli/commit/a4e73fff6b0088bbf1201a564baa03240d958577))
+
+### Features
+
+- **utils:** 目录解析/env-config/look-for 支撑 cli-generator ([07220db](https://github.com/done-coding/done-coding-cli/commit/07220db52f0af717284e027e797ec78c515aa592))
+
 # [0.11.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-utils@0.10.0...@done-coding/cli-utils@0.11.0) (2026-06-12)
 
 ### Bug Fixes

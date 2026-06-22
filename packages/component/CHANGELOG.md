@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.6.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-component@0.5.4...@done-coding/cli-component@0.6.0) (2026-06-22)
+
+### Features
+
+- **component:** 薄包装化（业务逻辑迁入 generator）+ modify 子命令 ([893e10a](https://github.com/done-coding/done-coding-cli/commit/893e10a2ff6d333d3a96033206804b196b28c942))
+
 ## [0.5.4](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-component@0.5.3...@done-coding/cli-component@0.5.4) (2026-06-12)
 
 ### Bug Fixes
