@@ -24,16 +24,16 @@ describe("[P3] 内置 cli-generator skill", () => {
     expect(skills.some((s) => s.name === "create-done-coding")).toBe(true);
   });
 
-  it("SKILL.md 命令面与真实 dc-gen 接口一致（cli-skills 规则 6）", () => {
+  it("SKILL.md 命令面与真实 dc-generator 接口一致（cli-skills 规则 6）", () => {
     const md = readFileSync(
       path.join(SKILLS_SRC, "cli-generator", "SKILL.md"),
       "utf-8",
     );
     // 真实命令面：add/remove <type> <name>、list [type]、init <type>、--list-questions、--env
-    expect(md).toContain("dc-gen add <type> <name>");
-    expect(md).toContain("dc-gen remove <type> <name>");
-    expect(md).toContain("dc-gen list");
-    expect(md).toContain("dc-gen init <type>");
+    expect(md).toContain("dc-generator add <type> <name>");
+    expect(md).toContain("dc-generator remove <type> <name>");
+    expect(md).toContain("dc-generator list");
+    expect(md).toContain("dc-generator init <type>");
     expect(md).toContain("--list-questions");
     expect(md).toContain("--env");
   });

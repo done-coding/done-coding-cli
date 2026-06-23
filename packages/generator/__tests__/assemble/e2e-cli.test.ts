@@ -123,7 +123,7 @@ const runCli = (args: string[]): RunResult => {
   };
 };
 
-describe("[C3-e2e] spawn dc-gen assemble <action>", () => {
+describe("[C3-e2e] spawn dc-generator assemble <action>", () => {
   it("① plan --json：exit 0 + stdout 洁净 JSON（有序 op 计划）", () => {
     scaffoldFixture();
     const r = runCli(["assemble", "plan", "--json"]);

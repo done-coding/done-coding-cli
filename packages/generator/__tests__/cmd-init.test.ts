@@ -25,7 +25,7 @@ let tmpRoot: string;
 let originalHome: string | undefined;
 
 beforeEach(() => {
-  tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "dc-gen-init-"));
+  tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "dc-generator-init-"));
   originalHome = process.env.HOME;
 });
 
@@ -38,7 +38,7 @@ afterEach(() => {
   fs.rmSync(tmpRoot, { recursive: true, force: true });
 });
 
-describe("[T5] dc-gen init", () => {
+describe("[T5] dc-generator init", () => {
   it("生成 index.json + config.json5 + template/ 占位", async () => {
     await initHandler({ type: "widget" }, { mode: "test", cwd: tmpRoot });
 

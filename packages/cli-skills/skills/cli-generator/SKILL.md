@@ -1,17 +1,17 @@
 ---
 name: cli-generator
-description: Use when generating / scaffolding named batch instances (components, pages, stores, routes, any templated file set) into an existing project via dc-gen（生成/新增具名批次实例：组件、页面、路由等任意模板化文件批次）. Drives the dc-gen CLI non-interactively via npx — no resident MCP needed.
+description: Use when generating / scaffolding named batch instances (components, pages, stores, routes, any templated file set) into an existing project via dc-generator（生成/新增具名批次实例：组件、页面、路由等任意模板化文件批次）. Drives the dc-generator CLI non-interactively via npx — no resident MCP needed.
 ---
 
-# 生成 done-coding 批次实例（cli-generator / dc-gen）
+# 生成 done-coding 批次实例（cli-generator / dc-generator）
 
-用 `dc-gen` 把一个**具名批次**（component / page / store / route / api … 任意由 `.done-coding/<type>/` 配置定义的批次）**非交互**地生成进当前项目，无需常驻 MCP。
+用 `dc-generator` 把一个**具名批次**（component / page / store / route / api … 任意由 `.done-coding/<type>/` 配置定义的批次）**非交互**地生成进当前项目，无需常驻 MCP。
 
 > **调用入口（重要）**：两个**参数完全一致**的等价入口——
-> - 本机已全局装 `dc-gen` → 优先 **`dc-gen ...`**（最稳）。
-> - 否则 **`npx @done-coding/cli-generator@latest ...`**（现取现用；⚠️ 发布后生效，未发布时改用全局 `dc-gen`）。
+> - 本机已全局装 `dc-generator` → 优先 **`dc-generator ...`**（最稳）。
+> - 否则 **`npx @done-coding/cli-generator@latest ...`**（现取现用；⚠️ 发布后生效，未发布时改用全局 `dc-generator`）。
 >
-> 下文示例以 `dc-gen` 书写，替换为 `npx @done-coding/cli-generator@latest` 即等价。
+> 下文示例以 `dc-generator` 书写，替换为 `npx @done-coding/cli-generator@latest` 即等价。
 
 ## 何时用
 
@@ -30,17 +30,17 @@ description: Use when generating / scaffolding named batch instances (components
 ⓑ **不确定有哪些批次** → 先列出：
 
 ```bash
-dc-gen list
+dc-generator list
 ```
 
 输出各层可达批次（含 `layer` / `shadowed` / 是否 `invalid`）。**[MUST NOT]** 把标记非法（缺 index.json / config 不可解析）的批次当可用批次。
 
-ⓒ **没有想要的批次** → 用 `dc-gen init <type>`（或 `--global` 写 `~/.done-coding/<type>/`）生成骨架后，按注释填 `config.json5` + `template/`，目标已存在则报错不覆盖。
+ⓒ **没有想要的批次** → 用 `dc-generator init <type>`（或 `--global` 写 `~/.done-coding/<type>/`）生成骨架后，按注释填 `config.json5` + `template/`，目标已存在则报错不覆盖。
 
 ## 步骤 1 — 查询批次需要哪些答案
 
 ```bash
-dc-gen add <type> --list-questions
+dc-generator add <type> --list-questions
 ```
 
 仅向 **stdout** 打印 JSON（不落地，退出码 0）。形如：
@@ -61,7 +61,7 @@ dc-gen add <type> --list-questions
 答案拼成 JSON（key 对齐步骤 1 的 `key`，**是 key 不是中文 label**），经 `--env` 一次性供答：
 
 ```bash
-dc-gen add <type> <name> --env '{"desc":"用户卡片","series":"Dc"}'
+dc-generator add <type> <name> --env '{"desc":"用户卡片","series":"Dc"}'
 ```
 
 答案多时可改用文件：`--env-file ./answers.json`（内容为 `{ key: value }`）。
@@ -69,7 +69,7 @@ dc-gen add <type> <name> --env '{"desc":"用户卡片","series":"Dc"}'
 ## 移除实例（反配方）
 
 ```bash
-dc-gen remove <type> <name> [--env '{...}']
+dc-generator remove <type> <name> [--env '{...}']
 ```
 
 按 add 的反配方移除：create 产物删文件、append/inject 块按命中/marker 精确回退、空目录可配删除。`inject`（锚点插入）按 marker 精确删、免疫块内手改；`replace` 策略**不可自动 remove**（会 fail-loud 提示手动）。
@@ -78,17 +78,17 @@ dc-gen remove <type> <name> [--env '{...}']
 
 ```bash
 # 1. 先查问题
-dc-gen add component --list-questions
+dc-generator add component --list-questions
 # → [{"key":"series","required":false,"default":"Dc"},{"key":"desc","required":true}]
 
 # 2. 补必填后生成名为 user-card 的组件实例
-dc-gen add component user-card --env '{"desc":"用户卡片"}'
+dc-generator add component user-card --env '{"desc":"用户卡片"}'
 
 # 3. 列出 component 批次的已有实例（-o 落地 JSON 列表）
-dc-gen list component -o ./src/components/name-list.json
+dc-generator list component -o ./src/components/name-list.json
 
 # 4. 不要了，移除
-dc-gen remove component user-card
+dc-generator remove component user-card
 ```
 
 ## 行为约定（据实测）
@@ -103,9 +103,9 @@ dc-gen remove component user-card
 
 | 命令 | 说明 |
 |---|---|
-| `dc-gen list [type]` | 无 type=列出所有已发现批次；带 type=列出该批次实例（`-o` 落地 JSON） |
-| `dc-gen add <type> <name>` | 生成一个批次实例（`--list-questions` 探针 / `--env` / `--env-file` 供答） |
-| `dc-gen remove <type> <name>` | 反配方移除一个实例（`--env` 复算落地块） |
-| `dc-gen init <type>` | 生成批次骨架（`--global` 写 ~/.done-coding） |
+| `dc-generator list [type]` | 无 type=列出所有已发现批次；带 type=列出该批次实例（`-o` 落地 JSON） |
+| `dc-generator add <type> <name>` | 生成一个批次实例（`--list-questions` 探针 / `--env` / `--env-file` 供答） |
+| `dc-generator remove <type> <name>` | 反配方移除一个实例（`--env` 复算落地块） |
+| `dc-generator init <type>` | 生成批次骨架（`--global` 写 ~/.done-coding） |
 | `--list-questions` | 仅打印该批次问题清单(JSON)，不落地 |
 | `--env` / `--env-file` | 预设答案 JSON 字符串 / 文件路径 |

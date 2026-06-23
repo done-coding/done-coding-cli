@@ -186,7 +186,7 @@ const ensureNoCaseConflict = (hits: DoneCodingDirHit[]): void => {
 };
 
 /**
- * 发现 list（dc-gen list [type]）：各层并集，标注 layer + shadowed（K5 发现 DTO）。
+ * 发现 list（dc-generator list [type]）：各层并集，标注 layer + shadowed（K5 发现 DTO）。
  * [MUST NOT] 复用批次实例 list serializer、[MUST NOT] 写 component-name-list.json。
  */
 /**

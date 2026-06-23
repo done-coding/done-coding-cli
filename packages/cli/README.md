@@ -57,7 +57,7 @@ done-coding --help
 
 ## 功能特性
 
-- ✅ **统一入口**: 集成 11 个专业工具包，提供统一的命令行入口
+- ✅ **统一入口**: 集成 12 个专业工具包，提供统一的命令行入口
 - 🤖 **AI 对话**: 无子命令时唤起 AI 对话，模型切换委托 mrm，SSE 流式响应；对话内支持 `/子包名` 查看其他工具帮助
 - 🚀 **跨平台兼容**: 支持 Windows、macOS、Linux，自动处理系统差异
 - 🔧 **模块化设计**: 每个子包独立开发，可单独使用或集成使用
@@ -81,6 +81,12 @@ done-coding 集成了多个工具，每个工具都专注于特定的开发任�
 - **命令**: `DC component`
 - **描述**: 组件命令行工具
 - **包地址**: [@done-coding/cli-component](https://www.npmjs.com/package/@done-coding/cli-component)
+
+### 🏭 通用批次生成
+
+- **命令**: `DC generator`（bin `dc-generator`）
+- **描述**: 通用具名批次生成器（content-free 机制层）—— add/modify/remove/list/init 批次实例 + assemble 模板组装（配方→物化 + 漂移闸）；`component` 即其 component 预设薄包装
+- **包地址**: [@done-coding/cli-generator](https://www.npmjs.com/package/@done-coding/cli-generator)
 
 ### ⚙️ 工程配置
 
@@ -143,6 +149,14 @@ DC create --justCloneFromDoneCoding       # 仅从done-coding系列项目克隆
 DC component add <name>                   # 新增组件
 DC component remove [name]                # 删除组件
 DC component list                         # 展示组件列表
+
+# 通用批次生成（dc-generator）
+DC generator list [type]                  # 列出批次/批次实例
+DC generator init <type>                  # 初始化批次骨架
+DC generator add <type> <name>            # 添加实例
+DC generator modify <type> <name>         # 原位修改 insert 块的值
+DC generator remove <type> <name>         # 移除实例
+DC generator assemble plan|build|diff|check  # 模板组装 + 漂移闸
 
 # 模型源管理
 DC mrm ls                                 # 查看可用模型和服务商
@@ -305,7 +319,9 @@ graph TD
     A --> J["@done-coding/cli-publish"]
     A --> K["@done-coding/cli-template"]
     A --> L["@done-coding/cli-utils"]
+    A --> M["@done-coding/cli-generator"]
 
+    D --> M
     C --> I
     C -.-> B
     C -.-> D
@@ -341,6 +357,7 @@ graph TD
 done-coding (主包)
 ├── create-done-coding (项目创建)
 ├── @done-coding/cli-component (组件生成)
+├── @done-coding/cli-generator (通用批次生成 / assemble)
 ├── @done-coding/cli-config (工程配置)
 ├── @done-coding/cli-extract (信息提取)
 ├── @done-coding/cli-git (Git 操作)
@@ -393,6 +410,7 @@ DC --version
 
 - [项目创建工具](https://www.npmjs.com/package/create-done-coding)
 - [组件生成工具](https://www.npmjs.com/package/@done-coding/cli-component)
+- [通用批次生成工具](https://www.npmjs.com/package/@done-coding/cli-generator)
 - [更多工具](https://github.com/done-coding/done-coding-cli)
 
 ## 许可证

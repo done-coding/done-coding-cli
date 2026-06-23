@@ -135,7 +135,7 @@ describe("[T4] operate action:modify", () => {
     expect(afterModify).toContain("const x = 2");
     expect(afterModify).not.toContain("const x = 1");
     // 块只有 1 个（未重复插入）
-    expect((afterModify.match(/dc-gen:start:/g) ?? []).length).toBe(1);
+    expect((afterModify.match(/dc-generator:start:/g) ?? []).length).toBe(1);
     // [falsifiability] modify 过滤 insert-only，ghost.ts（create 策略）必须未被创建
     expect(fs.existsSync(ghostFile)).toBe(false);
   });
@@ -269,11 +269,11 @@ describe("[T4] operate action:modify", () => {
     writeFile(
       target,
       [
-        "// === dc-gen:start:t:dup ===",
+        "// === dc-generator:start:t:dup ===",
         "old-body-1",
-        "// === dc-gen:start:t:dup ===",
+        "// === dc-generator:start:t:dup ===",
         "old-body-2",
-        "// === dc-gen:end:t:dup ===",
+        "// === dc-generator:end:t:dup ===",
       ].join("\n") + "\n",
     );
     const original = fs.readFileSync(target, "utf-8");
@@ -286,7 +286,7 @@ describe("[T4] operate action:modify", () => {
           inputData: "new-body",
           output: "dup.ts",
           anchor: {
-            pattern: "// === dc-gen:start:t:dup ===",
+            pattern: "// === dc-generator:start:t:dup ===",
             position: "after",
           },
           markerKey: "t:dup",
@@ -311,7 +311,7 @@ describe("[T4] operate action:modify", () => {
   it("T4-6 skipMissing:true + only-start (unpaired) marker → throw corrupt、零写盘", async () => {
     const execDir = mkTmp();
     const target = path.join(execDir, "unpaired.ts");
-    writeFile(target, "// === dc-gen:start:t:up ===\nbody\n");
+    writeFile(target, "// === dc-generator:start:t:up ===\nbody\n");
     const original = fs.readFileSync(target, "utf-8");
 
     const config: BatchConfig = {

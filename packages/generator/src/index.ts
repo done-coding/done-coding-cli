@@ -3,7 +3,7 @@
  *
  * 导出 handler / 类型 / 核心原语，供：
  *  - dc-component 薄兼容包装（T7，batchType 固定 component）；
- *  - [P3] cli-mcp 注册 dc-gen 工具（server-agnostic handler 直接 import）；
+ *  - [P3] cli-mcp 注册 dc-generator 工具（server-agnostic handler 直接 import）；
  *  - [P4a] assemble 复用 batch-discovery / env-context / strategy / operate 原语。
  */
 

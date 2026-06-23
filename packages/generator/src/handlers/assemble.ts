@@ -1,7 +1,7 @@
 /**
  * assemble handler 族（Wave C3，design §2 / §14 D-M1 / D-M8 / D-H1）。
  *
- * 真子命令 `dc-gen assemble plan|build|diff|check`（cli-utils addSubcommands 嵌套，见 index.ts）。
+ * 真子命令 `dc-generator assemble plan|build|diff|check`（cli-utils addSubcommands 嵌套，见 index.ts）。
  * server-agnostic：`assembleHandler(argv, ctxInit?)`，内部 resolveHandlerContext 走 cwd。
  *  - plan/diff `--json` → stdout 洁净 JSON（对齐 P3 B5）；非 json 走 outputConsole。
  *  - 库函数（engine/recipe/create-sync）throw / 返回结果，[MUST NOT] process.exit。

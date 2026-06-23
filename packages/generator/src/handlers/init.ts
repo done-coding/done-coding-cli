@@ -1,5 +1,5 @@
 /**
- * [T5] dc-gen init <type> [--global] handler（design §4.5，R9/L3）。
+ * [T5] dc-generator init <type> [--global] handler（design §4.5，R9/L3）。
  *
  *  - 目标 = (--global ? ~/.done-coding : <cwd>/.done-coding)/<type>/。
  *  - 目标已存在 → 报错不覆盖。
@@ -24,7 +24,9 @@ const NAMESPACE_DIR = ".done-coding";
 export const handler: GeneratorHandler = async (argv, ctxInit) => {
   const ctx = resolveHandlerContext(ctxInit);
   if (!argv.type) {
-    throw new Error("init 缺少必填参数：type（批次类型，dc-gen init <type>）");
+    throw new Error(
+      "init 缺少必填参数：type（批次类型，dc-generator init <type>）",
+    );
   }
   const type = argv.type;
   // 批次类型名沿用实例名合法规则（字母开头 + 字母/数字/中划线）
