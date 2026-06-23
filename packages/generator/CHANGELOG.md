@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.1-alpha.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-generator@0.1.0...@done-coding/cli-generator@0.1.1-alpha.0) (2026-06-23)
+
+### Features
+
+- **cli:** 主命令挂载 generator 子命令 + 补 README ([985954d](https://github.com/done-coding/done-coding-cli/commit/985954d5ca4e857400bdab5764eeb0c9ae10e03c))
+
 # 0.1.0 (2026-06-22)
 
 ### Bug Fixes

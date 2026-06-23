@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-component",
-  "version": "0.6.0",
+  "version": "0.6.1-alpha.0",
   "description": "组件命令行工具",
   "private": false,
   "module": "es/index.mjs",

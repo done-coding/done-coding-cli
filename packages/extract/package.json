@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-extract",
-  "version": "0.2.5",
+  "version": "0.2.6-alpha.0",
   "description": "信息提取命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -59,7 +59,7 @@
     "vite-plugin-dts": "^3.6.0"
   },
   "dependencies": {
-    "@done-coding/cli-template": "workspace:0.12.0",
+    "@done-coding/cli-template": "workspace:0.12.1-alpha.0",
     "@done-coding/cli-utils": "workspace:0.12.0"
   },
   "engines": {
