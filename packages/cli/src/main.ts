@@ -5,6 +5,7 @@ import { createAsSubcommand as createCreateCommand } from "create-done-coding";
 import { createAsSubcommand as createPublishCommand } from "@done-coding/cli-publish";
 import { createAsSubcommand as createTemplateCommand } from "@done-coding/cli-template";
 import { createAsSubcommand as createComponentCommand } from "@done-coding/cli-component";
+import { createAsSubcommand as createGeneratorCommand } from "@done-coding/cli-generator";
 import { createAsSubcommand as createConfigCommand } from "@done-coding/cli-config";
 import {
   createAsSubcommand as createAiCommand,
@@ -35,6 +36,7 @@ const commandCliInfo: CliInfo = {
     createPublishCommand(),
     createTemplateCommand(),
     createComponentCommand(),
+    createGeneratorCommand(),
     createConfigCommand(),
     createAiCommand(),
     createMrmCommand(),

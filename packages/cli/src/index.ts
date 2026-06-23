@@ -28,6 +28,8 @@ export {
   handler as componentHandler,
 } from "@done-coding/cli-component";
 
+export { createAsSubcommand as createGeneratorCommand } from "@done-coding/cli-generator";
+
 export {
   createAsSubcommand as createAiCommand,
   handler as aiHandler,
