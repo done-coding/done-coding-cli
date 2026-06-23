@@ -81,8 +81,8 @@ describe("[T2] generator inject 接线", () => {
     });
 
     const content = fs.readFileSync(routes, "utf-8");
-    expect(content).toContain("// === dc-gen:start:route:MyWidget ===");
-    expect(content).toContain("// === dc-gen:end:route:MyWidget ===");
+    expect(content).toContain("// === dc-generator:start:route:MyWidget ===");
+    expect(content).toContain("// === dc-generator:end:route:MyWidget ===");
     expect(content).toContain("  myWidgetRoute,");
   });
 
@@ -131,7 +131,7 @@ describe("[T2] generator inject 接线", () => {
       env: mkEnv(execDir, execDir),
     });
     expect(fs.readFileSync(target, "utf-8")).toContain(
-      "// === dc-gen:start:custom-my-widget ===",
+      "// === dc-generator:start:custom-my-widget ===",
     );
   });
 
@@ -171,7 +171,7 @@ describe("[T2] generator inject 接线", () => {
     // present 有 k1 块；missing 文件存在但无 k2 块
     writeFile(
       present,
-      "head\n// === dc-gen:start:k1 ===\nbody\n// === dc-gen:end:k1 ===\ntail\n",
+      "head\n// === dc-generator:start:k1 ===\nbody\n// === dc-generator:end:k1 ===\ntail\n",
     );
     writeFile(missing, "no marker here\n");
 
@@ -202,7 +202,7 @@ describe("[T2] generator inject 接线", () => {
 
     // 中止前 present 的 k1 块未被删（不留半删，M1/P5）
     expect(fs.readFileSync(present, "utf-8")).toContain(
-      "// === dc-gen:start:k1 ===",
+      "// === dc-generator:start:k1 ===",
     );
   });
 

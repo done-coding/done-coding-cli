@@ -128,6 +128,9 @@ importers:
       "@done-coding/cli-extract":
         specifier: workspace:0.2.5
         version: link:../extract
+      "@done-coding/cli-generator":
+        specifier: workspace:*
+        version: link:../generator
       "@done-coding/cli-git":
         specifier: workspace:0.7.5
         version: link:../git

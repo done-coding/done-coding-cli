@@ -1,5 +1,5 @@
 /**
- * [T5] dc-gen <type> remove <name> handler（反配方）。
+ * [T5] dc-generator <type> remove <name> handler（反配方）。
  *
  * 职责（design §4.4，R4③ + R8，M1/M2）：
  *  - 签名 (argv, ctxInit?)；三模式 + 非交互 fail-fast（缺必填 positional）。
@@ -23,10 +23,10 @@ const ensureRemoveArgs = (argv: {
 }): { type: string; name: string } => {
   const missing: string[] = [];
   if (!argv.type) {
-    missing.push("type（批次类型，dc-gen remove <type> <name>）");
+    missing.push("type（批次类型，dc-generator remove <type> <name>）");
   }
   if (!argv.name) {
-    missing.push("name（实例名，dc-gen remove <type> <name>）");
+    missing.push("name（实例名，dc-generator remove <type> <name>）");
   }
   if (missing.length) {
     throw new Error(`remove 缺少必填参数：\n  - ${missing.join("\n  - ")}`);

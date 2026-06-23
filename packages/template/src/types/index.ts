@@ -100,7 +100,7 @@ export interface CompilePublicConfig {
   anchor?: InsertAnchor;
   /**
    * [INSERT 专用] marker 身份键（item 级，generator 侧已渲染）。
-   * 文件内 marker 文本 = `<open> === dc-gen:start:<markerKey> === <close>` / `...:end:...`。
+   * 文件内 marker 文本 = `<open> === dc-template:start:<markerKey> === <close>` / `...:end:...`。
    * 回退按 markerKey 精确定位，免疫块内手改。
    */
   markerKey?: string;

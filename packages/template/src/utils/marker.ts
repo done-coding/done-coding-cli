@@ -8,15 +8,29 @@
  * codex 交叉审纳入（design §12）：
  *  - A4/E12 防伪造：写入前校验 block 不含 marker 行。
  *  - A4/E13 唯一成对：同 markerKey 块数 ∈ {0,1}成对，否则 fail-loud（取代"首个 indexOf"）。
- *  - A5/E14 markerKey 校验：非空/单行/无 open·close 冲突/无 dc-gen: 前缀。
+ *  - A5/E14 markerKey 校验：非空/单行/无 open·close 冲突/无 <markerNs>: 前缀。
  *  - A6/E10·E11·E15 anchor 校验：空 pattern / 非法 regex（包装）/ 枚举。
  *  - A7 EOL：检测主导 EOL，插入行用同一 EOL，避免混合。
  */
 import path from "node:path";
 import type { InsertAnchor, InsertMarkerComment } from "@/types";
+import injectInfo from "@/injectInfo.json";
 
-/** 默认 marker namespace（仅供显式引用，[MUST NOT] 作隐式兜底，见 design R-B4） */
-export const DEFAULT_MARKER_NS = "dc-gen";
+/**
+ * 默认 marker namespace = 本包单 bin 名（从 injectInfo 派生、不写死；多 bin fail-loud）。
+ * 与 generator getMarkerNs 同构：每个工具用自己的 bin 名作 NS，标记块即"谁写的"。
+ * 仅供显式引用，[MUST NOT] 作隐式兜底（见 design R-B4）。
+ */
+const deriveMarkerNs = (): string => {
+  const bins = Object.keys(injectInfo.bin ?? {});
+  if (bins.length !== 1) {
+    throw new Error(
+      `marker NS 取值要求本包单 bin，实得 ${bins.length}：${bins.join(",")}`,
+    );
+  }
+  return bins[0];
+};
+export const DEFAULT_MARKER_NS = deriveMarkerNs();
 
 /** 行注释构造（close 空） */
 const lineComment = (

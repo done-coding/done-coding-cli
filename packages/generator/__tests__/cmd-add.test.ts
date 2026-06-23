@@ -73,7 +73,7 @@ afterEach(() => {
   writeSpy.mockRestore();
 });
 
-describe("[T5] dc-gen add", () => {
+describe("[T5] dc-generator add", () => {
   it("--list-questions 探针：打印问题清单 JSON，不调 operate（Ⓔ）", async () => {
     await addHandler(
       { type: "widget", listQuestions: true },

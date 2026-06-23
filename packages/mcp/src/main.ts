@@ -36,7 +36,7 @@ export const createMcpServer = async () => {
   registerCreateResources(server);
   registerCreatePrompts(server);
 
-  // P3：dc-gen（cli-generator）工具 + 引导 prompt 并列注册（同中央 server，Ⓑ）
+  // P3：dc-generator（cli-generator）工具 + 引导 prompt 并列注册（同中央 server，Ⓑ）
   registerGeneratorTools(server);
   registerGeneratorPrompts(server);
 

@@ -1,5 +1,5 @@
 /**
- * [T5] dc-gen <type> add <name> handler。
+ * [T5] dc-generator <type> add <name> handler。
  *
  * 职责（design §4.1/§4.2/§7/§12-Ⓔ，NFR-1 P1 契约）：
  *  - 签名 (argv, ctxInit?)；内部 resolveHandlerContext 走三模式（cli/mcp/test）。
@@ -24,10 +24,10 @@ const ensureAddArgs = (argv: {
 }): { type: string; name: string } => {
   const missing: string[] = [];
   if (!argv.type) {
-    missing.push("type（批次类型，dc-gen add <type> <name>）");
+    missing.push("type（批次类型，dc-generator add <type> <name>）");
   }
   if (!argv.name) {
-    missing.push("name（实例名，dc-gen add <type> <name>）");
+    missing.push("name（实例名，dc-generator add <type> <name>）");
   }
   if (missing.length) {
     throw new Error(`add 缺少必填参数：\n  - ${missing.join("\n  - ")}`);
@@ -42,7 +42,7 @@ export const handler: GeneratorHandler = async (argv, ctxInit) => {
   if (argv.listQuestions) {
     if (!argv.type) {
       throw new Error(
-        "--list-questions 需指定批次类型：dc-gen add <type> --list-questions",
+        "--list-questions 需指定批次类型：dc-generator add <type> --list-questions",
       );
     }
     const probed = discoverBatch(argv.type, { cwd: ctx.cwd });

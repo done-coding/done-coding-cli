@@ -7,3 +7,6 @@ packages/*/dist
 packages/*/coverage
 lerna-debug.log
 .claude/settings.local.json
+
+# codex 外部执行器评审转录：一次性过程产物，结论蒸馏进 spec 的 RETROSPECTIVE.md，不入库
+**/codex-*.txt

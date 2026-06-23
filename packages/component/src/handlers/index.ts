@@ -1,7 +1,7 @@
 /**
  * [T7] dc-component = @done-coding/cli-generator 的 component 预设薄兼容包装。
  *
- * `dc-component <verb> <name>` 等价于 `dc-gen <verb> component <name>`：
+ * `dc-component <verb> <name>` 等价于 `dc-generator <verb> component <name>`：
  *  - batchType 钉死为 injectInfo.cliConfig.batchType（= "component"）；
  *  - 模板目录解析到旧值 `.done-coding/component`（由 generator dir-resolver 按 segment 解析）；
  *  - 业务逻辑（series 算法 / 扫子目录 list / removeEmptyDir / dealMarkdown）全在
@@ -56,26 +56,26 @@ const withBatchType = (
   return merged;
 };
 
-/** add：dc-component add <name> == dc-gen component add <name> */
+/** add：dc-component add <name> == dc-generator component add <name> */
 export const addCommandHandler = (
   argv: CliHandlerArgv<GeneratorHandlerArgv>,
   ctxInit?: HandlerContextInit,
 ) => addHandler(withBatchType(argv), ctxInit);
 
-/** remove：dc-component remove <name> == dc-gen component remove <name> */
+/** remove：dc-component remove <name> == dc-generator component remove <name> */
 export const removeCommandHandler = (
   argv: CliHandlerArgv<GeneratorHandlerArgv>,
   ctxInit?: HandlerContextInit,
 ) => removeHandler(withBatchType(argv), ctxInit);
 
-/** modify：dc-component modify <name> == dc-gen component modify <name> */
+/** modify：dc-component modify <name> == dc-generator component modify <name> */
 export const modifyCommandHandler = (
   argv: CliHandlerArgv<GeneratorHandlerArgv>,
   ctxInit?: HandlerContextInit,
 ) => modifyHandler(withBatchType(argv), ctxInit);
 
 /**
- * list：dc-component list [-o] [-p path] == dc-gen component list [-o]。
+ * list：dc-component list [-o] [-p path] == dc-generator component list [-o]。
  * 旧语义：-o 布尔门控写 json，-p 覆盖输出路径，缺省回退 config.nameListJsonOutputPath。
  * generator list 写文件门控为 `argv.output ?? config.nameListJsonOutputPath` 真值，
  * 故映射：

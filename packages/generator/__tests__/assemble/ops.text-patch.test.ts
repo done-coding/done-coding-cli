@@ -58,9 +58,9 @@ describe("[B3] textPatch", () => {
       }),
     );
     const out = ctx.vfs.get("README.md")!.content!.toString();
-    expect(out).toContain("=== dc-gen:start:note ===");
+    expect(out).toContain("=== dc-generator:start:note ===");
     expect(out).toContain("INSERTED-LINE");
-    expect(out).toContain("=== dc-gen:end:note ===");
+    expect(out).toContain("=== dc-generator:end:note ===");
   });
 
   it("幂等重跑：同 markerKey 原位替换不重复", () => {
@@ -84,7 +84,7 @@ describe("[B3] textPatch", () => {
     const out = ctx.vfs.get("README.md")!.content!.toString();
     expect(out).toContain("V2");
     expect(out).not.toContain("V1");
-    expect(out.match(/=== dc-gen:start:note ===/g)?.length).toBe(1);
+    expect(out.match(/=== dc-generator:start:note ===/g)?.length).toBe(1);
   });
 
   it("锚点多命中默认 fail（D-M4）", () => {
