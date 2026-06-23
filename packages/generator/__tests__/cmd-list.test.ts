@@ -47,7 +47,7 @@ let listHandler: GeneratorHandler;
 let tableSpy: ReturnType<typeof vi.spyOn> | undefined;
 
 beforeEach(async () => {
-  tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "dc-gen-list-"));
+  tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "dc-generator-list-"));
   discoverSpy.mockReset();
   listDiscoveredSpy.mockReset();
   resolveInstanceDirSpy.mockReset();
@@ -63,7 +63,7 @@ afterEach(() => {
   fs.rmSync(tmpRoot, { recursive: true, force: true });
 });
 
-describe("[T5] dc-gen list（两套 DTO 不串，K5）", () => {
+describe("[T5] dc-generator list（两套 DTO 不串，K5）", () => {
   it("无 type → 发现 DTO {name,source,layer,shadowed}，不写 component-name-list.json", async () => {
     listDiscoveredSpy.mockReturnValue([
       { name: "widget", source: "widget", layer: "project", shadowed: false },

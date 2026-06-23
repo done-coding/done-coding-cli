@@ -14,7 +14,7 @@ import { generateFile } from "@done-coding/cli-inject";
 import { doneCodingCliConfig } from "@done-coding/cli-inject/helpers";
 
 // dc-component = cli-generator 的 component 预设：注入固定 batchType / templateDirSegment，
-// 使 `dc-component <verb>` 等价 `dc-gen <verb> component`（模板目录解析旧值 .done-coding/component）。
+// 使 `dc-component <verb>` 等价 `dc-generator <verb> component`（模板目录解析旧值 .done-coding/component）。
 generateFile({
   config: doneCodingCliConfig,
   keyConfigMap: {

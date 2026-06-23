@@ -1,5 +1,5 @@
 /**
- * dc-gen（@done-coding/cli-generator）MCP 工具接线（P3，design §1/§3/§12）。
+ * dc-generator（@done-coding/cli-generator）MCP 工具接线（P3，design §1/§3/§12）。
  *
  * 单发 + 探针（Ⓔ：本地 config 单进程读→采集→落地，无 prepare/complete 两段式）。
  * codex 纳入（design §12）：
@@ -72,12 +72,12 @@ export const initInputSchema = z.object({
   global: z.boolean().optional(),
 });
 
-/** 注册 dc-gen 批次生成相关 MCP tools */
+/** 注册 dc-generator 批次生成相关 MCP tools */
 export const registerGeneratorTools = (server: McpServer) => {
   server.registerTool(
     "done_coding_gen_list_batches",
     {
-      title: "List discoverable dc-gen batch types",
+      title: "List discoverable dc-generator batch types",
       description:
         "Discover all reachable batch types under rootDir's `.done-coding/<type>/` (project → parent chain → global ~/.done-coding), with layer/shadowed/invalid. `rootDir` is required (the user project dir). Items with `invalid:true` carry `errors` and MUST NOT be treated as usable batches.",
       inputSchema: listBatchesInputSchema,
@@ -91,7 +91,7 @@ export const registerGeneratorTools = (server: McpServer) => {
   server.registerTool(
     "done_coding_gen_list_questions",
     {
-      title: "List a dc-gen batch's questions",
+      title: "List a dc-generator batch's questions",
       description:
         "Probe which answers a batch type needs (does not generate). Returns `[{key, required, default?}]`. `rootDir` required.",
       inputSchema: listQuestionsInputSchema,
@@ -106,7 +106,7 @@ export const registerGeneratorTools = (server: McpServer) => {
   server.registerTool(
     "done_coding_gen_add",
     {
-      title: "Add a dc-gen batch instance",
+      title: "Add a dc-generator batch instance",
       description:
         "Generate one batch instance non-interactively. `envData` is a structured answer object (keys align with list_questions[].key). `rootDir` required.",
       inputSchema: addInputSchema,
@@ -132,7 +132,7 @@ export const registerGeneratorTools = (server: McpServer) => {
   server.registerTool(
     "done_coding_gen_remove",
     {
-      title: "Remove a dc-gen batch instance",
+      title: "Remove a dc-generator batch instance",
       description:
         "Reverse-recipe remove a batch instance. `envData` (optional) recomputes landed blocks for rollback. `rootDir` required.",
       inputSchema: removeInputSchema,
@@ -158,7 +158,7 @@ export const registerGeneratorTools = (server: McpServer) => {
   server.registerTool(
     "done_coding_gen_init",
     {
-      title: "Init a dc-gen batch skeleton",
+      title: "Init a dc-generator batch skeleton",
       description:
         "Scaffold a batch skeleton (index.json + config.json5 + template/). Errors if the target exists. With `global:true` writes to ~/.done-coding; otherwise under rootDir/.done-coding. `rootDir` required.",
       inputSchema: initInputSchema,
@@ -179,7 +179,7 @@ export const registerGeneratorTools = (server: McpServer) => {
 };
 
 /**
- * 生成 dc-gen 引导 prompt 文本（纯函数，供注册回调与单测复用）。
+ * 生成 dc-generator 引导 prompt 文本（纯函数，供注册回调与单测复用）。
  * 两步心智：先 list_questions 拿问题清单，再 add 带答案落地。
  */
 export const buildGeneratePromptText = (params: {
@@ -195,7 +195,7 @@ export const buildGeneratePromptText = (params: {
     : "批次类型 type：可先调 done_coding_gen_list_batches 看可用批次（跳过 invalid:true 的非法批次）";
 
   return [
-    "请按以下步骤用 done-coding dc-gen 生成一个批次实例（全程本地、非交互）：",
+    "请按以下步骤用 done-coding dc-generator 生成一个批次实例（全程本地、非交互）：",
     "",
     `1. 确认 ${rootDirLine}`,
     `2. ${typeLine}`,
@@ -206,19 +206,21 @@ export const buildGeneratePromptText = (params: {
   ].join("\n");
 };
 
-/** 注册 dc-gen 引导 Prompt：串起「确认 rootDir/type → list_questions → add」。 */
+/** 注册 dc-generator 引导 Prompt：串起「确认 rootDir/type → list_questions → add」。 */
 export const registerGeneratorPrompts = (server: McpServer) => {
   server.registerPrompt(
     "done-coding-generate",
     {
       title: "生成 done-coding 批次实例（引导）",
       description:
-        "引导客户端用 dc-gen 生成批次实例：确认项目 rootDir 与批次 type（先 list_batches 看可用、跳过 invalid），再 list_questions → add。rootDir [MUST] 必填、勿用 MCP server 进程 cwd。",
+        "引导客户端用 dc-generator 生成批次实例：确认项目 rootDir 与批次 type（先 list_batches 看可用、跳过 invalid），再 list_questions → add。rootDir [MUST] 必填、勿用 MCP server 进程 cwd。",
       argsSchema: {
         rootDir: z
           .string()
           .optional()
-          .describe("用户项目根目录绝对路径（dc-gen 工具的 rootDir，必填项）"),
+          .describe(
+            "用户项目根目录绝对路径（dc-generator 工具的 rootDir，必填项）",
+          ),
         type: z
           .string()
           .optional()

@@ -1,5 +1,5 @@
 /**
- * [T5] dc-gen init 生成的批次骨架内容（design §4.5，R9/L3）。
+ * [T5] dc-generator init 生成的批次骨架内容（design §4.5，R9/L3）。
  *
  * 产出 init 写盘的 index.json + config.json5（含注释头）；template/ 占位由 init handler 落地。
  * 注释头列 4 策略 create/append/inject/replace（inject = P2 已交付：锚点插入 + marker 健壮回退）。
@@ -22,7 +22,7 @@ export interface InitSkeleton {
 /** config.json5 顶部注释头（K6/L3） */
 const COMMENT_HEADER: string[] = [
   "// ─────────────────────────────────────────────────────────────",
-  "// done-coding 批次配置（dc-gen add|remove <type> <name> / dc-gen list [type]）",
+  "// done-coding 批次配置（dc-generator add|remove <type> <name> / dc-generator list [type]）",
   "// ── helper 速查（白名单 5 个，零新增依赖）：",
   "//    ${_.camelCase(x)} ${_.kebabCase(x)} ${_.upperFirst(x)} ${_.lowerFirst(x)} ${_.pascalCase(x)}",
   "// ── 内建变量：",
@@ -95,7 +95,7 @@ export const buildInitTemplatePlaceholder = (): {
     fileName: "index.ts.md",
     content: [
       "```ts",
-      "// ${name} —— 由 dc-gen 生成（这是占位模板，按需修改）",
+      "// ${name} —— 由 dc-generator 生成（这是占位模板，按需修改）",
       "export const ${nameCamel} = () => {};",
       "```",
       "",

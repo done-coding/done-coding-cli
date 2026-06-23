@@ -2,7 +2,7 @@
  * [T3 骨架] 由 Wave B T5 实现 <命令工厂：createMainCommand / createAsSubcommand>。
  *
  * 比照 component/create main.ts，复用 cli-utils createMainCommand/createSubcommand。
- * dc-gen 为主命令；批次类型是运行时 positional（<type>），非 injectInfo.moduleName 固定值。
+ * dc-generator 为主命令；批次类型是运行时 positional（<type>），非 injectInfo.moduleName 固定值。
  */
 import { commandCliInfo } from "@/handlers";
 import injectInfo from "@/injectInfo.json";
@@ -28,7 +28,7 @@ const dispatchCommandAndUsage = (asSubcommand = false) => {
   return { command, usage };
 };
 
-/** 作为主命令创建（bin dc-gen） */
+/** 作为主命令创建（bin dc-generator） */
 export const createCommand = async () => {
   return createMainCommand({
     ...commandCliInfo,

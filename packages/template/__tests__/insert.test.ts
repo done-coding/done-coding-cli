@@ -11,7 +11,7 @@ import {
   probeMarkerPairing,
 } from "@/utils/marker";
 
-const NS = DEFAULT_MARKER_NS; // "dc-gen"
+const NS = DEFAULT_MARKER_NS; // "dc-template"
 const tsComment = { open: "//", close: "" };
 
 /**
@@ -94,9 +94,9 @@ describe("INSERT 模式 + marker 健壮回退", () => {
     });
     expect(read("routes.ts")).toBe(
       "const routes = [\n" +
-        "// === dc-gen:start:route:Foo ===\n" +
+        "// === dc-template:start:route:Foo ===\n" +
         "  fooRoute,\n" +
-        "// === dc-gen:end:route:Foo ===\n" +
+        "// === dc-template:end:route:Foo ===\n" +
         "];\n",
     );
   });
@@ -111,9 +111,9 @@ describe("INSERT 模式 + marker 健壮回退", () => {
     });
     expect(read("routes.ts")).toBe(
       "const routes = [\n" +
-        "// === dc-gen:start:route:Foo ===\n" +
+        "// === dc-template:start:route:Foo ===\n" +
         "  fooRoute,\n" +
-        "// === dc-gen:end:route:Foo ===\n" +
+        "// === dc-template:end:route:Foo ===\n" +
         "];\n",
     );
   });
@@ -126,8 +126,8 @@ describe("INSERT 模式 + marker 健壮回退", () => {
       anchor: { pattern: "<template>", position: "after" },
       markerKey: "c:Foo",
     });
-    expect(read("a.vue")).toContain("<!-- === dc-gen:start:c:Foo === -->");
-    expect(read("a.vue")).toContain("<!-- === dc-gen:end:c:Foo === -->");
+    expect(read("a.vue")).toContain("<!-- === dc-template:start:c:Foo === -->");
+    expect(read("a.vue")).toContain("<!-- === dc-template:end:c:Foo === -->");
 
     write("a.css", ".root {}\n");
     await runInsert({
@@ -136,8 +136,8 @@ describe("INSERT 模式 + marker 健壮回退", () => {
       anchor: { pattern: ".root", position: "after" },
       markerKey: "s:Foo",
     });
-    expect(read("a.css")).toContain("/* === dc-gen:start:s:Foo === */");
-    expect(read("a.css")).toContain("/* === dc-gen:end:s:Foo === */");
+    expect(read("a.css")).toContain("/* === dc-template:start:s:Foo === */");
+    expect(read("a.css")).toContain("/* === dc-template:end:s:Foo === */");
 
     write("a.py", "ITEMS = [\n]\n");
     await runInsert({
@@ -146,8 +146,8 @@ describe("INSERT 模式 + marker 健壮回退", () => {
       anchor: { pattern: "ITEMS = [", position: "after" },
       markerKey: "p:Foo",
     });
-    expect(read("a.py")).toContain("# === dc-gen:start:p:Foo ===");
-    expect(read("a.py")).toContain("# === dc-gen:end:p:Foo ===");
+    expect(read("a.py")).toContain("# === dc-template:start:p:Foo ===");
+    expect(read("a.py")).toContain("# === dc-template:end:p:Foo ===");
   });
 
   it("U4 回退按 marker 精确删，回到插入前", async () => {
@@ -210,7 +210,9 @@ describe("INSERT 模式 + marker 健壮回退", () => {
     await ins();
     await ins(); // 二次：替换，不重复插
     const content = read("routes.ts");
-    expect(content.match(/=== dc-gen:start:route:Foo ===/g)?.length).toBe(1);
+    expect(content.match(/=== dc-template:start:route:Foo ===/g)?.length).toBe(
+      1,
+    );
   });
 
   it("E1 anchor 未命中 → fail-loud", async () => {
@@ -264,7 +266,7 @@ describe("INSERT 模式 + marker 健壮回退", () => {
         markerComment: { open: "//", close: "" },
       }),
     ).resolves.not.toThrow();
-    expect(read("data.xyz")).toContain("// === dc-gen:start:k ===");
+    expect(read("data.xyz")).toContain("// === dc-template:start:k ===");
   });
 
   it("E10 anchor.pattern 空 → fail-loud", async () => {
@@ -307,7 +309,7 @@ describe("INSERT 模式 + marker 健壮回退", () => {
       },
       markerKey: "route:Foo",
     });
-    expect(read("routes.ts")).toContain("=== dc-gen:start:route:Foo ===");
+    expect(read("routes.ts")).toContain("=== dc-template:start:route:Foo ===");
   });
 
   it("E12 渲染内容含伪造 marker 行 → fail-loud", async () => {
@@ -315,7 +317,7 @@ describe("INSERT 模式 + marker 健壮回退", () => {
     await expect(
       runInsert({
         output: "routes.ts",
-        inputData: "// === dc-gen:start:k ===",
+        inputData: "// === dc-template:start:k ===",
         anchor: { pattern: "a", position: "after" },
         markerKey: "k",
       }),
@@ -326,21 +328,21 @@ describe("INSERT 模式 + marker 健壮回退", () => {
     // 文件含两份相同 markerKey 块
     write(
       "routes.ts",
-      "x\n// === dc-gen:start:k ===\nA\n// === dc-gen:end:k ===\ny\n// === dc-gen:start:k ===\nB\n// === dc-gen:end:k ===\n",
+      "x\n// === dc-template:start:k ===\nA\n// === dc-template:end:k ===\ny\n// === dc-template:start:k ===\nB\n// === dc-template:end:k ===\n",
     );
     await expect(
       runRollback({ output: "routes.ts", markerKey: "k" }),
     ).rejects.toThrow(/非唯一成对/);
   });
 
-  it("E14 markerKey 非法（含 dc-gen: / open 符）→ fail-loud", async () => {
+  it("E14 markerKey 非法（含 dc-template: / open 符）→ fail-loud", async () => {
     write("routes.ts", "a\n");
     await expect(
       runInsert({
         output: "routes.ts",
         inputData: "x",
         anchor: { pattern: "a", position: "after" },
-        markerKey: "dc-gen:evil",
+        markerKey: "dc-template:evil",
       }),
     ).rejects.toThrow(/保留前缀/);
     await expect(
@@ -379,7 +381,7 @@ describe("INSERT 模式 + marker 健壮回退", () => {
     const content = read("routes.ts");
     // 所有换行均为 \r\n（无裸 \n）
     expect(/(?<!\r)\n/.test(content)).toBe(false);
-    expect(content).toContain("\r\n// === dc-gen:start:route:Foo ===\r\n");
+    expect(content).toContain("\r\n// === dc-template:start:route:Foo ===\r\n");
   });
 
   it("U17 EOL：LF 文件 inject 后保持纯 LF（不引入 \\r）", async () => {
@@ -403,10 +405,10 @@ describe("INSERT 模式 + marker 健壮回退", () => {
     });
     const content = read("routes.ts");
     // 原文件无尾换行 → 插入后仍无尾换行（末行 = end marker）
-    expect(content.endsWith("// === dc-gen:end:route:Foo ===")).toBe(true);
+    expect(content.endsWith("// === dc-template:end:route:Foo ===")).toBe(true);
     expect(
       content.startsWith(
-        "const routes = [];\n// === dc-gen:start:route:Foo ===",
+        "const routes = [];\n// === dc-template:start:route:Foo ===",
       ),
     ).toBe(true);
   });
@@ -414,7 +416,7 @@ describe("INSERT 模式 + marker 健壮回退", () => {
   it("E13 正向：历史重复块 → computeInsert fail-loud", async () => {
     write(
       "routes.ts",
-      "x\n// === dc-gen:start:k ===\nA\n// === dc-gen:end:k ===\ny\n// === dc-gen:start:k ===\nB\n// === dc-gen:end:k ===\n",
+      "x\n// === dc-template:start:k ===\nA\n// === dc-template:end:k ===\ny\n// === dc-template:start:k ===\nB\n// === dc-template:end:k ===\n",
     );
     await expect(
       runInsert({
@@ -429,7 +431,7 @@ describe("INSERT 模式 + marker 健壮回退", () => {
   it("回退后文件仅剩块 + rollbackDelNullFile → 删文件", async () => {
     write(
       "frag.ts",
-      "// === dc-gen:start:k ===\nbody\n// === dc-gen:end:k ===\n",
+      "// === dc-template:start:k ===\nbody\n// === dc-template:end:k ===\n",
     );
     await runRollback({
       output: "frag.ts",
@@ -454,8 +456,8 @@ describe("INSERT 模式 + marker 健壮回退", () => {
 
   it("buildMarkerLines 产出 === 对称外壳（TS 行注释）", () => {
     const { startLine, endLine } = buildMarkerLines(tsComment, "route:Foo", NS);
-    expect(startLine).toBe("// === dc-gen:start:route:Foo ===");
-    expect(endLine).toBe("// === dc-gen:end:route:Foo ===");
+    expect(startLine).toBe("// === dc-template:start:route:Foo ===");
+    expect(endLine).toBe("// === dc-template:end:route:Foo ===");
   });
 
   it("HTML 块注释外壳合规（不含 --dc）", () => {
@@ -464,12 +466,13 @@ describe("INSERT 模式 + marker 健壮回退", () => {
       "k",
       NS,
     );
-    expect(startLine).toBe("<!-- === dc-gen:start:k === -->");
+    expect(startLine).toBe("<!-- === dc-template:start:k === -->");
     expect(startLine).not.toContain("--dc");
   });
 
   it("probeMarkerPairing：缺失→0，成对→1", () => {
-    const withBlock = "// === dc-gen:start:k ===\nx\n// === dc-gen:end:k ===\n";
+    const withBlock =
+      "// === dc-template:start:k ===\nx\n// === dc-template:end:k ===\n";
     const outputPath = "/fake/path/file.ts";
     expect(
       probeMarkerPairing(withBlock, {
@@ -491,11 +494,11 @@ describe("INSERT 模式 + marker 健壮回退", () => {
 
   it("probeMarkerPairing：duplicate start → throw 损坏错误", () => {
     const content = [
-      "// === dc-gen:start:k ===",
+      "// === dc-template:start:k ===",
       "body1",
-      "// === dc-gen:start:k ===",
+      "// === dc-template:start:k ===",
       "body2",
-      "// === dc-gen:end:k ===",
+      "// === dc-template:end:k ===",
     ].join("\n");
     expect(() =>
       probeMarkerPairing(content, {
@@ -508,7 +511,7 @@ describe("INSERT 模式 + marker 健壮回退", () => {
   });
 
   it("probeMarkerPairing：only-start（无 end）→ throw 损坏错误", () => {
-    const content = "// === dc-gen:start:k ===\nbody\n";
+    const content = "// === dc-template:start:k ===\nbody\n";
     expect(() =>
       probeMarkerPairing(content, {
         comment: tsComment,
@@ -521,9 +524,9 @@ describe("INSERT 模式 + marker 健壮回退", () => {
 
   it("probeMarkerPairing：end-before-start → throw 损坏错误", () => {
     const content = [
-      "// === dc-gen:end:k ===",
+      "// === dc-template:end:k ===",
       "body",
-      "// === dc-gen:start:k ===",
+      "// === dc-template:start:k ===",
     ].join("\n");
     expect(() =>
       probeMarkerPairing(content, {

@@ -1,10 +1,10 @@
 /**
- * [T5] dc-gen list [type] handler（K5 两套 DTO，[MUST NOT] 互相复用）。
+ * [T5] dc-generator list [type] handler（K5 两套 DTO，[MUST NOT] 互相复用）。
  *
  * 职责（design §4.1/§6.4）：
- *  - `dc-gen list`（无 type）= **dc-gen 发现 list**：listDiscoveredBatches("*") → 发现 DTO
+ *  - `dc-generator list`（无 type）= **dc-generator 发现 list**：listDiscoveredBatches("*") → 发现 DTO
  *    `{name,source,layer,shadowed}`。[MUST NOT] 写 component-name-list.json。
- *  - `dc-gen list <type>`（带批次）= **批次实例 list**：按该批次 config 枚举实例，
+ *  - `dc-generator list <type>`（带批次）= **批次实例 list**：按该批次 config 枚举实例，
  *    -o（--output）时按 config.listSerializer（component 兼容形状）落地：
  *    字段序 + 不排序 + 指定缩进 + 无尾换行 + path.resolve(基准)。
  *  - 签名 (argv, ctxInit?)；三模式。
@@ -96,7 +96,7 @@ const buildInstanceItem = (
   return item;
 };
 
-/** 批次实例 list（dc-gen list <type>），可选 -o 落地（component 兼容 serializer） */
+/** 批次实例 list（dc-generator list <type>），可选 -o 落地（component 兼容 serializer） */
 const listBatchInstances = (
   batch: ResolvedBatch,
   argv: { output?: string },
@@ -143,7 +143,7 @@ const listBatchInstances = (
   return items;
 };
 
-/** dc-gen 发现 list（无 type）：跨层并集 + layer + shadowed（独立 DTO，K5） */
+/** dc-generator 发现 list（无 type）：跨层并集 + layer + shadowed（独立 DTO，K5） */
 const listDiscovery = (ctx: HandlerContext) => {
   const items = listDiscoveredBatches("*", { cwd: ctx.cwd });
   outputConsole.table(
@@ -170,7 +170,7 @@ const listDiscovery = (ctx: HandlerContext) => {
 export const handler: GeneratorHandler = async (argv, ctxInit) => {
   const ctx = resolveHandlerContext(ctxInit);
 
-  // 无 type → dc-gen 发现 list（独立 DTO，[MUST NOT] 写 component-name-list.json）
+  // 无 type → dc-generator 发现 list（独立 DTO，[MUST NOT] 写 component-name-list.json）
   if (!argv.type) {
     listDiscovery(ctx);
     return;

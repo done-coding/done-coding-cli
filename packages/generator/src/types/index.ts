@@ -99,7 +99,7 @@ export interface FileEntry {
   /**
    * [inject 专用] marker 身份键（支持 `${}`）。
    * 缺省 = operate 内部计算的 `${批次类型}:${name}`（design §12 A3，不经 env 暴露 __batchType）。
-   * 文件内 marker = `<open> === dc-gen:start:<markerKey> === <close>` / `...:end:...`，回退按此精确定位，免疫块内手改。
+   * 文件内 marker = `<open> === dc-generator:start:<markerKey> === <close>` / `...:end:...`，回退按此精确定位，免疫块内手改。
    */
   markerKey?: string;
   /** [inject 可选] 覆盖语言感知注释样式（未知扩展名时必填，design §2.2） */
@@ -111,7 +111,7 @@ export interface FileEntry {
 /**
  * 批次实例 list 序列化配置（H4/K5）：content-free，由各批次预设声明。
  * component 预设声明 component 兼容形状（复刻 list.ts:80-113）。
- * [MUST NOT] 与 dc-gen 发现 list DTO（DiscoveredBatchListItem）互相复用。
+ * [MUST NOT] 与 dc-generator 发现 list DTO（DiscoveredBatchListItem）互相复用。
  */
 export interface ListSerializerConfig {
   /** 严格字段序（component 兼容 = ["name","nameKebab","fullName"]） */
@@ -131,7 +131,7 @@ export interface ListSerializerConfig {
 export type BatchInstanceListItem = Record<string, unknown>;
 
 /**
- * dc-gen 发现 list 单项 DTO（②通用 `dc-gen list [type]`，design §4.1/§6.4）。
+ * dc-generator 发现 list 单项 DTO（②通用 `dc-generator list [type]`，design §4.1/§6.4）。
  * [MUST NOT] 复用 ListSerializerConfig 结构、[MUST NOT] 写进 component-name-list.json。
  */
 export interface DiscoveredBatchListItem {
@@ -297,7 +297,7 @@ export interface EnvContext {
  * 具体字段由各 handler 在 T5 细化；server-agnostic（cli/mcp/test 三模式统一）。
  */
 export interface GeneratorHandlerArgv {
-  /** 批次类型（dc-gen <type> ...）；list 无 type 时可缺省 */
+  /** 批次类型（dc-generator <type> ...）；list 无 type 时可缺省 */
   type?: string;
   /** 实例名（add/remove <name>） */
   name?: string;

@@ -5,8 +5,8 @@
  *  - 导出各命令 handler（add/remove/list/init）供 P3 MCP / [P4a] assemble 直接 import（server-agnostic）。
  *  - 装配 commandCliInfo（subcommands）供 main.ts createMainCommand。
  *  - 命令树（yargs 原生 verb-first 路由；`<type>` 作为各命令首位 positional）：
- *      dc-gen add <type> <name> | remove <type> <name> | list [type] | init <type> [--global]
- *    概念用法即 design 的 "dc-gen <type> add <name>"；yargs 子命令按 verb 分发，
+ *      dc-generator add <type> <name> | remove <type> <name> | list [type] | init <type> [--global]
+ *    概念用法即 design 的 "dc-generator <type> add <name>"；yargs 子命令按 verb 分发，
  *    故 `<type>` 落为各命令首位 positional（与仓内 component/ai/config 既有 verb-first 范式一致）。
  */
 import { handler as addHandler } from "./add";
@@ -181,7 +181,7 @@ const initCommandCliInfo: SubCliInfo = {
     initHandler(toGeneratorArgv(argv))) as SubCliInfo["handler"],
 };
 
-// ───────────────────────── assemble 真子命令（D-M1，dc-gen assemble <action>） ─────────────────────────
+// ───────────────────────── assemble 真子命令（D-M1，dc-generator assemble <action>） ─────────────────────────
 
 /** assemble 各 action 共享选项（recipe/all/out-dir/against/force/json）。 */
 const assembleOptions: YargsOptionsRecord<

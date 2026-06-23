@@ -84,7 +84,7 @@ done-coding 集成了多个工具，每个工具都专注于特定的开发任�
 
 ### 🏭 通用批次生成
 
-- **命令**: `DC generator`（bin `dc-gen`）
+- **命令**: `DC generator`（bin `dc-generator`）
 - **描述**: 通用具名批次生成器（content-free 机制层）—— add/modify/remove/list/init 批次实例 + assemble 模板组装（配方→物化 + 漂移闸）；`component` 即其 component 预设薄包装
 - **包地址**: [@done-coding/cli-generator](https://www.npmjs.com/package/@done-coding/cli-generator)
 
@@ -150,7 +150,7 @@ DC component add <name>                   # 新增组件
 DC component remove [name]                # 删除组件
 DC component list                         # 展示组件列表
 
-# 通用批次生成（dc-gen）
+# 通用批次生成（dc-generator）
 DC generator list [type]                  # 列出批次/批次实例
 DC generator init <type>                  # 初始化批次骨架
 DC generator add <type> <name>            # 添加实例

@@ -30,7 +30,7 @@ describe("INSERT 路径 markerNs 必填", () => {
 });
 
 describe("standalone batch insert 不回归", () => {
-  it("markerNs=dc-gen 注入 → 不抛错 + 产出含 === dc-gen:start:", async () => {
+  it("markerNs=dc-template 注入 → 不抛错 + 产出含 === dc-template:start:", async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dc-batch-ns-"));
     try {
       // 模板文件
@@ -61,7 +61,7 @@ describe("standalone batch insert 不回归", () => {
       );
 
       const result = fs.readFileSync(targetFile, "utf-8");
-      expect(result).toContain("=== dc-gen:start:");
+      expect(result).toContain("=== dc-template:start:");
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }

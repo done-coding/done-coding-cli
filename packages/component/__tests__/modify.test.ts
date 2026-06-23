@@ -5,7 +5,7 @@
  *
  * 场景：
  *   MOD-1 addCommandHandler(v1) → modifyCommandHandler(v2) →
- *         目标文件 inject 块原位替换为 v2、dc-gen:start: 块仅出现一次。
+ *         目标文件 inject 块原位替换为 v2、dc-generator:start: 块仅出现一次。
  *
  * 夹具约定（项目 CLAUDE.md 沙盒规则）：
  *   - 临时目录通过 os.tmpdir() + mkdtempSync 创建
@@ -52,7 +52,7 @@ const mkComponentBatch = (cwd: string, configJson5: string): void => {
 };
 
 describe("[T6] dc-component modifyCommandHandler 包装", () => {
-  it("MOD-1 addCommandHandler(v1) → modifyCommandHandler(v2)：inject 块原位替换、仅一个 dc-gen:start: 块", async () => {
+  it("MOD-1 addCommandHandler(v1) → modifyCommandHandler(v2)：inject 块原位替换、仅一个 dc-generator:start: 块", async () => {
     const cwd = mkTmp();
 
     // 目标文件：inject 策略锚点在 "const routes = [" 之后
@@ -85,7 +85,7 @@ describe("[T6] dc-component modifyCommandHandler 包装", () => {
 
     const afterAdd = fs.readFileSync(targetFile, "utf-8");
     expect(afterAdd).toContain("const x = v1");
-    expect(afterAdd).toContain("=== dc-gen:start:t:comp-foo ===");
+    expect(afterAdd).toContain("=== dc-generator:start:t:comp-foo ===");
 
     // step 2: modifyCommandHandler with v=v2
     await modifyCommandHandler(
@@ -100,6 +100,6 @@ describe("[T6] dc-component modifyCommandHandler 包装", () => {
     expect(afterModify).not.toContain("const x = v1");
 
     // 块仅出现一次（原位替换，未重复插入）
-    expect((afterModify.match(/dc-gen:start:/g) ?? []).length).toBe(1);
+    expect((afterModify.match(/dc-generator:start:/g) ?? []).length).toBe(1);
   });
 });

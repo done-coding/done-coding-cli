@@ -6,7 +6,7 @@
  *
  * 场景：
  *   INT-1 addHandler 造块(v1) → modifyHandler(v2) → 断言目标文件块原位替换为 v2、
- *         且 === dc-gen:start: 块仅出现一次。
+ *         且 === dc-generator:start: 块仅出现一次。
  *
  * 夹具约定（CLAUDE.md 沙盒规则，K7）：
  *   - 临时目录通过 os.tmpdir() + mkdtempSync 创建
@@ -61,7 +61,7 @@ const mkOnDiskBatch = (
 
 // ── 集成测试 ──────────────────────────────────────────────────────────────────
 describe("[T5-INT] modify handler → 真实 operate → 文件系统", () => {
-  it("INT-1 addHandler(v1) → modifyHandler(v2)：块原位替换、仅一个 dc-gen:start: 块", async () => {
+  it("INT-1 addHandler(v1) → modifyHandler(v2)：块原位替换、仅一个 dc-generator:start: 块", async () => {
     const cwd = mkTmp();
 
     // 目标文件：inject 策略锚点在 "const routes = [" 之后
@@ -94,7 +94,7 @@ describe("[T5-INT] modify handler → 真实 operate → 文件系统", () => {
 
     const afterAdd = fs.readFileSync(targetFile, "utf-8");
     expect(afterAdd).toContain("const x = v1");
-    expect(afterAdd).toContain("=== dc-gen:start:t:int-foo ===");
+    expect(afterAdd).toContain("=== dc-generator:start:t:int-foo ===");
 
     // step 2: modifyHandler with v=v2
     await modifyHandler(
@@ -109,6 +109,6 @@ describe("[T5-INT] modify handler → 真实 operate → 文件系统", () => {
     expect(afterModify).not.toContain("const x = v1");
 
     // 块仅出现一次（原位替换，未重复插入）
-    expect((afterModify.match(/dc-gen:start:/g) ?? []).length).toBe(1);
+    expect((afterModify.match(/dc-generator:start:/g) ?? []).length).toBe(1);
   });
 });

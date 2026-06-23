@@ -20,7 +20,7 @@ import {
 import { applyMcpEnvConfig } from "@/main";
 
 /**
- * dc-gen MCP 工具接线测试（P3，design §5/§12）。
+ * dc-generator MCP 工具接线测试（P3，design §5/§12）。
  *
  * - fake server 捕获 registerTool 的 handler 直接调用（不起真 stdio server）。
  * - 模拟 MCP：updateEnvConfig({consoleLog:false})——outputConsole 切日志、不污染 stdout。
@@ -119,7 +119,7 @@ const writeBatch = (root: string, type: string, configBody: string): void => {
   fs.writeFileSync(path.join(dir, "config.json5"), configBody);
 };
 
-describe("[P3] dc-gen MCP 工具", () => {
+describe("[P3] dc-generator MCP 工具", () => {
   it("U1 list_batches：发现 DTO（layer/shadowed）", async () => {
     const root = mkTmp();
     writeBatch(root, "widget", WIDGET_CONFIG);
@@ -224,7 +224,7 @@ describe("[P3] dc-gen MCP 工具", () => {
   });
 });
 
-describe("[P3] dc-gen MCP schema（B1 rootDir 必填）", () => {
+describe("[P3] dc-generator MCP schema（B1 rootDir 必填）", () => {
   it("list_batches 缺 rootDir → safeParse 失败", () => {
     expect(listBatchesInputSchema.safeParse({}).success).toBe(false);
     expect(listBatchesInputSchema.safeParse({ rootDir: "/x" }).success).toBe(
@@ -251,7 +251,7 @@ describe("[P3] dc-gen MCP schema（B1 rootDir 必填）", () => {
   });
 });
 
-describe("[P3] dc-gen 引导 prompt", () => {
+describe("[P3] dc-generator 引导 prompt", () => {
   it("无 rootDir：提示必填、勿用 server cwd", () => {
     const text = buildGeneratePromptText({});
     expect(text).toContain("rootDir");

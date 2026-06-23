@@ -27,14 +27,14 @@ DC generator [command]
 
 ```bash
 # 独立使用（bin）
-dc-gen <command> [<type>] [<name>] [options]
+dc-generator <command> [<type>] [<name>] [options]
 
 # 作为主 CLI 的子命令
 DC generator <command> [<type>] [<name>] [options]
 done-coding generator <command> ...
 
 # 查看帮助
-dc-gen --help
+dc-generator --help
 ```
 
 ## 核心概念
@@ -42,20 +42,20 @@ dc-gen --help
 - **content-free 机制层**：本包不内置任何业务内容；"生成什么"由项目本地的**批次配置**（`<projectRoot>/.done-coding/<type>/`）描述，引擎只负责发现配置、收集变量、按策略物化/注入/回滚。
 - **批次（type）**：一类可复用的具名生成能力（如 `component`、`page`、`store`…），运行时以 positional `<type>` 指定，可就近向上 + 全局解析。
 - **实例（name）**：某批次下的一个具名产物。
-- **marker 块**：注入式产物用 `dc-gen:start:<key>` / `dc-gen:end:<key>` 哨兵包裹，支持原位幂等替换与健壮回退。
+- **marker 块**：注入式产物用 `dc-generator:start:<key>` / `dc-generator:end:<key>` 哨兵包裹，支持原位幂等替换与健壮回退。
 - **assemble**：以**配方（recipe）+ 碎片（fragment）**物化一棵产物树，内置 VFS 原子写盘、冲突检测与**漂移闸**（clean regenerate → diff，任意漂移即 fail）。
 
 ## 命令一览
 
-| 命令                                       | 说明                                             |
-| ------------------------------------------ | ------------------------------------------------ |
-| `dc-gen add <type> <name>`                 | 添加实例                                         |
-| `dc-gen add <type> --list-questions`       | 列出该批次的问题清单                             |
-| `dc-gen modify <type> <name>`              | 原位修改 insert 块的值                           |
-| `dc-gen remove <type> <name>`              | 移除实例                                         |
-| `dc-gen list [type]`                       | 列出批次（无 `type`）/ 某批次的实例（带 `type`） |
-| `dc-gen init <type>`                       | 初始化一个批次骨架                               |
-| `dc-gen assemble plan\|build\|diff\|check` | 模板组装：计划 / 物化 / 比对 / 漂移闸            |
+| 命令                                             | 说明                                             |
+| ------------------------------------------------ | ------------------------------------------------ |
+| `dc-generator add <type> <name>`                 | 添加实例                                         |
+| `dc-generator add <type> --list-questions`       | 列出该批次的问题清单                             |
+| `dc-generator modify <type> <name>`              | 原位修改 insert 块的值                           |
+| `dc-generator remove <type> <name>`              | 移除实例                                         |
+| `dc-generator list [type]`                       | 列出批次（无 `type`）/ 某批次的实例（带 `type`） |
+| `dc-generator init <type>`                       | 初始化一个批次骨架                               |
+| `dc-generator assemble plan\|build\|diff\|check` | 模板组装：计划 / 物化 / 比对 / 漂移闸            |
 
 > 用法为 **verb-first**（动词在前、`<type>` 在后），子命令形式同理：`done-coding generator add <type> <name>`。
 
@@ -85,7 +85,7 @@ dc-gen --help
 
 ## 编程式复用
 
-本包导出机制层原语供上层（如 `dc-component` 预设、`cli-mcp` 的 dc-gen 工具）直接 import：
+本包导出机制层原语供上层（如 `dc-component` 预设、`cli-mcp` 的 generator 工具）直接 import：
 
 ```ts
 import {
@@ -112,21 +112,21 @@ import {
 
 ```bash
 # 1. 看有哪些批次
-dc-gen list
+dc-generator list
 
 # 2. 初始化一个批次骨架
-dc-gen init page
+dc-generator init page
 
 # 3. 添加实例（先看问题清单）
-dc-gen add page --list-questions
-dc-gen add page Home
+dc-generator add page --list-questions
+dc-generator add page Home
 
 # 4. 原位改某实例 insert 块
-dc-gen modify page Home
+dc-generator modify page Home
 
 # 5. assemble：物化配方 + 漂移闸
-dc-gen assemble build
-dc-gen assemble check     # CI 漂移闸：与已提交 manifest diff，任意漂移 fail
+dc-generator assemble build
+dc-generator assemble check     # CI 漂移闸：与已提交 manifest diff，任意漂移 fail
 ```
 
 ## 故障排除
@@ -147,7 +147,7 @@ pnpm install
 pnpm dev          # 开发模式
 pnpm build        # 构建
 pnpm test         # 单测（vitest）
-node es/cli.mjs --help   # 本地测试（发布后用 dc-gen）
+node es/cli.mjs --help   # 本地测试（发布后用 dc-generator）
 ```
 
 ## 许可证

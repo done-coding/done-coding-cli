@@ -7,7 +7,7 @@
   "type": "module",
   "types": "types/index.d.ts",
   "bin": {
-    "dc-gen": "es/cli.mjs"
+    "dc-generator": "es/cli.mjs"
   },
   "exports": {
     ".": {
