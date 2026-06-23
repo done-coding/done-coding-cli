@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-generator",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "通用具名批次生成器（content-free 机制层）",
   "private": false,
   "module": "es/index.mjs",
