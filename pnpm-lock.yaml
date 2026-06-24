@@ -80,7 +80,7 @@ importers:
         specifier: workspace:0.12.0
         version: link:../utils
       create-done-coding:
-        specifier: workspace:0.15.1
+        specifier: workspace:0.16.0
         version: link:../create
       openai:
         specifier: ^4.77.0
@@ -117,7 +117,7 @@ importers:
   packages/cli:
     dependencies:
       "@done-coding/cli-ai":
-        specifier: workspace:0.1.8
+        specifier: workspace:0.1.9
         version: link:../ai
       "@done-coding/cli-component":
         specifier: workspace:0.6.1
@@ -150,7 +150,7 @@ importers:
         specifier: workspace:0.12.0
         version: link:../utils
       create-done-coding:
-        specifier: workspace:0.15.1
+        specifier: workspace:0.16.0
         version: link:../create
     devDependencies:
       "@types/node":
@@ -474,7 +474,7 @@ importers:
         specifier: ^1.29.0
         version: 1.29.0(zod@4.4.3)
       create-done-coding:
-        specifier: workspace:0.15.1
+        specifier: workspace:0.16.0
         version: link:../create
       zod:
         specifier: ^4.4.3

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.16.0](https://github.com/done-coding/done-coding-cli/compare/create-done-coding@0.15.1...create-done-coding@0.16.0) (2026-06-24)
+
+### Features
+
+- **create:** dc create 脚手架实例中央留痕注册表 + instances ls/prune ([#30](https://github.com/done-coding/done-coding-cli/issues/30)) ([6d17194](https://github.com/done-coding/done-coding-cli/commit/6d17194fea8e2e95aba1c1f2ec0f618d1c1638cd))
+
 ## [0.15.1](https://github.com/done-coding/done-coding-cli/compare/create-done-coding@0.15.0...create-done-coding@0.15.1) (2026-06-23)
 
 **Note:** Version bump only for package create-done-coding

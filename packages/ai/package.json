@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-ai",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "ai命令行工具",
   "private": false,
   "module": "es/index.mjs",
@@ -58,7 +58,7 @@
     "@done-coding/cli-publish": "workspace:0.8.5",
     "@done-coding/cli-template": "workspace:0.12.1",
     "@done-coding/cli-utils": "workspace:0.12.0",
-    "create-done-coding": "workspace:0.15.1",
+    "create-done-coding": "workspace:0.16.0",
     "openai": "^4.77.0"
   },
   "engines": {
