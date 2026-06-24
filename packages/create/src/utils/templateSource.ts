@@ -52,6 +52,12 @@ export interface TemplateSourceInfo {
   branch?: string;
   /** 仓库内模板目录 */
   directory?: string;
+  /**
+   * 模板友好名（来自模板列表 choice.name）。
+   * 仅在「从模板列表选择」时有值；自定义 url / 公共仓 / 直传 url 时为 undefined。
+   * 供创建实例留痕的 `template` 标识使用（无名时回落 url）。
+   */
+  templateName?: string;
 }
 
 /** 模板实例生成参数 */

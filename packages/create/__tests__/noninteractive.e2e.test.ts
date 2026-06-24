@@ -4,6 +4,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -46,6 +47,8 @@ const runCli = (
     input: "", // 提供 stdin 管道（非 TTY），并立即 EOF
     timeout: 20000, // 守护：死循环会被超时杀掉，signal 非 null 即判失败
     killSignal: "SIGKILL",
+    // 重定向中央实例注册表到沙盒，避免真跑 create 污染真实 ~/.done-coding
+    env: { ...process.env, DC_CREATE_INSTANCES_BASE_DIR: workspaceRoot },
   });
   return {
     status: result.status,
@@ -523,5 +526,66 @@ describe("create-done-coding 非交互供答 e2e", () => {
     expect(r.stderr).toContain("cacheNamespace"); // 指出是哪个 key 的 initial
     expect(r.stderr).toContain("nope"); // 指出缺失的引用变量
     expect(existsSync(path.join(work, "badapp"))).toBe(false);
+  });
+
+  it("中央实例留痕：创建成功后注册表(沙盒)出现该项目条目；失败不写脏条目 (R1/R2/R3)", () => {
+    const registryPath = path.join(
+      workspaceRoot,
+      ".done-coding",
+      "create",
+      "instances.json",
+    );
+
+    // 成功创建 → 留痕一条
+    const work = makeWork("instances-trace");
+    const r = runCli(
+      [
+        "-n",
+        "traceapp",
+        "-p",
+        templateRepo,
+        "--env",
+        JSON.stringify({ organization: "acme", name: "traceapp" }),
+        "--openGitDetailOptimize=false",
+      ],
+      work,
+    );
+    expect(r.status).toBe(0);
+
+    // 留痕路径取自 CLI 内 process.cwd()，macOS 下 /var → /private/var 规范化，
+    // 故用 realpathSync 对齐再比对（项目已落位，可 realpath）
+    const okProject = realpathSync(path.join(work, "traceapp"));
+    expect(existsSync(registryPath)).toBe(true);
+    const registry = JSON.parse(readFileSync(registryPath, "utf-8")) as {
+      instances: { path: string; template: string; createdAt: string }[];
+    };
+    const traced = registry.instances.find((i) => i.path === okProject);
+    expect(traced).toBeTruthy();
+    expect(traced?.template).toBe(templateRepo); // 直传 url 无友好名 → 回落 url
+    expect(typeof traced?.createdAt).toBe("string");
+
+    // 失败创建（缺必填）→ 不新增脏条目
+    const before = registry.instances.length;
+    const failWork = makeWork("instances-trace-fail");
+    const rf = runCli(
+      [
+        "-n",
+        "failapp",
+        "-p",
+        templateRepo,
+        "--env",
+        JSON.stringify({ organization: "acme" }), // 缺 name → fast-fail
+        "--openGitDetailOptimize=false",
+      ],
+      failWork,
+    );
+    expect(rf.status).not.toBe(0);
+    const after = JSON.parse(readFileSync(registryPath, "utf-8")) as {
+      instances: { path: string }[];
+    };
+    expect(after.instances.length).toBe(before);
+    expect(
+      after.instances.some((i) => i.path === path.join(failWork, "failapp")),
+    ).toBe(false);
   });
 });
