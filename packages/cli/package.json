@@ -1,6 +1,6 @@
 {
   "name": "done-coding",
-  "version": "0.18.0",
+  "version": "0.18.1-alpha.0",
   "description": "done-coding命令行工具",
   "private": false,
   "module": "es/cli.mjs",
@@ -51,7 +51,7 @@
     "vite-plugin-dts": "^3.6.0"
   },
   "dependencies": {
-    "@done-coding/cli-ai": "workspace:0.1.8",
+    "@done-coding/cli-ai": "workspace:0.1.9-alpha.0",
     "@done-coding/cli-component": "workspace:0.6.1",
     "@done-coding/cli-config": "workspace:0.2.5",
     "@done-coding/cli-extract": "workspace:0.2.6",
@@ -62,7 +62,7 @@
     "@done-coding/cli-publish": "workspace:0.8.5",
     "@done-coding/cli-template": "workspace:0.12.1",
     "@done-coding/cli-utils": "workspace:0.12.0",
-    "create-done-coding": "workspace:0.15.1"
+    "create-done-coding": "workspace:0.15.2-alpha.0"
   },
   "engines": {
     "node": ">=18.0.0"
