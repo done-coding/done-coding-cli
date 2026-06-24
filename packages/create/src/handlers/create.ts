@@ -10,6 +10,7 @@ import {
   getTemplateGitBranchForm,
   materializeTemplateToProject,
   resolveTemplateSourceFromUrl,
+  recordCreateInstance,
   type TemplateSourceInfo,
 } from "@/utils";
 import type {
@@ -74,6 +75,8 @@ interface CreateDraftState {
   templateUrl: string;
   templateBranch?: string;
   templateDirectory?: string;
+  /** 模板友好名（无则记 url），供创建实例留痕 */
+  templateName?: string;
   parentGitDir?: string;
   configPath: string;
   skipTemplateCompile: boolean;
@@ -255,6 +258,8 @@ const resolveTemplateSourceInfo = async ({
     FormNameEnum.TEMPLATE_GIT_BRANCH,
   );
   let templateDirectory = argv.templateDirectory;
+  // 模板友好名：仅「从模板列表选择」时有值，供创建实例留痕用（无名回落 url）
+  let templateName: string | undefined;
 
   if (!templateUrl) {
     // 注意：此处不再按 mode 分叉。MCP 与 CLI 共用同一解析路径。
@@ -286,6 +291,7 @@ const resolveTemplateSourceInfo = async ({
       if (!target.url) {
         throw new Error(`模板${template}地址不存在`);
       }
+      templateName = target.name;
       templateUrl = target.url;
       if (typeof target.branch === "string") {
         templateBranch = target.branch;
@@ -303,11 +309,13 @@ const resolveTemplateSourceInfo = async ({
     throw new Error(`模板地址不存在`);
   }
 
-  return resolveTemplateSourceFromUrl({
+  const sourceInfo = resolveTemplateSourceFromUrl({
     templateUrl,
     templateBranch,
     directory: templateDirectory,
   });
+  sourceInfo.templateName = templateName;
+  return sourceInfo;
 };
 
 const moveDraftProjectToTarget = (state: CreateDraftState) => {
@@ -393,6 +401,8 @@ export const prepareCreateProject = async (
     templateUrl: templateInstance.url,
     templateBranch: templateInstance.branch,
     templateDirectory: templateInstance.directory,
+    // 名取自 templateSource（materialize 不变换名）；无名留 undefined，留痕时回落 url
+    templateName: templateSource.templateName,
     parentGitDir,
     configPath,
     skipTemplateCompile,
@@ -561,9 +571,17 @@ export const completeCreateProject = async (
 
   moveDraftProjectToTarget(state);
 
+  // 创建成功后向中央注册表留痕（best-effort 副作用，失败不影响主流程）
+  recordCreateInstance({
+    path: state.targetProjectPath,
+    template: state.templateName ?? state.templateUrl,
+    templateUrl: state.templateUrl,
+    templateBranch: state.templateBranch,
+  });
+
   outputConsole.success(`项目${state.projectName}初始化完成`);
   outputConsole.info(`
-使用步骤: 
+使用步骤:
   1. cd ${state.projectName}
   2. pnpm install
   3. pnpm run dev
@@ -705,10 +723,18 @@ const interactiveCreateHandler = async (
     stdio: "inherit",
   });
 
+  // 创建成功后向中央注册表留痕（best-effort 副作用，失败不影响主流程）
+  recordCreateInstance({
+    path: projectNamePath,
+    template: templateSource.templateName ?? templateSource.url,
+    templateUrl: templateSource.url,
+    templateBranch: templateSource.branch,
+  });
+
   outputConsole.success(`项目${projectName}初始化完成`);
 
   outputConsole.info(`
-使用步骤: 
+使用步骤:
   1. cd ${projectName}
   2. pnpm install
   3. pnpm run dev
