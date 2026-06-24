@@ -4,6 +4,7 @@ import {
   prepareCreateProject,
   completeCreateProject,
 } from "./create";
+import { instancesCommandCliInfo } from "./instances";
 import injectInfo from "@/injectInfo.json";
 import { SubcommandEnum } from "@/types";
 import {
@@ -40,7 +41,9 @@ const { version, description: describe } = injectInfo;
 export const commandCliInfo: Omit<CliInfo, "usage"> = {
   describe,
   version,
-  subcommands: [createCommandCliInfo].map(createSubcommand),
+  subcommands: [createCommandCliInfo, instancesCommandCliInfo].map(
+    createSubcommand,
+  ),
   demandCommandCount: 1,
   rootScriptName: getRootScriptName({ packageJson: injectInfo }),
 };
