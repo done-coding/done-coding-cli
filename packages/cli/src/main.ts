@@ -13,6 +13,7 @@ import {
   SubcommandEnum as AiSubcommandEnum,
 } from "@done-coding/cli-ai";
 import { createAsSubcommand as createMrmCommand } from "@done-coding/cli-mrm";
+import { createAsSubcommand as createCcSwitchCommand } from "@done-coding/cli-cc-switch";
 import injectInfo from "@/injectInfo.json";
 import type { CliInfo } from "@done-coding/cli-utils";
 import {
@@ -21,6 +22,15 @@ import {
   execSyncHijack,
   xPrompts,
 } from "@done-coding/cli-utils";
+
+/**
+ * 抑制 node DeprecationWarning 类告警（--no-deprecation 的运行时等价开关）。
+ * 背景：主命令 import 链深层的懒加载依赖（tr46/whatwg-url 等老链）在
+ * 交互渲染期首次 require punycode，DEP0040 警告插入 stderr 会打断 prompts
+ * 的 stdout 渲染帧（终端帧错乱）。DeprecationWarning 面向库开发者，
+ * CLI 用户可见即为噪音；实验性等其它 warning 类型不受影响。
+ */
+process.noDeprecation = true;
 
 const { version, description: describe } = injectInfo;
 
@@ -40,6 +50,7 @@ const commandCliInfo: CliInfo = {
     createConfigCommand(),
     createAiCommand(),
     createMrmCommand(),
+    createCcSwitchCommand(),
   ],
   demandCommandCount: 0,
   rootScriptName: getRootScriptName({ packageJson: injectInfo }),

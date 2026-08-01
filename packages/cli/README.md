@@ -57,7 +57,7 @@ done-coding --help
 
 ## 功能特性
 
-- ✅ **统一入口**: 集成 12 个专业工具包，提供统一的命令行入口
+- ✅ **统一入口**: 集成 13 个专业工具包，提供统一的命令行入口
 - 🤖 **AI 对话**: 无子命令时唤起 AI 对话，模型切换委托 mrm，SSE 流式响应；对话内支持 `/子包名` 查看其他工具帮助
 - 🚀 **跨平台兼容**: 支持 Windows、macOS、Linux，自动处理系统差异
 - 🔧 **模块化设计**: 每个子包独立开发，可单独使用或集成使用
@@ -136,6 +136,12 @@ done-coding 集成了多个工具，每个工具都专注于特定的开发任�
 - **描述**: 预编译命令行工具
 - **包地址**: [@done-coding/cli-template](https://www.npmjs.com/package/@done-coding/cli-template)
 
+### 🔀 模型路由
+
+- **命令**: `DC cc-switch`
+- **描述**: claude-code 模型路由透传（`dc-cc-switch` / `cc-router`），按 profile 注入 env 启动 claude；支持 `--meta-pick` 交互选择、`--meta-profile=<name>` 显式指定
+- **包地址**: [@done-coding/cli-cc-switch](https://www.npmjs.com/package/@done-coding/cli-cc-switch)
+
 ## 完整命令列表
 
 ### 基于实际 CLI 输出的命令
@@ -157,6 +163,12 @@ DC generator add <type> <name>            # 添加实例
 DC generator modify <type> <name>         # 原位修改 insert 块的值
 DC generator remove <type> <name>         # 移除实例
 DC generator assemble plan|build|diff|check  # 模板组装 + 漂移闸
+
+# 模型路由（dc-cc-switch）
+DC cc-switch [claude 参数...]             # 模型路由透传启动 claude
+DC cc-switch --meta-pick                  # 交互选择 profile 启动
+DC cc-switch --meta-profile=<name>        # 显式指定 profile 启动
+DC cc-switch --meta-help                  # 自身帮助
 
 # 模型源管理
 DC mrm ls                                 # 查看可用模型和服务商
