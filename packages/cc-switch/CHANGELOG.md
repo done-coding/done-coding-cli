@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# 0.1.0 (2026-08-01)
+
+### Features
+
+- **cc-switch:** ccsuite/cli-router 迁移为 @done-coding/cli-cc-switch + meta 自身命令面 + 注册进主 CLI ([#32](https://github.com/done-coding/done-coding-cli/issues/32)) ([3ee1930](https://github.com/done-coding/done-coding-cli/commit/3ee1930c4dd7f7ddd4fc322fed6f774b2ecf6957))
+
 # 0.0.0 (2026-05-15)
 
 ### Features
