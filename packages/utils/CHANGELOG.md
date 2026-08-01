@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.12.1-alpha.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-utils@0.12.0...@done-coding/cli-utils@0.12.1-alpha.0) (2026-08-01)
+
+### Features
+
+- **cli-utils:** 启用 yargs shell 补全 —— done-coding 全命令 tab 补全 ([#33](https://github.com/done-coding/done-coding-cli/issues/33)) ([58cc0f1](https://github.com/done-coding/done-coding-cli/commit/58cc0f1e3be5834bca852721e169f87e630b2554))
+
 # [0.12.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-utils@0.11.0...@done-coding/cli-utils@0.12.0) (2026-06-22)
 
 ### Bug Fixes
