@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.20.0](https://github.com/done-coding/done-coding-cli/compare/done-coding@0.19.0...done-coding@0.20.0) (2026-08-01)
+
+### Features
+
+- **cli-utils:** 启用 yargs shell 补全 —— done-coding 全命令 tab 补全 ([#34](https://github.com/done-coding/done-coding-cli/issues/34)) ([bdaef3d](https://github.com/done-coding/done-coding-cli/commit/bdaef3d0af35b300db02a7515e8c548829fbedcb))
+
 # [0.19.0](https://github.com/done-coding/done-coding-cli/compare/done-coding@0.18.1...done-coding@0.19.0) (2026-08-01)
 
 ### Features
