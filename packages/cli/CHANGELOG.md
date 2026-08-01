@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.18.2-alpha.0](https://github.com/done-coding/done-coding-cli/compare/done-coding@0.18.1...done-coding@0.18.2-alpha.0) (2026-08-01)
+
+### Features
+
+- **cc-switch:** ccsuite/cli-router 迁移为 @done-coding/cli-cc-switch + meta 自身命令面 + 注册进主 CLI ([#31](https://github.com/done-coding/done-coding-cli/issues/31)) ([bd2d327](https://github.com/done-coding/done-coding-cli/commit/bd2d3274f370fb81b3c731145fcbd6e6318ec33e))
+
 ## [0.18.1](https://github.com/done-coding/done-coding-cli/compare/done-coding@0.18.0...done-coding@0.18.1) (2026-06-24)
 
 **Note:** Version bump only for package done-coding
