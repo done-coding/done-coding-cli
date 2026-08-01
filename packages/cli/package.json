@@ -52,6 +52,7 @@
   },
   "dependencies": {
     "@done-coding/cli-ai": "workspace:0.1.9",
+    "@done-coding/cli-cc-switch": "workspace:0.0.0",
     "@done-coding/cli-component": "workspace:0.6.1",
     "@done-coding/cli-config": "workspace:0.2.5",
     "@done-coding/cli-extract": "workspace:0.2.6",
