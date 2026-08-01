@@ -22,6 +22,8 @@ done-coding-cli 是一个基于 Lerna 管理的 monorepo 项目，包含多个�
 - **[@done-coding/cli-config](./packages/config)** - 工程化配置工具
 - **[@done-coding/cli-extract](./packages/extract)** - 信息提取工具
 - **[@done-coding/cli-ai](./packages/ai)** - AI 对话工具（模型切换委托 mrm，支持 `/子包名` 查看帮助）
+- **[@done-coding/cli-cc-switch](./packages/cc-switch)** - claude-code 模型路由透传工具（`dc-cc-switch` / `cc-router`）
+- **[@done-coding/cli-generator](./packages/generator)** - 通用批次生成工具（dc-generator，含模板组装 assemble）
 - **[@done-coding/cli-git](./packages/git)** - Git 跨平台操作工具
 - **[@done-coding/cli-inject](./packages/inject)** - 信息注入工具
 - **[@done-coding/cli-mrm](./packages/mrm)** - AI 模型源管理器
