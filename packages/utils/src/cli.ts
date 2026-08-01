@@ -238,6 +238,10 @@ const addYargsConfig = (
     if (rootScriptName) {
       argvFinal = argvFinal.scriptName(rootScriptName);
     }
+    // shell 补全（zsh/bash）：`<bin> completion` 输出补全脚本，脚本每次
+    // tab 时经 --get-yargs-completions 运行时自省命令注册表生成候选——
+    // 新增子命令 / 声明的 options 自动进补全，无需维护静态补全脚本。
+    argvFinal = argvFinal.completion();
   }
   return argvFinal;
 };

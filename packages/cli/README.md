@@ -55,6 +55,28 @@ done-coding --help
   - **Windows 系统**: 可以使用小写 `dc` 命令（系统对大小写不敏感且无系统dc命令）
   - **macOS/Linux 系统**: 不建议使用小写 `dc` 命令（避免与系统dc命令冲突）
 
+## Shell 补全
+
+基于 yargs 内置补全（zsh / bash），候选由运行时自省命令注册表生成——**新增子命令与选项自动进补全**，无需维护静态补全脚本。
+
+```bash
+# zsh（OSX 建议 .zprofile）
+echo 'source <(done-coding completion zsh)' >> ~/.zshrc
+# 脚本默认只注册主命令 `DC`；若用别名命令 done-coding / dc-cli，补一行注册
+echo 'compdef _DC_yargs_completions done-coding dc-cli' >> ~/.zshrc
+source ~/.zshrc
+
+# bash
+echo 'source <(done-coding completion bash)' >> ~/.bashrc
+source ~/.bashrc
+```
+
+补全效果（前缀过滤由 shell 侧完成）：
+
+- `done-coding <TAB>` — 全部子命令（git / cc-switch / generator / ...）
+- `done-coding cc-switch --<TAB>` — meta 选项（`--meta-pick` / `--meta-help` / `--meta-version` / `--meta-profile=`）
+- `done-coding generator <TAB>` — 嵌套子命令（add / remove / list / assemble / ...）
+
 ## 功能特性
 
 - ✅ **统一入口**: 集成 13 个专业工具包，提供统一的命令行入口
