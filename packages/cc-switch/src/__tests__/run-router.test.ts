@@ -190,4 +190,132 @@ describe("runRouter（REQ-1/4/7 + 决策 3/5）", () => {
     expect(bin).toBe("claude");
     expect(args).toEqual(["hi"]);
   });
+
+  it("--meta-generate：读源 → 写 profile.json → exit(0)，不 spawn", async () => {
+    process.argv = ["node", "dc-cc-switch", "--meta-generate"];
+    const providerCfg = {
+      providers: {
+        deepseek: {
+          name: "DeepSeek",
+          url: "https://api.deepseek.com/anthropic",
+          apiKey: "sk-test",
+          envExtraParams: { CLAUDE_CODE_EFFORT_LEVEL: "max" },
+        },
+      },
+    };
+    const modelCfg = {
+      defaultProfile: "deepseek-flash",
+      models: [
+        { provider: "deepseek", id: "flash", name: "deepseek-v4-flash[1m]" },
+        {
+          provider: "deepseek",
+          id: "pro",
+          name: "deepseek-v4-pro[1m]",
+          envExtraParams: {
+            ANTHROPIC_DEFAULT_HAIKU_MODEL: "deepseek-v4-flash[1m]",
+          },
+        },
+      ],
+    };
+    vi.mocked(fs.existsSync).mockImplementation((p) => {
+      const s = String(p);
+      return (
+        s.endsWith("provider.json") ||
+        s.endsWith("model.json") ||
+        s.endsWith("profile.json")
+      );
+    });
+    vi.mocked(fs.readFileSync).mockImplementation((p) => {
+      const s = String(p);
+      if (s.endsWith("provider.json")) {
+        return JSON.stringify(providerCfg) as never;
+      }
+      if (s.endsWith("model.json")) return JSON.stringify(modelCfg) as never;
+      return "" as never;
+    });
+    const write = vi
+      .spyOn(fs, "writeFileSync")
+      .mockImplementation((() => undefined) as never);
+    const chmod = vi
+      .spyOn(fs, "chmodSync")
+      .mockImplementation((() => undefined) as never);
+    vi.spyOn(fs, "mkdirSync").mockImplementation((() => undefined) as never);
+    const stdout = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+
+    await runRouter().catch((e) => {
+      expect((e as ExitSignal).code).toBe(0);
+    });
+    expect(exitSpy).toHaveBeenCalledWith(0);
+    expect(spawnMock).not.toHaveBeenCalled();
+    expect(write).toHaveBeenCalledWith(
+      expect.stringContaining("profile.json"),
+      expect.stringContaining('"deepseek-pro"'),
+    );
+    expect(chmod).toHaveBeenCalledWith(
+      expect.stringContaining("profile.json"),
+      0o600,
+    );
+    const out = stdout.mock.calls.map((c) => String(c[0])).join("");
+    expect(out).toContain("已生成 2 个 profile");
+  });
+
+  it("--meta-provider-list：输出提供商列表 + exit(0)，不 spawn", async () => {
+    process.argv = ["node", "dc-cc-switch", "--meta-provider-list"];
+    vi.mocked(fs.existsSync).mockImplementation((p) =>
+      String(p).endsWith("provider.json"),
+    );
+    vi.mocked(fs.readFileSync).mockImplementation(
+      () =>
+        JSON.stringify({
+          providers: {
+            deepseek: { name: "DeepSeek", url: "u", apiKey: "k" },
+            "ark-agent-plan": {
+              name: "火山方舟 plan",
+              url: "u",
+              apiKey: "k",
+            },
+          },
+        }) as never,
+    );
+    const stdout = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+
+    await runRouter().catch((e) => {
+      expect((e as ExitSignal).code).toBe(0);
+    });
+    expect(spawnMock).not.toHaveBeenCalled();
+    const out = stdout.mock.calls.map((c) => String(c[0])).join("");
+    expect(out).toContain("deepseek（DeepSeek）");
+    expect(out).toContain("ark-agent-plan（火山方舟 plan）");
+    expect(out).not.toContain("sk-");
+  });
+
+  it("--meta-model-list：输出模型列表（name+provider）+ exit(0)，不 spawn", async () => {
+    process.argv = ["node", "dc-cc-switch", "--meta-model-list"];
+    vi.mocked(fs.existsSync).mockImplementation((p) =>
+      String(p).endsWith("model.json"),
+    );
+    vi.mocked(fs.readFileSync).mockImplementation(
+      () =>
+        JSON.stringify({
+          defaultProfile: "deepseek-flash",
+          models: [
+            {
+              provider: "deepseek",
+              id: "flash",
+              name: "deepseek-v4-flash[1m]",
+            },
+            { provider: "ark-agent-plan", id: "glm", name: "glm-5.2[1m]" },
+          ],
+        }) as never,
+    );
+    const stdout = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+
+    await runRouter().catch((e) => {
+      expect((e as ExitSignal).code).toBe(0);
+    });
+    expect(spawnMock).not.toHaveBeenCalled();
+    const out = stdout.mock.calls.map((c) => String(c[0])).join("");
+    expect(out).toContain("deepseek-v4-flash[1m]（deepseek）");
+    expect(out).toContain("glm-5.2[1m]（ark-agent-plan）");
+  });
 });

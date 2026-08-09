@@ -1,8 +1,14 @@
 import { PROFILE_PATH } from "@/utils/path";
 import {
+  META_APIKEY_PREFIX,
+  META_GENERATE,
   META_HELP,
+  META_MODELNAME_PREFIX,
+  META_MODEL_LIST,
   META_PICK,
   META_PROFILE_PREFIX,
+  META_PROVIDER_PREFIX,
+  META_PROVIDER_LIST,
   META_VERSION,
   isUnknownMetaOption,
   mergeAction,
@@ -18,6 +24,9 @@ import type { MetaAction, ParsedArgv, Profile, ProfileConfig } from "@/types";
  */
 export const parseArgv = (argv: string[]): ParsedArgv => {
   let profileName: string | undefined;
+  let apiKey: string | undefined;
+  let modelName: string | undefined;
+  let providerId: string | undefined;
   let action: MetaAction = "run";
   const passthrough: string[] = [];
 
@@ -28,8 +37,44 @@ export const parseArgv = (argv: string[]): ParsedArgv => {
       action = mergeAction(action, "profile");
       continue;
     }
+    if (arg.startsWith(META_APIKEY_PREFIX)) {
+      apiKey = arg.slice(META_APIKEY_PREFIX.length);
+      if (!apiKey) {
+        throw new Error(`${META_APIKEY_PREFIX} 需提供 apiKey 值`);
+      }
+      action = mergeAction(action, "setkey");
+      continue;
+    }
+    if (arg.startsWith(META_MODELNAME_PREFIX)) {
+      modelName = arg.slice(META_MODELNAME_PREFIX.length);
+      if (!modelName) {
+        throw new Error(`${META_MODELNAME_PREFIX} 需提供模型名`);
+      }
+      action = mergeAction(action, "addmodel");
+      continue;
+    }
+    if (arg.startsWith(META_PROVIDER_PREFIX)) {
+      providerId = arg.slice(META_PROVIDER_PREFIX.length);
+      if (!providerId) {
+        throw new Error(`${META_PROVIDER_PREFIX} 需提供 provider id`);
+      }
+      // 选择器，不设 action（仅 setkey/addmodel 消费）
+      continue;
+    }
     if (arg === META_PICK) {
       action = mergeAction(action, "pick");
+      continue;
+    }
+    if (arg === META_GENERATE) {
+      action = mergeAction(action, "generate");
+      continue;
+    }
+    if (arg === META_PROVIDER_LIST) {
+      action = mergeAction(action, "providerlist");
+      continue;
+    }
+    if (arg === META_MODEL_LIST) {
+      action = mergeAction(action, "modellist");
       continue;
     }
     if (arg === META_HELP) {
@@ -43,13 +88,50 @@ export const parseArgv = (argv: string[]): ParsedArgv => {
     if (isUnknownMetaOption(arg)) {
       // REQ-1：命名空间归属声明——未知 meta 前缀 [MUST NOT] 透传 / 静默忽略
       throw new Error(
-        `未知 meta 选项：${arg}。可用选项：${META_PROFILE_PREFIX}<name>、${META_PICK}、${META_HELP}、${META_VERSION}`,
+        `未知 meta 选项：${arg}。可用选项：${META_PROFILE_PREFIX}<name>、${META_PICK}、${META_GENERATE}、${META_APIKEY_PREFIX}<key>、${META_MODELNAME_PREFIX}<name>、${META_PROVIDER_PREFIX}<id>、${META_PROVIDER_LIST}、${META_MODEL_LIST}、${META_HELP}、${META_VERSION}`,
       );
     }
     passthrough.push(arg);
   }
 
-  return { action, profileName, passthrough };
+  validateParsedArgv({ action, apiKey, modelName, providerId });
+
+  return { action, profileName, apiKey, modelName, providerId, passthrough };
+};
+
+/**
+ * 互斥校验（fail-fast）：两个源变更互斥、源变更与 --meta-generate 互斥、
+ * --meta-provider 仅适用 setkey/addmodel（help/version 豁免）。
+ */
+const validateParsedArgv = (parsed: {
+  action: MetaAction;
+  apiKey?: string;
+  modelName?: string;
+  providerId?: string;
+}): void => {
+  const { action, apiKey, modelName, providerId } = parsed;
+  const mutations = [apiKey, modelName].filter((v) => v !== undefined).length;
+  if (mutations > 1) {
+    throw new Error(
+      `不能同时指定 ${META_APIKEY_PREFIX} 与 ${META_MODELNAME_PREFIX}`,
+    );
+  }
+  if (action === "generate" && mutations > 0) {
+    throw new Error(
+      `${META_GENERATE} 不能与 ${META_APIKEY_PREFIX} / ${META_MODELNAME_PREFIX} 同时使用`,
+    );
+  }
+  if (
+    providerId !== undefined &&
+    action !== "setkey" &&
+    action !== "addmodel" &&
+    action !== "help" &&
+    action !== "version"
+  ) {
+    throw new Error(
+      `${META_PROVIDER_PREFIX} 仅用于 ${META_APIKEY_PREFIX} / ${META_MODELNAME_PREFIX}`,
+    );
+  }
 };
 
 /**
@@ -68,7 +150,8 @@ export const selectProfile = (
   if (!profile) {
     const available = Object.keys(cfg.profiles).join(", ") || "(无)";
     throw new Error(
-      `profile "${name}" 不存在。可用 profile：${available}。配置文件：${PROFILE_PATH}`,
+      `profile "${name}" 不存在。可用 profile：${available}。配置文件：${PROFILE_PATH}` +
+        `。若需从 provider.json + model.json 重建，请运行 --meta-generate`,
     );
   }
 
