@@ -50,6 +50,30 @@ export const createAsSubcommand = (): CommandModule => {
           type: "boolean",
           describe: "终端交互选择 profile 启动",
         })
+        .option("meta-generate", {
+          type: "boolean",
+          describe: "从 provider.json + model.json 重建 profile.json",
+        })
+        .option("meta-apiKey", {
+          type: "string",
+          describe: "更新指定提供商 apiKey（自动重建）",
+        })
+        .option("meta-model-name", {
+          type: "string",
+          describe: "添加模型到指定提供商（自动重建）",
+        })
+        .option("meta-provider", {
+          type: "string",
+          describe: "显式指定 provider id（供 apiKey/model-name 跳过选择）",
+        })
+        .option("meta-provider-list", {
+          type: "boolean",
+          describe: "输出提供商列表（id + name）",
+        })
+        .option("meta-model-list", {
+          type: "boolean",
+          describe: "输出模型列表（name + 所属 provider）",
+        })
         .option("meta-help", {
           type: "boolean",
           describe: "显示 cc-switch 自身帮助",

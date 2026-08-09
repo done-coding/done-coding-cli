@@ -11,3 +11,19 @@ export const PROFILE_PATH = path.join(
   "cc-switch",
   "profile.json",
 );
+
+/** provider 源文件唯一路径：~/.done-coding/cc-switch/provider.json */
+export const PROVIDER_PATH = path.join(
+  os.homedir(),
+  ".done-coding",
+  "cc-switch",
+  "provider.json",
+);
+
+/** model 源文件唯一路径：~/.done-coding/cc-switch/model.json */
+export const MODEL_PATH = path.join(
+  os.homedir(),
+  ".done-coding",
+  "cc-switch",
+  "model.json",
+);

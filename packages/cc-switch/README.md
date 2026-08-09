@@ -28,10 +28,29 @@ cc-router [command] [options]      # 兼容
 | ---- | ---- |
 | `--meta-profile=<name>` | 显式指定 profile 启动 |
 | `--meta-pick` | 终端交互选择 profile 启动（需 TTY） |
+| `--meta-generate` | 从 provider.json + model.json 重建 profile.json |
+| `--meta-apiKey=<key>` | 更新指定提供商 apiKey（交互选提供商或 `--meta-provider`，自动重建） |
+| `--meta-model-name=<name>` | 添加模型（交互选提供商或 `--meta-provider`，自动重建；id=去 `[1m]`、name+`[1m]`） |
+| `--meta-provider=<id>` | 显式指定提供商（供 apiKey / model-name 跳过交互选择，非独立动作） |
+| `--meta-provider-list` | 输出提供商列表（`id（name）`，不含 apiKey） |
+| `--meta-model-list` | 输出模型列表（`name（provider）`，同模型多 provider 各一行） |
 | `--meta-help` | 显示自身帮助 |
 | `--meta-version` | 显示自身版本 |
 
-优先级：`--meta-help` > `--meta-version` > `--meta-pick` > `--meta-profile=`。
+优先级：`--meta-help` > `--meta-version` > `--meta-generate` > `--meta-model-list` > `--meta-provider-list` > `--meta-model-name` > `--meta-apiKey` > `--meta-pick` > `--meta-profile=`。
+
+`--meta-apiKey` 与 `--meta-model-name` 互斥、均不得与 `--meta-generate` 同用；`--meta-provider` 仅随二者使用。
+
+## 配置源（provider / model 分层）
+
+profile.json 由两个 DRY 源经 `--meta-generate` 生成（启动不自动生成，保速度；profile 缺失或默认 profile 悬空时提示手动运行）：
+
+- `~/.done-coding/cc-switch/provider.json` — 服务商层：`{ providers: { id: { name, url, apiKey, envExtraParams? } } }`
+- `~/.done-coding/cc-switch/model.json` — 模型层：`{ defaultProfile, models: [{ provider, id, name, envExtraParams? }] }`
+
+profile 名 = `${provider}-${id}`；每个 profile 的 env 按 `{...通用, ...providerEnvExtraParams, ...modelEnvExtraParams}` 合并（通用 = provider.url/apiKey + model.name 推导的 BASE_URL/AUTH_TOKEN/MODEL/四档/SUBAGENT）。例：pro 档让 haiku 用 flash，在该 model 的 `envExtraParams` 设 `ANTHROPIC_DEFAULT_HAIKU_MODEL`。
+
+运行 `dc-cc-switch --meta-generate` 后生成 profile.json（保持原格式、chmod 600）。
 
 <!-- repo-map:start -->
 
