@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.3.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-cc-switch@0.2.0...@done-coding/cli-cc-switch@0.3.0) (2026-08-09)
+
+### Features
+
+- **cc-switch:** settings.json 单源化 + 启动前 profile 输出 + --meta-silent + 默认可选 ([#38](https://github.com/done-coding/done-coding-cli/issues/38)) ([d433e9c](https://github.com/done-coding/done-coding-cli/commit/d433e9c9fca273b6f717c0195b9f3770db725dca))
+
 # [0.2.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-cc-switch@0.1.1...@done-coding/cli-cc-switch@0.2.0) (2026-08-09)
 
 ### Features
