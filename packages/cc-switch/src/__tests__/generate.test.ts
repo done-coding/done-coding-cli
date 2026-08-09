@@ -4,85 +4,69 @@ import {
   buildProfileConfig,
   composeEnv,
   generateConfig,
-  loadModelConfig,
-  loadOrInitConfig,
-  loadProviderConfig,
+  loadSettings,
 } from "@/utils/config";
-import { MODEL_PATH, PROFILE_PATH, PROVIDER_PATH } from "@/utils/path";
+import { PROFILE_PATH, SETTINGS_PATH } from "@/utils/path";
 import { parseArgv } from "@/handlers/profile";
-import type { ModelConfig, ProviderConfig } from "@/types";
+import type { Settings } from "@/types";
 
 /** 夹具：占位密钥（不入真实 token），结构镜像当前 10 个 profile 的因子拆解。 */
-const providerConfig: ProviderConfig = {
+const settingsConfig: Settings = {
+  defaultProfile: "ark-agent-plan-deepseek-flash",
   providers: {
     deepseek: {
       name: "DeepSeek",
       url: "https://api.deepseek.com/anthropic",
       apiKey: "sk-test-deepseek",
       envExtraParams: { CLAUDE_CODE_EFFORT_LEVEL: "max" },
+      models: [
+        { id: "flash", name: "deepseek-v4-flash[1m]" },
+        {
+          id: "pro",
+          name: "deepseek-v4-pro[1m]",
+          envExtraParams: {
+            ANTHROPIC_DEFAULT_HAIKU_MODEL: "deepseek-v4-flash[1m]",
+          },
+        },
+      ],
     },
     "ark-agent-plan": {
       name: "火山方舟 plan",
       url: "https://ark.cn-beijing.volces.com/api/plan",
       apiKey: "ark-test-plan",
       envExtraParams: { CLAUDE_CODE_EFFORT_LEVEL: "max" },
+      models: [
+        { id: "deepseek-flash", name: "deepseek-v4-flash[1m]" },
+        {
+          id: "deepseek-pro",
+          name: "deepseek-v4-pro[1m]",
+          envExtraParams: {
+            ANTHROPIC_DEFAULT_HAIKU_MODEL: "deepseek-v4-flash[1m]",
+          },
+        },
+        { id: "glm", name: "glm-5.2[1m]" },
+        { id: "kimi-k3", name: "kimi-k3[1m]" },
+        { id: "kimi-k2.7", name: "kimi-k2.7[1m]" },
+      ],
     },
     "ark-coding-plan": {
       name: "火山方舟 coding",
       url: "https://ark.cn-beijing.volces.com/api/coding",
       apiKey: "ark-test-coding",
       envExtraParams: { CLAUDE_CODE_EFFORT_LEVEL: "max" },
+      models: [
+        { id: "deepseek-flash", name: "deepseek-v4-flash[1m]" },
+        {
+          id: "deepseek-pro",
+          name: "deepseek-v4-pro[1m]",
+          envExtraParams: {
+            ANTHROPIC_DEFAULT_HAIKU_MODEL: "deepseek-v4-flash[1m]",
+          },
+        },
+        { id: "glm", name: "glm-5.2[1m]" },
+      ],
     },
   },
-};
-
-const modelConfig: ModelConfig = {
-  defaultProfile: "ark-agent-plan-deepseek-flash",
-  models: [
-    { provider: "deepseek", id: "flash", name: "deepseek-v4-flash[1m]" },
-    {
-      provider: "deepseek",
-      id: "pro",
-      name: "deepseek-v4-pro[1m]",
-      envExtraParams: {
-        ANTHROPIC_DEFAULT_HAIKU_MODEL: "deepseek-v4-flash[1m]",
-      },
-    },
-    {
-      provider: "ark-agent-plan",
-      id: "deepseek-flash",
-      name: "deepseek-v4-flash[1m]",
-    },
-    {
-      provider: "ark-agent-plan",
-      id: "deepseek-pro",
-      name: "deepseek-v4-pro[1m]",
-      envExtraParams: {
-        ANTHROPIC_DEFAULT_HAIKU_MODEL: "deepseek-v4-flash[1m]",
-      },
-    },
-    { provider: "ark-agent-plan", id: "glm", name: "glm-5.2[1m]" },
-    { provider: "ark-agent-plan", id: "kimi-k3", name: "kimi-k3[1m]" },
-    { provider: "ark-agent-plan", id: "kimi-k2.7", name: "kimi-k2.7[1m]" },
-    {
-      provider: "ark-coding-plan",
-      id: "deepseek-flash",
-      name: "deepseek-v4-flash[1m]",
-    },
-    {
-      provider: "ark-coding-plan",
-      id: "deepseek-pro",
-      name: "deepseek-v4-pro[1m]",
-      envExtraParams: {
-        ANTHROPIC_DEFAULT_HAIKU_MODEL: "deepseek-v4-flash[1m]",
-      },
-    },
-    {
-      provider: "ark-coding-plan",
-      id: "glm",
-      name: "glm-5.2[1m]",
-    },
-  ],
 };
 
 const expectedProfileNames = [
@@ -100,8 +84,7 @@ const expectedProfileNames = [
 
 describe("composeEnv（{...通用, ...providerExtra, ...modelExtra}）", () => {
   it("通用由 provider.url/apiKey + model.name 推导，四档默认镜像 model.name", () => {
-    const env = composeEnv(providerConfig.providers.deepseek, {
-      provider: "deepseek",
+    const env = composeEnv(settingsConfig.providers.deepseek, {
       id: "flash",
       name: "deepseek-v4-flash[1m]",
     });
@@ -127,9 +110,9 @@ describe("composeEnv（{...通用, ...providerExtra, ...modelExtra}）", () => {
           CLAUDE_CODE_EFFORT_LEVEL: "medium",
           ANTHROPIC_MODEL: "provider-override",
         },
+        models: [],
       },
       {
-        provider: "X",
         id: "m",
         name: "real-model",
         envExtraParams: { ANTHROPIC_MODEL: "model-wins" },
@@ -140,9 +123,9 @@ describe("composeEnv（{...通用, ...providerExtra, ...modelExtra}）", () => {
   });
 });
 
-describe("buildProfileConfig（迁移等价 + 校验）", () => {
+describe("buildProfileConfig（settings 单源构建 + 校验）", () => {
   it("夹具 → 10 个 profile，命名/顺序/默认与当前配置逐键一致", () => {
-    const cfg = buildProfileConfig(providerConfig, modelConfig);
+    const cfg = buildProfileConfig(settingsConfig);
     expect(Object.keys(cfg.profiles)).toEqual(expectedProfileNames);
     expect(cfg.defaultProfile).toBe("ark-agent-plan-deepseek-flash");
 
@@ -177,136 +160,262 @@ describe("buildProfileConfig（迁移等价 + 校验）", () => {
     ).toBe("ark-test-coding");
   });
 
-  it("model 引用不存在的 provider → throw", () => {
+  it("无可生成 profile（models 全空）→ throw", () => {
     expect(() =>
-      buildProfileConfig(providerConfig, {
-        defaultProfile: "x",
-        models: [{ provider: "nope", id: "m", name: "m" }],
+      buildProfileConfig({
+        providers: {
+          deepseek: {
+            name: "DeepSeek",
+            url: "https://u",
+            apiKey: "k",
+            models: [],
+          },
+        },
       }),
-    ).toThrowError(/不存在的 provider/);
+    ).toThrowError(/无可生成 profile/);
   });
 
-  it("provider+id 组合重复 → throw", () => {
-    const mc = {
-      defaultProfile: "a-m",
-      models: [
-        { provider: "deepseek", id: "m", name: "m1" },
-        { provider: "deepseek", id: "m", name: "m2" },
-      ],
-    };
-    expect(() => buildProfileConfig(providerConfig, mc)).toThrowError(/重复/);
-  });
-
-  it("models 为空 → throw", () => {
+  it("同 provider 下 model id 重复 → throw", () => {
     expect(() =>
-      buildProfileConfig(providerConfig, {
-        defaultProfile: "x",
-        models: [],
+      buildProfileConfig({
+        providers: {
+          deepseek: {
+            name: "DeepSeek",
+            url: "https://u",
+            apiKey: "k",
+            models: [
+              { id: "m", name: "m1" },
+              { id: "m", name: "m2" },
+            ],
+          },
+        },
       }),
-    ).toThrowError(/为空/);
+    ).toThrowError(/重复/);
   });
 
   it("defaultProfile 悬空 → throw（列出可用）", () => {
-    const mc = {
-      defaultProfile: "nope",
-      models: [{ provider: "deepseek", id: "flash", name: "f" }],
-    };
-    expect(() => buildProfileConfig(providerConfig, mc)).toThrowError(
-      /不在生成的 profile 中/,
-    );
-    expect(() => buildProfileConfig(providerConfig, mc)).toThrowError(
-      /deepseek-flash/,
-    );
+    expect(() =>
+      buildProfileConfig({
+        defaultProfile: "nope",
+        providers: {
+          deepseek: {
+            name: "DeepSeek",
+            url: "https://u",
+            apiKey: "k",
+            models: [{ id: "flash", name: "f" }],
+          },
+        },
+      }),
+    ).toThrowError(/不在生成的 profile 中/);
+    expect(() =>
+      buildProfileConfig({
+        defaultProfile: "nope",
+        providers: {
+          deepseek: {
+            name: "DeepSeek",
+            url: "https://u",
+            apiKey: "k",
+            models: [{ id: "flash", name: "f" }],
+          },
+        },
+      }),
+    ).toThrowError(/deepseek-flash/);
+  });
+
+  it("defaultProfile 省略 → 合法，结果无 defaultProfile（可选语义）", () => {
+    const cfg = buildProfileConfig({
+      providers: {
+        deepseek: {
+          name: "DeepSeek",
+          url: "https://u",
+          apiKey: "k",
+          models: [{ id: "flash", name: "f" }],
+        },
+      },
+    });
+    expect(cfg.defaultProfile).toBeUndefined();
+    expect(Object.keys(cfg.profiles)).toEqual(["deepseek-flash"]);
+  });
+
+  it("disabledDefault / output 编译透传", () => {
+    const cfg = buildProfileConfig({
+      defaultProfile: "deepseek-flash",
+      disabledDefault: true,
+      output: { profileName: false },
+      providers: {
+        deepseek: {
+          name: "DeepSeek",
+          url: "https://u",
+          apiKey: "k",
+          models: [{ id: "flash", name: "f" }],
+        },
+      },
+    });
+    expect(cfg.disabledDefault).toBe(true);
+    expect(cfg.output).toEqual({ profileName: false });
   });
 });
 
-describe("loadProviderConfig / loadModelConfig（fail-loud）", () => {
+describe("loadSettings（唯一源，fail-loud）", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it("provider.json 缺失 → throw 带路径", () => {
+  it("settings.json 缺失 → throw 带路径", () => {
     vi.spyOn(fs, "existsSync").mockReturnValue(false);
-    expect(() => loadProviderConfig()).toThrowError(PROVIDER_PATH);
+    expect(() => loadSettings()).toThrowError(SETTINGS_PATH);
   });
 
-  it("provider.json 非法 JSON → throw", () => {
+  it("非法 JSON → throw", () => {
     vi.spyOn(fs, "existsSync").mockReturnValue(true);
     vi.spyOn(fs, "readFileSync").mockReturnValue("{ bad" as never);
-    expect(() => loadProviderConfig()).toThrowError(/非法 JSON/);
+    expect(() => loadSettings()).toThrowError(/非法 JSON/);
   });
 
   it("provider 缺 url → throw", () => {
     vi.spyOn(fs, "existsSync").mockReturnValue(true);
     vi.spyOn(fs, "readFileSync").mockReturnValue(
       JSON.stringify({
-        providers: { deepseek: { name: "x", apiKey: "k" } },
+        providers: { deepseek: { name: "x", apiKey: "k", models: [] } },
       }) as never,
     );
-    expect(() => loadProviderConfig()).toThrowError(/缺字符串字段 url/);
+    expect(() => loadSettings()).toThrowError(/缺字符串字段 url/);
   });
 
-  it("model.json 缺失 → throw 带路径", () => {
-    vi.spyOn(fs, "existsSync").mockReturnValue(false);
-    expect(() => loadModelConfig()).toThrowError(MODEL_PATH);
-  });
-
-  it("model 缺 provider 字段 → throw", () => {
+  it("provider models 缺失 / 为空 → throw", () => {
     vi.spyOn(fs, "existsSync").mockReturnValue(true);
     vi.spyOn(fs, "readFileSync").mockReturnValue(
       JSON.stringify({
-        defaultProfile: "x",
-        models: [{ id: "m", name: "m" }],
+        providers: { deepseek: { name: "x", url: "u", apiKey: "k" } },
       }) as never,
     );
-    expect(() => loadModelConfig()).toThrowError(/缺字符串字段 provider/);
-  });
+    expect(() => loadSettings()).toThrowError(/models/);
 
-  it("合法源 → 解析返回", () => {
-    vi.spyOn(fs, "existsSync").mockReturnValue(true);
-    vi.spyOn(fs, "readFileSync").mockImplementation((p) => {
-      const s = String(p);
-      if (s.endsWith("provider.json"))
-        return JSON.stringify(providerConfig) as never;
-      if (s.endsWith("model.json")) return JSON.stringify(modelConfig) as never;
-      return "" as never;
-    });
-    expect(loadProviderConfig()).toEqual(providerConfig);
-    expect(loadModelConfig()).toEqual(modelConfig);
-  });
-});
-
-describe("loadOrInitConfig 缺失行为（提示不自动生成）", () => {
-  afterEach(() => vi.restoreAllMocks());
-
-  it("profile.json 缺失但已有源 → throw 提示 --meta-generate，不写模板", () => {
-    const write = vi
-      .spyOn(fs, "writeFileSync")
-      .mockImplementation((() => undefined) as never);
-    vi.spyOn(fs, "existsSync").mockImplementation((p) =>
-      String(p).endsWith("provider.json"),
+    vi.spyOn(fs, "readFileSync").mockReturnValue(
+      JSON.stringify({
+        providers: {
+          deepseek: { name: "x", url: "u", apiKey: "k", models: [] },
+        },
+      }) as never,
     );
-    expect(() => loadOrInitConfig()).toThrowError(/--meta-generate/);
-    expect(write).not.toHaveBeenCalled();
+    expect(() => loadSettings()).toThrowError(/models 为空/);
   });
 
-  it("profile.json 缺失且无任何源 → 写模板兜底", () => {
-    const write = vi
-      .spyOn(fs, "writeFileSync")
-      .mockImplementation((() => undefined) as never);
-    const chmod = vi
-      .spyOn(fs, "chmodSync")
-      .mockImplementation((() => undefined) as never);
-    vi.spyOn(fs, "existsSync").mockReturnValue(false);
-    const cfg = loadOrInitConfig();
-    expect(cfg.profiles.deepseek).toBeDefined();
-    expect(write).toHaveBeenCalled();
-    expect(chmod).toHaveBeenCalledWith(PROFILE_PATH, 0o600);
+  it("apiKey 为空字符串 → 合法（starter 语义，启动时补全）", () => {
+    vi.spyOn(fs, "existsSync").mockReturnValue(true);
+    vi.spyOn(fs, "readFileSync").mockReturnValue(
+      JSON.stringify({
+        providers: {
+          deepseek: {
+            name: "x",
+            url: "u",
+            apiKey: "",
+            models: [{ id: "m", name: "m" }],
+          },
+        },
+      }) as never,
+    );
+    const s = loadSettings();
+    expect(s.providers.deepseek.apiKey).toBe("");
+  });
+
+  it("apiKey 缺失 → throw", () => {
+    vi.spyOn(fs, "existsSync").mockReturnValue(true);
+    vi.spyOn(fs, "readFileSync").mockReturnValue(
+      JSON.stringify({
+        providers: {
+          deepseek: {
+            name: "x",
+            url: "u",
+            models: [{ id: "m", name: "m" }],
+          },
+        },
+      }) as never,
+    );
+    expect(() => loadSettings()).toThrowError(/apiKey/);
+  });
+
+  it("model 缺 name → throw", () => {
+    vi.spyOn(fs, "existsSync").mockReturnValue(true);
+    vi.spyOn(fs, "readFileSync").mockReturnValue(
+      JSON.stringify({
+        providers: {
+          deepseek: {
+            name: "x",
+            url: "u",
+            apiKey: "k",
+            models: [{ id: "m" }],
+          },
+        },
+      }) as never,
+    );
+    expect(() => loadSettings()).toThrowError(/缺字符串字段 name/);
+  });
+
+  it("defaultProfile 非字符串 / disabledDefault / output.profileName 非布尔 → throw", () => {
+    vi.spyOn(fs, "existsSync").mockReturnValue(true);
+    vi.spyOn(fs, "readFileSync").mockReturnValue(
+      JSON.stringify({
+        defaultProfile: 42,
+        providers: {
+          deepseek: { name: "x", url: "u", apiKey: "k", models: [{ id: "m", name: "m" }] },
+        },
+      }) as never,
+    );
+    expect(() => loadSettings()).toThrowError(/defaultProfile/);
+
+    vi.spyOn(fs, "readFileSync").mockReturnValue(
+      JSON.stringify({
+        disabledDefault: "yes",
+        providers: {
+          deepseek: { name: "x", url: "u", apiKey: "k", models: [{ id: "m", name: "m" }] },
+        },
+      }) as never,
+    );
+    expect(() => loadSettings()).toThrowError(/disabledDefault/);
+
+    vi.spyOn(fs, "readFileSync").mockReturnValue(
+      JSON.stringify({
+        output: { profileName: "yes" },
+        providers: {
+          deepseek: { name: "x", url: "u", apiKey: "k", models: [{ id: "m", name: "m" }] },
+        },
+      }) as never,
+    );
+    expect(() => loadSettings()).toThrowError(/profileName/);
+  });
+
+  it("合法源 → 解析返回（行为字段透传，空 envExtraParams 省略）", () => {
+    vi.spyOn(fs, "existsSync").mockReturnValue(true);
+    vi.spyOn(fs, "readFileSync").mockReturnValue(
+      JSON.stringify(settingsConfig) as never,
+    );
+    expect(loadSettings()).toEqual(settingsConfig);
+  });
+
+  it("缺省行为字段 → 省略（无默认 / disabledDefault=false / 无 output）", () => {
+    vi.spyOn(fs, "existsSync").mockReturnValue(true);
+    vi.spyOn(fs, "readFileSync").mockReturnValue(
+      JSON.stringify({
+        providers: {
+          deepseek: {
+            name: "x",
+            url: "u",
+            apiKey: "k",
+            models: [{ id: "m", name: "m" }],
+          },
+        },
+      }) as never,
+    );
+    const s = loadSettings();
+    expect(s.defaultProfile).toBeUndefined();
+    expect(s.disabledDefault).toBeUndefined();
+    expect(s.output).toBeUndefined();
   });
 });
 
 describe("generateConfig（端到端，全 mock fs）", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it("读源 → 构建 → 写 profile.json → 返回 10 profile", () => {
+  it("读 settings 源 → 构建 → 写 profile.json → 返回 10 profile", () => {
     const write = vi
       .spyOn(fs, "writeFileSync")
       .mockImplementation((() => undefined) as never);
@@ -314,17 +423,12 @@ describe("generateConfig（端到端，全 mock fs）", () => {
       .spyOn(fs, "chmodSync")
       .mockImplementation((() => undefined) as never);
     vi.spyOn(fs, "mkdirSync").mockImplementation((() => undefined) as never);
-    vi.spyOn(fs, "existsSync").mockImplementation((p) => {
-      const s = String(p);
-      return s.endsWith("provider.json") || s.endsWith("model.json");
-    });
-    vi.spyOn(fs, "readFileSync").mockImplementation((p) => {
-      const s = String(p);
-      if (s.endsWith("provider.json"))
-        return JSON.stringify(providerConfig) as never;
-      if (s.endsWith("model.json")) return JSON.stringify(modelConfig) as never;
-      return "" as never;
-    });
+    vi.spyOn(fs, "existsSync").mockImplementation((p) =>
+      String(p).endsWith("settings.json"),
+    );
+    vi.spyOn(fs, "readFileSync").mockImplementation(
+      () => JSON.stringify(settingsConfig) as never,
+    );
 
     const cfg = generateConfig();
     expect(Object.keys(cfg.profiles)).toEqual(expectedProfileNames);

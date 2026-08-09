@@ -31,7 +31,7 @@ export const createCommand = async (): Promise<void> => {
  * claude 透传参数）；handler 内从 process.argv 在子命令名边界后取**原始切片**
  * 喂给 runRouter —— 不消费 yargs 解析产物，守 REQ-1 逐字保真语义
  * （独立入口 dc-cc-switch / cc-router 行为与未注册前完全一致）。
- * meta 自身命令面（REQ-1）：--meta-profile=<name> / --meta-pick /
+ * meta 自身命令面（REQ-1）：--meta-profile=<name> / --meta-pick / --meta-silent /
  * --meta-help / --meta-version 由 runRouter 消费，[MUST NOT] 透传给 claude。
  */
 export const createAsSubcommand = (): CommandModule => {
@@ -49,6 +49,10 @@ export const createAsSubcommand = (): CommandModule => {
         .option("meta-pick", {
           type: "boolean",
           describe: "终端交互选择 profile 启动",
+        })
+        .option("meta-silent", {
+          type: "boolean",
+          describe: "压制 output.* 输出（MCP/AI 调用避免污染上下文）",
         })
         .option("meta-generate", {
           type: "boolean",

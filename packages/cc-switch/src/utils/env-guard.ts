@@ -12,8 +12,12 @@ export const MODEL_ENV_WHITELIST = [
   "CLAUDE_CODE_EFFORT_LEVEL",
 ] as const;
 
-/** ~/.claude/settings.json 绝对路径（层 2 只读检测目标）。 */
-export const SETTINGS_PATH = path.join(
+/**
+ * ~/.claude/settings.json 绝对路径（层 2 只读检测目标）。
+ * 命名带 CLAUDE_ 前缀：与 cc-switch 自身源 ~/.done-coding/cc-switch/settings.json
+ * （utils/path.SETTINGS_PATH）同名不同物，避免 utils 桶 `export *` 星号重导出歧义。
+ */
+export const CLAUDE_SETTINGS_PATH = path.join(
   os.homedir(),
   ".claude",
   "settings.json",
@@ -83,7 +87,7 @@ export const readSettingsEnv = (): Record<string, unknown> | null => {
   try {
     // 直接读：不存在（ENOENT）与坏 JSON 同样视为无冲突放行，
     // 避免 existsSync→read 的 TOCTOU 双 stat。
-    parsed = JSON.parse(fs.readFileSync(SETTINGS_PATH, "utf8"));
+    parsed = JSON.parse(fs.readFileSync(CLAUDE_SETTINGS_PATH, "utf8"));
   } catch {
     return null;
   }
