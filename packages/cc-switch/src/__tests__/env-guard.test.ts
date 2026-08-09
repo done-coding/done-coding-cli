@@ -122,7 +122,12 @@ describe("readSettingsEnv（REQ-7 层 2 IO，只读 fail-closed）", () => {
 
   it("文件不存在 → null（放行）", async () => {
     const fs = await import("node:fs");
-    vi.spyOn(fs.default, "existsSync").mockReturnValue(false);
+    // readSettingsEnv 直接 readFileSync（避免 TOCTOU），文件缺失以 ENOENT 呈现 → 返回 null
+    const err: NodeJS.ErrnoException = new Error("ENOENT");
+    err.code = "ENOENT";
+    vi.spyOn(fs.default, "readFileSync").mockImplementation(() => {
+      throw err;
+    });
     expect(readSettingsEnv()).toBeNull();
   });
 

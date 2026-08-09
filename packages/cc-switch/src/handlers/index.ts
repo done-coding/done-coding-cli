@@ -6,14 +6,31 @@ import {
   readSettingsEnv,
   SETTINGS_PATH,
 } from "@/utils/env-guard";
-import { loadOrInitConfig, writeConfig } from "@/utils/config";
+import {
+  addModelEntry,
+  generateConfig,
+  loadModelConfig,
+  loadOrInitConfig,
+  loadProviderConfig,
+  modelListLines,
+  normalizeModelName,
+  providerListLines,
+  setProviderApiKey,
+  writeConfig,
+} from "@/utils/config";
+import { PROFILE_PATH } from "@/utils/path";
 import {
   fillEmptyEnv,
   findEmptyKeys,
   PromptAbortError,
   releaseStdin,
 } from "@/utils/prompt";
-import { pickProfile, printMetaHelp, printMetaVersion } from "@/utils/meta";
+import {
+  pickProfile,
+  printMetaHelp,
+  printMetaVersion,
+  selectProvider,
+} from "@/utils/meta";
 import injectInfo from "@/injectInfo.json";
 
 export { parseArgv, selectProfile };
@@ -31,9 +48,8 @@ const CLAUDE_BIN = "claude";
  */
 export const runRouter = async (argv?: string[]): Promise<never> => {
   // 独立入口：process.argv.slice(2)；主 CLI 子命令入口：命令边界后原始切片
-  const { action, profileName, passthrough } = parseArgv(
-    argv ?? process.argv.slice(2),
-  );
+  const { action, profileName, apiKey, modelName, providerId, passthrough } =
+    parseArgv(argv ?? process.argv.slice(2));
 
   // REQ-4/5：自身命令面输出，[MUST NOT] 读/写配置、[MUST NOT] spawn
   if (action === "help") {
@@ -42,6 +58,38 @@ export const runRouter = async (argv?: string[]): Promise<never> => {
   }
   if (action === "version") {
     printMetaVersion(injectInfo.version);
+    process.exit(0);
+  }
+  if (action === "generate") {
+    const cfg = generateConfig();
+    process.stdout.write(
+      `已生成 ${Object.keys(cfg.profiles).length} 个 profile → ${PROFILE_PATH}\n`,
+    );
+    process.exit(0);
+  }
+  if (action === "providerlist" || action === "modellist") {
+    const lines =
+      action === "providerlist"
+        ? providerListLines(loadProviderConfig())
+        : modelListLines(loadModelConfig());
+    for (const line of lines) {
+      process.stdout.write(`${line}\n`);
+    }
+    process.exit(0);
+  }
+  if (action === "setkey" || action === "addmodel") {
+    // 目标 provider：--meta-provider=<id> 显式，否则交互选择（非 TTY → selectProvider 报错退出）
+    const pc = loadProviderConfig();
+    const target = providerId ?? (await selectProvider(pc));
+    const cfg =
+      action === "setkey"
+        ? setProviderApiKey(target, apiKey!)
+        : addModelEntry(target, modelName!);
+    process.stdout.write(
+      action === "setkey"
+        ? `已更新 provider「${target}」apiKey，重建 ${Object.keys(cfg.profiles).length} 个 profile → ${PROFILE_PATH}\n`
+        : `已添加 model「${target}/${normalizeModelName(modelName!).id}」，重建 ${Object.keys(cfg.profiles).length} 个 profile → ${PROFILE_PATH}\n`,
+    );
     process.exit(0);
   }
 
