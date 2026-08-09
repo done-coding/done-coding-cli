@@ -1,6 +1,6 @@
 {
   "name": "done-coding",
-  "version": "0.20.0",
+  "version": "0.20.1",
   "description": "done-coding命令行工具",
   "private": false,
   "module": "es/cli.mjs",
@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@done-coding/cli-ai": "workspace:0.1.10",
-    "@done-coding/cli-cc-switch": "workspace:0.1.1",
+    "@done-coding/cli-cc-switch": "workspace:0.2.0",
     "@done-coding/cli-component": "workspace:0.6.2",
     "@done-coding/cli-config": "workspace:0.2.6",
     "@done-coding/cli-extract": "workspace:0.2.7",
