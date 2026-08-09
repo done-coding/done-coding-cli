@@ -2,10 +2,14 @@ import { describe, it, expect } from "vitest";
 import { parseArgv } from "@/handlers/profile";
 
 describe("parseArgv（REQ-1/2/6）", () => {
-  it("零参数 → action=run，无 profileName，空 passthrough", () => {
+  it("零参数 → action=run，无 profileName，silent=false，空 passthrough", () => {
     expect(parseArgv([])).toEqual({
       action: "run",
       profileName: undefined,
+      apiKey: undefined,
+      modelName: undefined,
+      providerId: undefined,
+      silent: false,
       passthrough: [],
     });
   });
@@ -14,6 +18,7 @@ describe("parseArgv（REQ-1/2/6）", () => {
     const r = parseArgv(["-v", "改个 bug"]);
     expect(r.action).toBe("run");
     expect(r.profileName).toBeUndefined();
+    expect(r.silent).toBe(false);
     expect(r.passthrough).toEqual(["-v", "改个 bug"]);
   });
 
@@ -28,6 +33,20 @@ describe("parseArgv（REQ-1/2/6）", () => {
     const r = parseArgv(["--meta-profile=a", "x", "--meta-profile=b", "y"]);
     expect(r.profileName).toBe("b");
     expect(r.passthrough).toEqual(["x", "y"]);
+  });
+
+  it("REQ-2：--meta-silent → silent=true，被消费且不透传", () => {
+    const r = parseArgv(["--meta-silent", "-v", "hi"]);
+    expect(r.silent).toBe(true);
+    expect(r.action).toBe("run");
+    expect(r.passthrough).toEqual(["-v", "hi"]);
+  });
+
+  it("REQ-2：--meta-silent 与 pick 并存 → 动作不受影响，silent 仍生效", () => {
+    const r = parseArgv(["--meta-pick", "--meta-silent"]);
+    expect(r.action).toBe("pick");
+    expect(r.silent).toBe(true);
+    expect(r.passthrough).toEqual([]);
   });
 
   it("REQ-1：未知 meta 前缀 fail-fast throw（不透传不静默）", () => {

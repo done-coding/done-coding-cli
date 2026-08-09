@@ -1,6 +1,6 @@
 import { resolveHandlerContext, xPrompts } from "@done-coding/cli-utils";
-import { PROFILE_PATH, PROVIDER_PATH } from "./path";
-import type { MetaAction, ProfileConfig, ProviderConfig } from "@/types";
+import { PROFILE_PATH, SETTINGS_PATH } from "./path";
+import type { MetaAction, ProfileConfig, Settings } from "@/types";
 
 /**
  * meta 自身命令面常量（REQ-1：--meta-* 前缀均属 cc-switch 自身，
@@ -8,6 +8,7 @@ import type { MetaAction, ProfileConfig, ProviderConfig } from "@/types";
  */
 export const META_PROFILE_PREFIX = "--meta-profile=";
 export const META_PICK = "--meta-pick";
+export const META_SILENT = "--meta-silent";
 export const META_GENERATE = "--meta-generate";
 export const META_APIKEY_PREFIX = "--meta-apiKey=";
 export const META_MODELNAME_PREFIX = "--meta-model-name=";
@@ -42,6 +43,7 @@ export const mergeAction = (
 export const isUnknownMetaOption = (arg: string): boolean =>
   arg.startsWith("--meta-") &&
   arg !== META_PICK &&
+  arg !== META_SILENT &&
   arg !== META_GENERATE &&
   arg !== META_HELP &&
   arg !== META_VERSION &&
@@ -64,7 +66,8 @@ export const printMetaHelp = (): void => {
       "meta 选项（cc-switch 自身命令面，不透传给 claude）:",
       `  ${META_PROFILE_PREFIX}<name>  显式指定 profile 启动`,
       `  ${META_PICK}            终端交互选择 profile 启动`,
-      `  ${META_GENERATE}        从 provider.json + model.json 重新生成 profile.json`,
+      `  ${META_SILENT}          压制 output.* 输出（MCP/AI 调用避免污染）`,
+      `  ${META_GENERATE}        从 settings.json 重新生成 profile.json`,
       `  ${META_APIKEY_PREFIX}<key>   更新指定提供商 apiKey（自动重建）`,
       `  ${META_MODELNAME_PREFIX}<name> 添加模型（自动重建）`,
       `  ${META_PROVIDER_PREFIX}<id>  显式指定 provider（供 apiKey/model-name 跳过选择）`,
@@ -75,7 +78,7 @@ export const printMetaHelp = (): void => {
       "",
       "其余所有参数原样透传给 claude。",
       `配置: ${PROFILE_PATH}`,
-      "源: provider.json / model.json（--meta-generate 消费）",
+      `源: ${SETTINGS_PATH}（--meta-generate 消费，provider 内嵌 models）`,
       "",
     ].join("\n"),
   );
@@ -122,13 +125,13 @@ export const pickProfile = async (cfg: ProfileConfig): Promise<string> => {
 /**
  * 交互选择提供商（setkey/addmodel 用，prompts select）。
  * 非 TTY → stderr 提示改用 --meta-provider=<id> + exit(1)；
- * provider.json 无提供商 → 提示编辑 + exit(1)。与 pickProfile 行为对齐。
+ * settings.json 无提供商 → 提示编辑 + exit(1)。与 pickProfile 行为对齐。
  */
-export const selectProvider = async (pc: ProviderConfig): Promise<string> => {
+export const selectProvider = async (pc: Settings): Promise<string> => {
   const ids = Object.keys(pc.providers);
   if (ids.length === 0) {
     process.stderr.write(
-      `provider.json 没有可用提供商，请先编辑 ${PROVIDER_PATH}。\n`,
+      `settings.json 没有可用提供商，请先编辑 ${SETTINGS_PATH}。\n`,
     );
     process.exit(1);
   }

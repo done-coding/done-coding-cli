@@ -9,6 +9,7 @@ import {
   META_PROFILE_PREFIX,
   META_PROVIDER_PREFIX,
   META_PROVIDER_LIST,
+  META_SILENT,
   META_VERSION,
   isUnknownMetaOption,
   mergeAction,
@@ -28,6 +29,7 @@ export const parseArgv = (argv: string[]): ParsedArgv => {
   let modelName: string | undefined;
   let providerId: string | undefined;
   let action: MetaAction = "run";
+  let silent = false;
   const passthrough: string[] = [];
 
   for (const arg of argv) {
@@ -65,6 +67,11 @@ export const parseArgv = (argv: string[]): ParsedArgv => {
       action = mergeAction(action, "pick");
       continue;
     }
+    if (arg === META_SILENT) {
+      // REQ-2：压制 output.* 输出（消费项不入 passthrough）
+      silent = true;
+      continue;
+    }
     if (arg === META_GENERATE) {
       action = mergeAction(action, "generate");
       continue;
@@ -88,7 +95,7 @@ export const parseArgv = (argv: string[]): ParsedArgv => {
     if (isUnknownMetaOption(arg)) {
       // REQ-1：命名空间归属声明——未知 meta 前缀 [MUST NOT] 透传 / 静默忽略
       throw new Error(
-        `未知 meta 选项：${arg}。可用选项：${META_PROFILE_PREFIX}<name>、${META_PICK}、${META_GENERATE}、${META_APIKEY_PREFIX}<key>、${META_MODELNAME_PREFIX}<name>、${META_PROVIDER_PREFIX}<id>、${META_PROVIDER_LIST}、${META_MODEL_LIST}、${META_HELP}、${META_VERSION}`,
+        `未知 meta 选项：${arg}。可用选项：${META_PROFILE_PREFIX}<name>、${META_PICK}、${META_SILENT}、${META_GENERATE}、${META_APIKEY_PREFIX}<key>、${META_MODELNAME_PREFIX}<name>、${META_PROVIDER_PREFIX}<id>、${META_PROVIDER_LIST}、${META_MODEL_LIST}、${META_HELP}、${META_VERSION}`,
       );
     }
     passthrough.push(arg);
@@ -96,7 +103,15 @@ export const parseArgv = (argv: string[]): ParsedArgv => {
 
   validateParsedArgv({ action, apiKey, modelName, providerId });
 
-  return { action, profileName, apiKey, modelName, providerId, passthrough };
+  return {
+    action,
+    profileName,
+    apiKey,
+    modelName,
+    providerId,
+    silent,
+    passthrough,
+  };
 };
 
 /**

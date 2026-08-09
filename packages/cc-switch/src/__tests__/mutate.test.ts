@@ -7,11 +7,11 @@ import {
   providerListLines,
   setProviderApiKey,
 } from "@/utils/config";
-import { MODEL_PATH, PROVIDER_PATH } from "@/utils/path";
+import { SETTINGS_PATH } from "@/utils/path";
 import { parseArgv } from "@/handlers/profile";
 import { selectProvider } from "@/utils/meta";
 import { resolveHandlerContext, xPrompts } from "@done-coding/cli-utils";
-import type { ModelConfig, ProviderConfig } from "@/types";
+import type { Settings } from "@/types";
 
 vi.mock("@done-coding/cli-utils", () => ({
   resolveHandlerContext: vi.fn(),
@@ -28,37 +28,33 @@ class ExitSignal extends Error {
   }
 }
 
-const providerConfig: ProviderConfig = {
+const settingsConfig: Settings = {
+  defaultProfile: "ark-agent-plan-glm",
   providers: {
     deepseek: {
       name: "DeepSeek",
       url: "https://api.deepseek.com/anthropic",
       apiKey: "sk-test-deepseek",
       envExtraParams: { CLAUDE_CODE_EFFORT_LEVEL: "max" },
+      models: [
+        { id: "flash", name: "deepseek-v4-flash[1m]" },
+        {
+          id: "pro",
+          name: "deepseek-v4-pro[1m]",
+          envExtraParams: {
+            ANTHROPIC_DEFAULT_HAIKU_MODEL: "deepseek-v4-flash[1m]",
+          },
+        },
+      ],
     },
     "ark-agent-plan": {
       name: "火山方舟 plan",
       url: "https://ark.cn-beijing.volces.com/api/plan",
       apiKey: "ark-test-plan",
       envExtraParams: { CLAUDE_CODE_EFFORT_LEVEL: "max" },
+      models: [{ id: "glm", name: "glm-5.2[1m]" }],
     },
   },
-};
-
-const modelConfig: ModelConfig = {
-  defaultProfile: "ark-agent-plan-glm",
-  models: [
-    { provider: "deepseek", id: "flash", name: "deepseek-v4-flash[1m]" },
-    {
-      provider: "deepseek",
-      id: "pro",
-      name: "deepseek-v4-pro[1m]",
-      envExtraParams: {
-        ANTHROPIC_DEFAULT_HAIKU_MODEL: "deepseek-v4-flash[1m]",
-      },
-    },
-    { provider: "ark-agent-plan", id: "glm", name: "glm-5.2[1m]" },
-  ],
 };
 
 /**
@@ -67,8 +63,7 @@ const modelConfig: ModelConfig = {
  */
 const mockSourceFs = () => {
   const store = new Map<string, string>([
-    [PROVIDER_PATH, JSON.stringify(providerConfig)],
-    [MODEL_PATH, JSON.stringify(modelConfig)],
+    [SETTINGS_PATH, JSON.stringify(settingsConfig)],
   ]);
   vi.spyOn(fs, "mkdirSync").mockImplementation((() => undefined) as never);
   vi.spyOn(fs, "chmodSync").mockImplementation((() => undefined) as never);
@@ -102,21 +97,21 @@ describe("normalizeModelName（id 去 [1m]、name 拼 [1m]、防双拼）", () =
   });
 });
 
-describe("setProviderApiKey（改 key → 写源 → 自动重建）", () => {
+describe("setProviderApiKey（改 key → 写 settings 源 → 自动重编译）", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it("provider 存在 → 更新 apiKey、写 provider.json、重建 profile.json（env 落新 key）", () => {
+  it("provider 存在 → 更新 apiKey、写 settings.json、重建 profile.json（env 落新 key）", () => {
     const { write } = mockSourceFs();
     const cfg = setProviderApiKey("deepseek", "sk-new-key");
 
     expect(cfg.profiles["deepseek-flash"].env.ANTHROPIC_AUTH_TOKEN).toBe(
       "sk-new-key",
     );
-    const providerWrite = write.mock.calls.find((c) =>
-      String(c[0]).endsWith("provider.json"),
+    const settingsWrite = write.mock.calls.find((c) =>
+      String(c[0]).endsWith("settings.json"),
     );
-    expect(providerWrite).toBeDefined();
-    expect(String(providerWrite![1])).toContain("sk-new-key");
+    expect(settingsWrite).toBeDefined();
+    expect(String(settingsWrite![1])).toContain("sk-new-key");
     const profileWrite = write.mock.calls.find((c) =>
       String(c[0]).endsWith("profile.json"),
     );
@@ -131,10 +126,10 @@ describe("setProviderApiKey（改 key → 写源 → 自动重建）", () => {
   });
 });
 
-describe("addModelEntry（加模型 → 写源 → 自动重建）", () => {
+describe("addModelEntry（加模型 → 写 settings 源 → 自动重编译）", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it("新模型 → 追加 model.json、重建 profile.json（name=id+[1m]）", () => {
+  it("新模型 → 追加到 provider.models、重建 profile.json（name=id+[1m]）", () => {
     const { write } = mockSourceFs();
     const cfg = addModelEntry("ark-agent-plan", "glm-4.6");
 
@@ -142,12 +137,12 @@ describe("addModelEntry（加模型 → 写源 → 自动重建）", () => {
       "glm-4.6[1m]",
     );
     expect(Object.keys(cfg.profiles)).toContain("ark-agent-plan-glm-4.6");
-    const modelWrite = write.mock.calls.find((c) =>
-      String(c[0]).endsWith("model.json"),
+    const settingsWrite = write.mock.calls.find((c) =>
+      String(c[0]).endsWith("settings.json"),
     );
-    expect(modelWrite).toBeDefined();
-    expect(String(modelWrite![1])).toContain("glm-4.6");
-    expect(String(modelWrite![1])).toContain("glm-4.6[1m]");
+    expect(settingsWrite).toBeDefined();
+    expect(String(settingsWrite![1])).toContain("glm-4.6");
+    expect(String(settingsWrite![1])).toContain("glm-4.6[1m]");
     const profileWrite = write.mock.calls.find((c) =>
       String(c[0]).endsWith("profile.json"),
     );
@@ -257,7 +252,7 @@ describe("selectProvider（setkey/addmodel 的提供商选择）", () => {
     mockedResolve.mockReturnValue({ interactive: true } as never);
     mockedXPrompts.mockResolvedValue({ provider: "ark-agent-plan" } as never);
 
-    await expect(selectProvider(providerConfig)).resolves.toBe(
+    await expect(selectProvider(settingsConfig)).resolves.toBe(
       "ark-agent-plan",
     );
     expect(mockedXPrompts).toHaveBeenCalledWith(
@@ -282,7 +277,7 @@ describe("selectProvider（setkey/addmodel 的提供商选择）", () => {
     const stderr = vi.spyOn(process.stderr, "write").mockReturnValue(true);
     mockedResolve.mockReturnValue({ interactive: false } as never);
 
-    await expect(selectProvider(providerConfig)).rejects.toBeInstanceOf(
+    await expect(selectProvider(settingsConfig)).rejects.toBeInstanceOf(
       ExitSignal,
     );
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -292,7 +287,7 @@ describe("selectProvider（setkey/addmodel 的提供商选择）", () => {
     expect(mockedXPrompts).not.toHaveBeenCalled();
   });
 
-  it("provider.json 无提供商 → stderr 提示编辑 + exit(1)", async () => {
+  it("settings.json 无提供商 → stderr 提示编辑 + exit(1)", async () => {
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(((
       code?: number,
     ) => {
@@ -311,14 +306,14 @@ describe("selectProvider（setkey/addmodel 的提供商选择）", () => {
 
 describe("providerListLines / modelListLines（只读格式化）", () => {
   it("provider 列表：id（name），绝不含 apiKey", () => {
-    expect(providerListLines(providerConfig)).toEqual([
+    expect(providerListLines(settingsConfig)).toEqual([
       "deepseek（DeepSeek）",
       "ark-agent-plan（火山方舟 plan）",
     ]);
   });
 
   it("model 列表：name（provider），同模型多 provider 各一行", () => {
-    expect(modelListLines(modelConfig)).toEqual([
+    expect(modelListLines(settingsConfig)).toEqual([
       "deepseek-v4-flash[1m]（deepseek）",
       "deepseek-v4-pro[1m]（deepseek）",
       "glm-5.2[1m]（ark-agent-plan）",

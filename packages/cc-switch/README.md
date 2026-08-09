@@ -28,7 +28,8 @@ cc-router [command] [options]      # 兼容
 | ---- | ---- |
 | `--meta-profile=<name>` | 显式指定 profile 启动 |
 | `--meta-pick` | 终端交互选择 profile 启动（需 TTY） |
-| `--meta-generate` | 从 provider.json + model.json 重建 profile.json |
+| `--meta-silent` | 压制启动前的 profile 名输出（MCP/AI 调用避免污染上下文） |
+| `--meta-generate` | 从 settings.json 重建 profile.json |
 | `--meta-apiKey=<key>` | 更新指定提供商 apiKey（交互选提供商或 `--meta-provider`，自动重建） |
 | `--meta-model-name=<name>` | 添加模型（交互选提供商或 `--meta-provider`，自动重建；id=去 `[1m]`、name+`[1m]`） |
 | `--meta-provider=<id>` | 显式指定提供商（供 apiKey / model-name 跳过交互选择，非独立动作） |
@@ -39,18 +40,46 @@ cc-router [command] [options]      # 兼容
 
 优先级：`--meta-help` > `--meta-version` > `--meta-generate` > `--meta-model-list` > `--meta-provider-list` > `--meta-model-name` > `--meta-apiKey` > `--meta-pick` > `--meta-profile=`。
 
-`--meta-apiKey` 与 `--meta-model-name` 互斥、均不得与 `--meta-generate` 同用；`--meta-provider` 仅随二者使用。
+`--meta-apiKey` 与 `--meta-model-name` 互斥、均不得与 `--meta-generate` 同用；`--meta-provider` 仅随二者使用；`--meta-silent` 为修饰选项，不参与动作优先级。
 
-## 配置源（provider / model 分层）
+## 配置源（settings.json 单源）
 
-profile.json 由两个 DRY 源经 `--meta-generate` 生成（启动不自动生成，保速度；profile 缺失或默认 profile 悬空时提示手动运行）：
+profile.json 由 settings.json 经 `--meta-generate` 生成（启动不自动生成，保速度；profile 缺失或默认 profile 悬空时提示手动运行）：
 
-- `~/.done-coding/cc-switch/provider.json` — 服务商层：`{ providers: { id: { name, url, apiKey, envExtraParams? } } }`
-- `~/.done-coding/cc-switch/model.json` — 模型层：`{ defaultProfile, models: [{ provider, id, name, envExtraParams? }] }`
+- `~/.done-coding/cc-switch/settings.json` — **唯一源**（含 apiKey，chmod 600）：
+  ```json5
+  {
+    defaultProfile: "deepseek-pro",      // 可选：未配置 → 启动时交互选择
+    disabledDefault: false,              // true → 忽略已配默认，强制交互选择
+    output: { profileName: true },       // 启动前输出 profile 名（false 关闭）
+    providers: {
+      deepseek: {
+        name: "DeepSeek",
+        url: "https://api.deepseek.com/anthropic",
+        apiKey: "sk-...",
+        envExtraParams: { CLAUDE_CODE_EFFORT_LEVEL: "max" },  // provider 级附加 env
+        models: [
+          { id: "flash", name: "deepseek-v4-flash[1m]" },
+          {
+            id: "pro",
+            name: "deepseek-v4-pro[1m]",
+            envExtraParams: { ANTHROPIC_DEFAULT_HAIKU_MODEL: "deepseek-v4-flash[1m]" }
+          }
+        ]
+      }
+    }
+  }
+  ```
+- `~/.done-coding/cc-switch/profile.json` — 编译快照（运行时读取，原格式、chmod 600）
 
 profile 名 = `${provider}-${id}`；每个 profile 的 env 按 `{...通用, ...providerEnvExtraParams, ...modelEnvExtraParams}` 合并（通用 = provider.url/apiKey + model.name 推导的 BASE_URL/AUTH_TOKEN/MODEL/四档/SUBAGENT）。例：pro 档让 haiku 用 flash，在该 model 的 `envExtraParams` 设 `ANTHROPIC_DEFAULT_HAIKU_MODEL`。
 
-运行 `dc-cc-switch --meta-generate` 后生成 profile.json（保持原格式、chmod 600）。
+## 启动行为
+
+- 启动前向 stdout 输出当前选中 profile 名一行（`output.profileName` 缺省 true；`--meta-silent` 压制，MCP/AI 调用建议带上）
+- 默认选择解析序：`--meta-profile=<name>` > 交互 pick（`--meta-pick` / `disabledDefault=true`）> `defaultProfile` > 无默认也交互 pick（非 TTY 报错提示 `--meta-profile`）
+
+> 0.3.0 起废弃 provider.json / model.json 分层源，存量配置请迁移为 settings.json。
 
 <!-- repo-map:start -->
 

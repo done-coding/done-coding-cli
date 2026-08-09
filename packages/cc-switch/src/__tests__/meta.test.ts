@@ -36,10 +36,12 @@ describe("mergeAction / isUnknownMetaOption（REQ-1/6）", () => {
   it("已知 meta 前缀不判未知；其余 --meta-* 判未知", () => {
     expect(isUnknownMetaOption("--meta-profile=a")).toBe(false);
     expect(isUnknownMetaOption("--meta-pick")).toBe(false);
+    expect(isUnknownMetaOption("--meta-silent")).toBe(false);
     expect(isUnknownMetaOption("--meta-help")).toBe(false);
     expect(isUnknownMetaOption("--meta-version")).toBe(false);
     expect(isUnknownMetaOption("--meta-xxx")).toBe(true);
     expect(isUnknownMetaOption("--meta-pick=x")).toBe(true);
+    expect(isUnknownMetaOption("--meta-silent=x")).toBe(true);
     expect(isUnknownMetaOption("--help")).toBe(false);
   });
 });
@@ -55,14 +57,16 @@ describe("printMetaHelp / printMetaVersion（REQ-4/5）", () => {
     vi.restoreAllMocks();
   });
 
-  it("REQ-4：帮助含 4 个 meta 选项 + 配置路径", () => {
+  it("REQ-4：帮助含 meta 选项 + 配置路径 + 源路径", () => {
     printMetaHelp();
     const out = stdout.mock.calls.map((c) => String(c[0])).join("");
     expect(out).toContain("--meta-profile=<name>");
     expect(out).toContain("--meta-pick");
+    expect(out).toContain("--meta-silent");
     expect(out).toContain("--meta-help");
     expect(out).toContain("--meta-version");
     expect(out).toContain(".done-coding/cc-switch/profile.json");
+    expect(out).toContain(".done-coding/cc-switch/settings.json");
     expect(out).toContain("不透传给 claude");
   });
 
