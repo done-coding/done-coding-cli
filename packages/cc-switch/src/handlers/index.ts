@@ -2,16 +2,15 @@ import { spawn } from "node:child_process";
 import { parseArgv, selectProfile } from "./profile";
 import {
   buildChildEnv,
+  CLAUDE_SETTINGS_PATH,
   hasModelEnvConflict,
   readSettingsEnv,
-  SETTINGS_PATH,
 } from "@/utils/env-guard";
 import {
   addModelEntry,
   generateConfig,
-  loadModelConfig,
   loadOrInitConfig,
-  loadProviderConfig,
+  loadSettings,
   modelListLines,
   normalizeModelName,
   providerListLines,
@@ -32,8 +31,26 @@ import {
   selectProvider,
 } from "@/utils/meta";
 import injectInfo from "@/injectInfo.json";
+import type { MetaAction, ProfileConfig } from "@/types";
 
 export { parseArgv, selectProfile };
+
+/**
+ * 解析最终 profile 名（REQ-3/REQ-5）：显式指定 > 交互 pick（--meta-pick /
+ * disabledDefault）> defaultProfile > 无默认也交互 pick。
+ * pick 均走 pickProfile（TTY 弹选择器；非 TTY → 报错提示 --meta-profile，不挂起）。
+ */
+const resolveProfileName = async (
+  cfg: ProfileConfig,
+  action: MetaAction,
+  profileName?: string,
+): Promise<string> => {
+  if (action === "pick") return pickProfile(cfg);
+  if (profileName) return profileName;
+  if (cfg.disabledDefault) return pickProfile(cfg);
+  if (cfg.defaultProfile) return cfg.defaultProfile;
+  return pickProfile(cfg);
+};
 
 /** spawn 目标恒为字面量 "claude"。bin 名为 "cc-router"，与之异名，
  *  PATH 解析 "claude" 不可能命中 cc-router 自身（防自引用，决策 3）。 */
@@ -48,8 +65,15 @@ const CLAUDE_BIN = "claude";
  */
 export const runRouter = async (argv?: string[]): Promise<never> => {
   // 独立入口：process.argv.slice(2)；主 CLI 子命令入口：命令边界后原始切片
-  const { action, profileName, apiKey, modelName, providerId, passthrough } =
-    parseArgv(argv ?? process.argv.slice(2));
+  const {
+    action,
+    profileName,
+    apiKey,
+    modelName,
+    providerId,
+    silent,
+    passthrough,
+  } = parseArgv(argv ?? process.argv.slice(2));
 
   // REQ-4/5：自身命令面输出，[MUST NOT] 读/写配置、[MUST NOT] spawn
   if (action === "help") {
@@ -70,8 +94,8 @@ export const runRouter = async (argv?: string[]): Promise<never> => {
   if (action === "providerlist" || action === "modellist") {
     const lines =
       action === "providerlist"
-        ? providerListLines(loadProviderConfig())
-        : modelListLines(loadModelConfig());
+        ? providerListLines(loadSettings())
+        : modelListLines(loadSettings());
     for (const line of lines) {
       process.stdout.write(`${line}\n`);
     }
@@ -79,7 +103,7 @@ export const runRouter = async (argv?: string[]): Promise<never> => {
   }
   if (action === "setkey" || action === "addmodel") {
     // 目标 provider：--meta-provider=<id> 显式，否则交互选择（非 TTY → selectProvider 报错退出）
-    const pc = loadProviderConfig();
+    const pc = loadSettings();
     const target = providerId ?? (await selectProvider(pc));
     const cfg =
       action === "setkey"
@@ -95,9 +119,8 @@ export const runRouter = async (argv?: string[]): Promise<never> => {
 
   const cfg = loadOrInitConfig();
 
-  // REQ-3：交互选择结果等价 --meta-profile=<选中名>
-  const resolvedName = action === "pick" ? await pickProfile(cfg) : profileName;
-  const { profile } = selectProfile(cfg, resolvedName);
+  const resolvedName = await resolveProfileName(cfg, action, profileName);
+  const { name, profile } = selectProfile(cfg, resolvedName);
 
   // REQ-5：仅对值严格 === "" 的键交互补全
   const needsFill = findEmptyKeys(profile.env).length > 0;
@@ -123,10 +146,16 @@ export const runRouter = async (argv?: string[]): Promise<never> => {
   const conflicts = hasModelEnvConflict(settingsEnv);
   if (conflicts.length > 0) {
     process.stderr.write(
-      `检测到 ${SETTINGS_PATH} 的 env 块含模型路由类 key：` +
+      `检测到 ${CLAUDE_SETTINGS_PATH} 的 env 块含模型路由类 key：` +
         `${conflicts.join(", ")}。请手动清理这些 key 后重试。\n`,
     );
     return process.exit(1);
+  }
+
+  // REQ-1：spawn 前输出当前选中 profile 名（可配 output.profileName；
+  // --meta-silent 压制——MCP/AI 调用避免污染上下文）。守卫已全部通过才输出。
+  if (!silent && cfg.output?.profileName !== false) {
+    process.stdout.write(`${name}\n`);
   }
 
   // REQ-7 层 1：strip-then-inject（仅子进程作用域，不改自身 process.env）
