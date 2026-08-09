@@ -154,7 +154,7 @@ importers:
         specifier: workspace:0.1.10
         version: link:../ai
       "@done-coding/cli-cc-switch":
-        specifier: workspace:0.1.1
+        specifier: workspace:0.1.2-alpha.0
         version: link:../cc-switch
       "@done-coding/cli-component":
         specifier: workspace:0.6.2

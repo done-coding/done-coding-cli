@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.2-alpha.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-cc-switch@0.1.1...@done-coding/cli-cc-switch@0.1.2-alpha.0) (2026-08-09)
+
+### Features
+
+- **cc-switch:** provider/model 分层源 + meta 源变更与列表命令 ([#35](https://github.com/done-coding/done-coding-cli/issues/35)) ([44da8c5](https://github.com/done-coding/done-coding-cli/commit/44da8c5486efe8fdbec36dc5e7253db219d733d2))
+
 ## [0.1.1](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-cc-switch@0.1.0...@done-coding/cli-cc-switch@0.1.1) (2026-08-01)
 
 **Note:** Version bump only for package @done-coding/cli-cc-switch
