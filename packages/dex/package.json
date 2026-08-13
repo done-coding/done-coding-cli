@@ -1,0 +1,72 @@
+{
+  "name": "@done-coding/cli-dex",
+  "version": "0.0.0",
+  "description": "done-coding智能体",
+  "private": false,
+  "module": "es/index.mjs",
+  "types": "types/index.d.ts",
+  "type": "module",
+  "bin": {
+    "dc-dex": "es/cli.mjs",
+    "dex": "es/cli.mjs"
+  },
+  "exports": {
+    ".": {
+      "import": "./es/index.mjs",
+      "types": "./types/index.d.ts"
+    }
+  },
+  "files": [
+    "es",
+    "lib",
+    "types"
+  ],
+  "scripts": {
+    "predev": "dc-inject",
+    "dev": "vite build -w -m hotBuild",
+    "prebuild": "dc-inject",
+    "build": "vite build",
+    "prepack": "pnpm build",
+    "log": "conventional-changelog -p angular -i CHANGELOG.md -s --release-count 0",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "push": "dc-publish -m npm"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/done-coding/done-coding-cli.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "author": "JustSoSu",
+  "license": "MIT",
+  "sideEffects": false,
+  "devDependencies": {
+    "@done-coding/cli-inject": "workspace:0.6.6",
+    "@done-coding/cli-publish": "workspace:0.8.6",
+    "@types/node": "^18.0.0",
+    "@types/prompts": "^2.4.6",
+    "@types/yargs": "^17.0.28",
+    "conventional-changelog": "^5.1.0",
+    "conventional-changelog-cli": "^4.1.0",
+    "@vitest/coverage-v8": "^1.6.1",
+    "typescript": "^5.8.3",
+    "vite": "^5.0.10",
+    "vite-plugin-dts": "^3.7.0",
+    "vitest": "^1.6.1"
+  },
+  "peerDependencies": {},
+  "dependencies": {
+    "@done-coding/cli-cc-switch": "workspace:0.3.0",
+    "@done-coding/cli-generator": "workspace:0.2.1",
+    "@done-coding/cli-utils": "workspace:0.13.0",
+    "@earendil-works/pi-coding-agent": "0.84.1",
+    "typebox": "1.3.7"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  }
+}
