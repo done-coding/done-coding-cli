@@ -163,7 +163,7 @@ importers:
         specifier: workspace:0.2.6
         version: link:../config
       "@done-coding/cli-dex":
-        specifier: workspace:0.0.0
+        specifier: workspace:0.1.0
         version: link:../dex
       "@done-coding/cli-extract":
         specifier: workspace:0.2.7

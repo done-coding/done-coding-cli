@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-dex",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "done-coding智能体",
   "private": false,
   "module": "es/index.mjs",
@@ -49,16 +49,15 @@
     "@types/node": "^18.0.0",
     "@types/prompts": "^2.4.6",
     "@types/yargs": "^17.0.28",
+    "@vitest/coverage-v8": "^1.6.1",
     "conventional-changelog": "^5.1.0",
     "conventional-changelog-cli": "^4.1.0",
-    "@vitest/coverage-v8": "^1.6.1",
     "rimraf": "^5.0.1",
     "typescript": "^5.8.3",
     "vite": "^5.0.10",
     "vite-plugin-dts": "^3.7.0",
     "vitest": "^1.6.1"
   },
-  "peerDependencies": {},
   "dependencies": {
     "@done-coding/cli-cc-switch": "workspace:0.3.0",
     "@done-coding/cli-generator": "workspace:0.2.1",

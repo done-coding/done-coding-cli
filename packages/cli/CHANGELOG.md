@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.21.0](https://github.com/done-coding/done-coding-cli/compare/done-coding@0.20.2...done-coding@0.21.0) (2026-08-15)
+
+### Features
+
+- **dex:** 新增 Dex 智能体（@done-coding/cli-dex，基于 pi-coding-agent 基座） ([#42](https://github.com/done-coding/done-coding-cli/issues/42)) ([e8d4f60](https://github.com/done-coding/done-coding-cli/commit/e8d4f603584eef5680182f33c4d77bb05cb4f1a6))
+
 ## [0.20.2](https://github.com/done-coding/done-coding-cli/compare/done-coding@0.20.1...done-coding@0.20.2) (2026-08-09)
 
 **Note:** Version bump only for package done-coding
