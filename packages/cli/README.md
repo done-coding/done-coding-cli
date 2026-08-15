@@ -1,5 +1,7 @@
 # done-coding
 
+> ⚠️ **子命令废弃说明**：`ai`（AI 对话）与 `mrm`（模型源管理）两个子命令已标记废弃——`ai` 迁移至 `dex`（[@done-coding/cli-dex](https://www.npmjs.com/package/@done-coding/cli-dex)，Dex 智能体），`mrm` 的 provider/model 管理迁移至 `cc-switch`。将于后续 major 版本移除。
+
 done-coding 命令行工具集 - 提供完整的开发工作流支持
 
 [![npm version](https://badge.fury.io/js/done-coding.svg)](https://www.npmjs.com/package/done-coding)
