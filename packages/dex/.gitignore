@@ -1,0 +1,13 @@
+node_modules
+/src/injectInfo.json
+
+/lib
+/es
+/types
+/coverage
+.claude/settings.local.json
+
+# OS / 截图取证产物（所有模板统一忽略）
+.DS_Store
+.playwright-mcp/
+test-results/

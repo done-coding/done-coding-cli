@@ -14,6 +14,7 @@ import {
 } from "@done-coding/cli-ai";
 import { createAsSubcommand as createMrmCommand } from "@done-coding/cli-mrm";
 import { createAsSubcommand as createCcSwitchCommand } from "@done-coding/cli-cc-switch";
+import { createAsSubcommand as createDexCommand } from "@done-coding/cli-dex";
 import injectInfo from "@/injectInfo.json";
 import type { CliInfo } from "@done-coding/cli-utils";
 import {
@@ -51,6 +52,7 @@ const commandCliInfo: CliInfo = {
     createAiCommand(),
     createMrmCommand(),
     createCcSwitchCommand(),
+    createDexCommand(),
   ],
   demandCommandCount: 0,
   rootScriptName: getRootScriptName({ packageJson: injectInfo }),
