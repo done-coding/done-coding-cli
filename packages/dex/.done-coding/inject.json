@@ -1,0 +1,26 @@
+{
+  "sourceFilePath": "./package.json",
+  "keyConfigMap": {
+    "name": {
+      "type": "read"
+    },
+    "version": {
+      "type": "read"
+    },
+    "description": {
+      "type": "read"
+    },
+    "bin": {
+      "type": "read"
+    },
+    "cliConfig.namespaceDir": {
+      "type": "fixed",
+      "value": ".done-coding"
+    },
+    "cliConfig.moduleName": {
+      "type": "fixed",
+      "value": "dex"
+    }
+  },
+  "injectFilePath": "./src/injectInfo.json"
+}
