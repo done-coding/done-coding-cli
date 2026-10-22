@@ -51,7 +51,6 @@
     "vite-plugin-dts": "^3.6.0"
   },
   "dependencies": {
-    "@done-coding/cli-ai": "workspace:0.1.10",
     "@done-coding/cli-cc-switch": "workspace:0.3.0",
     "@done-coding/cli-component": "workspace:0.6.2",
     "@done-coding/cli-config": "workspace:0.2.6",
@@ -59,8 +58,8 @@
     "@done-coding/cli-extract": "workspace:0.2.7",
     "@done-coding/cli-generator": "workspace:*",
     "@done-coding/cli-git": "workspace:0.7.6",
+    "@done-coding/cli-harness": "workspace:*",
     "@done-coding/cli-inject": "workspace:0.6.6",
-    "@done-coding/cli-mrm": "workspace:0.0.7",
     "@done-coding/cli-publish": "workspace:0.8.6",
     "@done-coding/cli-template": "workspace:0.12.2",
     "@done-coding/cli-utils": "workspace:0.13.0",

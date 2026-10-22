@@ -1,5 +1,4 @@
 import { homedir } from "node:os";
-import { join } from "node:path";
 import {
   outputConsole,
   safeCwd,
@@ -8,8 +7,19 @@ import {
   type SubCliInfo,
   type YargsOptionsRecord,
 } from "@done-coding/cli-utils";
-import { SubcommandEnum, type InstallOptions, type SkillMeta } from "@/types";
-import { getBundledSkillsDir, listSkills, installSkills } from "@/utils";
+import {
+  SkillTargetEnum,
+  SubcommandEnum,
+  type InstallOptions,
+  type SkillMeta,
+} from "@/types";
+import {
+  assertLinkableSource,
+  getBundledSkillsDir,
+  installSkills,
+  listSkills,
+  resolveTargetSkillsDir,
+} from "@/utils";
 
 /** 获取 install 子命令选项 */
 export const getOptions = (): YargsOptionsRecord<InstallOptions> => {
@@ -18,7 +28,22 @@ export const getOptions = (): YargsOptionsRecord<InstallOptions> => {
       type: "boolean",
       alias: "g",
       describe:
-        "安装到全局 ~/.claude/skills（默认安装到项目 ./.claude/skills）",
+        "安装到家目录 ~/.<target>/skills（默认安装到当前项目 ./.<target>/skills）",
+      default: false,
+    },
+    target: {
+      type: "array",
+      alias: "t",
+      choices: Object.values(SkillTargetEnum),
+      describe:
+        "安装目标（可多个）：claude → .claude/skills · codex → .codex/skills · agents → .agents/skills（跨工具共享）",
+      default: [SkillTargetEnum.CLAUDE],
+    },
+    link: {
+      type: "boolean",
+      alias: "l",
+      describe:
+        "软链到本包内的 skill 目录而非复制（随包升级自动生效；需本地或全局安装本包）",
       default: false,
     },
     all: {
@@ -76,7 +101,7 @@ const resolveSelectedSkills = async (
   return available.filter((skill) => pickedNames.includes(skill.name));
 };
 
-/** install 命令处理器：把内置 skill(s) 安装到 .claude/skills */
+/** install 命令处理器：把内置 skill(s) 安装到各目标宿主的 skills 目录 */
 export const handler = async (argv: CliHandlerArgv<InstallOptions>) => {
   const skillsDir = getBundledSkillsDir();
   const available = listSkills(skillsDir);
@@ -91,35 +116,45 @@ export const handler = async (argv: CliHandlerArgv<InstallOptions>) => {
     return;
   }
 
-  const targetSkillsDir = argv.global
-    ? join(homedir(), ".claude", "skills")
-    : join(safeCwd(), ".claude", "skills");
+  if (argv.link) assertLinkableSource(skillsDir);
 
-  const results = installSkills(selected, targetSkillsDir, {
-    force: argv.force,
-  });
+  const targets = [
+    ...new Set((argv.target ?? [SkillTargetEnum.CLAUDE]).map(String)),
+  ] as SkillTargetEnum[];
+  const base = { cwd: safeCwd(), home: homedir() };
+  const verb = argv.link ? "链接" : "安装";
 
-  for (const result of results) {
-    const tag =
-      result.status === "skipped"
-        ? "跳过(已存在，--force 覆盖)"
-        : result.status === "overwritten"
-          ? "覆盖"
-          : "安装";
-    outputConsole.info(`[${tag}] ${result.name} → ${result.targetDir}`);
+  for (const target of targets) {
+    const targetSkillsDir = resolveTargetSkillsDir(
+      { global: argv.global, target },
+      base,
+    );
+    const results = installSkills(selected, targetSkillsDir, {
+      force: argv.force,
+      link: argv.link,
+    });
+    for (const result of results) {
+      const tag =
+        result.status === "skipped"
+          ? "跳过(已存在，--force 覆盖)"
+          : result.status === "overwritten"
+            ? `覆盖${verb}`
+            : verb;
+      outputConsole.info(`[${tag}] ${result.name} → ${result.targetDir}`);
+    }
+    const written = results.filter(
+      (result) => result.status !== "skipped",
+    ).length;
+    outputConsole.success(
+      `完成：${written}/${results.length} 个 skill 已${verb}到 ${targetSkillsDir}`,
+    );
   }
-
-  const written = results.filter(
-    (result) => result.status !== "skipped",
-  ).length;
-  outputConsole.success(
-    `完成：${written}/${results.length} 个 skill 已写入 ${targetSkillsDir}`,
-  );
 };
 
 export const commandCliInfo: SubCliInfo = {
   command: SubcommandEnum.INSTALL,
-  describe: "把内置的 done-coding CLI skill(s) 安装到 .claude/skills",
+  describe:
+    "把内置的 done-coding CLI skill(s) 安装到 Claude Code / Codex / .agents 的 skills 目录",
   options: getOptions(),
   handler: handler as SubCliInfo["handler"],
 };

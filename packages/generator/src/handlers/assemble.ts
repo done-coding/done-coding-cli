@@ -45,7 +45,7 @@ export interface AssembleHandlerResult {
 }
 
 /** 解析待处理的配方绝对路径列表（--recipe / --all / 约定首个）。 */
-const resolveRecipePaths = (
+export const resolveRecipePaths = (
   argv: AssembleHandlerArgv,
   cwd: string,
 ): string[] => {
@@ -69,7 +69,7 @@ const resolveRecipePaths = (
 };
 
 /** stdout 洁净 JSON（--json，对齐 P3 B5）。 */
-const emitJson = (data: unknown): void => {
+export const emitJson = (data: unknown): void => {
   process.stdout.write(`${JSON.stringify(data, null, 2)}\n`);
 };
 
@@ -125,7 +125,7 @@ const handleBuild = (
   return { action: "build", exitCode: 0, payload: results };
 };
 
-const reportDrift = (results: DriftResult[]): void => {
+export const reportDrift = (results: DriftResult[]): void => {
   for (const r of results) {
     if (!r.drifted) {
       outputConsole.success(

@@ -3,3 +3,4 @@ export * from "./question";
 export * from "./templateSource";
 export * from "./local-config";
 export * from "./instances-registry";
+export * from "./usage-steps";

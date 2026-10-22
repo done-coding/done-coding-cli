@@ -129,9 +129,11 @@ const writeTemplateRepo = (
     form: Record<string, unknown>[];
     files: { input: string; output: string; content: string }[];
     globalEnvData?: Record<string, unknown>;
+    /** 额外写入 template.json 的顶层字段（如 usageSteps） */
+    extra?: Record<string, unknown>;
   },
 ): string => {
-  const { form, files, globalEnvData = {} } = config;
+  const { form, files, globalEnvData = {}, extra = {} } = config;
   mkdirSync(path.join(dir, ".done-coding"), { recursive: true });
   for (const f of files) {
     const full = path.join(dir, f.input);
@@ -142,6 +144,7 @@ const writeTemplateRepo = (
     path.join(dir, ".done-coding", "template.json"),
     JSON.stringify(
       {
+        ...extra,
         globalEnvData,
         collectEnvDataForm: form,
         list: files.map((f) => ({
@@ -178,6 +181,9 @@ let cascadeRepo: string;
 let badRefRepo: string;
 /** 向后引用仓：靠前问题 initial 引用靠后的变量（违反"只能引用前面"） */
 let forwardRefRepo: string;
+/** 声明 usageSteps 的模板仓 / usageSteps 非法的模板仓 */
+let usageStepsRepo: string;
+let badUsageStepsRepo: string;
 
 beforeAll(() => {
   if (process.env.DC_SKIP_BUILD !== "1") {
@@ -208,6 +214,19 @@ beforeAll(() => {
   workspaceRoot = mkdtempSync(path.join(tmpdir(), "dc-create-e2e-"));
   templateRepo = createLocalTemplateRepo(workspaceRoot);
 
+  const usageTpl = (extra: Record<string, unknown>) => ({
+    form: [{ key: "name", label: "包名", initial: ph("$projectName") }],
+    files: [{ input: "a.tpl.txt", output: "a.txt", content: ph("name") }],
+    extra,
+  });
+  usageStepsRepo = writeTemplateRepo(
+    path.join(workspaceRoot, "usage-tpl"),
+    usageTpl({ usageSteps: ["make run", "make check"] }),
+  );
+  badUsageStepsRepo = writeTemplateRepo(
+    path.join(workspaceRoot, "bad-usage-tpl"),
+    usageTpl({ usageSteps: "make run" }),
+  );
   cascadeRepo = writeTemplateRepo(path.join(workspaceRoot, "cascade-tpl"), {
     // 三种来源各一：内置 $projectName / 前序答案 name / 全局 author
     form: [
@@ -587,5 +606,72 @@ describe("create-done-coding 非交互供答 e2e", () => {
     expect(
       after.instances.some((i) => i.path === path.join(failWork, "failapp")),
     ).toBe(false);
+  });
+
+  it("完成提示：模板未声明 usageSteps → 默认 pnpm install / pnpm run dev", () => {
+    const work = makeWork("usage-default");
+    const r = runCli(
+      [
+        "-n",
+        "usagedefault",
+        "-p",
+        templateRepo,
+        "--env",
+        JSON.stringify({ organization: "acme", name: "usagedefault" }),
+        "--openGitDetailOptimize=false",
+      ],
+      work,
+    );
+    expect(r.status).toBe(0);
+    const out = r.stdout + r.stderr;
+    expect(out).toContain("1. cd usagedefault");
+    expect(out).toContain("2. pnpm install");
+    expect(out).toContain("3. pnpm run dev");
+  });
+
+  it("完成提示：模板声明 usageSteps → 按模板输出，不出现 pnpm 默认步骤", () => {
+    const work = makeWork("usage-declared");
+    const r = runCli(
+      [
+        "-n",
+        "gosvc",
+        "-p",
+        usageStepsRepo,
+        "--env",
+        "{}",
+        "--openGitDetailOptimize=false",
+      ],
+      work,
+    );
+    expect(r.status).toBe(0);
+    const out = r.stdout + r.stderr;
+    expect(out).toContain("1. cd gosvc");
+    expect(out).toContain("2. make run");
+    expect(out).toContain("3. make check");
+    expect(out).not.toContain("pnpm install");
+    // 模板配置照常在编译后删除
+    expect(
+      existsSync(path.join(work, "gosvc", ".done-coding", "template.json")),
+    ).toBe(false);
+  });
+
+  it("完成提示：usageSteps 非字符串数组 → 非 0 退出并指出字段、不生成项目", () => {
+    const work = makeWork("usage-bad");
+    const r = runCli(
+      [
+        "-n",
+        "badusage",
+        "-p",
+        badUsageStepsRepo,
+        "--env",
+        "{}",
+        "--openGitDetailOptimize=false",
+      ],
+      work,
+    );
+    expect(r.signal).toBeNull();
+    expect(r.status).not.toBe(0);
+    expect(r.stdout + r.stderr).toContain("usageSteps");
+    expect(existsSync(path.join(work, "badusage"))).toBe(false);
   });
 });

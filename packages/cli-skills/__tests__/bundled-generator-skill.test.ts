@@ -19,6 +19,24 @@ describe("[P3] 内置 cli-generator skill", () => {
     expect(gen?.description.length).toBeGreaterThan(0);
   });
 
+  it("cli-harness skill 可发现，命令面与 dc-harness 一致", () => {
+    const skills = listSkills(SKILLS_SRC);
+    expect(
+      skills.find((s) => s.name === "cli-harness")?.description,
+    ).toBeTruthy();
+    const md = readFileSync(
+      path.join(SKILLS_SRC, "cli-harness", "SKILL.md"),
+      "utf-8",
+    );
+    expect(md).toContain("dc-harness lists --check");
+    expect(md).toContain("dc-harness check");
+    expect(md).toContain("dc-harness issue <仓名|仓根路径>");
+    expect(md).toContain("dc-harness scope list [--inbox] [--json]");
+    expect(md).toContain("dc-harness scope check");
+    expect(md).toContain("dc-harness scope register");
+    expect(md).toContain(".done-coding/harness/governance/config.json");
+  });
+
   it("create-done-coding 既有 skill 仍在（未误删/改）", () => {
     const skills = listSkills(SKILLS_SRC);
     expect(skills.some((s) => s.name === "create-done-coding")).toBe(true);

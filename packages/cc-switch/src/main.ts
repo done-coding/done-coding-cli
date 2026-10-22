@@ -56,7 +56,7 @@ export const createAsSubcommand = (): CommandModule => {
         })
         .option("meta-generate", {
           type: "boolean",
-          describe: "从 provider.json + model.json 重建 profile.json",
+          describe: "从 settings.json 重建 profile.json",
         })
         .option("meta-apiKey", {
           type: "string",

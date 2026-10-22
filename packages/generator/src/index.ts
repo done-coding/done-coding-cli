@@ -15,6 +15,7 @@ export {
   listHandler,
   initHandler,
   assembleHandler,
+  treeHandler,
   commandCliInfo,
   buildBatchQuestions,
 } from "@/handlers";
@@ -80,6 +81,10 @@ export {
   resolveInstanceDir,
   removeEmptyInstanceDir,
 } from "@/core/instance-dir";
+
+// 模板资产层（T5，资产即列表：discoverTemplates 供 T7 MCP 消费）
+export { discoverTemplates, readTemplateSchema } from "@/templates";
+export type { TemplateInfo, TemplateSchema } from "@/templates";
 
 // 工具
 export { ensureNameLegal, NAME_LEGAL_PATTERN } from "@/utils/ensure-name";

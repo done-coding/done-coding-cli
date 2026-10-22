@@ -11,11 +11,8 @@ import fs from "node:fs";
 import path from "node:path";
 import type { BatchConfig, EnvContext } from "@/types";
 import { assertCwdNotSuspiciousRoot } from "@/core/safe-root";
+import { isInside } from "@/core/path-safe";
 import _template from "lodash.template";
-
-/** child 是否在 parent 内（含等于自身，与 engine 字面一致，D5 不抽公共） */
-const isInside = (parent: string, child: string): boolean =>
-  child === parent || child.startsWith(parent + path.sep);
 
 /** 渲染实例目录绝对路径（落 execDir） */
 export const resolveInstanceDir = (

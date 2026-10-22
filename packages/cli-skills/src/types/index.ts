@@ -3,10 +3,21 @@ export enum SubcommandEnum {
   INSTALL = "install",
 }
 
+/** 安装目标宿主：skills 落在 `.<target>/skills`（Claude Code / Codex / 跨工具共享的 Agent Skills 目录） */
+export enum SkillTargetEnum {
+  CLAUDE = "claude",
+  CODEX = "codex",
+  AGENTS = "agents",
+}
+
 /** install 子命令选项 */
 export interface InstallOptions {
-  /** 安装到全局 ~/.claude/skills（默认安装到项目 ./.claude/skills） */
+  /** 安装到家目录（默认安装到当前项目） */
   global?: boolean;
+  /** 安装目标宿主（可多个），缺省 claude */
+  target?: SkillTargetEnum[];
+  /** 软链到包内 skill 目录而非复制（随包升级自动生效） */
+  link?: boolean;
   /** 安装全部内置 skill，跳过交互选择 */
   all?: boolean;
   /** 指定要安装的 skill 名称（可多个），跳过交互选择 */

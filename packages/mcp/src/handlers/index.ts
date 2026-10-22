@@ -14,9 +14,19 @@ export {
   registerGeneratorTools,
   registerGeneratorPrompts,
   buildGeneratePromptText,
+  toJsonResult,
   listBatchesInputSchema,
   listQuestionsInputSchema,
   addInputSchema,
   removeInputSchema,
   initInputSchema,
 } from "./generator";
+
+/** 模块模板（codegen-unified T7）MCP 工具注册方法导出 */
+export {
+  registerModuleTemplateTools,
+  listModuleTemplatesInputSchema,
+  listParamsInputSchema,
+  treeBuildInputSchema,
+  treeCheckInputSchema,
+} from "./templates";
