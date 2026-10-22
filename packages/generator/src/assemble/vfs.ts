@@ -16,13 +16,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { AssembleManifest, Vfs, VfsNode, WriteProvenance } from "./types";
+import { isInside } from "@/core/path-safe";
 
 /** 默认排除（D-M7）：.git / node_modules / 常见临时目录 */
 const DEFAULT_BASE_EXCLUDE = [".git", "node_modules", ".DS_Store", "tmp"];
-
-/** child 是否在 parent 内（含等于自身，复刻 render.ts isInside 范式） */
-const isInside = (parent: string, child: string): boolean =>
-  child === parent || child.startsWith(parent + path.sep);
 
 /**
  * 归一 VFS 键：统一 posix 分隔 + 折叠 `./`·`..`·重复斜杠，使 `"./package.json"` 与

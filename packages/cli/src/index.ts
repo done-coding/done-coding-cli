@@ -31,12 +31,6 @@ export {
 export { createAsSubcommand as createGeneratorCommand } from "@done-coding/cli-generator";
 
 export {
-  createAsSubcommand as createAiCommand,
-  handler as aiHandler,
-  SubcommandEnum as AiSubcommandEnum,
-} from "@done-coding/cli-ai";
-
-export {
   createAsSubcommand as configComponentCommand,
   handler as configHandler,
 } from "@done-coding/cli-config";

@@ -14,6 +14,7 @@ import type {
   DiscoveredBatchListItem,
   ResolvedBatch,
 } from "@/types";
+import { isInside, realpathOrResolve } from "@/core/path-safe";
 import {
   json5,
   listDoneCodingDirs,
@@ -25,19 +26,6 @@ import {
 interface BatchIndexJson {
   config: string;
 }
-
-/** realpath 容错（路径不存在时回落 resolve 后字面量，越界校验用前缀比较即可） */
-const safeRealpath = (p: string): string => {
-  try {
-    return fs.realpathSync(p);
-  } catch {
-    return path.resolve(p);
-  }
-};
-
-/** 路径 child 是否在 parent 内（含等于 parent 自身） */
-const isInside = (parent: string, child: string): boolean =>
-  child === parent || child.startsWith(parent + path.sep);
 
 /**
  * 读取并解析批次 config（index.json.config → json5.parse(config.json5)）。
@@ -72,8 +60,8 @@ export const readBatchConfig = (batchDir: string): BatchConfig => {
 
   // H3：config 路径越界校验——index.json.config 须落在 batchDir 内（含 realpath，
   // 防绝对路径 / `../` 逃出批次目录读任意文件）。realBatchDir/realConfig 均经 realpath。
-  const realBatchDir = safeRealpath(batchDir);
-  const realConfigPath = safeRealpath(configPath);
+  const realBatchDir = realpathOrResolve(batchDir);
+  const realConfigPath = realpathOrResolve(configPath);
   if (!isInside(realBatchDir, realConfigPath)) {
     throw new Error(
       `index.json.config 越界（须落在批次目录内）：${indexJson.config} → ${realConfigPath}（batchDir=${realBatchDir}）`,

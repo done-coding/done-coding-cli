@@ -1,7 +1,0 @@
-node_modules
-/src/injectInfo.json
-
-/lib
-/es
-/types
-/coverage

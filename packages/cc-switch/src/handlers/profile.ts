@@ -1,4 +1,4 @@
-import { PROFILE_PATH } from "@/utils/path";
+import { PROFILE_PATH, SETTINGS_PATH } from "@/utils/path";
 import {
   META_APIKEY_PREFIX,
   META_GENERATE,
@@ -166,7 +166,7 @@ export const selectProfile = (
     const available = Object.keys(cfg.profiles).join(", ") || "(无)";
     throw new Error(
       `profile "${name}" 不存在。可用 profile：${available}。配置文件：${PROFILE_PATH}` +
-        `。若需从 provider.json + model.json 重建，请运行 --meta-generate`,
+        `。若需从 ${SETTINGS_PATH} 重建，请运行 --meta-generate`,
     );
   }
 

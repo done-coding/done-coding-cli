@@ -11,6 +11,9 @@ import {
   materializeTemplateToProject,
   resolveTemplateSourceFromUrl,
   recordCreateInstance,
+  readTemplateUsageSteps,
+  buildUsageSteps,
+  printUsageSteps,
   type TemplateSourceInfo,
 } from "@/utils";
 import type {
@@ -556,6 +559,13 @@ export const completeCreateProject = async (
     rootDir,
     draftId: argv.draftId,
   });
+  const usageSteps = buildUsageSteps(
+    state.projectName,
+    await readTemplateUsageSteps({
+      rootDir: state.draftProjectPath,
+      configPath: state.configPath,
+    }),
+  );
 
   await applyTemplateCompile({
     state,
@@ -580,17 +590,13 @@ export const completeCreateProject = async (
   });
 
   outputConsole.success(`项目${state.projectName}初始化完成`);
-  outputConsole.info(`
-使用步骤:
-  1. cd ${state.projectName}
-  2. pnpm install
-  3. pnpm run dev
-  `);
+  printUsageSteps(usageSteps);
 
   return {
     success: true,
     projectPath: state.targetProjectPath,
     draftId: state.draftId,
+    usageSteps,
     message: `项目${state.projectName}初始化完成`,
   };
 };
@@ -674,6 +680,11 @@ const interactiveCreateHandler = async (
     rootDir: projectNamePath,
     configPath,
   });
+  // 编译会删除模板配置，先读使用步骤
+  const usageSteps = buildUsageSteps(
+    projectName,
+    await readTemplateUsageSteps({ rootDir: projectNamePath, configPath }),
+  );
 
   if (configPathFinal) {
     outputConsole.stage(`当前模板项目配置了预设问题`);
@@ -732,13 +743,7 @@ const interactiveCreateHandler = async (
   });
 
   outputConsole.success(`项目${projectName}初始化完成`);
-
-  outputConsole.info(`
-使用步骤:
-  1. cd ${projectName}
-  2. pnpm install
-  3. pnpm run dev
-  `);
+  printUsageSteps(usageSteps);
 };
 
 /** 将 JSON 字符串解析为对象，失败或非对象时抛出明确错误 */

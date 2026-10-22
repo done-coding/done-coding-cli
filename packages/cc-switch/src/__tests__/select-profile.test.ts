@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { selectProfile } from "@/handlers/profile";
-import { PROFILE_PATH } from "@/utils/path";
+import { PROFILE_PATH, SETTINGS_PATH } from "@/utils/path";
 import type { ProfileConfig } from "@/types";
 
 const cfg: ProfileConfig = {
@@ -37,6 +37,9 @@ describe("selectProfile（REQ-4）", () => {
       expect(msg).toContain("nope");
       expect(msg).toContain("deepseek");
       expect(msg).toContain(PROFILE_PATH);
+      // 重建指引指向唯一源 settings.json（provider.json / model.json 已废弃）
+      expect(msg).toContain(SETTINGS_PATH);
+      expect(msg).not.toContain("provider.json");
     }
   });
 

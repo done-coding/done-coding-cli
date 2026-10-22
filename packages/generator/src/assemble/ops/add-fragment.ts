@@ -47,17 +47,18 @@ const resolveMode = (op: AddFragmentOp, srcMode: number): number => {
 /**
  * 统一存在性守卫（H3）：file/dir/symlink 任一节点写入前一致经此。
  * 返回 true=继续写；false=keep 保留既有跳过。默认 error fail-loud（[MUST NOT] 静默覆盖）。
+ * 参数收最小结构（仅 type/ifExists），供 addFragment / writeFile 等写类 op 复用（DRY，逻辑零改）。
  */
-const guardIfExists = (
+export const guardIfExists = (
   ctx: OpContext,
-  op: AddFragmentOp,
+  op: { type?: string; ifExists?: "error" | "keep" },
   target: string,
 ): boolean => {
   if (!ctx.vfs.has(target)) return true;
   const policy = op.ifExists ?? "error";
   if (policy === "error") {
     throw new Error(
-      `addFragment 目标已存在：${target}（ifExists 默认 error，显式 keep 才保留既有，D-M5）`,
+      `${op.type ?? "op"} 目标已存在：${target}（ifExists 默认 error，显式 keep 才保留既有，D-M5）`,
     );
   }
   return false; // keep：保留既有
@@ -108,98 +109,121 @@ const writeSymlink = (
   return true;
 };
 
+/**
+ * 目录铺开的单个产出条目（纯枚举，只读 fs 元数据）。
+ * apply 按序落 VFS、effects 据此声明逐文件效果（R4：计划期模拟态须看见铺出的每个文件）——
+ * 两处共用同一份遍历，[MUST NOT] 各写一套。
+ */
+type SpreadEntry =
+  | { kind: "file"; sourceRel: string; target: string; mode: number }
+  | { kind: "symlink"; absSrc: string; target: string }
+  | { kind: "dir"; target: string };
+
 /** 目录递归遍历单元（聚合参数，规避 max-params 3） */
 interface WalkUnit {
-  ctx: OpContext;
+  fragmentRoot: string;
   op: AddFragmentOp;
   /** 源根（fragment 相对） */
   srcRoot: string;
   /** 目标根（产物相对） */
   destRoot: string;
+  /** 收集的产出条目（深度优先、同级按名排序） */
+  out: SpreadEntry[];
 }
 
 /** 拼接相对路径（POSIX `/`） */
 const joinRel = (a: string, b: string): string => (a === "" ? b : `${a}/${b}`);
 
-/** 处理一个目录条目（file/dir/symlink），返回是否产出节点。 */
-const walkEntry = (unit: WalkUnit, relUnderRoot: string): boolean => {
-  const { ctx, op, srcRoot } = unit;
-  const sourceRel = joinRel(srcRoot, relUnderRoot);
-  const absSrc = sourceAbs(ctx, sourceRel);
+/** 目标路径：destRoot + rename 映射后的相对路径 */
+const targetOf = (unit: WalkUnit, relUnderRoot: string): string =>
+  joinRel(unit.destRoot, applyRename(relUnderRoot, unit.op.rename));
+
+/** 枚举一个目录条目（file/dir/symlink）。 */
+const walkEntry = (unit: WalkUnit, relUnderRoot: string): void => {
+  const { op } = unit;
+  const sourceRel = joinRel(unit.srcRoot, relUnderRoot);
+  const absSrc = path.resolve(unit.fragmentRoot, sourceRel);
   const lst = fs.lstatSync(absSrc);
 
-  if (lst.isSymbolicLink()) {
-    return handleSymlink(unit, relUnderRoot, absSrc);
-  }
   if (lst.isDirectory()) {
-    return walkDir(unit, relUnderRoot);
+    walkDir(unit, relUnderRoot);
+    return;
   }
-  // file
-  if (!isPathSelected(relUnderRoot, op)) return false;
-  const target = joinRel(unit.destRoot, applyRename(relUnderRoot, op.rename));
-  return writeFile(ctx, op, {
-    sourceRel,
-    target,
-    mode: resolveMode(op, lst.mode),
-  });
-};
-
-/** symlink 策略（preserve/deref/skip）。 */
-const handleSymlink = (
-  unit: WalkUnit,
-  relUnderRoot: string,
-  absSrc: string,
-): boolean => {
-  const { ctx, op } = unit;
+  if (!isPathSelected(relUnderRoot, op)) return;
+  const target = targetOf(unit, relUnderRoot);
+  if (!lst.isSymbolicLink()) {
+    unit.out.push({
+      kind: "file",
+      sourceRel,
+      target,
+      mode: resolveMode(op, lst.mode),
+    });
+    return;
+  }
+  // symlink 策略（preserve/deref/skip）
   const policy = op.symlinkPolicy ?? "preserve";
-  if (policy === "skip") return false;
-  if (!isPathSelected(relUnderRoot, op)) return false;
-  const target = joinRel(unit.destRoot, applyRename(relUnderRoot, op.rename));
+  if (policy === "skip") return;
   if (policy === "preserve") {
-    return writeSymlink(ctx, op, { absSrc, target });
+    unit.out.push({ kind: "symlink", absSrc, target });
+    return;
   }
   // deref：按真实文件内容写入
-  const realRel = joinRel(unit.srcRoot, relUnderRoot);
   const st = fs.statSync(absSrc);
-  return writeFile(ctx, op, {
-    sourceRel: realRel,
+  unit.out.push({
+    kind: "file",
+    sourceRel,
     target,
     mode: resolveMode(op, st.mode),
   });
 };
 
-/** 递归一个目录；空目录按 emptyDirPolicy 决定是否产出 dir 节点。 */
-const walkDir = (unit: WalkUnit, relUnderRoot: string): boolean => {
-  const absDir = sourceAbs(unit.ctx, joinRel(unit.srcRoot, relUnderRoot));
+/**
+ * 递归一个目录。R3/D3/修订-3：源本空 → 按 emptyDirPolicy 保真产 dir（含顶层 source 自身为空，
+ * relUnderRoot==="" → target=destRoot，避免 joinRel 产畸形 `destRoot/`）；被 exclude/skip 滤空 → 不产空壳。
+ */
+const walkDir = (unit: WalkUnit, relUnderRoot: string): void => {
+  const absDir = path.resolve(
+    unit.fragmentRoot,
+    joinRel(unit.srcRoot, relUnderRoot),
+  );
   const names = fs.readdirSync(absDir).sort();
-  let produced = 0;
-  for (const name of names) {
-    const childRel = joinRel(relUnderRoot, name);
-    if (walkEntry(unit, childRel)) produced += 1;
-  }
-  if (produced === 0) {
-    // R3/D3/修订-3：源本空 → 按 emptyDirPolicy 保真产 dir（含顶层 source 自身为空，
-    // relUnderRoot==="" → target=destRoot）；被 exclude/skip 滤空 → 不产空壳。
-    const sourceWasEmpty = names.length === 0;
-    return sourceWasEmpty ? emitEmptyDir(unit, relUnderRoot) : false;
-  }
-  return true;
+  for (const name of names) walkEntry(unit, joinRel(relUnderRoot, name));
+  if (names.length > 0 || (unit.op.emptyDirPolicy ?? "keep") !== "keep") return;
+  const target =
+    relUnderRoot === "" ? unit.destRoot : targetOf(unit, relUnderRoot);
+  unit.out.push({ kind: "dir", target });
 };
 
-/** 空目录产出（emptyDirPolicy=keep 才产出 dir 节点）；经统一存在性守卫（H3）。 */
-const emitEmptyDir = (unit: WalkUnit, relUnderRoot: string): boolean => {
-  if ((unit.op.emptyDirPolicy ?? "keep") !== "keep") return false;
-  // 顶层 source 自身为空（relUnderRoot===""）→ target 直接 destRoot，避免 joinRel 产畸形 `destRoot/`。
-  const target =
-    relUnderRoot === ""
-      ? unit.destRoot
-      : joinRel(unit.destRoot, applyRename(relUnderRoot, unit.op.rename));
-  if (!guardIfExists(unit.ctx, unit.op, target)) return false;
+/** 枚举目录源铺开后的全部产出条目（纯读，不碰 VFS）。 */
+const enumerateSpread = (
+  fragmentRoot: string,
+  op: AddFragmentOp,
+): SpreadEntry[] => {
+  const unit: WalkUnit = {
+    fragmentRoot,
+    op,
+    srcRoot: op.source,
+    destRoot: op.target,
+    out: [],
+  };
+  walkDir(unit, "");
+  return unit.out;
+};
+
+/** 按条目落 VFS（经统一存在性守卫 H3）；返回是否产出节点。 */
+const applyEntry = (
+  ctx: OpContext,
+  op: AddFragmentOp,
+  entry: SpreadEntry,
+): boolean => {
+  if (entry.kind === "file") return writeFile(ctx, op, entry);
+  if (entry.kind === "symlink") return writeSymlink(ctx, op, entry);
+  if (!guardIfExists(ctx, op, entry.target)) return false;
   const node: VfsNode = {
     kind: "dir",
-    provenance: { lastOpId: unit.op.id, contributingOpIds: [unit.op.id] },
+    provenance: { lastOpId: op.id, contributingOpIds: [op.id] },
   };
-  unit.ctx.vfs.setNode(target, node);
+  ctx.vfs.setNode(entry.target, node);
   return true;
 };
 
@@ -224,17 +248,21 @@ const applySingleSymlink = (
 };
 
 export const addFragmentHandler: OpHandler = {
-  effects(op: AssembleOp): TargetEffect[] {
-    return [
-      {
-        target: op.target,
-        kind: "write-whole",
-        category: "content-model",
-        createsTarget: true,
-        // 整文件铺底（不解释格式）：与至多一个格式编辑模型可叠加，不计入混族互斥。
-        replacesWhole: true,
-      },
-    ];
+  effects(op: AssembleOp, ctx?: PlanContext): TargetEffect[] {
+    const o = narrow(op);
+    // R4：目录源按铺出的每个文件声明效果，后续 delete 类 op 的计划期模拟才看得见它们。
+    const targets =
+      ctx && fs.lstatSync(sourceAbs(ctx, o.source)).isDirectory()
+        ? enumerateSpread(ctx.fragmentRoot, o).map((e) => e.target)
+        : [op.target];
+    return targets.map((target) => ({
+      target,
+      kind: "write-whole",
+      category: "content-model",
+      createsTarget: true,
+      // 整文件铺底（不解释格式）：与至多一个格式编辑模型可叠加，不计入混族互斥。
+      replacesWhole: true,
+    }));
   },
 
   preflight(ctx: PlanContext, op: AssembleOp): void {
@@ -256,14 +284,10 @@ export const addFragmentHandler: OpHandler = {
     const lst = fs.lstatSync(absSrc);
 
     if (lst.isDirectory()) {
-      const unit: WalkUnit = {
-        ctx,
-        op: o,
-        srcRoot: o.source,
-        destRoot: o.target,
-      };
-      const changed = walkDir(unit, "");
-      return { changed, conflicts: [] };
+      const results = enumerateSpread(ctx.fragmentRoot, o).map((entry) =>
+        applyEntry(ctx, o, entry),
+      );
+      return { changed: results.includes(true), conflicts: [] };
     }
 
     if (lst.isSymbolicLink()) {

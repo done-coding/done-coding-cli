@@ -34,6 +34,8 @@ import {
 import { createRender, readFragment, readFragmentBuffer } from "./render";
 import { fragmentRoot as defaultFragmentRoot } from "./recipe";
 import { assertCwdNotSuspiciousRoot } from "@/core/safe-root";
+import { isInside } from "@/core/path-safe";
+import { formatVfs } from "./format";
 
 /** 引擎上下文（cwd 锚定约定目录 + 渲染变量来自 recipe.vars）。 */
 export interface EngineCtx {
@@ -45,14 +47,12 @@ export interface EngineCtx {
   allowDangerous?: boolean;
   /** 注入家目录（缺省 os.homedir()），仅供可疑根守卫单测，[MUST NOT] 走 CLI 透传 */
   homeDir?: string;
+  /** 格式化器可执行文件覆盖（缺省 = 目标项目 node_modules/.bin/prettier），供单测注入 stub */
+  formatterBin?: string;
 }
 
 const resolveFragmentRoot = (ctx: EngineCtx): string =>
   ctx.fragmentRoot ?? defaultFragmentRoot(ctx.cwd);
-
-/** child 是否在 parent 内（含等于自身）。 */
-const isInside = (parent: string, child: string): boolean =>
-  child === parent || child.startsWith(parent + path.sep);
 
 /**
  * 解析 output 绝对路径并守越界（H2）：[MUST] 在 cwd 内且 ≠ cwd，否则 fail-loud。
@@ -166,6 +166,12 @@ export const runBuild = (
     resolveOp(op.type).apply(opCtx, op);
   }
 
+  // post-render 格式化（opt-in）：flush/manifest 前的 VFS 变换，与 runDiff 同径（漂移闸基线一致）
+  formatVfs(recipe, baseVfs, {
+    cwd: ctx.cwd,
+    ...(ctx.formatterBin ? { formatterBin: ctx.formatterBin } : {}),
+  });
+
   const out = outputAbs(ctx, recipe);
   const prevManifest = readManifest(ctx.cwd, recipe.id);
   const flushOpts: FlushOptions = {
@@ -235,6 +241,12 @@ export const runDiff = (
   for (const op of recipe.ops) {
     resolveOp(op.type).apply(opCtx, op);
   }
+
+  // 与 runBuild 同径格式化：期望产物 = 格式化后内容，与已提交基线逐字节可比
+  formatVfs(recipe, baseVfs, {
+    cwd: ctx.cwd,
+    ...(ctx.formatterBin ? { formatterBin: ctx.formatterBin } : {}),
+  });
 
   const against = opts.against ?? "worktree";
   const tmpRoot = fs.mkdtempSync(

@@ -1,6 +1,6 @@
 # done-coding
 
-> ⚠️ **子命令废弃说明**：`ai`（AI 对话）与 `mrm`（模型源管理）两个子命令已标记废弃——`ai` 迁移至 `dex`（[@done-coding/cli-dex](https://www.npmjs.com/package/@done-coding/cli-dex)，Dex 智能体），`mrm` 的 provider/model 管理迁移至 `cc-switch`。将于后续 major 版本移除。
+> ⚠️ **子命令移除说明**：`ai`（AI 对话）与 `mrm`（模型源管理）两个子命令已移除——AI 对话改用 `dex`（[@done-coding/cli-dex](https://www.npmjs.com/package/@done-coding/cli-dex)，Dex 智能体），模型 / 服务商切换改用 `cc-switch`。无子命令运行 `DC` 现直接输出帮助。
 
 done-coding 命令行工具集 - 提供完整的开发工作流支持
 
@@ -81,8 +81,7 @@ source ~/.bashrc
 
 ## 功能特性
 
-- ✅ **统一入口**: 集成 13 个专业工具包，提供统一的命令行入口
-- 🤖 **AI 对话**: 无子命令时唤起 AI 对话，模型切换委托 mrm，SSE 流式响应；对话内支持 `/子包名` 查看其他工具帮助
+- ✅ **统一入口**: 集成 12 个专业工具包，提供统一的命令行入口
 - 🚀 **跨平台兼容**: 支持 Windows、macOS、Linux，自动处理系统差异
 - 🔧 **模块化设计**: 每个子包独立开发，可单独使用或集成使用
 - 📦 **完整工作流**: 涵盖项目创建、开发、构建、发布的完整流程
@@ -136,23 +135,11 @@ done-coding 集成了多个工具，每个工具都专注于特定的开发任�
 - **描述**: 信息(JSON)注入命令行工具
 - **包地址**: [@done-coding/cli-inject](https://www.npmjs.com/package/@done-coding/cli-inject)
 
-### 🧠 模型源管理
-
-- **命令**: `DC mrm`
-- **描述**: AI 模型源管理器，管理服务商和模型切换；支持 `--client` 选项指定客户端
-- **包地址**: [@done-coding/cli-mrm](https://www.npmjs.com/package/@done-coding/cli-mrm)
-
 ### 📦 项目发布
 
 - **命令**: `DC publish`
 - **描述**: 项目发布命令行工具
 - **包地址**: [@done-coding/cli-publish](https://www.npmjs.com/package/@done-coding/cli-publish)
-
-### 🤖 AI 对话
-
-- **命令**: `DC ai` 或直接输入 `DC`（无子命令）
-- **描述**: AI 对话命令行工具，模型切换委托 mrm；对话内输入 `/子包名` 可查看其他 CLI 帮助
-- **包地址**: [@done-coding/cli-ai](https://www.npmjs.com/package/@done-coding/cli-ai)
 
 ### 📝 模板处理
 
@@ -194,16 +181,6 @@ DC cc-switch --meta-pick                  # 交互选择 profile 启动
 DC cc-switch --meta-profile=<name>        # 显式指定 profile 启动
 DC cc-switch --meta-help                  # 自身帮助
 
-# 模型源管理
-DC mrm ls                                 # 查看可用模型和服务商
-DC mrm use <model>                        # 切换模型
-DC mrm model add <provider> <model>       # 添加模型
-DC mrm model remove <provider> <model>    # 删除模型
-DC mrm provider add <alias> <url>         # 添加服务商
-DC mrm provider use <alias>               # 切换服务商
-DC mrm provider remove <alias>            # 删除服务商
-DC mrm switch <client>                    # 切换客户端
-
 # 工程化配置
 DC config                                 # 工程化配置命令行工具
 
@@ -222,10 +199,6 @@ DC git check <type>                       # 检查git操作
 
 # 项目发布
 DC publish                                # 项目发布命令行工具
-
-# AI 对话
-DC ai                                    # 进入 AI 对话
-DC（无子命令后选 y）                       # 唤起 AI 对话
 ```
 
 ### 使用替代命令
@@ -300,19 +273,6 @@ dc-cli publish
 done-coding publish
 ```
 
-### AI 对话
-
-```bash
-# 方式一：DC 无子命令，选 y 进入 AI 对话
-DC
-
-# 方式二：DC ai 子命令
-DC ai
-
-# 方式三：直接指定 chat
-DC ai chat
-```
-
 ## 配置
 
 您可以在项目根目录创建 `.done-coding.config.js` 文件来自定义配置：
@@ -345,41 +305,24 @@ done-coding CLI 采用模块化架构，每个子包都是独立的工具：
 ```mermaid
 graph TD
     A["done-coding"] --> B["create-done-coding"]
-    A --> C["@done-coding/cli-ai"]
     A --> D["@done-coding/cli-component"]
     A --> E["@done-coding/cli-config"]
     A --> F["@done-coding/cli-extract"]
     A --> G["@done-coding/cli-git"]
     A --> H["@done-coding/cli-inject"]
-    A --> I["@done-coding/cli-mrm"]
     A --> J["@done-coding/cli-publish"]
     A --> K["@done-coding/cli-template"]
     A --> L["@done-coding/cli-utils"]
     A --> M["@done-coding/cli-generator"]
 
     D --> M
-    C --> I
-    C -.-> B
-    C -.-> D
-    C -.-> E
-    C -.-> F
-    C -.-> H
-    C -.-> J
-    C -.-> K
 
-    style C fill:#fff3e0
-    style I fill:#e8f5e8
     style D fill:#e1f5fe
     style F fill:#e8f5e8
 ```
 
 ### 包间协作关系
 
-- **@done-coding/cli-ai** → **@done-coding/cli-mrm**:
-  - ai 包的 `/provider`、`/model` 委托 mrm 管理服务商和模型
-  - ai 只读配置，写入通过 mrm 导出方法（switchProvider/switchModel/writeClientConfig）
-- **@done-coding/cli-ai** → 各子包 bin:
-  - ai 包通过 `/子包名` 调用其他子包 bin 输出版本号和帮助信息
 - **@done-coding/cli-config** → **@done-coding/cli-git**:
   - config 包的 `merge-lint` 模块调用 git 包的 `check reverse-merge` 命令
   - 实现工程化配置中的 git 合并规范检测
@@ -398,10 +341,8 @@ done-coding (主包)
 ├── @done-coding/cli-extract (信息提取)
 ├── @done-coding/cli-git (Git 操作)
 ├── @done-coding/cli-inject (信息注入)
-├── @done-coding/cli-mrm (模型源管理)
 ├── @done-coding/cli-publish (项目发布)
 ├── @done-coding/cli-template (模板处理)
-├── @done-coding/cli-ai (AI 对话)
 └── @done-coding/cli-utils (工具库)
 ```
 

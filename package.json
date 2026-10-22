@@ -11,7 +11,11 @@
     "prepare": "husky install",
     "postinstall": "prettier --write pnpm-lock.yaml",
     "push": "lerna publish",
-    "postpush": "node ./scripts/postpush.mjs"
+    "postpush": "node ./scripts/postpush.mjs",
+    "gov:lists": "node packages/harness/es/cli.mjs lists",
+    "gov:check": "node packages/harness/es/cli.mjs check",
+    "test": "lerna run test --stream -- --run",
+    "test:hub": "node scripts/regress-hub.mjs"
   },
   "repository": {
     "type": "git",

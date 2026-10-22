@@ -16,6 +16,7 @@ import { handler as listHandler } from "./list";
 import { handler as initHandler } from "./init";
 import { buildBatchQuestions, type BatchQuestion } from "./shared";
 import { assembleHandler, type AssembleHandlerResult } from "./assemble";
+import { treeHandler } from "./tree";
 import injectInfo from "@/injectInfo.json";
 import type { GeneratorHandlerArgv } from "@/types";
 import type { AssembleAction, AssembleHandlerArgv } from "@/assemble/types";
@@ -33,6 +34,8 @@ export { addHandler, modifyHandler, removeHandler, listHandler, initHandler };
 // P4a：assemble handler（server-agnostic，真子命令 plan/build/diff/check）
 export { assembleHandler };
 export type { AssembleHandlerResult };
+// T3：tree handler（server-agnostic，gitRoot 锚定委托 assemble；真子命令 build/check）
+export { treeHandler };
 // P3：MCP list_questions 工具复用纯函数（无 stdout，design §2/§12 B6）
 export { buildBatchQuestions };
 export type { BatchQuestion };
@@ -276,6 +279,50 @@ const assembleSubcommands: SubCliInfo[] = [
   assembleActionCliInfo("check", "diff 的 CI 漂移闸别名（drift→exit 1）"),
 ];
 
+// ───────────────────────── tree 真子命令（T3，dc-generator tree build|check） ─────────────────────────
+// gitRoot 锚定委托 assemble：模块 spec = 标准 assemble Recipe；build/check 复用 engine + 项目内漂移闸。
+// 仅 build/check 两个 action（YAGNI，plan 列表只列这两个）；选项透传复用 assembleOptions。
+
+/** tree 仅支持 build/check 两个 action（YAGNI）。 */
+type TreeAction = Extract<AssembleAction, "build" | "check">;
+
+/**
+ * cli 边界包装：调 treeHandler → 据返回 exitCode 落 process.exitCode（check drift=1）。
+ * 库函数 throw fail-loud（由 yargs failHandler 落 exit 1）；[MUST NOT] 库内 process.exit。
+ */
+const runTreeAction =
+  (action: TreeAction) =>
+  async (argv: CliHandlerArgv<AssembleHandlerArgv>): Promise<void> => {
+    const result = await treeHandler({
+      ...(argv as AssembleHandlerArgv),
+      action,
+    });
+    if (result.exitCode !== 0) {
+      process.exitCode = result.exitCode;
+    }
+  };
+
+const treeActionCliInfo = (
+  action: TreeAction,
+  describeText: string,
+): SubCliInfo => ({
+  command: `tree ${action}`,
+  describe: describeText,
+  options: assembleOptions,
+  handler: runTreeAction(action) as SubCliInfo["handler"],
+});
+
+const treeSubcommands: SubCliInfo[] = [
+  treeActionCliInfo(
+    "build",
+    "模块生成编排：gitRoot 锚定 → 委托 assemble build 物化进项目（manifest 入版控）",
+  ),
+  treeActionCliInfo(
+    "check",
+    "模块生成项目内漂移闸（clean regenerate → 与已提交产物 diff，drift→exit 1）",
+  ),
+];
+
 export const commandCliInfo: Omit<CliInfo, "usage"> = {
   describe,
   version,
@@ -286,6 +333,7 @@ export const commandCliInfo: Omit<CliInfo, "usage"> = {
     listCommandCliInfo,
     initCommandCliInfo,
     ...assembleSubcommands,
+    ...treeSubcommands,
   ].map(createSubcommand),
   demandCommandCount: 1,
   rootScriptName: getRootScriptName({ packageJson: injectInfo }),
