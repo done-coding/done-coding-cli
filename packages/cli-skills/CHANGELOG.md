@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.1-alpha.0](https://gitee.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.3.0...@done-coding/cli-skills@0.3.1-alpha.0) (2026-10-23)
+
+### Features
+
+- **cli-skills:** 随包发布 Claude / Codex 插件清单；2026-10-23 发版收口与文档补齐 ([#45](https://gitee.com/done-coding/done-coding-cli/issues/45)) ([8919498](https://gitee.com/done-coding/done-coding-cli/commits/89194986139d63fff1ed23110ebf5022195d13b0))
+
 # [0.3.0](https://gitee.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.2.1...@done-coding/cli-skills@0.3.0) (2026-10-23)
 
 - feat!: 治理工具 cli-harness 首发、统一代码生成合入、skill 多宿主安装，退役 ai / mrm (#44) ([03742b7](https://gitee.com/done-coding/done-coding-cli/commits/03742b73006033658b2f795de5d77b20c597f7c4)), closes [#44](https://gitee.com/done-coding/done-coding-cli/issues/44)
