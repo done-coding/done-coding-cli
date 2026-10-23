@@ -1,7 +1,7 @@
 # 技术架构快照
 
-> 最后更新：2026-10-02
-> 关联任务：补齐 generator 挂载主命令与 bin 改名（marker NS 按包派生）、create 实例注册表、yargs shell 补全、cc-switch、Dex；接入 `docs/governance/` 治理视图
+> 最后更新：2026-10-23
+> 关联任务：补齐 generator 挂载主命令与 bin 改名（marker NS 按包派生）、create 实例注册表、yargs shell 补全、cc-switch、Dex；接入 `docs/governance/` 治理视图；cli-harness 首发、cli-skills 随包带插件清单
 
 ## 1. 系统上下文（C4 Level 1）
 
@@ -29,7 +29,7 @@
                   │                                      │
                   │  独立 bin（未并入 DC 子命令树）:     │
                   │  ├── dc-mcp（stdio MCP server）     │◀───▶ AI agent / MCP client（Tools/Resources/Prompts）
-                  │  └── dc-cli-skills install          │────▶ .claude/skills/
+                  │  └── dc-cli-skills install（备用）  │────▶ .claude/.codex/.agents 的 skills/
                   │                                      │
                   │  @done-coding/cli-utils (foundation) │
                   └──────────────────────────────────────┘
@@ -94,7 +94,7 @@
          @done-coding/cli-harness    治理工具（lists / check / issue / scope；本仓 gov:lists / gov:check 即用它）
             │
 接口层:  @done-coding/cli-mcp        MCP server（server-agnostic 直接 import create/generator 的 handler）
-         @done-coding/cli-skills      Agent Skill 聚合包 + 安装器
+         @done-coding/cli-skills      Agent Skill 聚合包 = 插件 done-coding 的内容（构建时生成 Claude / Codex 插件清单）+ 备用安装器
             │
 基础层:  @done-coding/cli-utils      共享工具 + 类型定义（safeCwd / resolveHandlerContext / 三模式）
 ```
@@ -234,7 +234,7 @@ done-coding ────────────── 直接依赖所有业务�
     └── @done-coding/cli-harness  依赖: utils（issue 经 git 子进程在目标仓提交）
                                                                      │
     @done-coding/cli-mcp ──────── 依赖: @modelcontextprotocol/sdk, zod, create, cli-generator
-    @done-coding/cli-skills ───── 对各 CLI 零运行时依赖（skill 内走 npx <cli>@latest）
+    @done-coding/cli-skills ───── 对各 CLI 零运行时依赖（skill 内走已装 bin 或 npx）
          ↓                                                          │
     @done-coding/cli-utils ─────── 无内部依赖 ──────────────────────┘
 ```

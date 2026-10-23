@@ -19,13 +19,15 @@
     "es",
     "lib",
     "types",
-    "skills"
+    "skills",
+    ".claude-plugin",
+    ".codex-plugin"
   ],
   "scripts": {
     "predev": "dc-inject",
     "dev": "vite build -w -m hotBuild",
     "prebuild": "rimraf types && dc-inject",
-    "build": "vite build",
+    "build": "vite build && node scripts/plugin-manifests.mjs",
     "prepack": "pnpm build",
     "test": "vitest",
     "coverage": "vitest run --coverage"

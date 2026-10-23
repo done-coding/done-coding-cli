@@ -4,7 +4,7 @@
 
 ## 技术快照
 
-- 版本 0.5.3。`main.ts` 注册：create（Tools / Resources / Prompts）· generator 批次（Tools / Prompts）· 模块模板（`registerModuleTemplateTools`）。
+- 版本 0.6.0（2026-10-23 发布）。`main.ts` 注册：create（Tools / Resources / Prompts）· generator 批次（Tools / Prompts）· 模块模板（`registerModuleTemplateTools`）。
 - 工具描述：模块模板类由模板 schema 动态生成；所有工具返回经 `toJsonResult` 包装 JSON，stdout 不承载日志。
 - 测试：vitest 28 例（`forks` 池 + globalSetup 隔离宿主 HOME）。
 
