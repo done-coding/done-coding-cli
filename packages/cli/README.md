@@ -93,11 +93,16 @@ done-coding 集成了多个工具，每个工具都专注于特定的开发任�
 
 ### 🚀 项目创建
 
-- **命令**: `DC create [projectName]`
-- **描述**: 项目创建命令行工具
+- **命令**: `DC create`
+- **描述**: 从模板创建项目；支持预设答案非交互创建（供 AI / 脚本调用）
 - **包地址**: [create-done-coding](https://www.npmjs.com/package/create-done-coding)
-- **选项**:
-  - `-c, --justCloneFromDoneCoding`: 是否仅仅从done-coding系列项目列表中克隆远程仓库
+- **常用选项**:
+  - `-n, --projectName` 项目名称 · `-p, --templateUrl` 模板地址 · `-b, --templateGitBranch` 模板分支 · `--templateDirectory` 仓库内模板目录
+  - `--templateConfig` 本次使用的模板清单文件
+  - `--env '<JSON>'` / `--envFile <文件>` 预设模板问题的答案；`--listQuestions` 只打印模板问题清单
+- **子命令**:
+  - `DC create instances ls|prune` 查看 / 清理本机创建过的项目记录
+  - `DC create template-config [path]` 查看 / 登记本机默认模板清单（`--unset` 清除），之后 `DC create` 不再需要每次传 `--templateConfig`
 
 ### 🔧 组件生成
 
@@ -153,14 +158,44 @@ done-coding 集成了多个工具，每个工具都专注于特定的开发任�
 - **描述**: claude-code 模型路由透传（`dc-cc-switch` / `cc-router`），按 profile 注入 env 启动 claude；支持 `--meta-pick` 交互选择、`--meta-profile=<name>` 显式指定
 - **包地址**: [@done-coding/cli-cc-switch](https://www.npmjs.com/package/@done-coding/cli-cc-switch)
 
+### 🤖 Dex 智能体
+
+- **命令**: `DC dex`（bin `dex`）
+- **描述**: 自带 done-coding 工具的编码智能体，直接进入对话；首次启动导入 cc-switch 的模型配置（要求 Node.js >= 22.19.0）
+- **包地址**: [@done-coding/cli-dex](https://www.npmjs.com/package/@done-coding/cli-dex)
+
+### 📋 工作区治理
+
+- **命令**: `DC harness`（bin `dc-harness`）
+- **描述**: harness-workspace 治理工具：重生成治理清单、跑治理闸、向兄弟仓提 issue、维护仓库注册表
+- **包地址**: [@done-coding/cli-harness](https://www.npmjs.com/package/@done-coding/cli-harness)
+
+## 在 AI 编码工具里使用
+
+Claude Code 与 Codex 可安装插件 `done-coding`，让 AI 按任务调用上面的命令（用模板建项目、代码生成、治理清单与跨仓 issue）：
+
+```bash
+# Claude Code（会话内）
+/plugin marketplace add done-coding/done-coding-agent-plugins
+/plugin install done-coding@done-coding
+
+# Codex
+codex plugin marketplace add done-coding/done-coding-agent-plugins
+codex plugin add done-coding@done-coding
+```
+
+插件内容即 npm 包 [@done-coding/cli-skills](https://www.npmjs.com/package/@done-coding/cli-skills)，详见 [done-coding-agent-plugins](https://github.com/done-coding/done-coding-agent-plugins)。
+
 ## 完整命令列表
 
 ### 基于实际 CLI 输出的命令
 
 ```bash
 # 项目管理
-DC create [projectName]                    # 创建新项目
-DC create --justCloneFromDoneCoding       # 仅从done-coding系列项目克隆
+DC create                                 # 交互式创建新项目
+DC create -n my-app --env '{...}'         # 预设答案非交互创建
+DC create instances ls|prune              # 查看 / 清理本机创建记录
+DC create template-config [path]          # 查看 / 登记默认模板清单（--unset 清除）
 
 # 组件管理
 DC component add <name>                   # 新增组件
@@ -181,6 +216,15 @@ DC cc-switch --meta-pick                  # 交互选择 profile 启动
 DC cc-switch --meta-profile=<name>        # 显式指定 profile 启动
 DC cc-switch --meta-help                  # 自身帮助
 
+# Dex 智能体（dex）
+DC dex                                    # 进入 Dex 对话
+
+# 工作区治理（dc-harness）
+DC harness lists [--check]                # 重生成 / 校验治理清单
+DC harness check                          # 治理闸
+DC harness issue <仓名或仓根> -t -s -b      # 向兄弟仓提 issue
+DC harness scope list|check|register      # 仓库注册表
+
 # 工程化配置
 DC config                                 # 工程化配置命令行工具
 
@@ -191,7 +235,7 @@ DC inject                                 # 信息(JSON)注入命令行工具
 # 模板处理
 DC template                               # 预编译命令行工具
 
-# Git 操作
+# Git 操作（供 git hooks 等调用，不在 DC --help 中列出）
 DC git init                               # 初始化配置文件
 DC git clone <platform> <username>       # 从选择的git平台克隆代码
 DC git hooks <name> [args...]             # git钩子回调
@@ -216,12 +260,14 @@ done-coding [command]                     # 完整品牌命令
 ```bash
 # 使用主要命令
 DC create
-DC create my-app
-DC create --justCloneFromDoneCoding
+DC create -n my-app
+
+# 登记一次默认模板清单，之后创建时直接从中选模板
+DC create template-config ./templates.json
 
 # 使用替代命令
-dc-cli create my-app
-done-coding create my-app
+dc-cli create -n my-app
+done-coding create -n my-app
 ```
 
 ### 组件管理
@@ -275,26 +321,12 @@ done-coding publish
 
 ## 配置
 
-您可以在项目根目录创建 `.done-coding.config.js` 文件来自定义配置：
+没有统一的配置文件，各子命令的配置分两处：
 
-```javascript
-export default {
-  // 默认模板路径
-  templatePath: "./templates",
+- **项目内**：`<项目根>/.done-coding/<命令名>/...`，如 generator 的批次配置 `.done-coding/<type>/`、assemble 配方 `.done-coding/generator/assemble/`、harness 的 `.done-coding/harness/governance/config.json`。
+- **本机**：`~/.done-coding/<命令名>/...`，如 create 的模板清单指针 `~/.done-coding/create/index.json`、harness 的仓库注册表 `~/.done-coding/harness/scope/`。
 
-  // 组件生成配置
-  component: {
-    defaultType: "react",
-    outputDir: "./src/components",
-  },
-
-  // Git 配置
-  git: {
-    autoCommit: true,
-    commitTemplate: "conventional",
-  },
-};
-```
+具体字段见各子包 README。
 
 ## 架构设计
 
@@ -314,8 +346,13 @@ graph TD
     A --> K["@done-coding/cli-template"]
     A --> L["@done-coding/cli-utils"]
     A --> M["@done-coding/cli-generator"]
+    A --> N["@done-coding/cli-cc-switch"]
+    A --> O["@done-coding/cli-dex"]
+    A --> P["@done-coding/cli-harness"]
 
     D --> M
+    O --> M
+    O --> N
 
     style D fill:#e1f5fe
     style F fill:#e8f5e8
@@ -343,8 +380,13 @@ done-coding (主包)
 ├── @done-coding/cli-inject (信息注入)
 ├── @done-coding/cli-publish (项目发布)
 ├── @done-coding/cli-template (模板处理)
+├── @done-coding/cli-cc-switch (模型路由)
+├── @done-coding/cli-dex (Dex 智能体)
+├── @done-coding/cli-harness (工作区治理)
 └── @done-coding/cli-utils (工具库)
 ```
+
+独立 bin、不挂在 `DC` 下的包：`@done-coding/cli-mcp`（`dc-mcp`，MCP server）、`@done-coding/cli-skills`（`dc-cli-skills`，Agent Skills 及插件内容）。
 
 ## 故障排除
 

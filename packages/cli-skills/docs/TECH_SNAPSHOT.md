@@ -7,13 +7,15 @@
 - 本仓 monorepo 成员包（`packages/cli-skills`），ESM only，Vite 构建到 `es/`，类型到 `types/`；Node ≥ 18。
 - bin：`dc-cli-skills`（`es/cli.mjs`）；库导出 `handler` / `createAsSubcommand` / 类型（未挂进主命令 `DC`）。
 - 运行时依赖仅 `@done-coding/cli-utils`（命令构建、`safeCwd`、`safeRemoveDirSync`、交互、输出）。
-- 发布内容 `package.files` = `es` · `lib` · `types` · `skills`：skill 源目录原样随包发布，Vite 不处理它。
+- 发布内容 `package.files` = `es` · `lib` · `types` · `skills` · `.claude-plugin` · `.codex-plugin`：skill 源目录原样随包发布，Vite 不处理它；两份插件清单构建时生成。
+- **插件清单**：`build` = `vite build && node scripts/plugin-manifests.mjs`，由 `package.json` 生成 `.claude-plugin/plugin.json`、`.codex-plugin/plugin.json`（插件名 `done-coding`、版本 / 作者 / 许可取自 package.json；Codex 另含 `skills: ./skills/` 与 `interface` 展示信息），生成物 gitignore。版本只有 package.json 一个来源：lerna publish 在改版本后打包、打包时 prepack 重新构建，发出的清单版本与包一致。
 - 发版判定：根 `lerna.json` 的 `ignoreChanges` 只忽略 `README.md` 与 `docs/**`，`skills/**/SKILL.md` 改动计入 changed，只改 skill 正文也会触发本包发版。
 
 ## 2. 结构
 
 ```
 skills/<name>/SKILL.md      # 内置 skill 源（frontmatter name / description）
+scripts/plugin-manifests.mjs # 构建时生成两份插件清单（buildPluginManifests / writePluginManifests）
 src/
 ├── handlers/install.ts     # install 子命令：选项、选择 skill、逐目标安装、输出
 ├── utils/skills-source.ts  # getBundledSkillsDir（包内 ../skills）、listSkills（解析 frontmatter）
@@ -31,12 +33,12 @@ src/
 
 ## 4. 测试
 
-vitest（`__tests__/`）：`listSkills` 枚举与解析、复制安装的 skip / force、目标目录解析、软链建立与软链 ↔ 复制件互换不触碰源目录、悬空软链处理、npx 来源拒绝；`bundled-generator-skill` 校验内置 skill 可被发现且 frontmatter 正确。夹具全在临时目录。
+vitest（`__tests__/`）：`listSkills` 枚举与解析、复制安装的 skip / force、目标目录解析、软链建立与软链 ↔ 复制件互换不触碰源目录、悬空软链处理、npx 来源拒绝；`bundled-generator-skill` 校验内置 skill 可被发现且 frontmatter 正确；`plugin-manifests` 校验两份清单字段取自 package.json、Codex 展示信息、`files` 含清单目录。夹具全在临时目录。
 
 ## 5. 开发命令（包目录下）
 
-| 用途 | 命令 |
-|---|---|
+| 用途 | 命令                                     |
+| ---- | ---------------------------------------- |
 | 测试 | `pnpm test`（或仓库根 `pnpm test` 聚合） |
-| 构建 | `pnpm build` |
-| Lint | `pnpm exec eslint .`（沿用仓库根配置） |
+| 构建 | `pnpm build`                             |
+| Lint | `pnpm exec eslint .`（沿用仓库根配置）   |
