@@ -7,3 +7,5 @@ node_modules
 /coverage
 .claude/settings.local.json
 .playwright-mcp
+/.claude-plugin
+/.codex-plugin
