@@ -90,16 +90,16 @@ importers:
   packages/cli:
     dependencies:
       "@done-coding/cli-cc-switch":
-        specifier: workspace:0.3.0
+        specifier: workspace:0.3.1-alpha.0
         version: link:../cc-switch
       "@done-coding/cli-component":
-        specifier: workspace:0.6.2
+        specifier: workspace:0.6.3-alpha.0
         version: link:../component
       "@done-coding/cli-config":
         specifier: workspace:0.2.6
         version: link:../config
       "@done-coding/cli-dex":
-        specifier: workspace:0.1.0
+        specifier: workspace:0.1.1-alpha.0
         version: link:../dex
       "@done-coding/cli-extract":
         specifier: workspace:0.2.7
@@ -126,7 +126,7 @@ importers:
         specifier: workspace:0.13.0
         version: link:../utils
       create-done-coding:
-        specifier: workspace:0.16.1
+        specifier: workspace:0.16.2-alpha.0
         version: link:../create
     devDependencies:
       "@types/node":
@@ -284,10 +284,10 @@ importers:
   packages/dex:
     dependencies:
       "@done-coding/cli-cc-switch":
-        specifier: workspace:0.3.0
+        specifier: workspace:0.3.1-alpha.0
         version: link:../cc-switch
       "@done-coding/cli-generator":
-        specifier: workspace:0.2.1
+        specifier: workspace:0.2.2-alpha.0
         version: link:../generator
       "@done-coding/cli-utils":
         specifier: workspace:0.13.0
@@ -551,7 +551,7 @@ importers:
         specifier: ^1.29.0
         version: 1.29.0(zod@4.4.3)
       create-done-coding:
-        specifier: workspace:0.16.1
+        specifier: workspace:0.16.2-alpha.0
         version: link:../create
       zod:
         specifier: ^4.4.3
