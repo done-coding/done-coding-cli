@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-skills",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "done-coding CLI 各命令的 Agent Skills 聚合包与安装器",
   "private": false,
   "module": "es/index.mjs",
