@@ -10,6 +10,9 @@ export default defineConfig({
   },
   test: {
     include: ["__tests__/**/*.test.ts"],
+    // 隔离宿主 HOME（夹具自包含）：forks 池使 globalSetup 设的 HOME 对 os.homedir() 生效
+    pool: "forks",
+    globalSetup: ["__tests__/setup/isolate-home.ts"],
     // e2e 用例会 spawn 真实 CLI，放宽单用例超时
     testTimeout: 60000,
     hookTimeout: 120000,

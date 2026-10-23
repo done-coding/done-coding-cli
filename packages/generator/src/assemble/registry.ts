@@ -3,8 +3,8 @@
  *
  *  - 能力声明式（OpHandler = {effects, preflight?, apply}），planner/engine 一视同仁。
  *  - registerOp / resolveOp（未知 throw 并列已注册，C3）/ listOps。
- *  - registerBuiltinOps：显式装配 5 内建（add-fragment/text-patch/json-merge/
- *    delete-file/delete-field），engine 启动调一次——「新增 op = 注册一条、planner/engine 零改」。
+ *  - registerBuiltinOps：显式装配 6 内建（add-fragment/text-patch/json-merge/
+ *    delete-file/delete-field/write-file），engine 启动调一次——「新增 op = 注册一条、planner/engine 零改」。
  *
  * [MUST NOT] 在 planner/engine 出现 `if op.type==="deleteFile"` 这类特判（A-NFR-4 命脉，D-H3）。
  */
@@ -14,6 +14,7 @@ import { textPatchHandler } from "./ops/text-patch";
 import { jsonMergeHandler } from "./ops/json-merge-op";
 import { deleteFileHandler } from "./ops/delete-file";
 import { deleteFieldHandler } from "./ops/delete-field";
+import { writeFileHandler } from "./ops/write-file";
 
 /** 模块级 registry（同 realm 单例；测试可经 unregisterAll 清场） */
 const registry = new Map<string, OpHandler>();
@@ -46,16 +47,17 @@ export const hasOp = (type: string): boolean => registry.has(type);
 /** 清空 registry（测试隔离用）。 */
 export const unregisterAll = (): void => registry.clear();
 
-/** 内建 5 op 的 type → handler 映射（显式装配，零 import 副作用）。 */
+/** 内建 6 op 的 type → handler 映射（显式装配，零 import 副作用）。 */
 const BUILTIN_OPS: Record<string, OpHandler> = {
   addFragment: addFragmentHandler,
   textPatch: textPatchHandler,
   jsonMerge: jsonMergeHandler,
   deleteFile: deleteFileHandler,
   deleteField: deleteFieldHandler,
+  writeFile: writeFileHandler,
 };
 
-/** 显式装配 5 内建 op（engine 启动调一次；幂等）。 */
+/** 显式装配 6 内建 op（engine 启动调一次；幂等）。 */
 export const registerBuiltinOps = (): void => {
   for (const [type, handler] of Object.entries(BUILTIN_OPS)) {
     registerOp(type, handler);

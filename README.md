@@ -21,12 +21,10 @@ done-coding-cli 是一个基于 Lerna 管理的 monorepo 项目，包含多个�
 - **[@done-coding/cli-component](./packages/component)** - 组件生成工具
 - **[@done-coding/cli-config](./packages/config)** - 工程化配置工具
 - **[@done-coding/cli-extract](./packages/extract)** - 信息提取工具
-- **[@done-coding/cli-ai](./packages/ai)** - AI 对话工具（模型切换委托 mrm，支持 `/子包名` 查看帮助）
 - **[@done-coding/cli-cc-switch](./packages/cc-switch)** - claude-code 模型路由透传工具（`dc-cc-switch` / `cc-router`）
 - **[@done-coding/cli-generator](./packages/generator)** - 通用批次生成工具（dc-generator，含模板组装 assemble）
 - **[@done-coding/cli-git](./packages/git)** - Git 跨平台操作工具
 - **[@done-coding/cli-inject](./packages/inject)** - 信息注入工具
-- **[@done-coding/cli-mrm](./packages/mrm)** - AI 模型源管理器
 - **[@done-coding/cli-publish](./packages/publish)** - 项目发布工具
 - **[@done-coding/cli-template](./packages/template)** - 模板处理工具
 
@@ -49,14 +47,8 @@ DC --version
 ### 基本使用
 
 ```bash
-# AI 对话
-DC                    # 无子命令 + 选 y → 进入 AI 对话
-
 # 创建新项目
 DC create my-project
-
-# 切换模型
-DC mrm use deepseek-v4-pro[1m]
 
 # 查看所有可用命令
 DC --help
@@ -109,14 +101,12 @@ pnpm run push
 done-coding-cli/
 ├── packages/                 # 所有包的源码
 │   ├── cli/                 # 主 CLI 工具
-│   ├── ai/                  # AI 对话工具
 │   ├── create/              # 项目创建工具
 │   ├── component/           # 组件生成工具
 │   ├── config/              # 工程配置工具
 │   ├── extract/             # 信息提取工具
 │   ├── git/                 # Git 操作工具
 │   ├── inject/              # 信息注入工具
-│   ├── mrm/                 # 模型源管理器
 │   ├── publish/             # 发布工具
 │   ├── template/            # 模板工具
 │   └── utils/               # 工具库
@@ -131,13 +121,11 @@ done-coding-cli/
 ```mermaid
 graph TD
     A["done-coding"] --> B["create-done-coding"]
-    A --> C["@done-coding/cli-ai"]
     A --> D["@done-coding/cli-component"]
     A --> E["@done-coding/cli-config"]
     A --> F["@done-coding/cli-extract"]
     A --> G["@done-coding/cli-git"]
     A --> H["@done-coding/cli-inject"]
-    A --> I["@done-coding/cli-mrm"]
     A --> J["@done-coding/cli-publish"]
     A --> K["@done-coding/cli-template"]
     A --> L["@done-coding/cli-utils"]

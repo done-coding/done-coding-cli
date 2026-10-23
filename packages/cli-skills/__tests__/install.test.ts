@@ -1,15 +1,25 @@
 import {
   existsSync,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
+  readlinkSync,
+  realpathSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { listSkills } from "@/utils/skills-source";
-import { installSkills } from "@/utils/install-skills";
+import {
+  assertLinkableSource,
+  installSkills,
+  resolveTargetSkillsDir,
+} from "@/utils/install-skills";
+import { SkillTargetEnum } from "@/types";
 
 let root: string;
 
@@ -66,5 +76,76 @@ describe("installSkills", () => {
 
     const forced = installSkills(skills, target, { force: true });
     expect(forced[0].status).toBe("overwritten");
+  });
+});
+
+describe("resolveTargetSkillsDir", () => {
+  const base = { cwd: "/proj", home: "/home/u" };
+  it("缺省 claude 目标、项目级；-g 落家目录；agents 目标供 Codex / 共享", () => {
+    expect(resolveTargetSkillsDir({}, base)).toBe("/proj/.claude/skills");
+    expect(resolveTargetSkillsDir({ global: true }, base)).toBe(
+      "/home/u/.claude/skills",
+    );
+    expect(
+      resolveTargetSkillsDir(
+        { global: true, target: SkillTargetEnum.AGENTS },
+        base,
+      ),
+    ).toBe("/home/u/.agents/skills");
+  });
+});
+
+describe("installSkills（软链模式）", () => {
+  it("link 建指向源目录的软链；force 时软链 / 复制件互换，且不触碰源目录", () => {
+    const src = join(root, "skills");
+    makeSkill(src, "cli-harness", "治理");
+    const skills = listSkills(src);
+    const target = join(root, ".agents", "skills");
+    const dest = join(target, "cli-harness");
+
+    expect(installSkills(skills, target, { link: true })[0].status).toBe(
+      "installed",
+    );
+    expect(lstatSync(dest).isSymbolicLink()).toBe(true);
+    expect(readlinkSync(dest)).toBe(realpathSync(join(src, "cli-harness")));
+
+    // 已有软链 + force 复制：只摘链再复制，源目录内容不被改写
+    expect(installSkills(skills, target, { force: true })[0].status).toBe(
+      "overwritten",
+    );
+    expect(lstatSync(dest).isSymbolicLink()).toBe(false);
+    expect(
+      readFileSync(join(src, "cli-harness", "SKILL.md"), "utf-8"),
+    ).toContain("治理");
+
+    // 已有复制件 + force 软链：删复制件后建链
+    installSkills(skills, target, { force: true, link: true });
+    expect(lstatSync(dest).isSymbolicLink()).toBe(true);
+    expect(existsSync(join(src, "cli-harness", "SKILL.md"))).toBe(true);
+  });
+
+  it("悬空软链视为已存在：默认跳过，force 时替换", () => {
+    const src = join(root, "skills");
+    makeSkill(src, "cli-harness", "治理");
+    const target = join(root, ".agents", "skills");
+    mkdirSync(target, { recursive: true });
+    symlinkSync(join(root, "gone"), join(target, "cli-harness"));
+    const skills = listSkills(src);
+    expect(installSkills(skills, target)[0].status).toBe("skipped");
+    expect(
+      installSkills(skills, target, { force: true, link: true })[0].status,
+    ).toBe("overwritten");
+    expect(existsSync(join(target, "cli-harness", "SKILL.md"))).toBe(true);
+  });
+});
+
+describe("assertLinkableSource", () => {
+  it("npx 临时缓存里的包拒绝软链（缓存清理后链会悬空）", () => {
+    expect(() =>
+      assertLinkableSource("/Users/u/.npm/_npx/abc/node_modules/x/skills"),
+    ).toThrow(/npx/);
+    expect(() =>
+      assertLinkableSource("/usr/local/lib/node_modules/x/skills"),
+    ).not.toThrow();
   });
 });

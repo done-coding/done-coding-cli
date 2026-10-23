@@ -79,6 +79,24 @@ create-done-coding my-project -c
 
 - `-c, --justCloneFromDoneCoding`: 是否仅仅从 done-coding 系列项目列表中克隆远程仓库，默认为 `false`
 
+#### `create-done-coding template-config [path]`
+
+本机模板清单指针：决定交互式创建时从哪份模板清单（`{ "templateList": [...] }`）选模板。
+
+```bash
+# 查看当前指向的模板清单及其是否可用
+create-done-coding template-config
+
+# 登记模板清单（相对路径按当前目录解析为绝对路径；文件须存在且 templateList 为数组）
+create-done-coding template-config ./templates.manifest.json
+
+# 清除指向（之后回落内置远端模板列表）
+create-done-coding template-config --unset
+```
+
+- 只有一个指向（不做多清单合并），重复登记以最后一次为准。
+- 模板仓可在根目录加脚本一键登记，如 `"register:create": "create-done-coding template-config ./templates.manifest.json"`；请经本命令登记，不要直接改写本机配置文件。
+
 ## 使用示例
 
 ### 基础使用场景
@@ -236,6 +254,21 @@ create-done-coding -p <模板地址> --list-questions
 - `--list-questions`：仅打印模板预设问题清单（JSON），不创建项目。
 
 > MCP 形态下使用 `done_coding_prepare_create_project` 拿到 `questions`，再用 `done_coding_complete_create_project` 的 `envData`（同一套 key）供答，等价于 CLI 的 `--env`。
+
+## 完成提示：模板声明使用步骤
+
+创建成功后输出「使用步骤」：首步固定为 `cd <项目名>`，其后默认 `pnpm install` / `pnpm run dev`。
+不走这套命令的模板（Go / Python、monorepo 成员等）在 `.done-coding/template.json` 声明 `usageSteps` 覆盖：
+
+```json
+{
+  "usageSteps": ["make run", "make check"],
+  "collectEnvDataForm": []
+}
+```
+
+- `usageSteps` 须为非空字符串数组，否则创建以非 0 退出并指出该字段。
+- 非交互（MCP `complete`）的返回值带 `usageSteps`（含首步 `cd`），供 AI 直接读取。
 
 ## 依赖的工具包
 

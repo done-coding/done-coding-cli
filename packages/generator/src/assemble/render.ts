@@ -13,6 +13,7 @@ import fs from "node:fs";
 import path from "node:path";
 import _template from "lodash.template";
 import { createEnvHelpers } from "@/core/env-context";
+import { isInside } from "@/core/path-safe";
 // D-M2：复用 cli-utils package-json IO 壳（非 packages/config），不复用其合并语义
 import { getPackageJson } from "@done-coding/cli-utils";
 
@@ -31,10 +32,6 @@ export const createRender = (
 
 /** markdown 单层 code fence 剥离正则（与 cli-template get-data.ts 同语义） */
 const FENCE_RE = /^\s*```[a-zA-Z0-9]+\s*[\r\n]+([\s\S]+?)```\s*$/;
-
-/** child 是否在 parent 内（含等于自身，复刻 gen batch-discovery isInside 范式） */
-const isInside = (parent: string, child: string): boolean =>
-  child === parent || child.startsWith(parent + path.sep);
 
 /** 解析并越界守卫碎片绝对路径（throw-only，[MUST NOT] process.exit）。 */
 const resolveFragmentAbs = (fragmentRoot: string, rel: string): string => {

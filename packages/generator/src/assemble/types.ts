@@ -49,6 +49,13 @@ export interface Recipe {
   ops: AssembleOp[];
   /** create templateList 同步声明（D-H4，可选） */
   createTemplate?: CreateTemplateSync;
+  /**
+   * post-render 格式化钩子（opt-in）。"prettier" = 用目标项目自己的 prettier
+   * （cwd/node_modules/.bin/prettier）在 VFS 层、flush/manifest 前逐文件格式化——
+   * build/diff/check 三径同一变换，格式化产物即漂移闸基线。
+   * 仅作用于配方产物（output）；tree 注入（textPatch 既有项目文件）不经此。
+   */
+  format?: "prettier";
 }
 
 // ───────────────────────── op 模型（§4.1 / D-H3 / D-M5） ─────────────────────────
@@ -124,13 +131,23 @@ export interface DeleteFieldOp extends AssembleOpBase {
   pointer: string;
 }
 
+/** 内建 op：writeFile（T1 codegen-unified，内联字面原语；字面内容原样落盘） */
+export interface WriteFileOp extends AssembleOpBase {
+  type: "writeFile";
+  /** 字面内容（原样落盘，不渲染、不改 EOL） */
+  content: string;
+  /** 目标已存在时：报错 / 保留既有（对齐 addFragment D-M5） */
+  ifExists?: "error" | "keep";
+}
+
 /** 内建 op 联合（窄化用）；扩展 op 走 AssembleOpBase 泛型 */
 export type BuiltinAssembleOp =
   | AddFragmentOp
   | TextPatchOp
   | JsonMergeOp
   | DeleteFileOp
-  | DeleteFieldOp;
+  | DeleteFieldOp
+  | WriteFileOp;
 
 /** op 通用形态（含扩展 op；handler 内部自行窄化字段） */
 export type AssembleOp = AssembleOpBase & Record<string, unknown>;
@@ -226,8 +243,12 @@ export interface OpContext extends PlanContext {
 
 /** op handler 契约（能力声明式，D-H3） */
 export interface OpHandler {
-  /** 声明本 op 对目标的效果（planner 据此判冲突/顺序） */
-  effects: (op: AssembleOp) => TargetEffect[];
+  /**
+   * 声明本 op 对目标的效果（planner 据此判冲突/顺序）。
+   * ctx 可选：需读碎片源才能确定目标集合的 op（addFragment 目录铺开）据此展开为逐文件效果；
+   * 缺省时退回单条 op.target。
+   */
+  effects: (op: AssembleOp, ctx?: PlanContext) => TargetEffect[];
   /** 计划期纯校验（越界/字段/删不存在）；throw = fail-loud */
   preflight?: (ctx: PlanContext, op: AssembleOp) => void;
   /**

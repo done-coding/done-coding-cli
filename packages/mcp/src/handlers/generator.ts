@@ -24,8 +24,8 @@ import {
 import type { HandlerContextInit } from "@done-coding/cli-utils";
 import type { McpJsonResult } from "@/types";
 
-/** 将任意结果包装成 MCP JSON 文本响应（复刻 create toJsonResult） */
-const toJsonResult = (value: unknown): McpJsonResult => {
+/** 将任意结果包装成 MCP JSON 文本响应（复刻 create toJsonResult；templates.ts 复用本导出，第 3 次不复制） */
+export const toJsonResult = (value: unknown): McpJsonResult => {
   return {
     content: [
       {

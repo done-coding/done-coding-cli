@@ -1,7 +1,7 @@
 # 技术架构快照
 
-> 最后更新：2026-06-22
-> 关联任务：cli-generator 程序全程（gen 泛化 P1 + inject/marker P2 + MCP 接线 P3 + assemble 组装 P4a + modify 子命令 + 安全收尾硬化）；MCP 资源/提示词与隔离重构
+> 最后更新：2026-10-02
+> 关联任务：补齐 generator 挂载主命令与 bin 改名（marker NS 按包派生）、create 实例注册表、yargs shell 补全、cc-switch、Dex；接入 `docs/governance/` 治理视图
 
 ## 1. 系统上下文（C4 Level 1）
 
@@ -20,19 +20,21 @@
                   │  ├── DC git                         │────▶ OS filesystem (.git, ~/.done-coding)
                   │  ├── DC publish                     │
                   │  ├── DC template                    │
-                  │  ├── DC ai                          │
-                  │  └── DC mrm                         │
+                  │  ├── DC generator add/modify/...    │────▶ .done-coding/<type>/（批次发现：项目→父链→全局）
+                  │  │   ├── assemble build/diff/check  │────▶ .done-coding/generator/assemble/（recipes/fragments/manifests）
+  │  │   └── tree build/check           │────▶ .done-coding/templates/<base>/（模块模板：项目→父链→全局）
+                  │  ├── DC cc-switch                   │────▶ spawn `claude`（Claude Code CLI，注入 profile env）
+                  │  ├── DC dex                         │────▶ pi-coding-agent REPL（~/.done-coding/dex）
+                  │  └── DC harness lists/check/issue/scope │──▶ docs/governance/（治理清单 / 闸；issue 写兄弟仓并在其仓提交）+ ~/.done-coding/harness/scope/（仓库注册表）
                   │                                      │
                   │  独立 bin（未并入 DC 子命令树）:     │
-                  │  ├── dc-gen <type> add/modify/...   │────▶ .done-coding/<type>/（批次发现：项目→父链→全局）
-                  │  │   └── dc-gen assemble build/diff │────▶ .done-coding/generator/assemble/（recipes/fragments/manifests）
                   │  ├── dc-mcp（stdio MCP server）     │◀───▶ AI agent / MCP client（Tools/Resources/Prompts）
                   │  └── dc-cli-skills install          │────▶ .claude/skills/
                   │                                      │
                   │  @done-coding/cli-utils (foundation) │
                   └──────────────────────────────────────┘
 
-注：DC component 已切换为 cli-generator 的 component 预设薄包装（dc-component = dc-gen component）。
+注：DC component 是 cli-generator 的 component 预设薄包装（dc-component = dc-generator component）。
 ```
 
 ### 外部依赖
@@ -44,6 +46,8 @@
 | Gitee（done-coding-cli-assets-config） | HTTPS（git clone） | 工程化配置资产拉取 |
 | Node.js runtime（>= 18） | 进程环境 | 执行环境 |
 | MCP（Model Context Protocol） | hijack：环境变量 + stdin/stdout；MCP server：`@modelcontextprotocol/sdk` stdio transport | AI agent 驱动（hijack 子进程 / `dc-mcp` server 的 Tools/Resources/Prompts） |
+| Claude Code CLI（`claude`） | 子进程 spawn | cc-switch 注入 profile env 后启动，非 `--meta-*` 参数原样透传 |
+| `@earendil-works/pi-coding-agent`（锁 0.84.1） | 进程内调用 `main()` | Dex 的编码智能体基座（不改源码，工具经 extensionFactories 注入） |
 | git CLI（execFileSync 本地壳） | 子进程（rev-parse/ls-tree/ls-files/show/status） | assemble diff 的 head/index 基准检出 + forceClean 的工作树 clean 探测 |
 
 ## 2. 技术选型
@@ -51,7 +55,7 @@
 | 层面 | 选型 | 版本 |
 |---|---|---|
 | 语言 | TypeScript | ^5.8.3 |
-| 运行时 | Node.js | >= 18.0.0 |
+| 运行时 | Node.js | >= 18.0.0（cli-dex >= 22.19.0） |
 | 模块系统 | ESM（`"type": "module"`） | — |
 | 包管理 | pnpm（workspaces） | — |
 | 版本管理 | Lerna（independent mode） | ^7.3.0 |
@@ -61,6 +65,7 @@
 | 模板引擎 | lodash.template | — |
 | 配置格式 | JSON5 / JSON | — |
 | 测试 | Vitest | ^1.6.1 |
+| 智能体基座 | @earendil-works/pi-coding-agent（cli-dex） | 0.84.1（锁版本） |
 | 代码风格 | ESLint + Prettier + ls-lint | ^8.49.0 / ^3.8.0 / ^2.2.3 |
 | 提交规范 | commitlint（conventional config） | ^16.3.0 |
 | Git hooks | husky + lint-staged | ^8.0.3 / ^12.5.0 |
@@ -71,9 +76,9 @@
 ### 整体架构：分层 Monorepo
 
 ```
-入口层:  done-coding（主命令注册 + 子命令路由 + AI 对话入口）
+入口层:  done-coding（主命令注册 + 子命令路由 + shell 补全；无子命令输出帮助）
          create-done-coding（独立入口：npm create done-coding）
-         dc-gen / dc-mcp / dc-cli-skills（独立 bin，未并入 DC 子命令树）
+         dc-mcp / dc-cli-skills（独立 bin，未并入 DC 子命令树）
             │
 机制层:  @done-coding/cli-generator  通用具名批次生成器（content-free 引擎 + assemble 组装层）
             │ └─ component 业务全下沉到 .done-coding/component/config.json5（无业务 JS）
@@ -84,8 +89,9 @@
          @done-coding/cli-git        Git 操作
          @done-coding/cli-publish    项目发布
          @done-coding/cli-template   模板编译（被 create/component/generator/extract 依赖；含 marker 引擎）
-         @done-coding/cli-mrm         模型源管理器（服务商/模型 CRUD + client 切换）
-         @done-coding/cli-ai         AI 对话（/provider /model 委托 mrm，/xxx 子包帮助）
+         @done-coding/cli-cc-switch  Claude Code 模型路由（settings.json 单源 → profile.json → spawn claude）
+         @done-coding/cli-dex        Dex 编码智能体（pi-coding-agent 基座 + cc-switch 配置导入 + generator 工具扩展）
+         @done-coding/cli-harness    治理工具（lists / check / issue / scope；本仓 gov:lists / gov:check 即用它）
             │
 接口层:  @done-coding/cli-mcp        MCP server（server-agnostic 直接 import create/generator 的 handler）
          @done-coding/cli-skills      Agent Skill 聚合包 + 安装器
@@ -109,6 +115,8 @@
 | **server-agnostic handler** | generator/create handler 签名 `(argv, ctxInit?) => Promise`，内部 `resolveHandlerContext` 走 cli/mcp/test 三模式，库函数 throw fail-loud、[MUST NOT] `process.exit`（退出码在 cli 边界落地） |
 
 ## 4. 模块/组件结构（C4 Level 2-3）
+
+> 领域划分（哪些包 / 切片归哪个领域、共享骨架清单）以 `docs/governance/MODULES.md` 为准，本节只写代码结构。
 
 ### 统一子包结构
 
@@ -153,13 +161,13 @@ export const commandCliInfo: Omit<CliInfo, "usage"> = {
 - `packDefaultCommandCliInfo()` 内部将 `command` 改为 `"$0"`，生成一个仅 yargs 路由使用的副本，不修改原始 `commandCliInfo`
 - 原始 `commandCliInfo` 同时保留在 `subcommands` 中，确保 `--help` 仍显示命名子命令
 - handler 文件本身无需任何改动——`command` 保持为 `SubcommandEnum.XXX`，`handlers/index.ts`、`types/index.ts`、`main.ts` 写法不变
-- 参考：`packages/ai/src/handlers/index.ts`
+- 现状：`packDefaultCommandCliInfo` 仍在 `cli-utils`，原唯一使用方 `packages/ai` 已随包退役删除，当前无包使用
 
 详细说明：每个子包的架构细节见 `packages/<name>/docs/ARCHITECTURE.md`（待创建）。
 
 ### cli-generator 内部结构（机制层，content-free）
 
-`@done-coding/cli-generator`（bin `dc-gen`）是 component 的泛化，结构区别于普通子包：
+`@done-coding/cli-generator`（bin `dc-generator`，主命令挂载为 `DC generator`）是 component 的泛化，结构区别于普通子包：
 
 ```
 packages/generator/src/
@@ -169,6 +177,7 @@ packages/generator/src/
 │   ├── index.ts          # 装配 commandCliInfo（verb-first：add/modify/remove/list/init + assemble plan|build|diff|check）
 │   ├── add.ts / modify.ts / remove.ts / list.ts / init.ts
 │   ├── assemble.ts       # assembleHandler（真子命令；diff/check drift → 返回 exitCode=1，cli 边界落 process.exitCode）
+│   ├── tree.ts           # treeHandler build|check：模块模板 + 参数 → Recipe.ops（页面物化 + 注入），gitRoot 锚定委托 assemble
 │   └── shared.ts         # buildBatchQuestions / collectInteractiveAnswers / listBatchQuestions
 ├── core/                 # 引擎原语（供 handlers + assemble 复用）
 │   ├── batch-discovery.ts  # discoverBatch / readBatchConfig / listDiscoveredBatches（项目→父链→全局，shadowed/invalid）
@@ -176,28 +185,33 @@ packages/generator/src/
 │   ├── operate.ts          # add/remove/modify 公共引擎：预渲染→越界校验→strategy→引擎；remove dry-run 事务边界
 │   ├── strategy.ts         # strategyRegistry（create/append/replace/inject → OutputMode）
 │   ├── instance-dir.ts     # resolveInstanceDir / removeEmptyInstanceDir（realpath + isInside + 可疑根守卫）
-│   ├── marker-ns.ts        # getMarkerNs()：从 injectInfo.bin 取 NS（单 bin 约束，多 bin fail-loud）→ "dc-gen"
+│   ├── path-safe.ts        # isInside / realpath 双解（全包唯一实现，各处越界校验复用）
+│   ├── marker-ns.ts        # getMarkerNs()：从 injectInfo.bin 取 NS（单 bin 约束，多 bin fail-loud）→ "dc-generator"
 │   └── safe-root.ts        # assertCwdNotSuspiciousRoot（家目录本体 / 文件系统根 → throw，--allow-dangerous 逃逸）
 ├── assemble/             # 模板组装层（P4a，独立子层）
 │   ├── types.ts          # Recipe / AssembleOp / OpHandler（effects/preflight/apply 能力声明式）/ TargetEffect / Vfs / AssembleManifest
 │   ├── recipe.ts         # loadRecipe（JSON5 校验，fail-loud）/ discoverRecipes / recipeDir / fragmentRoot
 │   ├── registry.ts       # op 注册表（type→OpHandler）；registerBuiltinOps
-│   ├── ops/              # 内建 5 op：add-fragment / text-patch / json-merge-op / delete-file / delete-field
+│   ├── ops/              # 内建 6 op：add-fragment / text-patch / json-merge-op / delete-file / delete-field / write-file（内联字面）
+│   ├── inject/inject.ts  # 注入现有项目：textPatch 走 marker 锚点，内存 VFS 原子编排
+│   ├── format.ts         # recipe.format="prettier"：flush / manifest 前用目标仓 prettier 格式化（build 与 diff 同径）
 │   ├── planner.ts        # plan：构 VFS → 通用判冲突（混族/conflictKey）+ 顺序模拟（不认死 kind，A-NFR-4）
 │   ├── engine.ts         # runPlan / runBuild / runDiff / assertOutputsCompatible + git 本地壳（execFileSync）
 │   ├── vfs.ts            # 内存 VFS + loadBaseDir + 原子 flush（sibling-temp→rename）+ manifest 孤儿删除 + 大小写折叠守卫
 │   ├── render.ts         # createRender（lodash.template + _.helper）/ readFragment（throw-only，越界 throw + fence 剥离）
 │   ├── json-merge.ts / json-pointer.ts / conflict.ts / glob.ts / create-sync.ts
 │   └── create-sync.ts   # 可选：build 后把产物 upsert 进 create 的 templateList
+├── templates/            # 模块模板资产层：.done-coding/templates/<base>/<template>/ 发现（就近向上 + 全局）+ schema.json 读取（资产即列表）
 └── presets/init-skeleton.ts  # init 生成的批次骨架（config.json5 注释头：helper/内建变量/策略速查）
 ```
 
 **关键设计：**
 - **content-free 引擎**：`operate()` 接 `OperateOptions{action,batch,env,...}` 与命令面解耦，被 add/remove/modify 三命令 + assemble 复用；只认 strategy/files/instanceDir，[MUST NOT] 出现 component/entry/index 业务概念。
 - **strategy 落地**：FileEntry.strategy（create/append/replace/inject）经 strategyRegistry → 引擎 OutputMode；inject 走 marker 锚点插入 + 健壮回退（按 markerKey 精确定位，免疫块内手改）。
-- **marker `===` 外壳 + NS 参数化**：marker 形如 `<注释> === <markerNs>:start:<markerKey> === <注释>`；markerNs（`dc-gen`）由 `getMarkerNs()` 从 injectInfo.bin 取，参数化以隔离跨工具命名空间，cli-template 的 4 个 marker 函数（buildMarkerLines/computeInsert/computeRollback/validateMarkerKey）markerNs **强制必填**（缺则 fail-loud，杜绝隐式串扰）。
+- **marker `===` 外壳 + NS 参数化**：marker 形如 `<注释> === <markerNs>:start:<markerKey> === <注释>`；markerNs 由各包从自身 injectInfo.bin 派生（generator 经 `getMarkerNs()` → `dc-generator`；template 的 `DEFAULT_MARKER_NS` 经 `deriveMarkerNs()` → `dc-template`），改 bin 即自动跟随，cli-template 的 4 个 marker 函数（buildMarkerLines/computeInsert/computeRollback/validateMarkerKey）markerNs **强制必填**（缺则 fail-loud，杜绝隐式串扰）。
 - **modify 事务性**：过滤 INSERT 子集 → `probeMarkerPairing` 三态预检（0 缺失/1 存在/throw 损坏）→ 缺块默认原子中止（零写盘），`--skip-missing` 块级跳过；命中块原位替换。
 - **assemble VFS + 漂移闸**：全程内存 VFS，原子 flush；diff/check clean-regenerate 到临时目录逐字节比对（含 mode/symlink/双向孤儿），against=worktree/head/index，drift → exit 1。manifest 落 `.done-coding/generator/assemble/manifests/<recipeId>.json`（output 外，入版控）。
+- **模块生成（tree）= assemble 的消费层**：模板自带 schema，调用方只填参数；tree 把参数编成 Recipe.ops 交 assemble 执行，不另造执行路径。产物目录按 manifest 整级接管（与手写文件混住待 `ehzjoy`）。
 - **planner 通用冲突判定**：op 经 `effects()` 声明 TargetEffect（kind/category/conflictKey/replacesWhole…），planner 据此通用判混族互斥 + 顺序模拟，新增 op 声明能力即参与，planner/engine 零改（A-NFR-4）。
 
 ### 依赖关系
@@ -206,18 +220,18 @@ packages/generator/src/
 done-coding ────────────── 直接依赖所有业务包 ─────────────────┐
     │                                                               │
     ├── create-done-coding ───── 依赖: git, template, utils          │
-    ├── @done-coding/cli-generator 依赖: template, utils, lodash.template, json5
-    │      ↑ component/mcp 复用其 server-agnostic handler + 原语        │
+    ├── @done-coding/cli-generator 依赖: template, utils, lodash.*
+    │      ↑ component/mcp/dex 复用其 server-agnostic handler + 原语    │
     ├── @done-coding/cli-component  依赖: cli-generator, utils（薄包装，零业务 JS）
     ├── @done-coding/cli-config ── 依赖: utils（运行时调用 git 包）   │
     ├── @done-coding/cli-extract ─ 依赖: template, utils             │
     ├── @done-coding/cli-git ──── 依赖: utils（+ axios）             │
     ├── @done-coding/cli-inject ── 依赖: utils                       │
-    ├── @done-coding/cli-mrm ──── 依赖: utils                       │
     ├── @done-coding/cli-publish ─ 依赖: utils（+ semver）           │
     ├── @done-coding/cli-template  依赖: utils（+ lodash.template；含 marker 引擎）
-    └── @done-coding/cli-ai ───── 依赖: utils, openai, mrm          │
-         │                          + 8 个子包（提供 /xxx bin 帮助）  │
+    ├── @done-coding/cli-cc-switch  依赖: utils                     │
+    ├── @done-coding/cli-dex ──── 依赖: cc-switch, generator, utils, pi-coding-agent
+    └── @done-coding/cli-harness  依赖: utils（issue 经 git 子进程在目标仓提交）
                                                                      │
     @done-coding/cli-mcp ──────── 依赖: @modelcontextprotocol/sdk, zod, create, cli-generator
     @done-coding/cli-skills ───── 对各 CLI 零运行时依赖（skill 内走 npx <cli>@latest）
@@ -227,10 +241,11 @@ done-coding ────────────── 直接依赖所有业务�
 
 **跨包运行时调用：**
 - `config` →（运行时通过 yargs 的 `DC git check reverse-merge`）→ `git`
-- `ai` →（/xxx 命令通过 execSyncHijack 调用）→ 各子包 bin（dc-mrm / dc-component / create-done-coding 等）
 - `component` →（编译时 import 薄包装）→ `cli-generator` 的 addHandler/modifyHandler/removeHandler/listHandler（batchType 钉死 "component"）
 - `mcp` →（编译时 import server-agnostic handler）→ `create` 的 prepare/complete + `cli-generator` 的 add/remove/init/list_questions/list_batches（ctxInit.cwd = 必填 rootDir，[MUST NOT] fallback server cwd）
 - `assemble engine` →（execFileSync 本地壳）→ `git`（diff 的 head/index 基准检出 + forceClean 工作树 clean 探测）
+- `dex` →（编译时 import）→ `cli-generator` 原语，经 `extensions/generator.ts` 注册 list_batches / list_questions / add 三工具；→ `cc-switch` 配置读取做一次性导入
+- `cc-switch` →（child_process spawn）→ `claude`（spawn 目标恒为字面量 `claude`）
 
 其余包间通信仅通过 npm 依赖 + 编译时导出。
 
@@ -264,10 +279,19 @@ packages/<name>/
     └── git.config.json     # DC git config
 
 cli-generator 批次（就近向上 + 全局解析）:
-  .done-coding/<type>/      # dc-gen 批次类型（项目 → 父链 → 全局 ~/.done-coding/<type>/）
+  .done-coding/<type>/      # generator 批次类型（项目 → 父链 → 全局 ~/.done-coding/<type>/）
     ├── index.json          # 批次元数据
     ├── config.json5        # 批次声明（content-free：instanceDir/files[]/strategy/collectEnvDataForm/globalEnvData…）
     └── template/           # 模板源（readFragment/input 的越界基准）
+
+cli-generator 模块模板（就近向上 + 全局解析）:
+  .done-coding/templates/<base>/<template>/   # schema.json + fragments；全局 ~/.done-coding/templates/<base> 通常 symlink 到 template-hub module-templates/
+
+cli-harness（cwd-only，可选）:
+  .done-coding/harness/governance/config.json   # governanceDir（默认 docs/governance）+ domains 领域表来源（默认 MODULES.md）
+
+cli-harness 仓库注册表（全局，DC_HARNESS_SCOPE_DIR 可覆盖）:
+  ~/.done-coding/harness/scope/<转义键>/repo.json   # 一仓一目录：name / path / positioning / accepts / governance{dir, tier, issueInbox}；寻址只读 path
 
 cli-generator assemble（cwd-only，项目本地构建配置）:
   .done-coding/generator/assemble/
@@ -277,6 +301,11 @@ cli-generator assemble（cwd-only，项目本地构建配置）:
 
 全局配置:
   ~/.done-coding/config.json   # 全局持久化配置（ASSETS_CONFIG_REPO_URL、AI_CONFIG）
+  ~/.done-coding/create/instances.json  # create 实例注册表（upsert by path，temp→rename 原子写，损坏回落不抛）
+  ~/.done-coding/cc-switch/
+    ├── settings.json       # 唯一源（providers 内嵌 models + defaultProfile/disabledDefault/output；含 apiKey，chmod 600）
+    └── profile.json        # --meta-generate 编译快照（启动只读它，不自动重建；chmod 600）
+  ~/.done-coding/dex/       # Dex 配置根（~/.pi 软链至此；agent/ 下 models.json / auth.json 由 cc-switch 导入）
 ```
 
 ### 关键数据流
@@ -328,12 +357,13 @@ DC inject:
 ```
 AI 客户端 ──(stdio MCP)──▶ dc-mcp（@modelcontextprotocol/sdk）
   server 注册：processCreateByHijack:false（[MUST] 显式关，否则继承 hijack preset 串扰）
-  → registerCreateTools/Resources/Prompts + registerGeneratorTools/Prompts
+  → registerCreateTools/Resources/Prompts + registerGeneratorTools/Prompts + registerModuleTemplateTools
 
 generator Tools（B1 rootDir 必填，ctxInit.cwd=rootDir，[MUST NOT] fallback safeCwd/server cwd）:
   done_coding_gen_list_batches  → listDiscoveredBatches（含 invalid/errors）
   done_coding_gen_list_questions → buildBatchQuestions（纯函数，stdout 洁净，B5）
   done_coding_gen_add / remove / init → addHandler/removeHandler/initHandler（envData 结构化 object，B3）
+  done_coding_gen_list_module_templates / list_params / tree_build / tree_check → 模块模板发现 + tree（工具描述由模板 schema 动态生成）
   关键：handler throw fail-loud（B2，operate 交引擎前按策略守必填字段），表现为 MCP 错误结果而非杀 server 进程
 
 create Resources（隔离重构后）:
@@ -360,7 +390,7 @@ create Resources（隔离重构后）:
 
 ### 子包模板一致性
 
-新建子包必须通过脚手架模板创建，确保每个包的 `main.ts`、`handlers/`、`types/` 结构完全一致。详见 `packages/ai` 作为最新模板参考。
+新建子包必须通过脚手架模板创建，确保每个包的 `main.ts`、`handlers/`、`types/` 结构完全一致。新包按 template-hub 的 `npm-node-cli-member` 模板生成（最近一例：`packages/harness`）。
 
 ### Child Process Hijack 约定
 
@@ -410,7 +440,7 @@ create Resources（隔离重构后）:
 
 | 项 | 内容 |
 |---|---|
-| **状态** | `活跃` |
+| **状态** | `已废弃`（2026-10-02 cli-ai / cli-mrm 退役删除） |
 | **决策** | `@done-coding/cli-ai` 的 `/provider`、`/model` 内部委托 `@done-coding/cli-mrm` 的 registry API 实现，ai 包只读 config、所有写入通过 mrm 导出方法 |
 | **背景** | ai 包内置的 `model-presets.ts` 与 mrm 功能重复且数据不同步。统一由 mrm 管理服务商/模型，ai 作为消费方。切换流程：switchProvider/switchModel → writeClientConfig → 检查 apiKey。 |
 
@@ -418,7 +448,7 @@ create Resources（隔离重构后）:
 
 | 项 | 内容 |
 |---|---|
-| **状态** | `活跃` |
+| **状态** | `已废弃`（2026-10-02 cli-ai 退役删除） |
 | **决策** | `@done-coding/cli-ai` 使用 `openai` npm SDK（^4.x）+ SSE 流式 |
 | **背景** | 绝大多数模型厂商支持 OpenAI 兼容协议；SDK 提供 `.stream()` 流式调用、完整 TS 类型、baseURL 可改为任意兼容端点。暂不支持 Anthropic Messages API。 |
 
@@ -427,7 +457,7 @@ create Resources（隔离重构后）:
 | 项 | 内容 |
 |---|---|
 | **状态** | `活跃` |
-| **决策** | 抽出 `@done-coding/cli-generator`（bin `dc-gen`）作 content-free 机制层，`dc-component` 退化为其 component 预设的薄包装（batchType 钉死 "component"，零业务 JS） |
+| **决策** | 抽出 `@done-coding/cli-generator`（bin `dc-generator`）作 content-free 机制层，`dc-component` 退化为其 component 预设的薄包装（batchType 钉死 "component"，零业务 JS） |
 | **背景** | 组件之外还有 page/api/store 等大量「具名批次」需求；为每种各写脚手架重复。机制层只认 strategy/files/instanceDir，业务语义（series 算法/扫子目录/命名派生）全下沉各批次 `config.json5`，一套引擎复用。 |
 | **权衡** | 引擎需保持 content-free 纪律（[MUST NOT] 渗入业务概念）；component 行为须对旧 `.done-coding/component` 逐字节兼容（gen 重打包 golden diff 为空验收）。 |
 
@@ -444,8 +474,8 @@ create Resources（隔离重构后）:
 | 项 | 内容 |
 |---|---|
 | **状态** | `活跃` |
-| **决策** | inject marker 改为对称 `<注释> === <markerNs>:start:<markerKey> === <注释>`；cli-template 的 4 个 marker 函数 markerNs **强制必填**（缺则 fail-loud，无隐式 fallback）；generator 经 `getMarkerNs()` 从 injectInfo.bin 取（单 bin 约束）注入 `dc-gen` |
-| **背景** | markerNs 参数化以隔离跨工具命名空间（`dc-gen:` vs 未来 `dc-template:`）；硬编码 NS 会让多工具串扰。强制必填（而非默认值静默回退）确保任何调用方漏传都 fail-loud，杜绝隐式污染。markerNs 须穿透到 item 级（batchCompileHandler 逐项透传），非止于 handler options。 |
+| **决策** | inject marker 改为对称 `<注释> === <markerNs>:start:<markerKey> === <注释>`；cli-template 的 4 个 marker 函数 markerNs **强制必填**（缺则 fail-loud，无隐式 fallback）；各包从自身 injectInfo.bin 派生 NS（单 bin 约束）：generator → `dc-generator`、template → `dc-template` |
+| **背景** | markerNs 参数化以隔离跨工具命名空间（`dc-generator:` vs `dc-template:`）；硬编码 NS 会让多工具串扰，从 bin 派生保证单一真值源、改 bin 自动跟随。强制必填（而非默认值静默回退）确保任何调用方漏传都 fail-loud，杜绝隐式污染。markerNs 须穿透到 item 级（batchCompileHandler 逐项透传），非止于 handler options。 |
 
 ### ADR-10：assemble VFS + 原子 flush + manifest 驱动漂移闸
 
@@ -470,6 +500,22 @@ create Resources（隔离重构后）:
 | **状态** | `活跃` |
 | **决策** | 仅在 destructive 入口（assemble `runBuild` 整目录替换+孤儿删除 / gen `removeEmptyInstanceDir`）守「可疑根」（cwd = 家目录本体 / 文件系统根 → throw），`--allow-dangerous`/`allowDangerous` 显式逃逸；删除前 realpath 双解 + isInside 边界校验；flush 前大小写折叠冲突 fail-loud |
 | **背景** | `safeCwd()` 防崩会回落到家目录/根，destructive 操作落此会真删用户家目录。守卫放 destructive 入口而非 `safeCwd()`（后者契约是「永不崩、总回落可用目录」，8+ 非 destructive 消费者依赖之）。`allowDangerous` 同时从 argv 与 ctxInit 取（programmatic/server 调用也生效）。 |
+
+### ADR-13：cc-switch 配置 settings.json 单源 + 编译快照
+
+| 项 | 内容 |
+|---|---|
+| **状态** | `活跃` |
+| **决策** | `settings.json` 为唯一源（服务商内嵌模型），`--meta-generate` 编译为 `profile.json`；启动只读编译快照、不自动生成；profile env = `{...通用, ...providerEnvExtraParams, ...modelEnvExtraParams}` |
+| **背景** | 分层源（provider.json / model.json）与 profile.json 三处重复易漂移；单源 + 编译把冗余收敛到一处，启动路径只读快照保速度。该变更废弃了 0.2.0 的分层源（破坏性）。 |
+
+### ADR-14：Dex 以 pi-coding-agent 为基座（锁版本、不 fork）
+
+| 项 | 内容 |
+|---|---|
+| **状态** | `活跃` |
+| **决策** | `@done-coding/cli-dex` 直接依赖 `@earendil-works/pi-coding-agent@0.84.1`（锁版本），不改源码；done-coding 能力经 extensionFactories 注入；配置经 `~/.pi → ~/.done-coding/dex` 软链落到 done-coding 命名空间 |
+| **背景** | 复用成熟 coding-agent 的 REPL / 会话树 / compact / CLAUDE.md 加载，只做集成层；fork 白标后置。锁版本防上游破坏性变更。 |
 
 ## 8. 质量属性与非功能需求
 
@@ -496,7 +542,9 @@ create Resources（隔离重构后）:
 | `cli-generator/src/types/index.ts` 类型契约 | 高 | Strategy/FileEntry/BatchConfig/EnvContext 是 Wave B 不可再改契约，下游（component 薄包装/mcp/assemble）以此为准，回改会破坏 content-free 边界 |
 | cli-template 4 个 marker 函数签名 | 高 | markerNs 强制必填；漏传 fail-loud。改这些会同时影响 generator inject/modify/remove 与 marker on-disk 格式（变更须重生 golden 基准） |
 | assemble engine destructive 入口（runBuild flush） | 高 | 整目录替换 + 孤儿删除，须经可疑根守卫 + realpath/isInside 边界；改 flush/manifest 逻辑可能误删用户文件 |
-| `getMarkerNs()` 单 bin 约束 | 中 | 从 injectInfo.bin 取 NS，包出现多 bin 会 fail-loud；新增 bin 需重新设计 NS 取法 |
+| `getMarkerNs()` / `deriveMarkerNs()` 单 bin 约束 | 中 | 从 injectInfo.bin 取 NS，包出现多 bin 会 fail-loud；改 bin 名会改变 on-disk marker（已存在的 marker 块将不再被识别） |
+| cc-switch `settings.json` / `profile.json` | 中 | 含 apiKey，[MUST] chmod 600；profile 缺失或默认悬空时启动只提示、不自动生成 |
+| dex 的 ANTHROPIC_* env 剥离 | 中 | 去掉会让 cc-switch 残留 env 劫持默认模型与端点 |
 
 ### 常见错误
 
@@ -521,8 +569,8 @@ create Resources（隔离重构后）:
 
 | 债务 | 优先级 | 说明 |
 |---|---|---|
-| cli-generator / cli-mcp / cli-skills 未发布（version 0.0.0） | 中 | 源码已交付且测试绿，但 `npx`/全局安装尚不可用；`dc-gen`/`dc-mcp`/`dc-cli-skills` 也未并入主 `DC` 子命令树（仅 `DC component` 经薄包装接通） |
-| 测试覆盖不均：generator/template/mcp/cli-skills 有实质 vitest 套件（generator 含 golden/漂移闸回归，~299 测试），其余子包仍仅有配置 | 中 | 核心机制层已硬覆盖；老业务子包（git/publish/config 等）测试用例仍稀疏 |
+| `dc-mcp` / `dc-cli-skills` 未并入主 `DC` 子命令树 | 低 | 用户需记独立 bin 名 |
+| 测试覆盖不均：10 包有 vitest 套件（根 `pnpm test` 聚合；generator 另有 `pnpm test:hub` 以 template-hub 配方为语料的跨仓漂移回归），cli/config/extract/git/inject/publish 6 包无测试；CI 两个 workflow 只构建 + dirty 闸，不跑测试 | 中 | 回归靠发版前本地手跑；老业务子包测试稀疏 |
 | create-done-coding 远程模板列表依赖 Gitee | 低 | Gitee 不可用时模板选择不可用，应考虑 fallback 方案 |
 | vite 构建产物包含 `#!/usr/bin/env node` 在非 cli 入口文件中 | 低 | 仅 `cli.ts` 应包含 shebang，构建配置需过滤 |
 | 部分包 `.npmignore` 可能与 `files` 字段冲突 | 低 | 两个机制都在用，应以 `files` 为准 |
@@ -568,6 +616,10 @@ pnpm run push  # = lerna publish
 
 ## 12. 横切关注点
 
+### shell 补全
+
+- `addYargsConfig` 在根命令注册 `.completion()`：`done-coding completion [zsh|bash]` 输出补全脚本，候选经 `--get-yargs-completions` 运行时自省，新增子命令 / 选项自动进补全，无静态补全脚本需维护
+
 ### 日志/输出
 
 - 正常模式：`outputConsole`（chalk 封装）：`.info()`、`.stage()`、`.skip()`、`.success()`、`.error()`、`.warn()`、`.debug()`
@@ -597,4 +649,5 @@ pnpm run push  # = lerna publish
 | 运行时 child_process | `config` 调用 `git check reverse-merge`；`assemble engine` 经 execFileSync 调 git（diff 基准检出 / clean 探测） |
 | server-agnostic handler 直 import | `component`/`mcp` 编译时 import `cli-generator` 的 handler + 原语（`(argv, ctxInit?)=>Promise`，三模式 cli/mcp/test） |
 | MCP stdio | `dc-mcp` 经 `@modelcontextprotocol/sdk` 把 create/generator 暴露为 Tools/Resources/Prompts |
+| 智能体工具扩展 | `dex` 经 pi-coding-agent extensionFactories 注入 generator 三工具 |
 | 构建时 injectInfo | `@done-coding/cli-inject` 在构建时将元数据写入各包的 `injectInfo.json` |

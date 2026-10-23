@@ -4,4 +4,6 @@ export interface McpJsonResult {
     type: "text";
     text: string;
   }[];
+  /** 对齐 SDK CallToolResult 的 index signature（TS2345 赋值兼容所需） */
+  [key: string]: unknown;
 }

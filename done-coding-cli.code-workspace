@@ -41,14 +41,6 @@
       "path": "packages/config",
     },
     {
-      "name": "mrm",
-      "path": "packages/mrm",
-    },
-    {
-      "name": "ai",
-      "path": "packages/ai",
-    },
-    {
       "name": "cli",
       "path": "packages/cli",
     },

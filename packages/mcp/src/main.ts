@@ -7,6 +7,7 @@ import {
   registerCreatePrompts,
   registerGeneratorTools,
   registerGeneratorPrompts,
+  registerModuleTemplateTools,
 } from "@/handlers";
 import injectInfo from "@/injectInfo.json";
 
@@ -39,6 +40,9 @@ export const createMcpServer = async () => {
   // P3：dc-generator（cli-generator）工具 + 引导 prompt 并列注册（同中央 server，Ⓑ）
   registerGeneratorTools(server);
   registerGeneratorPrompts(server);
+
+  // T7：模块模板工具（list_module_templates / list_params / tree_build / tree_check）
+  registerModuleTemplateTools(server);
 
   const transport = new StdioServerTransport();
   await server.connect(transport);

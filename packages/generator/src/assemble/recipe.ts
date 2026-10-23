@@ -100,6 +100,9 @@ const validateOpSpecifics = (
   ) {
     throw new Error(`${where} ${op.type} 缺 source`);
   }
+  if (op.type === "writeFile" && typeof op.content !== "string") {
+    throw new Error(`${where} writeFile 缺 content（字面字符串）`);
+  }
 };
 
 const requireJsonExt = (v: unknown, label: string): void => {
@@ -167,6 +170,11 @@ export const validateRecipe = (parsed: unknown, label: string): Recipe => {
     ? (parsed.vars as Record<string, unknown>)
     : undefined;
   const createTemplate = validateCreateTemplate(parsed.createTemplate, label);
+  if (parsed.format !== undefined && parsed.format !== "prettier") {
+    throw new Error(
+      `${label}：format 仅支持 "prettier"（收到 ${JSON.stringify(parsed.format)}）`,
+    );
+  }
   return {
     id: parsed.id,
     base,
@@ -176,6 +184,7 @@ export const validateRecipe = (parsed: unknown, label: string): Recipe => {
     ...(typeof parsed.render === "boolean" ? { render: parsed.render } : {}),
     ...(vars ? { vars } : {}),
     ...(createTemplate ? { createTemplate } : {}),
+    ...(parsed.format === "prettier" ? { format: "prettier" as const } : {}),
   };
 };
 
