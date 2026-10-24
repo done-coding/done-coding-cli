@@ -28,12 +28,12 @@ describe("[P3] 内置 cli-generator skill", () => {
       path.join(SKILLS_SRC, "cli-harness", "SKILL.md"),
       "utf-8",
     );
-    expect(md).toContain("dc-harness lists --check");
-    expect(md).toContain("dc-harness check");
-    expect(md).toContain("dc-harness issue <仓名|仓根路径>");
-    expect(md).toContain("dc-harness scope list [--inbox] [--json]");
-    expect(md).toContain("dc-harness scope check");
-    expect(md).toContain("dc-harness scope register");
+    expect(md).toContain("done-coding harness lists --check");
+    expect(md).toContain("done-coding harness check");
+    expect(md).toContain("done-coding harness issue <仓名|仓根路径>");
+    expect(md).toContain("done-coding harness scope list [--inbox] [--json]");
+    expect(md).toContain("done-coding harness scope check");
+    expect(md).toContain("done-coding harness scope register");
     expect(md).toContain(".done-coding/harness/governance/config.json");
   });
 
@@ -48,10 +48,10 @@ describe("[P3] 内置 cli-generator skill", () => {
       "utf-8",
     );
     // 真实命令面：add/remove <type> <name>、list [type]、init <type>、--list-questions、--env
-    expect(md).toContain("dc-generator add <type> <name>");
-    expect(md).toContain("dc-generator remove <type> <name>");
-    expect(md).toContain("dc-generator list");
-    expect(md).toContain("dc-generator init <type>");
+    expect(md).toContain("done-coding generator add <type> <name>");
+    expect(md).toContain("done-coding generator remove <type> <name>");
+    expect(md).toContain("done-coding generator list");
+    expect(md).toContain("done-coding generator init <type>");
     expect(md).toContain("--list-questions");
     expect(md).toContain("--env");
   });

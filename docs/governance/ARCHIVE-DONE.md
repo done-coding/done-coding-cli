@@ -3,12 +3,13 @@
 > 文档定位：快照型清单 · **[MUST] 由 `scripts/governance-lists.py` 重生成，[MUST NOT] 手工维护**
 > 归档目录 [MUST] 只留 `PROGRESS.md`（条目正文交付时删除）。
 
-共 **16** 个已交付批次。
+共 **17** 个已交付批次。
 
 | 批次 | 所涉领域 | 交付记录 |
 |---|---|---|
 | `2fe6vf-test-home-isolation-skill-example` | generator · mcp | [PROGRESS](archive/2fe6vf-test-home-isolation-skill-example/PROGRESS.md) |
 | `4kea0n-claude-md-import-stubs` | cc-switch · cli-skills | [PROGRESS](archive/4kea0n-claude-md-import-stubs/PROGRESS.md) |
+| `6mdb0n-unify-cli-entry` | cli-skills · create · generator · harness | [PROGRESS](archive/6mdb0n-unify-cli-entry/PROGRESS.md) |
 | `7b8nlh-lerna-ignore-skill-md` | cli-skills | [PROGRESS](archive/7b8nlh-lerna-ignore-skill-md/PROGRESS.md) |
 | `c6xc3c-settle-live-specs` | cc-switch · create · generator | [PROGRESS](archive/c6xc3c-settle-live-specs/PROGRESS.md) |
 | `ek4duc-plugin-manifests-docs` | cli-skills · create · harness | [PROGRESS](archive/ek4duc-plugin-manifests-docs/PROGRESS.md) |

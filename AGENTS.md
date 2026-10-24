@@ -14,7 +14,15 @@
 ## 包管理器 / 工作区
 
 - `pnpm`（`preinstall` 锁定 only-allow pnpm）。多包工作区（`packages/*`）+ lerna；各包命令在子包目录下执行，仓根 `pnpm test` 聚合各包单测（`lerna run test`），`pnpm test:hub` 跑 template-hub 跨仓回归。
+- 依赖本仓其他包（含 devDependencies）[MUST] 使用发布后为精确版本的 `workspace:` 协议：`workspace:*` 或 `workspace:<精确版本>`；[MUST NOT] 使用 `workspace:^` / `workspace:~` 或直接写范围版本。本仓外的包不受此约束。理由：`done-coding` 每个版本内含的子包组合固定，测过什么即发什么。
 - 单测框架统一 **vitest**（对齐 `packages/{create,mcp,cli-skills}`）；新包 [MUST] 沿用 vitest，[MUST NOT] 另引测试框架。
+
+## CLI 调用入口约定（[MUST]）
+
+- 新子包 bin [MUST] 为 `dc-<子命令名>`，与 `done-coding <子命令名>` 一一对应，参数完全一致；create 保留 `create-done-coding` 兼容 `npm create done-coding`，另提供 `dc-create`。
+- `done-coding` [MUST NOT] 声明子包 bin，只声明自身入口（`DC` / `dc-cli` / `done-coding`）；全局安装不会把依赖包的 bin 暴露到 PATH，避免与独立安装的子包争用同名 bin。
+- skill 调用按 `command -v` 三档判断：`done-coding` → `done-coding <X>`，否则 `dc-<X>`，都没有才 `npx <子包>@latest`；两者同装优先主命令，其使用随该版本钉死的子包副本。`dc-mcp` / `dc-cli-skills` 未挂主命令，不在此对应约定内。
+- 多 bin 包（cli-dex / cli-cc-switch）的 npx 调用 [MUST] 显式选 bin：`npx -p <包>@latest <bin> …`。
 
 ## 测试 / 单测 / 回归沙盒约束（[MUST]）
 

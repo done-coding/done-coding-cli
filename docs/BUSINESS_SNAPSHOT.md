@@ -78,12 +78,14 @@ done-coding-cli 是一个面向 **Node.js 前端/全栈开发者**的 CLI 工具
 | 入口 | 示例 | 适用场景 |
 |---|---|---|
 | 主全局 CLI | `npm i -g done-coding` → `DC <subcommand>` | 日常使用 |
-| 子包独立 bin | `dc-component add Button`、`dc-git clone github user`、`dc-generator add <type> <name>`、`dc-cc-switch`（兼容名 `cc-router`）、`dex` | 只装单个子包时 |
+| 子包独立 bin | `dc-create`（兼容 `create-done-coding`）、`dc-component add Button`、`dc-git clone github user`、`dc-generator add <type> <name>`、`dc-cc-switch`（兼容名 `cc-router`）、`dc-dex`（兼容 `dex`） | 只装单个子包时 |
 | npm create 约定 | `npm create done-coding`、`pnpm create done-coding` | 零安装创建项目 |
 | MCP server bin | `dc-mcp`（stdio MCP server，注册 create + generator 的 Tools/Resources/Prompts） | AI agent / MCP 客户端调用 |
 | AI 编码工具插件 | Claude `/plugin marketplace add done-coding/done-coding-agent-plugins` + `/plugin install done-coding@done-coding`；Codex `codex plugin marketplace add …` + `codex plugin add done-coding@done-coding` | skill 以 `done-coding:<名>` 出现，宿主管理版本与更新 |
 | Agent Skill 安装器（备用） | `dc-cli-skills install [-g] [-t claude\|codex\|agents] [-l] [-a \| -s <name>] [-f]` | 把内置 SKILL.md 复制或软链进宿主 skills 目录；[MUST NOT] 与插件同时装 |
 | shell 补全 | `echo 'source <(done-coding completion zsh)' >> ~/.zshrc`（bash 同理；脚本默认只注册 `DC`，别名需补 compdef，见 `packages/cli/README.md`） | 全命令 / 已声明选项 tab 补全，候选运行时自省，新增命令自动进补全 |
+
+> 调用约定：装主包用 `done-coding <X>`，只装子包用 `dc-<X>`，参数完全一致；主包仅注册自身 bin，不声明子包 bin。同装时各用各的副本（主包内子包版本钉死）；skill 按 `command -v` 优先主包、再子包、最后 `npx <子包>@latest`。多 bin 包用 `npx -p <包>@latest <bin>`。
 
 > 当前只有 `dc-mcp` / `dc-cli-skills` 是**独立 bin**，未并入主 `DC` 子命令树；其余子包均已挂载。
 
@@ -124,7 +126,7 @@ done-coding-cli 是一个面向 **Node.js 前端/全栈开发者**的 CLI 工具
 | `DC component` | `@done-coding/cli-component` | 组件增删改查（add/modify/remove/list），命名自动转换。**底层已切换为 cli-generator 的 component 预设薄包装**，本包零业务 JS（业务全在 `.done-coding/component/config.json5`） | `活跃` | `packages/component/docs/BUSINESS.md`（待创建） |
 | `DC generator` | `@done-coding/cli-generator` | 通用具名批次生成器（content-free 机制层）：add/modify/remove/list/init + assemble 模板组装 + tree 模块生成；inject 锚点插入 + marker 健壮回退；批次发现（项目→父链→全局） | `活跃` | `packages/generator/docs/BUSINESS.md`（待创建） |
 | `dc-mcp` | `@done-coding/cli-mcp` | done-coding MCP server：把 create / generator 暴露为 Tools/Resources/Prompts 供 AI agent 非交互调用（rootDir 必填、本地不联网、隔离重构后由 zod schema 强制边界） | `活跃` | `packages/mcp/docs/BUSINESS.md`（待创建） |
-| `dc-cli-skills` | `@done-coding/cli-skills` | 各 CLI 命令对应 Agent Skill 的聚合包，同时是插件 `done-coding` 的内容（随包带 `.claude-plugin` / `.codex-plugin` 清单，版本随包）；install 为不装插件时的备用安装器（skill 内命令走已装 bin 或 `npx`，对各 CLI 零运行时依赖） | `活跃` | `packages/cli-skills/docs/BUSINESS_SNAPSHOT.md` |
+| `dc-cli-skills` | `@done-coding/cli-skills` | 各 CLI 命令对应 Agent Skill 的聚合包，同时是插件 `done-coding` 的内容（随包带 `.claude-plugin` / `.codex-plugin` 清单，版本随包）；install 为不装插件时的备用安装器（skill 内 CLI 调用按主包 / 子包 / `npx` 三档选择，对各 CLI 零运行时依赖） | `活跃` | `packages/cli-skills/docs/BUSINESS_SNAPSHOT.md` |
 | `DC config` | `@done-coding/cli-config` | 工程配置检测与安装（eslint/prettier/commitlint/ls-lint/merge-lint） | `活跃` | `packages/config/docs/BUSINESS.md`（待创建） |
 | `DC extract` | `@done-coding/cli-extract` | 从源码提取信息生成文件（正则/json-inject/fixed 三种提取方式） | `活跃` | `packages/extract/docs/BUSINESS.md`（待创建） |
 | `DC inject` | `@done-coding/cli-inject` | JSON 数据注入目标文件（reg/fixed/read 三种注入方式） | `活跃` | `packages/inject/docs/BUSINESS.md`（待创建） |

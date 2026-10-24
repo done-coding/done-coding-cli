@@ -4,9 +4,21 @@ import path from "node:path";
 import dts from "vite-plugin-dts";
 import pkg from "./package.json";
 import { builtinModules } from "node:module";
+import { generateFile } from "@done-coding/cli-inject";
+import { doneCodingCliConfig } from "@done-coding/cli-inject/helpers";
 
 export default defineConfig(({ command, mode }) => {
   const isPro = command === "build" && mode !== "hotBuild";
+
+  // 对齐 harness 的库调用；build/dev watch 不依赖 workspace bin，Vitest 不写 src。
+  if (command === "build") {
+    generateFile({
+      config: doneCodingCliConfig,
+      keyConfigMap: {
+        "cliConfig.moduleName": "cli-skills",
+      },
+    });
+  }
 
   const inputList = ["src/index.ts", "src/cli.ts"];
 

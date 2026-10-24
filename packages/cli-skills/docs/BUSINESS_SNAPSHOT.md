@@ -7,7 +7,7 @@
 done-coding CLI 各命令的 **Agent Skills 聚合包 + 安装器**：把「AI 何时、怎样调用 done-coding 命令」写成 skill（`SKILL.md`），随 npm 包分发，并提供 `dc-cli-skills install` 装进各 AI 编码工具的 skills 目录。
 
 - 本包是 CLI 类 skill 的**唯一源头**，也是插件 `done-coding` 的内容：插件市场目录仓 done-coding-agent-plugins 的 Claude / Codex 两份 `marketplace.json` 直接以 npm 上的本包为插件来源（不拷贝、不同步），本包发版即插件更新。包内带 Claude / Codex 两份插件清单（构建时由 package.json 生成），宿主据此显示插件版本与介绍。
-- skill 正文按 Agent Skills 规范写、**宿主中立**（Claude Code / Codex 等通读），CLI 调用一律「已装 bin / `npx`」两路。
+- skill 正文按 Agent Skills 规范写、**宿主中立**（Claude Code / Codex 等通读），CLI 调用按 `command -v` 三档选择：主包 `done-coding <X>` → 子包 `dc-<X>` → `npx <子包>@latest`，两者同装优先主包；参数一致，示例统一写 `done-coding <X>`。module-generate 仍以 MCP 工具为主，此规则用于其 CLI 兜底。
 
 ## 2. 内置 skill
 

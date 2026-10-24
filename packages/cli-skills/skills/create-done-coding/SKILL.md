@@ -1,17 +1,29 @@
 ---
 name: create-done-coding
-description: Use when scaffolding / creating / initializing a new done-coding project from a template（创建、初始化、新建 done-coding 项目；用 done-coding / hub 模板生成工程；「用 xx 模板在 yy 建一个项目」）. Asks only 3 questions (template / location / package name), infers the rest and echoes them for confirmation, then drives the create-done-coding CLI non-interactively via npx — no resident MCP needed.
+description: Use when scaffolding / creating / initializing a new done-coding project from a template（创建、初始化、新建 done-coding 项目；用 done-coding / hub 模板生成工程；「用 xx 模板在 yy 建一个项目」）. Asks only 3 questions (template / location / package name), infers the rest and echoes them for confirmation, then drives the create-done-coding CLI non-interactively via an installed CLI or npx — no resident MCP needed.
 ---
 
 # 创建 done-coding 项目（create-done-coding）
 
 用 `create-done-coding` CLI 从模板**非交互**地生成 done-coding 项目，无需常驻 MCP。
 
-> **调用入口（重要）**：有两个**参数完全一致**的等价入口——
-> - 本机已全局装 `done-coding` → 优先 **`done-coding create ...`**（最稳）。
-> - 否则 **`npx create-done-coding@latest ...`**（现取现用、无需预装）。
->
-> ⚠️ 已发布的 `create-done-coding`（npx 拉取）部分版本有构建缺陷，编译模板时报 `assignWith is not defined` 直接失败。**遇此错 → 改用全局 `done-coding create`（同参数）**。下文示例均以 `npx create-done-coding@latest` 书写，整体替换为 `done-coding create` 即等价。
+## 调用入口
+
+按序用 `command -v` 判断，命中即停：ⓐ 已装 `done-coding` → `done-coding <X> …`；ⓑ 否则已装子包 → `dc-<X> …`；ⓒ 都没有 → `npx <子包>@latest …`。两者都装时优先 `done-coding <X>`，参数完全一致。
+
+下文 CLI 示例统一写 `done-coding <X>`；执行时将入口整体等价替换为上述选中的入口。可用以下 Bash 数组保留入口和参数边界，调用时写 `"${dc_entry[@]}" <参数…>`：
+
+```bash
+if command -v done-coding >/dev/null 2>&1; then
+  dc_entry=(done-coding create)
+elif command -v dc-create >/dev/null 2>&1; then
+  dc_entry=(dc-create)
+else
+  dc_entry=(npx create-done-coding@latest)
+fi
+```
+
+> ⚠️ 历史上 npx 拉取的部分 `create-done-coding` 版本曾在编译模板时报 `assignWith is not defined`。当前 npm 发布版是否仍受影响尚未核实，保留此提示；遇此错可尝试已装的 `done-coding create`（同参数），并核对其内含 create 版本。
 
 ## 何时用
 
@@ -28,11 +40,11 @@ description: Use when scaffolding / creating / initializing a new done-coding pr
 
 ## 步骤 0 — 只问 3 个必答（已在请求里给出的不再问）
 
-| # | 问题 | 用途 |
-|---|---|---|
-| Q1 | **模板**（列表里的 name，或直接给 git 地址 / 本地仓库路径） | 定 `-p` / `--templateDirectory` / `-b`（见下「确定模板来源」） |
-| Q2 | **目标位置**：父目录绝对路径 + 项目目录名 | 定 `--rootDir` + `-n` |
-| Q3 | **包名**（如 `@org/name`） | 推 `organization` / `name`，并作其余推断的锚 |
+| #   | 问题                                                        | 用途                                                           |
+| --- | ----------------------------------------------------------- | -------------------------------------------------------------- |
+| Q1  | **模板**（列表里的 name，或直接给 git 地址 / 本地仓库路径） | 定 `-p` / `--templateDirectory` / `-b`（见下「确定模板来源」） |
+| Q2  | **目标位置**：父目录绝对路径 + 项目目录名                   | 定 `--rootDir` + `-n`                                          |
+| Q3  | **包名**（如 `@org/name`）                                  | 推 `organization` / `name`，并作其余推断的锚                   |
 
 [MUST NOT] 把模板的其余问题逐项甩给用户——那些由步骤 2 推断。
 
@@ -43,13 +55,20 @@ description: Use when scaffolding / creating / initializing a new done-coding pr
 ⓐ **用户已指明模板**（给了 git 地址 / 本地路径）→ 直接作为 `-p` 的值。
 ⓑ **从本地模板列表挑**：模板列表的**入口是全局指针文件** `~/.done-coding/create/index.json`，解析分两跳：
 
-1. **第一跳（指针）** 读 `~/.done-coding/create/index.json`，内容形如 `{ "configPath": "<注册表绝对路径>" }`，取出 `configPath`。也可直接跑 `create-done-coding template-config`（无参）查看当前指向及其是否可用（文件存在、模板数）。
+1. **第一跳（指针）** 读 `~/.done-coding/create/index.json`，内容形如 `{ "configPath": "<注册表绝对路径>" }`，取出 `configPath`。也可直接跑 `done-coding create template-config`（无参）查看当前指向及其是否可用（文件存在、模板数）。
 2. **第二跳（注册表）** 读 `configPath` 指向的 JSON，取 `templateList`：
 
 ```json
-{ "templateList": [
-  { "name": "...", "url": "<git 或本地仓库根路径>", "directory": "<仓库内子目录,可选>", "branch": "<分支,可选>" }
-] }
+{
+  "templateList": [
+    {
+      "name": "...",
+      "url": "<git 或本地仓库根路径>",
+      "directory": "<仓库内子目录,可选>",
+      "branch": "<分支,可选>"
+    }
+  ]
+}
 ```
 
 按 `name` 选定一项，取出它的 `url` / `branch` / `directory`。
@@ -58,7 +77,7 @@ description: Use when scaffolding / creating / initializing a new done-coding pr
 > [MUST NOT] 跳过指针链、凭记忆或上下文里已有的路径硬编码——来源要现查、可复述。
 
 ⓒ **全局没配指针 / 目标不在列表**（第一跳 `~/.done-coding/create/index.json` 不存在，或列表里找不到要的模板）→ [MUST] **反问用户**：「把本地哪个仓库（绝对路径或 git 地址）的哪个目录当作模板？」，仓库作 `-p`、目录作 `--templateDirectory`（无子目录则不传）。[MUST NOT] 自己静默回落远端默认列表，也别自己编仓库路径。
-  用户若给出的是一份**模板清单文件**（含 `templateList`）并希望以后都从它选，经用户同意后用 `create-done-coding template-config <清单路径>` 登记（会改本机全局配置）；[MUST NOT] 手改 `~/.done-coding/create/index.json`。
+用户若给出的是一份**模板清单文件**（含 `templateList`）并希望以后都从它选，经用户同意后用 `done-coding create template-config <清单路径>` 登记（会改本机全局配置）；[MUST NOT] 手改 `~/.done-coding/create/index.json`。
 
 > [MUST] 显式传 `-p <url>`（或 `--templateConfig <本地列表路径>`）。不要依赖「不传任何来源时静默回落远端默认列表」——来源要可见、可复述。
 > 子目录模板用 `--templateDirectory <子目录>`（如 monorepo 子包 `packages/xxx`），**不要**把子目录拼进 `url`；本地来源的 `url` 必须是 git 仓库根。
@@ -66,7 +85,7 @@ description: Use when scaffolding / creating / initializing a new done-coding pr
 ## 步骤 1 — 查询模板需要哪些答案
 
 ```bash
-npx create-done-coding@latest \
+done-coding create \
   -p <templateUrl> \
   [--templateDirectory <仓库内子目录>] \
   [-b <分支>] \
@@ -84,6 +103,7 @@ npx create-done-coding@latest \
 ```
 
 判定规则：
+
 - `required: true`（且无 `default` 字段）→ **必填**，[MUST] 供答。
 - `required: false`（带 `default`）→ 选填，不供答则回落 `default`。
 
@@ -107,7 +127,7 @@ npx create-done-coding@latest \
 答案拼成 JSON（key 对齐步骤 1 的 `key`，**是 key 不是中文 label**），经 `--env` 一次性供答：
 
 ```bash
-npx create-done-coding@latest \
+done-coding create \
   -n <projectName> \
   -p <templateUrl> \
   [--templateDirectory <仓库内子目录>] \
@@ -124,7 +144,7 @@ npx create-done-coding@latest \
 
 ```bash
 # 1. 先查问题
-npx create-done-coding@latest -p /abs/hub -b master \
+done-coding create -p /abs/hub -b master \
   --templateDirectory packages/npm-node-cli --list-questions
 # → [{"key":"organization","required":false,"default":"done-coding"},
 #    {"key":"organizationAbr","required":false,"default":"dc"},
@@ -132,7 +152,7 @@ npx create-done-coding@latest -p /abs/hub -b master \
 #    {"key":"repositoryUrl","required":false,"default":""}]
 
 # 2. 推断其余答案并经用户确认后创建
-npx create-done-coding@latest -n my-tool -p /abs/hub -b master \
+done-coding create -n my-tool -p /abs/hub -b master \
   --templateDirectory packages/npm-node-cli \
   --env '{"name":"my-tool","description":"我的命令行工具","organization":"done-coding"}'
 # → 生成 ./my-tool/
@@ -150,15 +170,15 @@ npx create-done-coding@latest -n my-tool -p /abs/hub -b master \
 
 ## 选项速查（公开项）
 
-| 选项 | 别名 | 说明 |
-|---|---|---|
-| `--projectName` | `-n` | 项目名称（生成的目录名） |
-| `--templateUrl` | `-p` | 模板地址：git 地址或本地仓库根路径 |
-| `--templateGitBranch` | `-b` | 模板仓库分支 |
-| `--templateDirectory` | | 仓库内模板子目录 |
-| `--templateConfig` | | 本地模板列表配置文件路径 |
-| `--rootDir` | | 生成位置的父目录（缺省当前目录；帮助中隐藏但可用） |
-| `--env` | | 预设答案 JSON 字符串 |
-| `--env-file` | | 预设答案 JSON 文件路径 |
-| `--list-questions` | | 仅打印模板预设问题清单(JSON)，不创建 |
-| `--gitCommitMessage` | `-m` | git 初始化的提交信息 |
+| 选项                  | 别名 | 说明                                               |
+| --------------------- | ---- | -------------------------------------------------- |
+| `--projectName`       | `-n` | 项目名称（生成的目录名）                           |
+| `--templateUrl`       | `-p` | 模板地址：git 地址或本地仓库根路径                 |
+| `--templateGitBranch` | `-b` | 模板仓库分支                                       |
+| `--templateDirectory` |      | 仓库内模板子目录                                   |
+| `--templateConfig`    |      | 本地模板列表配置文件路径                           |
+| `--rootDir`           |      | 生成位置的父目录（缺省当前目录；帮助中隐藏但可用） |
+| `--env`               |      | 预设答案 JSON 字符串                               |
+| `--env-file`          |      | 预设答案 JSON 文件路径                             |
+| `--list-questions`    |      | 仅打印模板预设问题清单(JSON)，不创建               |
+| `--gitCommitMessage`  | `-m` | git 初始化的提交信息                               |
