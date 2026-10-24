@@ -24,9 +24,8 @@
     ".codex-plugin"
   ],
   "scripts": {
-    "predev": "dc-inject",
     "dev": "vite build -w -m hotBuild",
-    "prebuild": "rimraf types && dc-inject",
+    "prebuild": "rimraf types",
     "build": "vite build && node scripts/plugin-manifests.mjs",
     "prepack": "pnpm build",
     "test": "vitest",
@@ -44,7 +43,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "^0.5.17",
+    "@done-coding/cli-inject": "workspace:0.6.6",
     "@types/node": "^18.0.0",
     "@types/prompts": "^2.4.6",
     "@types/yargs": "^17.0.28",

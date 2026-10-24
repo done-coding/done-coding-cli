@@ -1,35 +1,45 @@
 ---
 name: cli-harness
-description: Use when maintaining a harness-workspace governance directory (docs/governance) — regenerating BACKLOG / SCHEDULE / ARCHIVE-DONE / DROPPED / ISSUE lists, running the governance gates before dispatch or delivery, or filing an issue into another repo's inbox（重生成治理清单、跑治理闸；给 <仓名> 提 issue / 反馈给 <仓名> / 向兄弟仓提 issue；查哪些仓收 issue、登记本仓到仓库注册表）. Drives the dc-harness CLI via npx — no resident MCP needed.
+description: Use when maintaining a harness-workspace governance directory (docs/governance) — regenerating BACKLOG / SCHEDULE / ARCHIVE-DONE / DROPPED / ISSUE lists, running the governance gates before dispatch or delivery, or filing an issue into another repo's inbox（重生成治理清单、跑治理闸；给 <仓名> 提 issue / 反馈给 <仓名> / 向兄弟仓提 issue；查哪些仓收 issue、登记本仓到仓库注册表）. Drives the dc-harness CLI via an installed CLI or npx — no resident MCP needed.
 ---
 
 # 治理目录工具（cli-harness / dc-harness）
 
 用 `dc-harness` 维护 harness-workspace 治理目录（默认 `docs/governance/`）的**机械部分**：清单生成、治理闸、跨仓提 issue、仓库注册表。`dc-harness` 是这些机械操作的**唯一实现**（清单格式以它的输出为准）；治理规则的语义见 harness-workspace 方法论与各仓治理目录的指令文件（`AGENTS.md` / `CLAUDE.md`）。
 
-> **调用入口**：三个参数一致的等价入口——
->
-> - 本机已全局装 `done-coding` → **`done-coding harness ...`**；
-> - 已全局装 `@done-coding/cli-harness` → **`dc-harness ...`**；
-> - 否则 **`npx @done-coding/cli-harness@latest ...`**（⚠️ 发布后生效）。
->
-> 下文以 `dc-harness` 书写。**命令都在项目根执行**（治理目录按项目根解析）。
+## 调用入口
+
+按序用 `command -v` 判断，命中即停：ⓐ 已装 `done-coding` → `done-coding <X> …`；ⓑ 否则已装子包 → `dc-<X> …`；ⓒ 都没有 → `npx <子包>@latest …`。两者都装时优先 `done-coding <X>`，参数完全一致。
+
+下文 CLI 示例统一写 `done-coding <X>`；执行时将入口整体等价替换为上述选中的入口。可用以下 Bash 数组保留入口和参数边界，调用时写 `"${dc_entry[@]}" <参数…>`：
+
+```bash
+if command -v done-coding >/dev/null 2>&1; then
+  dc_entry=(done-coding harness)
+elif command -v dc-harness >/dev/null 2>&1; then
+  dc_entry=(dc-harness)
+else
+  dc_entry=(npx @done-coding/cli-harness@latest)
+fi
+```
+
+**命令都在项目根执行**（治理目录按项目根解析）。
 
 ## 何时用
 
-| 场景                                                                         | 命令                                        |
-| ---------------------------------------------------------------------------- | ------------------------------------------- |
-| 改了 `backlog/` `schedule/` `archive/` `dropped/` `issue/` 下任何条目 / 批次 | `dc-harness lists`                          |
-| 下发批次前、交付收口前、提交治理改动前                                       | `dc-harness check`                          |
-| 要向**另一个仓**（本治理目录管辖之外）反馈问题                               | `dc-harness issue <仓名或仓根>`             |
-| 查哪些仓收 issue / 某仓是做什么的                                            | `dc-harness scope list --inbox`             |
-| 把本仓登记进仓库注册表 / 校验注册表                                          | `dc-harness scope register` / `scope check` |
+| 场景                                                                         | 命令                                                 |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------- |
+| 改了 `backlog/` `schedule/` `archive/` `dropped/` `issue/` 下任何条目 / 批次 | `done-coding harness lists`                          |
+| 下发批次前、交付收口前、提交治理改动前                                       | `done-coding harness check`                          |
+| 要向**另一个仓**（本治理目录管辖之外）反馈问题                               | `done-coding harness issue <仓名或仓根>`             |
+| 查哪些仓收 issue / 某仓是做什么的                                            | `done-coding harness scope list --inbox`             |
+| 把本仓登记进仓库注册表 / 校验注册表                                          | `done-coding harness scope register` / `scope check` |
 
 ## lists — 重生成清单
 
 ```bash
-dc-harness lists            # 从条目 frontmatter 重写有差异的清单
-dc-harness lists --check    # 只比对不写盘，有差异退出码 1
+done-coding harness lists            # 从条目 frontmatter 重写有差异的清单
+done-coding harness lists --check    # 只比对不写盘，有差异退出码 1
 ```
 
 清单 [MUST NOT] 手改；条目变了就重生成，并与条目改动**同一笔提交**。
@@ -37,7 +47,7 @@ dc-harness lists --check    # 只比对不写盘，有差异退出码 1
 ## check — 治理闸
 
 ```bash
-dc-harness check            # 任一违规退出码 1，逐条输出 ❌
+done-coding harness check            # 任一违规退出码 1，逐条输出 ❌
 ```
 
 检查项：
@@ -51,15 +61,15 @@ dc-harness check            # 任一违规退出码 1，逐条输出 ❌
 ## issue — 向兄弟仓提 issue
 
 ```bash
-dc-harness issue <仓名|仓根路径> -t "一句话标题" -s semantic-slug -b ./issue-body.md
+done-coding harness issue <仓名|仓根路径> -t "一句话标题" -s semantic-slug -b ./issue-body.md
 ```
 
 **用户说「给 <仓名> 提 issue」时 [MUST] 按此寻址**，[MUST NOT] 凭记忆猜路径：
 
-1. `dc-harness scope list --inbox --json` 列出收 issue 的仓（`name` / `path` / `positioning` / `accepts`）；
+1. `done-coding harness scope list --inbox --json` 列出收 issue 的仓（`name` / `path` / `positioning` / `accepts`）；
 2. 按 `name` 匹配用户说的仓；匹配不到或有多个候选 → 列出候选让用户选；
 3. 对照目标的 `accepts` 判断这条反馈是否在其受理范围内，不在就告诉用户，不硬提；
-4. `dc-harness issue <name> ...`：传仓名即按注册表寻址，目标 `issueInbox` 为 `null`（不收 issue）时命令直接拒绝。
+4. `done-coding harness issue <name> ...`：传仓名即按注册表寻址，目标 `issueInbox` 为 `null`（不收 issue）时命令直接拒绝。
 
 - 正文文件写**现象 + 复现路径**；`modules` 不要填（接收方分诊时填）。
 - 命令会：生成 id → 写 `<目标仓>/docs/governance/issue/<id>-<slug>.md` → 重生目标仓 `ISSUE.md` → 在目标仓**只提交这两个文件**。
@@ -71,9 +81,9 @@ dc-harness issue <仓名|仓根路径> -t "一句话标题" -s semantic-slug -b 
 注册表在 `~/.done-coding/harness/scope/<转义键>/repo.json`（一仓一目录；转义键 = 仓根绝对路径的非字母数字字符换成 `-`）。字段：`name` / `path` / `positioning` / `accepts` / `governance{dir, tier, issueInbox}`；`issueInbox` 为 `null` = 不收 issue，`governance` 为 `null` = 未建治理目录。寻址只读 `path`，[MUST NOT] 从目录名反推路径。
 
 ```bash
-dc-harness scope list [--inbox] [--json]   # 列出登记的仓
-dc-harness scope check                     # 校验：字段 / path 存在 / 目录名与 path 一致 / 收件箱存在 / name 唯一；违规退出码 1
-dc-harness scope register -p "一句话定位" [-a "受理范围"] [-n 仓名] [--tier medium]
+done-coding harness scope list [--inbox] [--json]   # 列出登记的仓
+done-coding harness scope check                     # 校验：字段 / path 存在 / 目录名与 path 一致 / 收件箱存在 / name 唯一；违规退出码 1
+done-coding harness scope register -p "一句话定位" [-a "受理范围"] [-n 仓名] [--tier medium]
                                            # 在仓内执行：登记当前 git 仓（已登记则更新，未给的字段沿用）；收件箱按治理目录下有无 issue/ 推出；撞键拒绝覆盖
 ```
 

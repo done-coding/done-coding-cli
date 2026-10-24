@@ -77,7 +77,7 @@
 
 ```
 入口层:  done-coding（主命令注册 + 子命令路由 + shell 补全；无子命令输出帮助）
-         create-done-coding（独立入口：npm create done-coding）
+         dc-create / create-done-coding（同一入口，兼容 npm create done-coding）
          dc-mcp / dc-cli-skills（独立 bin，未并入 DC 子命令树）
             │
 机制层:  @done-coding/cli-generator  通用具名批次生成器（content-free 引擎 + assemble 组装层）
@@ -234,7 +234,7 @@ done-coding ────────────── 直接依赖所有业务�
     └── @done-coding/cli-harness  依赖: utils（issue 经 git 子进程在目标仓提交）
                                                                      │
     @done-coding/cli-mcp ──────── 依赖: @modelcontextprotocol/sdk, zod, create, cli-generator
-    @done-coding/cli-skills ───── 对各 CLI 零运行时依赖（skill 内走已装 bin 或 npx）
+    @done-coding/cli-skills ───── 对各 CLI 零运行时依赖（skill 内按 command -v 选主包 / 子包 / npx）
          ↓                                                          │
     @done-coding/cli-utils ─────── 无内部依赖 ──────────────────────┘
 ```
