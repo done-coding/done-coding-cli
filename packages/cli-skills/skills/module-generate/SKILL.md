@@ -7,9 +7,23 @@ description: Use when generating a code module (a list page, form page, or any m
 
 用 done-coding MCP 的**模块模板工具**（`done_coding_gen_list_module_templates` / `done_coding_gen_list_params` / `done_coding_gen_tree_build` / `done_coding_gen_tree_check`）把一个**代码模块**（列表页 / 表单页等匹配模块模板的模块）**配置驱动**地生成进现有 git 项目。AI 只填结构化配置（Recipe），不自由写码——正确性由「模板质量 × 配置正确性」决定，工具保证幂等 + 漂移可检出。
 
-> **消费入口**：MCP 工具为主（agent 主消费面）；MCP 不可用/离线时用 CLI 兜底：
-> - 本机已全局装 `dc-generator` → `dc-generator tree build --recipe <path>` / `dc-generator tree check --recipe <path>`。
-> - 否则 `npx @done-coding/cli-generator tree build --recipe <path>`。
+> **消费入口**：MCP 工具为主（agent 主消费面）；MCP 不可用 / 离线时，CLI 兜底按下列三档选择。
+
+## 调用入口
+
+按序用 `command -v` 判断，命中即停：ⓐ 已装 `done-coding` → `done-coding <X> …`；ⓑ 否则已装子包 → `dc-<X> …`；ⓒ 都没有 → `npx <子包>@latest …`。两者都装时优先 `done-coding <X>`，参数完全一致。
+
+下文 CLI 示例统一写 `done-coding <X>`；执行时将入口整体等价替换为上述选中的入口。可用以下 Bash 数组保留入口和参数边界，调用时写 `"${dc_entry[@]}" <参数…>`：
+
+```bash
+if command -v done-coding >/dev/null 2>&1; then
+  dc_entry=(done-coding generator)
+elif command -v dc-generator >/dev/null 2>&1; then
+  dc_entry=(dc-generator)
+else
+  dc_entry=(npx @done-coding/cli-generator@latest)
+fi
+```
 
 ## 何时用（走工具 vs 自由写码）
 
@@ -53,6 +67,7 @@ description: Use when generating a code module (a list page, form page, or any m
 **[MUST NOT] 照本文示例臆造字段或碎片名**——vars 以 `list_params` 返回的 schema 为准，碎片名以模板目录 `<base>/<template>/fragments/` 实有文件为准（`list_module_templates` 返回的 `dir` 下）。
 
 判定规则：
+
 - `params.properties` 列出全部 vars 及其类型/描述；`params.required` 列出必填项。
 - **[MUST] 对齐 schema 填 `vars`**：缺 `required` 字段先向用户要，[MUST NOT] 臆造。
 - `defaults` 可直接作为填充起点（预制变量）。
@@ -69,16 +84,31 @@ description: Use when generating a code module (a list page, form page, or any m
     "base": { "kind": "empty" },
     "output": "src/pages/system/user",
     "format": "prettier",
-    "vars": { /* 对齐 list_params 的 params schema */ },
+    "vars": {
+      /* 对齐 list_params 的 params schema */
+    },
     "ops": [
-      { "type": "addFragment", "id": "list", "source": "admin-core/list-page/fragments/List.vue.vm", "target": "List.vue", "render": true },
-      { "type": "addFragment", "id": "config", "source": "admin-core/list-page/fragments/List.config.tsx.vm", "target": "List.config.tsx", "render": true }
+      {
+        "type": "addFragment",
+        "id": "list",
+        "source": "admin-core/list-page/fragments/List.vue.vm",
+        "target": "List.vue",
+        "render": true
+      },
+      {
+        "type": "addFragment",
+        "id": "config",
+        "source": "admin-core/list-page/fragments/List.config.tsx.vm",
+        "target": "List.config.tsx",
+        "render": true
+      }
     ]
   }
 }
 ```
 
 字段语义（据已实现机制）：
+
 - `id`：产物稳定唯一 id（manifest 键）。
 - `base`：`{kind:"empty"}`（拼装）或 `{kind:"dir", from, exclude?}`（裁剪）。
 - `output`：产物落地目录，**相对 gitRoot**。
@@ -103,18 +133,23 @@ description: Use when generating a code module (a list page, form page, or any m
 > 示例 vars / 碎片名取自 admin-core `list-page` 实际 schema（基座 `@done-coding/admin-core ^0.33.0`）；模板升级后以 `list_params` 实时返回为准。可跑通的真实配方见 template-hub `scripts/module-templates-check/recipes/`。
 
 1. **探测**：
+
 ```json
 { "rootDir": "/path/to/project", "base": "admin-core" }
 ```
+
 → `[{ "name": "form-page", … }, { "name": "list-detail-page", … }, { "name": "list-page", "layer": "global", "whenToUse": "标准列表页（ListLayout 空间）：搜索表单 + 表格 + 分页 + …" }, { "name": "tabs-page", … }]`
 
 2. **选型 + 读参**：用户要「用户管理：列姓名/邮箱/状态/创建时间；按关键词、状态搜索；行内删除」→ 匹配 `list-page`：
+
 ```json
 { "rootDir": "/path/to/project", "base": "admin-core", "template": "list-page" }
 ```
+
 → `params.required` 为 `name` / `title` / `rowType` / `api` / `columns`；`properties` 另含 `searchItems` / `toolbar` / `operate` / `modals` / `handlerImpls` / `formModal` 等可选项。
 
 3. **填 Recipe + 生成**：
+
 ```json
 {
   "rootDir": "/path/to/project",
@@ -128,48 +163,112 @@ description: Use when generating a code module (a list page, form page, or any m
       "title": "用户管理",
       "rowType": { "name": "SystemUser", "importFrom": "@/api/system/user" },
       "api": {
-        "client": { "importName": "userApi", "importFrom": "@/api/system/user" },
+        "client": {
+          "importName": "userApi",
+          "importFrom": "@/api/system/user"
+        },
         "list": { "mode": "standard", "method": "listUsers" }
       },
       "searchItems": [
         { "key": "keyword", "label": "关键词", "control": "input" },
-        { "key": "status", "label": "状态", "control": "select", "options": [ { "label": "启用", "value": "on" }, { "label": "停用", "value": "off" } ] }
+        {
+          "key": "status",
+          "label": "状态",
+          "control": "select",
+          "options": [
+            { "label": "启用", "value": "on" },
+            { "label": "停用", "value": "off" }
+          ]
+        }
       ],
       "columns": [
         { "prop": "name", "label": "姓名" },
-        { "prop": "email", "label": "邮箱", "render": { "kind": "textFallback" } },
-        { "prop": "status", "label": "状态", "render": { "kind": "tag", "typeExpr": "row.status === \"on\" ? \"success\" : \"info\"", "labelExpr": "row.status === \"on\" ? \"启用\" : \"停用\"" } },
-        { "prop": "createdAt", "label": "创建时间", "width": 180, "render": { "kind": "dateTime" } }
+        {
+          "prop": "email",
+          "label": "邮箱",
+          "render": { "kind": "textFallback" }
+        },
+        {
+          "prop": "status",
+          "label": "状态",
+          "render": {
+            "kind": "tag",
+            "typeExpr": "row.status === \"on\" ? \"success\" : \"info\"",
+            "labelExpr": "row.status === \"on\" ? \"启用\" : \"停用\""
+          }
+        },
+        {
+          "prop": "createdAt",
+          "label": "创建时间",
+          "width": 180,
+          "render": { "kind": "dateTime" }
+        }
       ],
       "operate": {
         "width": 120,
-        "buttons": [ { "key": "del", "label": "删除", "btnType": "danger", "handler": "onDelete", "confirm": { "title": "确认删除「${row.name}」？" } } ]
+        "buttons": [
+          {
+            "key": "del",
+            "label": "删除",
+            "btnType": "danger",
+            "handler": "onDelete",
+            "confirm": { "title": "确认删除「${row.name}」？" }
+          }
+        ]
       },
-      "handlerImpls": [ { "name": "onDelete", "kind": "api", "arg": "row", "callExpr": "userApi.deleteUser(row.id)", "successMsg": "已删除" } ],
-      "pageImports": [ { "names": ["userApi"], "from": "@/api/system/user" } ]
+      "handlerImpls": [
+        {
+          "name": "onDelete",
+          "kind": "api",
+          "arg": "row",
+          "callExpr": "userApi.deleteUser(row.id)",
+          "successMsg": "已删除"
+        }
+      ],
+      "pageImports": [{ "names": ["userApi"], "from": "@/api/system/user" }]
     },
     "ops": [
-      { "type": "addFragment", "id": "list", "source": "admin-core/list-page/fragments/List.vue.vm", "target": "List.vue", "render": true },
-      { "type": "addFragment", "id": "config", "source": "admin-core/list-page/fragments/List.config.tsx.vm", "target": "List.config.tsx", "render": true }
+      {
+        "type": "addFragment",
+        "id": "list",
+        "source": "admin-core/list-page/fragments/List.vue.vm",
+        "target": "List.vue",
+        "render": true
+      },
+      {
+        "type": "addFragment",
+        "id": "config",
+        "source": "admin-core/list-page/fragments/List.config.tsx.vm",
+        "target": "List.config.tsx",
+        "render": true
+      }
     ]
   }
 }
 ```
+
 → 物化 `src/pages/system/user/`（`List.vue` + `List.config.tsx`）+ manifest 入版控。需新建/编辑弹窗时再填 `modals` / `handlerImpls`（`kind: "evoke"`）/ `formModal`，并追加 `FormModalItem.vue.vm` / `form.config.tsx.vm` 两个 addFragment（参照 template-hub `list-page.full.json5`）。
 
 4. **验证漂移**（可选）：
+
 ```json
-{ "rootDir": "/path/to/project", "recipe": { /* 同上 recipe */ } }
+{
+  "rootDir": "/path/to/project",
+  "recipe": {
+    /* 同上 recipe */
+  }
+}
 ```
+
 （`tree_check`）→ 手改产物后返回 `drifted: true` / `exitCode: 1`。
 
 ## 速查
 
-| 工具 | 入参 | 说明 |
-|---|---|---|
-| `done_coding_gen_list_module_templates` | `{ rootDir, base }` | 探测可用模块模板 + when-to-use（资产即列表） |
-| `done_coding_gen_list_params` | `{ rootDir, base, template }` | 读模板参数契约 params（JSON Schema）+ defaults（单一事实源） |
-| `done_coding_gen_tree_build` | `{ rootDir, recipe }` | 填 Recipe 配置驱动生成（物化 + 注入 + manifest） |
-| `done_coding_gen_tree_check` | `{ rootDir, recipe }` | 项目内漂移闸（clean regenerate 比对，漂移 fail） |
+| 工具                                    | 入参                          | 说明                                                         |
+| --------------------------------------- | ----------------------------- | ------------------------------------------------------------ |
+| `done_coding_gen_list_module_templates` | `{ rootDir, base }`           | 探测可用模块模板 + when-to-use（资产即列表）                 |
+| `done_coding_gen_list_params`           | `{ rootDir, base, template }` | 读模板参数契约 params（JSON Schema）+ defaults（单一事实源） |
+| `done_coding_gen_tree_build`            | `{ rootDir, recipe }`         | 填 Recipe 配置驱动生成（物化 + 注入 + manifest）             |
+| `done_coding_gen_tree_check`            | `{ rootDir, recipe }`         | 项目内漂移闸（clean regenerate 比对，漂移 fail）             |
 
-CLI 兜底：`dc-generator tree build|check --recipe <path>`。
+CLI 兜底：`done-coding generator tree build|check --recipe <path>`。

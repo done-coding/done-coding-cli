@@ -25,6 +25,37 @@ npm install done-coding
 pnpm add done-coding
 ```
 
+## 两种命令入口
+
+装了主包就用 `done-coding <X> …`；只装子包就用 `dc-<X> …`，参数完全一致：
+
+| 主包入口                | 独立子包入口                                                        |
+| ----------------------- | ------------------------------------------------------------------- |
+| `done-coding create`    | `dc-create`（兼容 `create-done-coding` / `npm create done-coding`） |
+| `done-coding generator` | `dc-generator`                                                      |
+| `done-coding harness`   | `dc-harness`                                                        |
+| `done-coding component` | `dc-component`                                                      |
+| `done-coding config`    | `dc-config`                                                         |
+| `done-coding extract`   | `dc-extract`                                                        |
+| `done-coding git`       | `dc-git`                                                            |
+| `done-coding inject`    | `dc-inject`                                                         |
+| `done-coding publish`   | `dc-publish`                                                        |
+| `done-coding template`  | `dc-template`                                                       |
+| `done-coding cc-switch` | `dc-cc-switch`（兼容 `cc-router`）                                  |
+| `done-coding dex`       | `dc-dex`（兼容 `dex`）                                              |
+
+主包全局安装只注册自身的 `DC` / `dc-cli` / `done-coding`，不会把依赖子包的 bin 放入 PATH，也不声明这些子包 bin。两者同装时各用各的副本，`done-coding <X>` 用主包该版本钉死的子包版本；skill 优先使用它。`dc-mcp` / `dc-cli-skills` 是独立入口，未挂主命令。
+
+```bash
+# 装主包后
+done-coding create --help
+# 或只装 create 子包后
+npm install -g create-done-coding
+dc-create --help
+```
+
+未安装时可 `npx <子包>@latest …`；多 bin 包（cli-dex / cli-cc-switch）须显式指定：`npx -p <包>@latest <bin> …`。
+
 ## 快速开始
 
 安装完成后，您可以使用以下命令启动：
@@ -160,7 +191,7 @@ done-coding 集成了多个工具，每个工具都专注于特定的开发任�
 
 ### 🤖 Dex 智能体
 
-- **命令**: `DC dex`（bin `dex`）
+- **命令**: `DC dex`（bin `dc-dex`，兼容 `dex`）
 - **描述**: 自带 done-coding 工具的编码智能体，直接进入对话；首次启动导入 cc-switch 的模型配置（要求 Node.js >= 22.19.0）
 - **包地址**: [@done-coding/cli-dex](https://www.npmjs.com/package/@done-coding/cli-dex)
 

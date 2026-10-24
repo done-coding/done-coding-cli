@@ -1,6 +1,6 @@
 # AI 指令 — @done-coding/cli-skills
 
-本包是各 done-coding CLI 命令对应 Agent Skill(s) 的**聚合包 + 安装器**：`skills/<name>/SKILL.md` 为内置 skill 源，`dc-cli-skills install` 把选中的 skill 装到宿主 skills 目录（`-t claude|codex|agents` 可多选，缺省 claude / `-l` 软链而非复制 / `-g` 全局 / `-a` 全部 / `-s <name>` 指定 / `-f` 覆盖）。skill 内命令一律走 `npx <cli>@latest`，本包对各 CLI 零运行时依赖。
+本包是各 done-coding CLI 命令对应 Agent Skill(s) 的**聚合包 + 安装器**：`skills/<name>/SKILL.md` 为内置 skill 源，`dc-cli-skills install` 把选中的 skill 装到宿主 skills 目录（`-t claude|codex|agents` 可多选，缺省 claude / `-l` 软链而非复制 / `-g` 全局 / `-a` 全部 / `-s <name>` 指定 / `-f` 覆盖）。skill 内 CLI 调用按 `command -v` 三档判断：已装 `done-coding` 用 `done-coding <X>`，否则已装子包用 `dc-<X>`，都没有才用 `npx <子包>@latest`；两者同装优先主命令，参数完全一致，示例统一用 `done-coding <X>`，本包对各 CLI 零运行时依赖。
 
 ## 包管理器
 
