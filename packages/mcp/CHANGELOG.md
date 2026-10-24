@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.6.1](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-mcp@0.6.0...@done-coding/cli-mcp@0.6.1) (2026-10-24)
+
+**Note:** Version bump only for package @done-coding/cli-mcp
+
 # [0.6.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-mcp@0.5.3...@done-coding/cli-mcp@0.6.0) (2026-10-23)
 
 - feat!: 治理工具 cli-harness 首发、统一代码生成合入、skill 多宿主安装，退役 ai / mrm (#44) ([03742b7](https://github.com/done-coding/done-coding-cli/commit/03742b73006033658b2f795de5d77b20c597f7c4)), closes [#44](https://github.com/done-coding/done-coding-cli/issues/44)

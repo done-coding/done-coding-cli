@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.18.0](https://github.com/done-coding/done-coding-cli/compare/create-done-coding@0.17.0...create-done-coding@0.18.0) (2026-10-24)
+
+### Features
+
+- **create:** 统一命令调用入口，新增 dc-create 别名；包间依赖钉死版本成文 ([#48](https://github.com/done-coding/done-coding-cli/issues/48)) ([219b4bb](https://github.com/done-coding/done-coding-cli/commit/219b4bb187825ff4ab419f4e8e86627896decb52))
+
 # [0.17.0](https://github.com/done-coding/done-coding-cli/compare/create-done-coding@0.16.1...create-done-coding@0.17.0) (2026-10-23)
 
 - feat!: 治理工具 cli-harness 首发、统一代码生成合入、skill 多宿主安装，退役 ai / mrm (#44) ([03742b7](https://github.com/done-coding/done-coding-cli/commit/03742b73006033658b2f795de5d77b20c597f7c4)), closes [#44](https://github.com/done-coding/done-coding-cli/issues/44)

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://gitee.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.4.0...@done-coding/cli-skills@0.5.0) (2026-10-24)
+
+### Features
+
+- **create:** 统一命令调用入口，新增 dc-create 别名；包间依赖钉死版本成文 ([#48](https://gitee.com/done-coding/done-coding-cli/issues/48)) ([219b4bb](https://gitee.com/done-coding/done-coding-cli/commits/219b4bb187825ff4ab419f4e8e86627896decb52))
+
 # [0.4.0](https://gitee.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.3.0...@done-coding/cli-skills@0.4.0) (2026-10-23)
 
 ### Features
