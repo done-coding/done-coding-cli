@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.6.0](https://gitee.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.5.0...@done-coding/cli-skills@0.6.0) (2026-10-26)
+
+### Features
+
+- **harness:** 新增 dc-harness instructions 指令闸 ([#50](https://gitee.com/done-coding/done-coding-cli/issues/50)) ([97659fc](https://gitee.com/done-coding/done-coding-cli/commits/97659fc309c83ea8ca383622f7c725061fe4a5de))
+
 # [0.5.0](https://gitee.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.4.0...@done-coding/cli-skills@0.5.0) (2026-10-24)
 
 ### Features
