@@ -106,7 +106,7 @@ done-coding-cli 是一个面向 **Node.js 前端/全栈开发者**的 CLI 工具
 | `DC generator` | `@done-coding/cli-generator` | `add <type> <name>`、`modify <type> <name>`、`remove <type> <name>`、`list [type]`、`init <type> [--global]`、`assemble plan\|build\|diff\|check`、`tree build\|check` |
 | `DC cc-switch` | `@done-coding/cli-cc-switch` | 无二级命令：`--meta-*` 自身选项，其余参数透传 `claude` |
 | `DC dex` | `@done-coding/cli-dex` | 无二级命令：直接进入 Dex 交互对话 |
-| `DC harness` | `@done-coding/cli-harness` | `lists [--check]`、`check`、`issue <仓名或仓根>`、`scope list\|check\|register` |
+| `DC harness` | `@done-coding/cli-harness` | `lists [--check]`、`check`、`instructions [--json]`、`issue <仓名或仓根>`、`scope list\|check\|register` |
 | `DC`（无子命令） | `done-coding` 自身 | 输出 --help |
 
 ### 独立 bin（未并入 `DC` 子命令树）
@@ -134,7 +134,7 @@ done-coding-cli 是一个面向 **Node.js 前端/全栈开发者**的 CLI 工具
 | `DC git` | `@done-coding/cli-git` | 跨平台 Git 操作（init/clone/hooks/check），含 reverse-merge 检测 | `活跃` | `packages/git/docs/BUSINESS.md`（待创建） |
 | `DC publish` | `@done-coding/cli-publish` | 语义化版本管理 + npm/web 发布 + 别名发布 | `活跃` | `packages/publish/docs/BUSINESS.md`（待创建） |
 | `DC cc-switch` | `@done-coding/cli-cc-switch` | Claude Code 模型路由：settings.json 单源（服务商内嵌模型）→ 编译 profile.json；启动时按 profile 注入 env 并 spawn `claude`，参数原样透传；`--meta-*` 管理 profile / apiKey / 模型 / 列表 | `活跃` | `packages/cc-switch/README.md` |
-| `DC harness` | `@done-coding/cli-harness` | harness-workspace 治理工具：`lists` 从条目 frontmatter 重生成清单（治理清单唯一实现，格式与 harness-workspace skill 对齐）、`check` 元闸 / 并行闸 / 收口形态 / 清单零 diff、`issue` 向兄弟仓收件箱提单并只提交两文件（目标可写仓名，按注册表寻址）、`scope` 仓库注册表 list / check / register；0.1.0（2026-10-23 首发） | `活跃` | `docs/governance/modules/harness/SNAPSHOT.md` |
+| `DC harness` | `@done-coding/cli-harness` | harness-workspace 治理工具：`lists` 从条目 frontmatter 重生成清单（治理清单唯一实现，格式与 harness-workspace skill 对齐）、`check` 元闸 / 并行闸 / 收口形态 / 清单零 diff、`instructions` 指令单文件与链路预算及 Claude 兼容入口（可配置并入 check）、`issue` 向兄弟仓收件箱提单并只提交两文件（目标可写仓名，按注册表寻址）、`scope` 仓库注册表 list / check / register；0.1.0（2026-10-23 首发） | `活跃` | `docs/governance/modules/harness/SNAPSHOT.md` |
 | `DC dex` | `@done-coding/cli-dex` | Dex 编码智能体：基于 `@earendil-works/pi-coding-agent`（锁版本、不改源码），首次启动一次性导入 cc-switch 配置，注入 generator 工具（list_batches / list_questions / add） | `活跃` | `packages/dex/README.md` |
 | — | `@done-coding/cli-utils` | 共享工具库（yargs 封装、xPrompts、配置管理、Git 工具、AES 加密等） | `活跃` | 无独立 CLI |
 
