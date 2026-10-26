@@ -12,7 +12,7 @@
 | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
 | component · config · dex · extract · git · inject · publish · template · utils | 未建模块快照 → 现状见 `docs/TECH_SNAPSHOT.md` §4 / `docs/BUSINESS_SNAPSHOT.md` §4 |
 | cli-skills                                                                     | 未建模块快照 → `packages/cli-skills/docs/{BUSINESS,TECH}_SNAPSHOT.md`             |
-| harness                                                                        | `modules/harness/SNAPSHOT.md`                                                     |
+| harness                                                                        | `modules/harness/SNAPSHOT.md`（含指令预算与兼容入口闸）                                                     |
 | generator                                                                      | `modules/generator/SNAPSHOT.md`                                                   |
 | create                                                                         | `modules/create/SNAPSHOT.md`                                                      |
 | mcp                                                                            | `modules/mcp/SNAPSHOT.md`                                                         |

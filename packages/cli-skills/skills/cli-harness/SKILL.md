@@ -1,6 +1,6 @@
 ---
 name: cli-harness
-description: Use when maintaining a harness-workspace governance directory (docs/governance) — regenerating BACKLOG / SCHEDULE / ARCHIVE-DONE / DROPPED / ISSUE lists, running the governance gates before dispatch or delivery, or filing an issue into another repo's inbox（重生成治理清单、跑治理闸；给 <仓名> 提 issue / 反馈给 <仓名> / 向兄弟仓提 issue；查哪些仓收 issue、登记本仓到仓库注册表）. Drives the dc-harness CLI via an installed CLI or npx — no resident MCP needed.
+description: Use when maintaining a harness-workspace governance directory (docs/governance) — regenerating BACKLOG / SCHEDULE / ARCHIVE-DONE / DROPPED / ISSUE lists, running the governance / instruction gates before dispatch or delivery (AGENTS.md / CLAUDE.md), or filing an issue into another repo's inbox（重生成治理清单、跑治理闸；给 <仓名> 提 issue / 反馈给 <仓名> / 向兄弟仓提 issue；查哪些仓收 issue、登记本仓到仓库注册表）. Drives the dc-harness CLI via an installed CLI or npx — no resident MCP needed.
 ---
 
 # 治理目录工具（cli-harness / dc-harness）
@@ -58,6 +58,21 @@ done-coding harness check            # 任一违规退出码 1，逐条输出 �
 - **收口形态**：在途批次有 `PROGRESS.md`；`archive/<批次>/` 只剩 `PROGRESS.md`；`dropped/` 条目有 `dropped:` 或 `merged_into:`；`issue/` 条目有 `from:`。
 - **清单零 diff**。
 
+## instructions — 指令预算与兼容入口
+
+改动 `AGENTS.md` / `CLAUDE.md` 后、交付收口前 [MUST] 运行：
+
+```bash
+done-coding harness instructions          # 逐条 ❌ 或单行 ✅，退出码 0/1
+done-coding harness instructions --json   # { budget, files: [{ file, bytes }], errors }
+```
+
+必须在 Git 项目根执行（cwd-only），无需治理目录。以 Git 跟踪文件为准，读取工作树当前内容；未跟踪入口不算兼容入口。检查根 AGENTS.md ≤ 16384 B、子层 ≤ 8192 B、根到各层链路 ≤ 32768 B；违规给实际值、预算、超出量，链路列每层字节及最大贡献者。
+
+同级 CLAUDE.md 须为跟踪的普通文件，首个非空行 `@AGENTS.md`，可追加 Claude 专属增量；软链不通过。无 AGENTS.md 的 CLAUDE.md 除单行纯导入外，报「正文仍在 CLAUDE.md」。
+
+建议仓内 pre-commit 在暂存 `AGENTS.md` / `CLAUDE.md` 时运行本命令；检查工作树内容，并非暂存快照。`check` 只有配置 `instructions.gate: true` 才连带检查，默认关闭，因此不能省略上述独立检查。
+
 ## issue — 向兄弟仓提 issue
 
 ```bash
@@ -94,9 +109,15 @@ done-coding harness scope register -p "一句话定位" [-a "受理范围"] [-n 
 ```json
 {
   "governanceDir": "docs/governance",
-  "domains": { "file": "MODULES.md", "section": "## 领域模块" }
+  "domains": { "file": "MODULES.md", "section": "## 领域模块" },
+  "instructions": {
+    "budget": { "root": 16384, "nested": 8192, "chain": 32768 },
+    "exclude": [".done-coding/generator/assemble/fragments/**", ".claude/skills/**"],
+    "gate": false
+  }
 }
 ```
 
 - `governanceDir`：治理目录，默认 `docs/governance`；命令行 `--dir` 优先。
 - `domains`：领域表来源，默认治理目录下 `MODULES.md` 全文；首列为反引号领域名的表格行才算领域。`section` 只取该标题到下一个 `## ` 之间。
+- `instructions`：预算可逐项覆盖，按 UTF-8 字节计；`exclude` 为相对仓根的 Git glob pathspec（`*` 不跨目录、`**` 跨目录，支持 `?` / 字符组），排除内容不计链路；`gate` 默认 false，true 才并入 `check`。独立 `instructions` 始终检查。

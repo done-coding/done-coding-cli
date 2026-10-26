@@ -33,6 +33,8 @@ src/
 - frontmatter 用最小正则解析，不引入 YAML 依赖。
 - 四份 skill 的 CLI 入口规则一致：按 `command -v` 先主包、再独立子包、最后 `npx <子包>@latest`；Bash 数组保留入口与参数边界，示例统一用 `done-coding <X>`，module-generate 的 MCP 主路径保持优先。
 
+- `cli-harness` 同步 `instructions [--json]` 接口：改动 AGENTS.md / CLAUDE.md 后与收口前独立检查预算及兼容入口；配置 instructions 的 budget / Git glob exclude / gate（默认 false），建议按暂存指令文件触发仓内 pre-commit。
+
 ## 4. 测试
 
 vitest（`__tests__/`）：`listSkills` 枚举与解析、复制安装的 skip / force、目标目录解析、软链建立与软链 ↔ 复制件互换不触碰源目录、悬空软链处理、npx 来源拒绝；`bundled-generator-skill` 校验内置 skill 可被发现且 frontmatter 正确；`plugin-manifests` 校验两份清单字段取自 package.json、Codex 展示信息、`files` 含清单目录。夹具全在临时目录。

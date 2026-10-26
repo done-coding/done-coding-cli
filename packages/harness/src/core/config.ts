@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import injectInfo from "@/injectInfo.json";
 import { DEFAULT_DOMAINS_SOURCE, type DomainsSource } from "./check";
+import type { InstructionsConfig } from "./instructions";
 
 /** 治理目录默认位置（相对项目根） */
 export const DEFAULT_GOVERNANCE_DIR = "docs/governance";
@@ -12,6 +13,7 @@ export interface HarnessConfig {
   governanceDir?: string;
   /** 领域表来源，默认治理目录下 `MODULES.md` 全文 */
   domains?: DomainsSource;
+  instructions?: InstructionsConfig;
 }
 
 /** 配置特性目录名 */
@@ -29,12 +31,19 @@ export const getConfigPath = (projectRoot: string): string =>
     CONFIG_FILE,
   );
 
+/** 只读当前项目配置，不依赖治理目录存在。 */
+export const readConfig = (projectRoot: string): HarnessConfig => {
+  const file = getConfigPath(projectRoot);
+  return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf-8")) : {};
+};
+
 /** 已解析的治理上下文 */
 export interface GovernanceContext {
   /** 治理目录绝对路径 */
   root: string;
   /** 领域表来源 */
   domains: DomainsSource;
+  instructions?: InstructionsConfig;
 }
 
 /**
@@ -45,10 +54,7 @@ export const resolveGovernance = (
   projectRoot: string,
   dirOverride?: string,
 ): GovernanceContext => {
-  const configPath = getConfigPath(projectRoot);
-  const config: HarnessConfig = fs.existsSync(configPath)
-    ? JSON.parse(fs.readFileSync(configPath, "utf-8"))
-    : {};
+  const config = readConfig(projectRoot);
   const root = path.resolve(
     projectRoot,
     dirOverride ?? config.governanceDir ?? DEFAULT_GOVERNANCE_DIR,
@@ -56,5 +62,9 @@ export const resolveGovernance = (
   if (!fs.existsSync(root) || !fs.statSync(root).isDirectory()) {
     throw new Error(`治理目录不存在：${root}`);
   }
-  return { root, domains: config.domains ?? DEFAULT_DOMAINS_SOURCE };
+  return {
+    root,
+    domains: config.domains ?? DEFAULT_DOMAINS_SOURCE,
+    instructions: config.instructions,
+  };
 };

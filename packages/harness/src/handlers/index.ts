@@ -1,4 +1,8 @@
 import {
+  handler as instructionsHandler,
+  commandCliInfo as instructionsCommandCliInfo,
+} from "./instructions";
+import {
   handler as listsHandler,
   commandCliInfo as listsCommandCliInfo,
 } from "./lists";
@@ -23,7 +27,13 @@ import {
   type CliInfo,
 } from "@done-coding/cli-utils";
 
-export { listsHandler, checkHandler, issueHandler, scopeHandler };
+export {
+  listsHandler,
+  checkHandler,
+  issueHandler,
+  scopeHandler,
+  instructionsHandler,
+};
 
 /** 导出供外部 export 使用，cli 内部不会通过该方法调用各子命令方法 */
 export const handler = async (
@@ -33,6 +43,9 @@ export const handler = async (
   switch (command) {
     case SubcommandEnum.LISTS: {
       return listsHandler(argv);
+    }
+    case SubcommandEnum.INSTRUCTIONS: {
+      return instructionsHandler(argv);
     }
     case SubcommandEnum.CHECK: {
       return checkHandler(argv);
@@ -57,6 +70,7 @@ export const commandCliInfo: Omit<CliInfo, "usage"> = {
   subcommands: [
     listsCommandCliInfo,
     checkCommandCliInfo,
+    instructionsCommandCliInfo,
     issueCommandCliInfo,
     ...scopeCommandCliInfos,
   ].map(createSubcommand),

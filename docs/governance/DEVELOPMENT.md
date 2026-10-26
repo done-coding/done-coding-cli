@@ -17,7 +17,7 @@
 ## 共享骨架与提交
 
 - 触及共享骨架（`packages/cli` / 根 `package.json` / `pnpm-lock.yaml` / `pnpm-workspace.yaml` / `lerna.json` / `.github/workflows/`）[MUST] 在本批次 `PROGRESS.md` 写明独占，另一方排队。
-- `pnpm-lock.yaml` 变更 [MUST] 用与 CI 同版本 pnpm 全量重生成（CI 有构建后非 d.ts 脏文件即失败的闸）。
+- `pnpm-lock.yaml` 的处理按全局规则；本仓增量：所用 pnpm 版本 [MUST] 与 CI 一致（CI 构建后出现非 d.ts 脏文件即失败）。
 - 提交用显式 pathspec：`git commit -F <msg> -- <路径>`；[MUST NOT] `-a` / `-am` / `git add -A`。提交骨架文件前 `git diff --cached -- <file>` 逐 hunk 确认。
 - 提交单位 = 一个自包含可验证的完整变更；[MUST NOT] 提 WIP，[MUST NOT] 攒到整批末尾才提。
 
