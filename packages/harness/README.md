@@ -20,6 +20,7 @@ DC harness <command>
 | 命令                                                                                                 | 说明                                                                                    |
 | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | `dc-harness lists [-d <dir>] [-c]`                                                                   | 从条目 frontmatter 重生成 `BACKLOG` / `SCHEDULE` / `ARCHIVE-DONE` / `DROPPED` / `ISSUE` |
+| `dc-harness instructions [--json]` | AGENTS.md 单文件 / 链路预算与 CLAUDE.md 兼容入口 |
 | `dc-harness check [-d <dir>]`                                                                        | 治理闸：元闸 + 并行闸 + 收口形态 + 清单零 diff，任一不过退出码 1                        |
 | `dc-harness issue <仓名或仓根> -t <标题> -s <slug> -b <正文文件>`                                    | 向另一仓的 issue 收件箱提单                                                             |
 | `dc-harness scope list [--inbox] [--json]`                                                           | 列出仓库注册表里登记的仓                                                                |
@@ -49,6 +50,35 @@ DC harness <command>
 ```
 
 `domains` 指定领域表从哪个文件（可限定某个二级标题下）读取，缺省为治理目录下 `MODULES.md` 全文。
+
+## instructions — 指令预算与兼容入口
+
+```bash
+dc-harness instructions
+dc-harness instructions --json
+```
+
+项目根执行，必须是 Git 仓根；无需存在治理目录。枚举 Git 跟踪的 `AGENTS.md` / `CLAUDE.md`，读取工作树当前内容（包含未暂存修改），未跟踪的兼容入口不算已交付。命令只读，不修改文件或索引。
+
+- 默认预算：根 `AGENTS.md` 16384 B，其他层 8192 B，根到各含指令目录的链路合计 32768 B；按 UTF-8 字节计，等于预算通过。链路违规列出各层字节与最大贡献者。
+- 每个 `AGENTS.md` 须有同级跟踪的普通 `CLAUDE.md`，首个非空行是 `@AGENTS.md`，其后允许 Claude 专属增量；软链不通过。只有 `CLAUDE.md` 而无同级 `AGENTS.md` 时，单行纯 `@路径` 导入可保留，其他内容报「正文仍在 CLAUDE.md」。
+- 逐条 `❌` 或单行 `✅`；通过退出码 0，违规退出码 1。`--json` 输出 `{ budget, files: [{ file, bytes }], errors }`，不混入文本日志，退出码不变。
+
+在现有项目配置内追加可选段（预算支持逐项覆盖）：
+
+```json
+{
+  "instructions": {
+    "budget": { "root": 16384, "nested": 8192, "chain": 32768 },
+    "exclude": [".done-coding/generator/assemble/fragments/**", ".claude/skills/**"],
+    "gate": false
+  }
+}
+```
+
+`exclude` 使用 Git glob pathspec（相对仓根；`*` 不跨目录、`**` 跨目录，支持 `?` / 字符组），从文件枚举和链路中排除模板、第三方内容。默认不排除任何路径。`gate: true` 才把本检查并入 `check`，默认 false；独立 `instructions` 始终检查。
+
+改动 `AGENTS.md` / `CLAUDE.md` 后及交付收口前运行；建议在仓内 pre-commit 检测到暂存指令文件时运行本命令。检查的是工作树内容，并非索引快照。
 
 ## issue：跨仓提单
 

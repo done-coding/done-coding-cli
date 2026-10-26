@@ -4,6 +4,8 @@ export enum SubcommandEnum {
   LISTS = "lists",
   /** 治理闸 */
   CHECK = "check",
+  /** 指令预算与兼容入口 */
+  INSTRUCTIONS = "instructions",
   /** 跨仓提 issue */
   ISSUE = "issue",
   /** 仓库注册表 */
@@ -66,4 +68,9 @@ export interface ScopeOptions {
   tier?: string;
   /** register：治理目录（相对仓根），缺省读配置或 docs/governance */
   dir?: string;
+}
+
+/** instructions 选项 */
+export interface InstructionsOptions {
+  json?: boolean;
 }
