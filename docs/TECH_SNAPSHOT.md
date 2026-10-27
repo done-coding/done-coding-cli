@@ -229,7 +229,7 @@ done-coding ────────────── 直接依赖所有业务�
     ├── @done-coding/cli-inject ── 依赖: utils                       │
     ├── @done-coding/cli-publish ─ 依赖: utils（+ semver）           │
     ├── @done-coding/cli-template  依赖: utils（+ lodash.template；含 marker 引擎）
-    ├── @done-coding/cli-cc-switch  依赖: utils                     │
+    ├── @done-coding/cli-cc-switch  依赖: utils, config-ui          │
     ├── @done-coding/cli-dex ──── 依赖: cc-switch, generator, utils, pi-coding-agent
     └── @done-coding/cli-harness  依赖: utils（issue 经 git 子进程在目标仓提交）
                                                                      │
@@ -246,6 +246,7 @@ done-coding ────────────── 直接依赖所有业务�
 - `assemble engine` →（execFileSync 本地壳）→ `git`（diff 的 head/index 基准检出 + forceClean 工作树 clean 探测）
 - `dex` →（编译时 import）→ `cli-generator` 原语，经 `extensions/generator.ts` 注册 list_batches / list_questions / add 三工具；→ `cc-switch` 配置读取做一次性导入
 - `cc-switch` →（child_process spawn）→ `claude`（spawn 目标恒为字面量 `claude`）
+- `cc-switch --meta-ui` →（动态 import）→ `@done-coding/config-ui@0.1.0`；本地表单提交后由 cc-switch 校验并写回配置，契约见 `governance/modules/cc-switch/DESIGN.md`。
 
 其余包间通信仅通过 npm 依赖 + 编译时导出。
 

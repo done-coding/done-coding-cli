@@ -10,13 +10,14 @@
 
 | 领域                                                                           | 细节快照                                                                          |
 | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| component · config · dex · extract · git · inject · publish · template · utils | 未建模块快照 → 现状见 `docs/TECH_SNAPSHOT.md` §4 / `docs/BUSINESS_SNAPSHOT.md` §4 |
+| component · config · extract · git · inject · publish · template · utils | 未建模块快照 → 现状见 `docs/TECH_SNAPSHOT.md` §4 / `docs/BUSINESS_SNAPSHOT.md` §4 |
 | cli-skills                                                                     | 未建模块快照 → `packages/cli-skills/docs/{BUSINESS,TECH}_SNAPSHOT.md`             |
 | harness                                                                        | `modules/harness/SNAPSHOT.md`（含指令预算与兼容入口闸）                                                     |
 | generator                                                                      | `modules/generator/SNAPSHOT.md`                                                   |
 | create                                                                         | `modules/create/SNAPSHOT.md`                                                      |
 | mcp                                                                            | `modules/mcp/SNAPSHOT.md`                                                         |
-| cc-switch                                                                      | `modules/cc-switch/SNAPSHOT.md`                                                   |
+| dex | `modules/dex/SNAPSHOT.md`（cc-switch v1/v2 与多账号导入） |
+| cc-switch                                                                      | `modules/cc-switch/SNAPSHOT.md`（settings v2 + meta-ui，未发布）                    |
 | ai · mrm                                                                       | 已下线（2026-10-02 退役删除，见 `MODULES.md`）                                    |
 
 ## 跨领域依赖

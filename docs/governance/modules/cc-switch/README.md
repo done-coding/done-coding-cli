@@ -15,3 +15,5 @@ Claude Code 模型路由：按 profile 注入 env 后 spawn `claude`，其余参
 ## 领域边界
 
 - 只管 Claude Code 的路由与配置；对话能力在 `dex`。
+
+settings v2 数据与迁移契约见 `DESIGN.md`；当前已实现能力见 `SNAPSHOT.md`。

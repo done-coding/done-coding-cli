@@ -54,6 +54,18 @@ export const createAsSubcommand = (): CommandModule => {
           type: "boolean",
           describe: "压制 output.* 输出（MCP/AI 调用避免污染上下文）",
         })
+        .option("meta-migrate", {
+          type: "boolean",
+          describe: "备份并显式迁移 settings v1 → v2",
+        })
+        .option("meta-ui", {
+          type: "boolean",
+          describe: "浏览器编辑 settings v2（保存后自动重建）",
+        })
+        .option("meta-account", {
+          type: "string",
+          describe: "apiKey 更新时指定账号 alias",
+        })
         .option("meta-generate", {
           type: "boolean",
           describe: "从 settings.json 重建 profile.json",
@@ -68,7 +80,7 @@ export const createAsSubcommand = (): CommandModule => {
         })
         .option("meta-provider", {
           type: "string",
-          describe: "显式指定 provider id（供 apiKey/model-name 跳过选择）",
+          describe: "显式指定 provider alias（供 apiKey/model-name 跳过选择）",
         })
         .option("meta-provider-list", {
           type: "boolean",

@@ -1,7 +1,19 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, afterAll } from "vitest";
 import fs from "node:fs";
 import { loadOrInitConfig, writeConfig } from "@/utils/config";
 import { PROFILE_PATH, SETTINGS_PATH } from "@/utils/path";
+
+const scratch = await vi.hoisted(async () => {
+  const fs = await import("node:fs");
+  const os = await import("node:os");
+  const path = await import("node:path");
+  return fs.mkdtempSync(path.join(os.tmpdir(), "cc-mutate-"));
+});
+vi.mock("@/utils/path", () => ({
+  SETTINGS_PATH: `${scratch}/settings.json`,
+  PROFILE_PATH: `${scratch}/profile.json`,
+}));
+afterAll(() => fs.rmSync(scratch, { recursive: true, force: true }));
 
 const sampleCfg = {
   defaultProfile: "a",
@@ -46,23 +58,16 @@ describe("loadOrInitConfig（运行时读编译快照，校验放宽 defaultProf
   });
 
   it("纯新装（两者皆无）→ 写 starter settings + 编译 profile.json（均 600）", () => {
-    vi.spyOn(fs, "existsSync").mockReturnValue(false);
-    vi.spyOn(fs, "mkdirSync").mockImplementation((() => undefined) as never);
-    const write = vi
-      .spyOn(fs, "writeFileSync")
-      .mockImplementation((() => undefined) as never);
-    const chmod = vi
-      .spyOn(fs, "chmodSync")
-      .mockImplementation((() => undefined) as never);
-
     const cfg = loadOrInitConfig();
     expect(cfg.profiles["deepseek-pro"]).toBeDefined();
     expect(cfg.profiles["deepseek-flash"]).toBeDefined();
     expect(cfg.defaultProfile).toBe("deepseek-pro");
-    // 两次写入：settings.json（源）+ profile.json（编译快照）
-    expect(write).toHaveBeenCalledTimes(2);
-    expect(chmod).toHaveBeenCalledWith(SETTINGS_PATH, 0o600);
-    expect(chmod).toHaveBeenCalledWith(PROFILE_PATH, 0o600);
+    expect(
+      JSON.parse(fs.readFileSync(SETTINGS_PATH, "utf8")).providers.deepseek
+        .models,
+    ).toHaveLength(2);
+    expect(fs.statSync(SETTINGS_PATH).mode & 0o777).toBe(0o600);
+    expect(fs.statSync(PROFILE_PATH).mode & 0o777).toBe(0o600);
   });
 
   it("非法 JSON → throw 带绝对路径，[MUST NOT] 覆盖", () => {

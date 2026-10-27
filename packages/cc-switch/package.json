@@ -19,7 +19,8 @@
   "files": [
     "es",
     "lib",
-    "types"
+    "types",
+    "settings.schema.json"
   ],
   "scripts": {
     "dev": "vite build -w -m hotBuild",
@@ -53,7 +54,8 @@
     "vitest": "^1.6.1"
   },
   "dependencies": {
-    "@done-coding/cli-utils": "workspace:0.13.0"
+    "@done-coding/cli-utils": "workspace:0.13.0",
+    "@done-coding/config-ui": "0.1.0"
   },
   "engines": {
     "node": ">=18.0.0"
