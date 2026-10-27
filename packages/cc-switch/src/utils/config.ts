@@ -1,7 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
 import { PROFILE_PATH, SETTINGS_PATH } from "./path";
+import { atomicWriteSettings } from "./settings-file";
+import {
+  assignMissingUuids,
+  isSettingsV2,
+  parseSettingsV2,
+  resolveDefaultProfile,
+} from "./settings-v2";
 import type {
+  AnySettings,
+  SettingsV2Input,
+  NormalizedProvider,
   Profile,
   ProfileConfig,
   Settings,
@@ -51,8 +61,17 @@ export const writeConfig = (cfg: ProfileConfig): void =>
   writeJsonFile(PROFILE_PATH, cfg);
 
 /** 写 settings 源（settings.json，唯一源） */
-export const writeSettings = (settings: Settings): void =>
-  writeJsonFile(SETTINGS_PATH, settings);
+export const writeSettings = (
+  settings: AnySettings | SettingsV2Input,
+): void => {
+  if ("version" in settings && settings.version === 2) {
+    const complete = assignMissingUuids(settings as SettingsV2Input);
+    parseSettingsV2(complete as unknown as Record<string, unknown>);
+    atomicWriteSettings(SETTINGS_PATH, complete);
+    return;
+  }
+  atomicWriteSettings(SETTINGS_PATH, settings);
+};
 
 /**
  * 加载配置（运行时主路径，读编译快照）：
@@ -141,9 +160,7 @@ const validateBehaviorFields = (
       parsed.output.profileName !== undefined &&
       typeof parsed.output.profileName !== "boolean"
     ) {
-      throw new Error(
-        `${label} output.profileName [MUST] 为布尔：${absPath}`,
-      );
+      throw new Error(`${label} output.profileName [MUST] 为布尔：${absPath}`);
     }
   }
 };
@@ -218,7 +235,9 @@ const parseSettingsProvider = (
   const parsedModels: SettingsModel[] = [];
   for (const m of models) {
     if (!isPlainObject(m)) {
-      throw new Error(`provider「${id}」models 项 [MUST] 为对象：${SETTINGS_PATH}`);
+      throw new Error(
+        `provider「${id}」models 项 [MUST] 为对象：${SETTINGS_PATH}`,
+      );
     }
     const { id: mId, name: mName } = m;
     if (typeof mId !== "string" || mId.length === 0) {
@@ -254,8 +273,25 @@ const parseSettingsProvider = (
  * 加载 settings 源（settings.json）：结构校验 + fail-loud。
  * 仅 --meta-generate / mutate / list 读源；运行时不读（读 profile.json 编译快照）。
  */
-export const loadSettings = (): Settings => {
-  const parsed = readStrictJson(SETTINGS_PATH, "settings.json");
+export const loadSettings = (): AnySettings => {
+  const settings = parseSettings(
+    readStrictJson(SETTINGS_PATH, "settings.json"),
+  );
+  if (!isSettingsV2(settings))
+    process.stderr.write(
+      "settings v1 只读兼容，可运行 --meta-migrate 显式迁移到 v2。\n",
+    );
+  return settings;
+};
+
+/** 显式数据入口：供 dex 等消费者复用，不读取默认路径。 */
+export const parseSettings = (raw: unknown): AnySettings => {
+  if (!isPlainObject(raw))
+    throw new Error("settings.json 结构非法：应为 JSON 对象");
+  if (raw.version === 2) return parseSettingsV2(raw);
+  if (raw.version !== undefined)
+    throw new Error("settings.json 不支持的 version");
+  const parsed = raw;
   validateBehaviorFields(parsed, SETTINGS_PATH, "settings.json");
 
   const providersRaw = parsed.providers;
@@ -305,7 +341,35 @@ export const composeEnv = (
  * 保插入顺序）。校验：models 非空 / (provider,id) 不重复 /
  * defaultProfile（有则）落在生成的 profile 中。任一不满足 → fail-loud。
  */
-export const buildProfileConfig = (settings: Settings): ProfileConfig => {
+export const buildProfileConfig = (settings: AnySettings): ProfileConfig => {
+  if (isSettingsV2(settings)) {
+    parseSettingsV2(settings as unknown as Record<string, unknown>);
+    const profiles: Record<string, Profile> = {};
+    for (const p of settings.providers) {
+      for (const account of p.accounts ?? [undefined]) {
+        for (const m of p.models) {
+          const name = [p.alias, account?.alias, m.alias]
+            .filter((x) => x !== undefined)
+            .join("-");
+          profiles[name] = {
+            env: composeEnv(
+              { ...p, apiKey: account?.apiKey ?? p.apiKey!, models: [] },
+              { ...m, id: m.alias },
+            ),
+          };
+        }
+      }
+    }
+    const defaultProfile = resolveDefaultProfile(settings);
+    return {
+      ...(defaultProfile !== undefined ? { defaultProfile } : {}),
+      ...(settings.disabledDefault !== undefined
+        ? { disabledDefault: settings.disabledDefault }
+        : {}),
+      ...(settings.output !== undefined ? { output: settings.output } : {}),
+      profiles,
+    };
+  }
   const profiles: Record<string, Profile> = {};
   const seen = new Set<string>();
   for (const [providerId, provider] of Object.entries(settings.providers)) {
@@ -323,7 +387,10 @@ export const buildProfileConfig = (settings: Settings): ProfileConfig => {
   if (Object.keys(profiles).length === 0) {
     throw new Error(`settings.json 无可生成 profile：${SETTINGS_PATH}`);
   }
-  if (settings.defaultProfile !== undefined && !profiles[settings.defaultProfile]) {
+  if (
+    settings.defaultProfile !== undefined &&
+    !profiles[settings.defaultProfile]
+  ) {
     const available = Object.keys(profiles).join(", ");
     throw new Error(
       `defaultProfile「${settings.defaultProfile}」不在生成的 profile 中。` +
@@ -345,7 +412,21 @@ export const buildProfileConfig = (settings: Settings): ProfileConfig => {
 /** --meta-generate：读 settings 源 → 构建 → 写 profile.json（600）。 */
 export const generateConfig = (): ProfileConfig => {
   const cfg = buildProfileConfig(loadSettings());
+  let previous: string[] | undefined = [];
+  if (fs.existsSync(PROFILE_PATH)) {
+    try {
+      const old = JSON.parse(fs.readFileSync(PROFILE_PATH, "utf8"));
+      if (!isPlainObject(old.profiles)) throw new Error("profiles 非对象");
+      previous = Object.keys(old.profiles);
+    } catch {
+      previous = undefined;
+      process.stderr.write(
+        "旧 profile.json 无法比较名称，将按 settings 重建。\n",
+      );
+    }
+  }
   writeConfig(cfg);
+  if (previous) reportProfileChanges(previous, Object.keys(cfg.profiles));
   return cfg;
 };
 
@@ -373,8 +454,35 @@ export const normalizeModelName = (
 export const setProviderApiKey = (
   providerId: string,
   apiKey: string,
+  accountAlias?: string,
 ): ProfileConfig => {
   const settings = loadSettings();
+  if (isSettingsV2(settings)) {
+    const provider = settings.providers.find((p) => p.alias === providerId);
+    if (!provider)
+      throw new Error(
+        `provider「${providerId}」不存在。可用：${settings.providers.map((p) => p.alias).join(", ")}`,
+      );
+    if (provider.accounts) {
+      if (!accountAlias)
+        throw new Error("多账号服务商需要 --meta-account=<alias> 指定账号");
+      const account = provider.accounts.find((a) => a.alias === accountAlias);
+      if (!account)
+        throw new Error(
+          `account「${accountAlias}」不存在。可用：${provider.accounts.map((a) => a.alias).join(", ")}`,
+        );
+      account.apiKey = apiKey;
+    } else {
+      if (accountAlias !== undefined)
+        throw new Error("单 apiKey 服务商不支持 --meta-account");
+      provider.apiKey = apiKey;
+    }
+    buildProfileConfig(settings);
+    writeSettings(settings);
+    return generateConfig();
+  }
+  if (accountAlias !== undefined)
+    throw new Error("v1 配置不支持 --meta-account，请先 --meta-migrate");
   const provider = settings.providers[providerId];
   if (!provider) {
     throw new Error(
@@ -382,6 +490,7 @@ export const setProviderApiKey = (
     );
   }
   provider.apiKey = apiKey;
+  buildProfileConfig(settings);
   writeSettings(settings);
   return generateConfig();
 };
@@ -396,6 +505,26 @@ export const addModelEntry = (
 ): ProfileConfig => {
   const { id, name } = normalizeModelName(modelName);
   const settings = loadSettings();
+  if (isSettingsV2(settings)) {
+    const provider = settings.providers.find((p) => p.alias === providerId);
+    if (!provider)
+      throw new Error(
+        `provider「${providerId}」不存在。可用：${settings.providers.map((p) => p.alias).join(", ")}`,
+      );
+    const dup = provider.models.find((m) => m.alias === id);
+    if (dup) throw new Error(`model「${providerId}/${id}」已存在`);
+    const next = assignMissingUuids({
+      ...settings,
+      providers: settings.providers.map((p) =>
+        p === provider
+          ? { ...p, models: [...p.models, { alias: id, name }] }
+          : p,
+      ),
+    });
+    buildProfileConfig(next);
+    writeSettings(next);
+    return generateConfig();
+  }
   const provider = settings.providers[providerId];
   if (!provider) {
     throw new Error(
@@ -409,6 +538,7 @@ export const addModelEntry = (
     );
   }
   provider.models.push({ id, name });
+  buildProfileConfig(settings);
   writeSettings(settings);
   return generateConfig();
 };
@@ -416,11 +546,71 @@ export const addModelEntry = (
 // ───────────────────────── provider-list / model-list（只读输出） ─────────────────────────
 
 /** 提供商列表行：`id（name）`，保 settings.json 插入顺序。绝不含 apiKey。 */
-export const providerListLines = (settings: Settings): string[] =>
-  Object.entries(settings.providers).map(([id, p]) => `${id}（${p.name}）`);
+export const providerListLines = (settings: AnySettings): string[] =>
+  isSettingsV2(settings)
+    ? settings.providers.map(
+        (p) =>
+          `${p.alias}（${p.name}${p.accounts ? `，账号 ${p.accounts.map((a) => a.alias).join(" / ")}` : ""}）`,
+      )
+    : Object.entries(settings.providers).map(([id, p]) => `${id}（${p.name}）`);
 
 /** 模型列表行：`name（provider）`，保 provider × 模型插入顺序（同模型多 provider 各占一行）。 */
-export const modelListLines = (settings: Settings): string[] =>
-  Object.entries(settings.providers).flatMap(([pid, p]) =>
-    p.models.map((m) => `${m.name}（${pid}）`),
+export const modelListLines = (settings: AnySettings): string[] =>
+  isSettingsV2(settings)
+    ? settings.providers.flatMap((p) =>
+        p.models.map(
+          (m) =>
+            `${m.name}（${p.alias}${p.accounts ? `，账号 ${p.accounts.map((a) => a.alias).join(" / ")}` : ""}）`,
+        ),
+      )
+    : Object.entries(settings.providers).flatMap(([pid, p]) =>
+        p.models.map((m) => `${m.name}（${pid}）`),
+      );
+
+/** 按凭据展开，供 dex 转译；不允许 alias 拼接导致服务商相互覆盖。 */
+export const normalizeSettings = (raw: unknown): NormalizedProvider[] => {
+  const settings = parseSettings(raw);
+  if (!isSettingsV2(settings))
+    return Object.entries(settings.providers).map(([id, p]) => ({ id, ...p }));
+  const seen = new Map<string, string>();
+  return settings.providers.flatMap((p) =>
+    (p.accounts ?? [undefined]).map((a) => {
+      const id = [p.alias, a?.alias].filter((x) => x !== undefined).join("-");
+      const source = [p.alias, a?.alias]
+        .filter((x) => x !== undefined)
+        .join("/");
+      if (seen.has(id))
+        throw new Error(
+          `服务商归一化 id 冲突：${id}（${seen.get(id)} 与 ${source}）`,
+        );
+      seen.set(id, source);
+      return {
+        id,
+        name: p.name,
+        url: p.url,
+        apiKey: a?.apiKey ?? p.apiKey!,
+        ...(p.envExtraParams ? { envExtraParams: p.envExtraParams } : {}),
+        models: p.models.map((m) => ({
+          id: m.alias,
+          name: m.name,
+          ...(m.envExtraParams ? { envExtraParams: m.envExtraParams } : {}),
+        })),
+      };
+    }),
   );
+};
+
+/** 仅输出名称变化，不泄漏 env 或凭据；UI 保存也通过 generateConfig 复用。 */
+export const reportProfileChanges = (
+  before: string[],
+  after: string[],
+): void => {
+  const removed = before.filter((name) => !after.includes(name));
+  const added = after.filter((name) => !before.includes(name));
+  if (removed.length)
+    process.stdout.write(`移除的 profile：${removed.join(", ")}\n`);
+  if (added.length)
+    process.stdout.write(`新增的 profile：${added.join(", ")}\n`);
+  if (removed.length)
+    process.stdout.write("外部 --meta-profile= 与脚本的按名引用需同步更新。\n");
+};

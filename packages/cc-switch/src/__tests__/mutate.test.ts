@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, afterAll } from "vitest";
 import fs from "node:fs";
 import {
   addModelEntry,
@@ -12,6 +12,18 @@ import { parseArgv } from "@/handlers/profile";
 import { selectProvider } from "@/utils/meta";
 import { resolveHandlerContext, xPrompts } from "@done-coding/cli-utils";
 import type { Settings } from "@/types";
+
+const scratch = await vi.hoisted(async () => {
+  const fs = await import("node:fs");
+  const os = await import("node:os");
+  const path = await import("node:path");
+  return fs.mkdtempSync(path.join(os.tmpdir(), "cc-mutate-"));
+});
+vi.mock("@/utils/path", () => ({
+  SETTINGS_PATH: `${scratch}/settings.json`,
+  PROFILE_PATH: `${scratch}/profile.json`,
+}));
+afterAll(() => fs.rmSync(scratch, { recursive: true, force: true }));
 
 vi.mock("@done-coding/cli-utils", () => ({
   resolveHandlerContext: vi.fn(),
@@ -57,24 +69,9 @@ const settingsConfig: Settings = {
   },
 };
 
-/**
- * 全 mock fs：可变内存 store 模拟真实落盘（write 更新 store、read 回读 store），
- * 使 addModelEntry/setProviderApiKey 内 generateConfig 重载到的是更新后的源。
- */
+/** 临时目录中的真实源文件，验证原子写后的落盘行为。 */
 const mockSourceFs = () => {
-  const store = new Map<string, string>([
-    [SETTINGS_PATH, JSON.stringify(settingsConfig)],
-  ]);
-  vi.spyOn(fs, "mkdirSync").mockImplementation((() => undefined) as never);
-  vi.spyOn(fs, "chmodSync").mockImplementation((() => undefined) as never);
-  const write = vi.spyOn(fs, "writeFileSync").mockImplementation((p, data) => {
-    store.set(String(p), String(data));
-  });
-  vi.spyOn(fs, "existsSync").mockImplementation((p) => store.has(String(p)));
-  vi.spyOn(fs, "readFileSync").mockImplementation(
-    (p) => store.get(String(p)) ?? "",
-  );
-  return { write, store };
+  fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settingsConfig));
 };
 
 describe("normalizeModelName（id 去 [1m]、name 拼 [1m]、防双拼）", () => {
@@ -101,22 +98,20 @@ describe("setProviderApiKey（改 key → 写 settings 源 → 自动重编译�
   afterEach(() => vi.restoreAllMocks());
 
   it("provider 存在 → 更新 apiKey、写 settings.json、重建 profile.json（env 落新 key）", () => {
-    const { write } = mockSourceFs();
+    mockSourceFs();
     const cfg = setProviderApiKey("deepseek", "sk-new-key");
 
     expect(cfg.profiles["deepseek-flash"].env.ANTHROPIC_AUTH_TOKEN).toBe(
       "sk-new-key",
     );
-    const settingsWrite = write.mock.calls.find((c) =>
-      String(c[0]).endsWith("settings.json"),
+    const saved = JSON.parse(fs.readFileSync(SETTINGS_PATH, "utf8"));
+    expect(saved.providers.deepseek.apiKey).toBe("sk-new-key");
+    const profile = JSON.parse(
+      fs.readFileSync(`${scratch}/profile.json`, "utf8"),
     );
-    expect(settingsWrite).toBeDefined();
-    expect(String(settingsWrite![1])).toContain("sk-new-key");
-    const profileWrite = write.mock.calls.find((c) =>
-      String(c[0]).endsWith("profile.json"),
+    expect(profile.profiles["deepseek-flash"].env.ANTHROPIC_AUTH_TOKEN).toBe(
+      "sk-new-key",
     );
-    expect(profileWrite).toBeDefined();
-    expect(String(profileWrite![1])).toContain("sk-new-key");
   });
 
   it("provider 不存在 → throw 列可用", () => {
@@ -130,24 +125,24 @@ describe("addModelEntry（加模型 → 写 settings 源 → 自动重编译）"
   afterEach(() => vi.restoreAllMocks());
 
   it("新模型 → 追加到 provider.models、重建 profile.json（name=id+[1m]）", () => {
-    const { write } = mockSourceFs();
+    mockSourceFs();
     const cfg = addModelEntry("ark-agent-plan", "glm-4.6");
 
     expect(cfg.profiles["ark-agent-plan-glm-4.6"].env.ANTHROPIC_MODEL).toBe(
       "glm-4.6[1m]",
     );
     expect(Object.keys(cfg.profiles)).toContain("ark-agent-plan-glm-4.6");
-    const settingsWrite = write.mock.calls.find((c) =>
-      String(c[0]).endsWith("settings.json"),
+    const saved = JSON.parse(fs.readFileSync(SETTINGS_PATH, "utf8"));
+    expect(saved.providers["ark-agent-plan"].models).toContainEqual({
+      id: "glm-4.6",
+      name: "glm-4.6[1m]",
+    });
+    const profile = JSON.parse(
+      fs.readFileSync(`${scratch}/profile.json`, "utf8"),
     );
-    expect(settingsWrite).toBeDefined();
-    expect(String(settingsWrite![1])).toContain("glm-4.6");
-    expect(String(settingsWrite![1])).toContain("glm-4.6[1m]");
-    const profileWrite = write.mock.calls.find((c) =>
-      String(c[0]).endsWith("profile.json"),
+    expect(profile.profiles["ark-agent-plan-glm-4.6"].env.ANTHROPIC_MODEL).toBe(
+      "glm-4.6[1m]",
     );
-    expect(profileWrite).toBeDefined();
-    expect(String(profileWrite![1])).toContain("ark-agent-plan-glm-4.6");
   });
 
   it("传入已带 [1m] → 防双拼", () => {

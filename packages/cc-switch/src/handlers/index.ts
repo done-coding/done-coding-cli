@@ -17,6 +17,8 @@ import {
   setProviderApiKey,
   writeConfig,
 } from "@/utils/config";
+import { isSettingsV2 } from "@/utils/settings-v2";
+import { migrateSettingsFile } from "@/utils/migrate";
 import { PROFILE_PATH } from "@/utils/path";
 import {
   fillEmptyEnv,
@@ -29,9 +31,10 @@ import {
   printMetaHelp,
   printMetaVersion,
   selectProvider,
+  selectAccount,
 } from "@/utils/meta";
 import injectInfo from "@/injectInfo.json";
-import type { MetaAction, ProfileConfig } from "@/types";
+import type { MetaAction, ProfileConfig, ParsedArgv } from "@/types";
 
 export { parseArgv, selectProfile };
 
@@ -65,15 +68,8 @@ const CLAUDE_BIN = "claude";
  */
 export const runRouter = async (argv?: string[]): Promise<never> => {
   // 独立入口：process.argv.slice(2)；主 CLI 子命令入口：命令边界后原始切片
-  const {
-    action,
-    profileName,
-    apiKey,
-    modelName,
-    providerId,
-    silent,
-    passthrough,
-  } = parseArgv(argv ?? process.argv.slice(2));
+  const parsed = parseArgv(argv ?? process.argv.slice(2));
+  const { action, profileName, silent, passthrough } = parsed;
 
   // REQ-4/5：自身命令面输出，[MUST NOT] 读/写配置、[MUST NOT] spawn
   if (action === "help") {
@@ -82,6 +78,15 @@ export const runRouter = async (argv?: string[]): Promise<never> => {
   }
   if (action === "version") {
     printMetaVersion(injectInfo.version);
+    process.exit(0);
+  }
+  if (action === "ui") {
+    const { runMetaUI } = await import("@/utils/meta-ui");
+    await runMetaUI();
+    process.exit(0);
+  }
+  if (action === "migrate") {
+    migrateSettingsFile();
     process.exit(0);
   }
   if (action === "generate") {
@@ -102,19 +107,7 @@ export const runRouter = async (argv?: string[]): Promise<never> => {
     process.exit(0);
   }
   if (action === "setkey" || action === "addmodel") {
-    // 目标 provider：--meta-provider=<id> 显式，否则交互选择（非 TTY → selectProvider 报错退出）
-    const pc = loadSettings();
-    const target = providerId ?? (await selectProvider(pc));
-    const cfg =
-      action === "setkey"
-        ? setProviderApiKey(target, apiKey!)
-        : addModelEntry(target, modelName!);
-    process.stdout.write(
-      action === "setkey"
-        ? `已更新 provider「${target}」apiKey，重建 ${Object.keys(cfg.profiles).length} 个 profile → ${PROFILE_PATH}\n`
-        : `已添加 model「${target}/${normalizeModelName(modelName!).id}」，重建 ${Object.keys(cfg.profiles).length} 个 profile → ${PROFILE_PATH}\n`,
-    );
-    process.exit(0);
+    return runSourceMutation(parsed);
   }
 
   const cfg = loadOrInitConfig();
@@ -216,4 +209,28 @@ const signalNameToNumber = (signal: string): number => {
     SIGTERM: 15,
   };
   return map[signal] ?? 1;
+};
+
+/** 源修改与运行透传分开，账号选择只发生在 setkey。 */
+const runSourceMutation = async (parsed: ParsedArgv): Promise<never> => {
+  const { action, providerId, accountAlias, apiKey, modelName } = parsed;
+  // 目标 provider：--meta-provider=<id> 显式，否则交互选择（非 TTY → selectProvider 报错退出）
+  const pc = loadSettings();
+  const target = providerId ?? (await selectProvider(pc));
+  let account = accountAlias;
+  if (action === "setkey" && isSettingsV2(pc)) {
+    const provider = pc.providers.find((p) => p.alias === target);
+    if (provider?.accounts && account === undefined)
+      account = await selectAccount(provider);
+  }
+  const cfg =
+    action === "setkey"
+      ? setProviderApiKey(target, apiKey!, account)
+      : addModelEntry(target, modelName!);
+  process.stdout.write(
+    action === "setkey"
+      ? `已更新 provider「${target}」apiKey，重建 ${Object.keys(cfg.profiles).length} 个 profile → ${PROFILE_PATH}\n`
+      : `已添加 model「${target}/${normalizeModelName(modelName!).id}」，重建 ${Object.keys(cfg.profiles).length} 个 profile → ${PROFILE_PATH}\n`,
+  );
+  process.exit(0);
 };

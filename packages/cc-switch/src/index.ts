@@ -9,3 +9,14 @@ export {
   hasModelEnvConflict,
 } from "@/utils";
 export * from "@/types";
+
+export {
+  parseSettings,
+  loadSettings,
+  normalizeSettings,
+  buildProfileConfig,
+  writeSettings,
+  generateConfig,
+  reportProfileChanges,
+} from "@/utils/config";
+export { assignMissingUuids, isSettingsV2 } from "@/utils/settings-v2";

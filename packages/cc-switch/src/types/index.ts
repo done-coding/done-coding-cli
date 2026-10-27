@@ -62,6 +62,8 @@ export type MetaAction =
   | "providerlist"
   | "modellist"
   | "generate"
+  | "migrate"
+  | "ui"
   | "help"
   | "version";
 
@@ -75,7 +77,54 @@ export interface ParsedArgv {
   modelName?: string;
   /** --meta-provider= 值（setkey/addmodel 的 provider 选择旁路，非独立动作） */
   providerId?: string;
+  /** --meta-account=<alias>：多账号凭据选择器。 */
+  accountAlias?: string;
   /** --meta-silent：压制 output.* 输出（MCP/AI 调用避免污染上下文） */
   silent: boolean;
   passthrough: string[];
+}
+
+/** v2 的身份与用户可改名别名分离。Settings 保留为 v1 类型供既有消费者使用。 */
+export interface SettingsModelV2 {
+  uuid: string;
+  alias: string;
+  name: string;
+  envExtraParams?: Record<string, string>;
+}
+export interface SettingsAccount {
+  uuid: string;
+  alias: string;
+  apiKey: string;
+}
+export type SettingsProviderV2 = {
+  uuid: string;
+  alias: string;
+  name: string;
+  url: string;
+  envExtraParams?: Record<string, string>;
+  models: SettingsModelV2[];
+} & (
+  | { apiKey: string; accounts?: never }
+  | { apiKey?: never; accounts: SettingsAccount[] }
+);
+export interface SettingsV2 {
+  $schema?: string;
+  version: 2;
+  providers: SettingsProviderV2[];
+  defaultProfile?: { provider: string; account?: string; model: string };
+  disabledDefault?: boolean;
+  output?: { profileName?: boolean };
+}
+export type AnySettings = Settings | SettingsV2;
+export type SettingsV2Input = Omit<SettingsV2, "providers"> & {
+  providers: Array<
+    Omit<SettingsProviderV2, "uuid" | "models" | "accounts"> & {
+      uuid?: string;
+      models: Array<Omit<SettingsModelV2, "uuid"> & { uuid?: string }>;
+      accounts?: Array<Omit<SettingsAccount, "uuid"> & { uuid?: string }>;
+    }
+  >;
+};
+export interface NormalizedProvider extends SettingsProvider {
+  id: string;
 }

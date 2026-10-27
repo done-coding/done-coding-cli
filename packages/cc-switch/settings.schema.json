@@ -1,0 +1,162 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "cc-switch settings v2",
+  "description": "UUID 稳定引用；alias 用于 profile 命名。唯一性、拼名与默认引用由 cc-switch 语义校验。",
+  "type": "object",
+  "required": ["version", "providers"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "const": 2
+    },
+    "providers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/provider"
+      }
+    },
+    "defaultProfile": {
+      "type": "object",
+      "required": ["provider", "model"],
+      "properties": {
+        "provider": {
+          "$ref": "#/definitions/uuid"
+        },
+        "account": {
+          "$ref": "#/definitions/uuid"
+        },
+        "model": {
+          "$ref": "#/definitions/uuid"
+        }
+      }
+    },
+    "disabledDefault": {
+      "type": "boolean"
+    },
+    "output": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "profileName": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+      "readOnly": true,
+      "description": "稳定身份；新实体提交时自动补齐。"
+    },
+    "alias": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "env": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "model": {
+      "type": "object",
+      "required": ["uuid", "alias", "name"],
+      "properties": {
+        "uuid": {
+          "$ref": "#/definitions/uuid"
+        },
+        "alias": {
+          "$ref": "#/definitions/alias"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "envExtraParams": {
+          "$ref": "#/definitions/env"
+        }
+      }
+    },
+    "account": {
+      "type": "object",
+      "required": ["uuid", "alias", "apiKey"],
+      "properties": {
+        "uuid": {
+          "$ref": "#/definitions/uuid"
+        },
+        "alias": {
+          "$ref": "#/definitions/alias"
+        },
+        "apiKey": {
+          "type": "string",
+          "x-dc-ui": {
+            "secret": true
+          }
+        }
+      }
+    },
+    "provider": {
+      "type": "object",
+      "required": ["uuid", "alias", "name", "url", "models"],
+      "properties": {
+        "uuid": {
+          "$ref": "#/definitions/uuid"
+        },
+        "alias": {
+          "$ref": "#/definitions/alias"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "apiKey": {
+          "type": "string",
+          "x-dc-ui": {
+            "secret": true
+          }
+        },
+        "accounts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/account"
+          }
+        },
+        "envExtraParams": {
+          "$ref": "#/definitions/env"
+        },
+        "models": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/model"
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "required": ["apiKey"],
+          "not": {
+            "required": ["accounts"]
+          }
+        },
+        {
+          "required": ["accounts"],
+          "not": {
+            "required": ["apiKey"]
+          }
+        }
+      ]
+    }
+  }
+}

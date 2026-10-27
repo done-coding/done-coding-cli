@@ -58,6 +58,9 @@ importers:
       "@done-coding/cli-utils":
         specifier: workspace:0.13.0
         version: link:../utils
+      "@done-coding/config-ui":
+        specifier: 0.1.0
+        version: 0.1.0
     devDependencies:
       "@done-coding/cli-inject":
         specifier: workspace:0.6.6
@@ -1213,6 +1216,13 @@ packages:
         integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==,
       }
     engines: { node: ">=12" }
+
+  "@done-coding/config-ui@0.1.0":
+    resolution:
+      {
+        integrity: sha512-oUm/NBKzM41q1gR0nUPmcmc9KuelDJsnGNqn5xnXb0Pruh1PKtW5MiQ78esjWds3KYPQxHsLHZtd+j48oAif/A==,
+      }
+    engines: { node: ">=18.0.0" }
 
   "@done-coding/output-core@0.1.2":
     resolution:
@@ -10495,6 +10505,10 @@ snapshots:
   "@cspotcode/source-map-support@0.8.1":
     dependencies:
       "@jridgewell/trace-mapping": 0.3.9
+
+  "@done-coding/config-ui@0.1.0":
+    dependencies:
+      ajv: 8.20.0
 
   "@done-coding/output-core@0.1.2": {}
 
