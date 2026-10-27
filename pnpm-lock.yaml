@@ -93,7 +93,7 @@ importers:
   packages/cli:
     dependencies:
       "@done-coding/cli-cc-switch":
-        specifier: workspace:0.4.0
+        specifier: workspace:0.4.1
         version: link:../cc-switch
       "@done-coding/cli-component":
         specifier: workspace:0.6.3
@@ -102,7 +102,7 @@ importers:
         specifier: workspace:0.2.6
         version: link:../config
       "@done-coding/cli-dex":
-        specifier: workspace:0.2.0
+        specifier: workspace:0.2.1
         version: link:../dex
       "@done-coding/cli-extract":
         specifier: workspace:0.2.7
@@ -287,7 +287,7 @@ importers:
   packages/dex:
     dependencies:
       "@done-coding/cli-cc-switch":
-        specifier: workspace:0.4.0
+        specifier: workspace:0.4.1
         version: link:../cc-switch
       "@done-coding/cli-generator":
         specifier: workspace:0.3.0
