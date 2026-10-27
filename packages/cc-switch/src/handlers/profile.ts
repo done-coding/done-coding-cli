@@ -1,6 +1,9 @@
 import { PROFILE_PATH, SETTINGS_PATH } from "@/utils/path";
 import {
   META_APIKEY_PREFIX,
+  META_ACCOUNT_PREFIX,
+  META_MIGRATE,
+  META_UI,
   META_GENERATE,
   META_HELP,
   META_MODELNAME_PREFIX,
@@ -28,11 +31,27 @@ export const parseArgv = (argv: string[]): ParsedArgv => {
   let apiKey: string | undefined;
   let modelName: string | undefined;
   let providerId: string | undefined;
+  let accountAlias: string | undefined;
   let action: MetaAction = "run";
   let silent = false;
   const passthrough: string[] = [];
 
+  const flags = new Map<string, MetaAction>([
+    [META_UI, "ui"],
+    [META_MIGRATE, "migrate"],
+    [META_PICK, "pick"],
+    [META_GENERATE, "generate"],
+    [META_PROVIDER_LIST, "providerlist"],
+    [META_MODEL_LIST, "modellist"],
+    [META_HELP, "help"],
+    [META_VERSION, "version"],
+  ]);
   for (const arg of argv) {
+    const flagAction = flags.get(arg);
+    if (flagAction) {
+      action = mergeAction(action, flagAction);
+      continue;
+    }
     if (arg.startsWith(META_PROFILE_PREFIX)) {
       // 多个 --meta-profile= 取最后一个生效；被消费项不透传
       profileName = arg.slice(META_PROFILE_PREFIX.length);
@@ -63,8 +82,10 @@ export const parseArgv = (argv: string[]): ParsedArgv => {
       // 选择器，不设 action（仅 setkey/addmodel 消费）
       continue;
     }
-    if (arg === META_PICK) {
-      action = mergeAction(action, "pick");
+    if (arg.startsWith(META_ACCOUNT_PREFIX)) {
+      accountAlias = arg.slice(META_ACCOUNT_PREFIX.length);
+      if (!accountAlias)
+        throw new Error(`${META_ACCOUNT_PREFIX} 需提供 account alias`);
       continue;
     }
     if (arg === META_SILENT) {
@@ -72,35 +93,28 @@ export const parseArgv = (argv: string[]): ParsedArgv => {
       silent = true;
       continue;
     }
-    if (arg === META_GENERATE) {
-      action = mergeAction(action, "generate");
-      continue;
-    }
-    if (arg === META_PROVIDER_LIST) {
-      action = mergeAction(action, "providerlist");
-      continue;
-    }
-    if (arg === META_MODEL_LIST) {
-      action = mergeAction(action, "modellist");
-      continue;
-    }
-    if (arg === META_HELP) {
-      action = mergeAction(action, "help");
-      continue;
-    }
-    if (arg === META_VERSION) {
-      action = mergeAction(action, "version");
-      continue;
-    }
     if (isUnknownMetaOption(arg)) {
       // REQ-1：命名空间归属声明——未知 meta 前缀 [MUST NOT] 透传 / 静默忽略
       throw new Error(
-        `未知 meta 选项：${arg}。可用选项：${META_PROFILE_PREFIX}<name>、${META_PICK}、${META_SILENT}、${META_GENERATE}、${META_APIKEY_PREFIX}<key>、${META_MODELNAME_PREFIX}<name>、${META_PROVIDER_PREFIX}<id>、${META_PROVIDER_LIST}、${META_MODEL_LIST}、${META_HELP}、${META_VERSION}`,
+        `未知 meta 选项：${arg}。可用选项：${META_UI}、${META_MIGRATE}、${META_ACCOUNT_PREFIX}<alias>、${META_PROFILE_PREFIX}<name>、${META_PICK}、${META_SILENT}、${META_GENERATE}、${META_APIKEY_PREFIX}<key>、${META_MODELNAME_PREFIX}<name>、${META_PROVIDER_PREFIX}<id>、${META_PROVIDER_LIST}、${META_MODEL_LIST}、${META_HELP}、${META_VERSION}`,
       );
     }
     passthrough.push(arg);
   }
 
+  if (
+    argv.includes(META_UI) &&
+    action !== "help" &&
+    action !== "version" &&
+    argv.some(
+      (arg) =>
+        arg.startsWith("--meta-") && arg !== META_UI && arg !== META_SILENT,
+    )
+  )
+    throw new Error(
+      "--meta-ui 不能与其他 meta 动作或 provider/account 选择器同时使用",
+    );
+  validateV2Options({ action, accountAlias, apiKey, modelName }, argv);
   validateParsedArgv({ action, apiKey, modelName, providerId });
 
   return {
@@ -109,9 +123,34 @@ export const parseArgv = (argv: string[]): ParsedArgv => {
     apiKey,
     modelName,
     providerId,
+    ...(accountAlias !== undefined ? { accountAlias } : {}),
     silent,
     passthrough,
   };
+};
+
+const validateV2Options = (
+  parsed: Pick<ParsedArgv, "action" | "accountAlias" | "apiKey" | "modelName">,
+  argv: string[],
+): void => {
+  const { action, accountAlias, apiKey, modelName } = parsed;
+  if (
+    action !== "help" &&
+    action !== "version" &&
+    argv.includes(META_MIGRATE) &&
+    (argv.includes(META_GENERATE) ||
+      apiKey !== undefined ||
+      modelName !== undefined)
+  ) {
+    throw new Error("--meta-migrate 不能与 --meta-generate / 源修改同时使用");
+  }
+  if (
+    accountAlias !== undefined &&
+    action !== "setkey" &&
+    action !== "help" &&
+    action !== "version"
+  )
+    throw new Error("--meta-account 仅用于 --meta-apiKey");
 };
 
 /**

@@ -1,6 +1,8 @@
 import { homedir } from "node:os";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { parseSettings, normalizeSettings } from "@done-coding/cli-cc-switch";
+import type { AnySettings } from "@done-coding/cli-cc-switch";
 import { xPrompts, outputConsole } from "@done-coding/cli-utils";
 import { DEX_REAL_DIR } from "@/init/symlink";
 
@@ -16,23 +18,6 @@ import { DEX_REAL_DIR } from "@/init/symlink";
  *  - models.json：{ providers: { <id>: { baseUrl, api, models } } }
  *  - auth.json：  { <providerId>: { type: "api_key", key } }
  */
-
-/** cc-switch settings.json 结构（dex 侧只读消费，自定契约、低耦合） */
-interface CcSwitchSettings {
-  providers: Record<
-    string,
-    {
-      name: string;
-      url: string;
-      apiKey: string;
-      models: Array<{
-        id: string;
-        name: string;
-        envExtraParams?: Record<string, string>;
-      }>;
-    }
-  >;
-}
 
 const CC_SWITCH_SETTINGS_PATH = path.join(
   homedir(),
@@ -107,22 +92,15 @@ const isDexConfigured = (): boolean => {
 };
 
 /** 读取 cc-switch settings.json；缺失/非法返回 null */
-const readCcSwitchSettings = (): CcSwitchSettings | null => {
+const readCcSwitchSettings = (): AnySettings | null => {
   if (!existsSync(CC_SWITCH_SETTINGS_PATH)) {
     return null;
   }
   try {
-    const raw = JSON.parse(
-      readFileSync(CC_SWITCH_SETTINGS_PATH, "utf-8"),
-    ) as CcSwitchSettings;
-    if (
-      !raw.providers ||
-      typeof raw.providers !== "object" ||
-      Object.keys(raw.providers).length === 0
-    ) {
-      return null;
-    }
-    return raw;
+    const settings = parseSettings(
+      JSON.parse(readFileSync(CC_SWITCH_SETTINGS_PATH, "utf-8")),
+    );
+    return normalizeSettings(settings).length ? settings : null;
   } catch {
     return null;
   }
@@ -143,7 +121,7 @@ const stripContextMarker = (name: string): string =>
  * 防止默认模型被环境残留的 ANTHROPIC_* 或内置模型目录干扰。
  */
 export const translate = (
-  settings: CcSwitchSettings,
+  settings: unknown,
 ): {
   models: unknown;
   auth: unknown;
@@ -154,7 +132,8 @@ export const translate = (
   const auth: Record<string, unknown> = {};
   let defaultProvider: string | undefined;
   let defaultModel: string | undefined;
-  for (const [id, provider] of Object.entries(settings.providers)) {
+  for (const provider of normalizeSettings(settings)) {
+    const { id } = provider;
     // 剥离 [1m] + 去重（[1m] 变体与同名模型合并）
     const modelIds = [
       ...new Set(provider.models.map((m) => stripContextMarker(m.name))),
@@ -188,8 +167,8 @@ export const importFromCcSwitch = async (): Promise<boolean> => {
     return false;
   }
 
-  const providerNames = Object.values(settings.providers)
-    .map((p) => p.name)
+  const providerNames = normalizeSettings(settings)
+    .map((p) => `${p.id}（${p.name}）`)
     .join("、");
   const { confirm } = await xPrompts({
     type: "confirm",

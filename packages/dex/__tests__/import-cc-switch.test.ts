@@ -132,3 +132,110 @@ describe("importFromCcSwitch（集成）", () => {
     expect(imported).toBe(false);
   });
 });
+
+const V2_SETTINGS = {
+  version: 2,
+  providers: [
+    {
+      uuid: "00000000-0000-4000-8000-000000000001",
+      alias: "ark-agent-plan",
+      name: "方舟",
+      url: "https://example.test/anthropic",
+      accounts: [
+        {
+          uuid: "00000000-0000-4000-8000-000000000002",
+          alias: "157",
+          apiKey: "test-157",
+        },
+        {
+          uuid: "00000000-0000-4000-8000-000000000003",
+          alias: "199",
+          apiKey: "test-199",
+        },
+      ],
+      models: [
+        {
+          uuid: "00000000-0000-4000-8000-000000000004",
+          alias: "m",
+          name: "model[1m]",
+        },
+        {
+          uuid: "00000000-0000-4000-8000-000000000005",
+          alias: "m2",
+          name: "model",
+        },
+      ],
+    },
+  ],
+};
+
+describe("settings v2 多账号导入", () => {
+  it("每个账号分别写 provider/auth，模型名去标记并去重", () => {
+    const translated = mod.translate(V2_SETTINGS);
+    expect(translated.models).toEqual({
+      providers: {
+        "ark-agent-plan-157": {
+          baseUrl: "https://example.test/anthropic",
+          api: "anthropic-messages",
+          models: [{ id: "model" }],
+        },
+        "ark-agent-plan-199": {
+          baseUrl: "https://example.test/anthropic",
+          api: "anthropic-messages",
+          models: [{ id: "model" }],
+        },
+      },
+    });
+    expect(translated.auth).toEqual({
+      "ark-agent-plan-157": { type: "api_key", key: "test-157" },
+      "ark-agent-plan-199": { type: "api_key", key: "test-199" },
+    });
+    expect(translated.defaultProvider).toBe("ark-agent-plan-157");
+    expect(translated.defaultModel).toBe("model");
+  });
+  it("v2 单 apiKey 保持 provider alias", () => {
+    const s = structuredClone(V2_SETTINGS);
+    delete s.providers[0].accounts;
+    s.providers[0].apiKey = "test-single";
+    expect(mod.translate(s).auth).toEqual({
+      "ark-agent-plan": { type: "api_key", key: "test-single" },
+    });
+  });
+  it("共享校验拒绝缺 UUID 与展开 id 冲突", () => {
+    const missing = structuredClone(V2_SETTINGS);
+    delete missing.providers[0].uuid;
+    expect(() => mod.translate(missing)).toThrow(/uuid/);
+    const s = structuredClone(V2_SETTINGS);
+    s.providers.push({
+      ...s.providers[0],
+      uuid: "00000000-0000-4000-8000-000000000099",
+      alias: "ark-agent",
+      accounts: [
+        {
+          uuid: "00000000-0000-4000-8000-000000000003",
+          alias: "plan-157",
+          apiKey: "other",
+        },
+      ],
+      models: [
+        {
+          uuid: "00000000-0000-4000-8000-000000000004",
+          alias: "other",
+          name: "other",
+        },
+      ],
+    });
+    expect(() => mod.translate(s)).toThrow(/冲突/);
+  });
+  it("读取 v2 源文件后授权导入，实际落盘保留两个账号", async () => {
+    fs.rmSync(path.dirname(DEX_MODELS_PATH()), {
+      recursive: true,
+      force: true,
+    });
+    fs.writeFileSync(CC_SWITCH_SETTINGS_PATH(), JSON.stringify(V2_SETTINGS));
+    expect(await mod.importFromCcSwitch()).toBe(true);
+    const auth = JSON.parse(fs.readFileSync(DEX_AUTH_PATH(), "utf8"));
+    expect(auth["ark-agent-plan-157"].key).toBe("test-157");
+    expect(auth["ark-agent-plan-199"].key).toBe("test-199");
+  });
+});
