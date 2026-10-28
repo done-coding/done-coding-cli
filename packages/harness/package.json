@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-harness",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "done-coding 工作区治理（harness-workspace）工具：治理清单 / 治理闸 / 跨仓 issue",
   "private": false,
   "module": "es/index.mjs",

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-cc-switch@0.4.1...@done-coding/cli-cc-switch@0.5.0) (2026-10-28)
+
+### Features
+
+- **harness:** issue 内容家目录路径替换为 ~；修复 cc-switch meta-ui 拒绝软链家目录 ([#54](https://github.com/done-coding/done-coding-cli/issues/54)) ([8f1e47d](https://github.com/done-coding/done-coding-cli/commit/8f1e47db3c39b2c2b09af708abf6ca8b62e616e7))
+
 ## [0.4.1](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-cc-switch@0.4.0...@done-coding/cli-cc-switch@0.4.1) (2026-10-27)
 
 **Note:** Version bump only for package @done-coding/cli-cc-switch
