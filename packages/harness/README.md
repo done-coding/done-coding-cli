@@ -90,6 +90,7 @@ dc-harness issue template-hub -t "模板缺少 apps/ 工作区配置" -s monorep
 - 在目标仓 `issue/` 写入 `<id>-<slug>.md`（frontmatter：`id` / `title` / `created` / `from`），重生成其 `ISSUE.md`，并在目标仓**只提交这两个文件**。
 - 目标仓 `ISSUE.md` 有未提交改动、或注册表中该仓未开收件箱时拒绝。
 - `-f` 指定来源仓名，缺省取当前 git 仓目录名。
+- 写入前将标题与正文中的当前用户家目录（`os.homedir()`，其后为 `/` 或字符串结束）替换为 `~`；有替换时输出总处数，正文源文件不改。
 
 ## scope：仓库注册表
 

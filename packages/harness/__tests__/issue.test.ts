@@ -2,10 +2,17 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { outputConsole, safeCwd } from "@done-coding/cli-utils";
 import { fileIssue } from "@/core/issue";
+import { handler } from "@/handlers/issue";
 import { diffLists, writeLists } from "@/core/lists";
 import { cleanup } from "./helpers";
+
+vi.mock("@done-coding/cli-utils", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@done-coding/cli-utils")>()),
+  safeCwd: vi.fn(),
+}));
 
 const GIT_ENV = {
   ...process.env,
@@ -18,7 +25,10 @@ const git = (cwd: string, ...args: string[]) =>
   execFileSync("git", args, { cwd, encoding: "utf-8", env: GIT_ENV }).trim();
 
 let repo = "";
-afterEach(() => cleanup(repo));
+afterEach(() => {
+  vi.restoreAllMocks();
+  cleanup(repo);
+});
 
 /** 临时目标仓：启用 issue/ 的治理目录 + 已提交的清单 + 一处他人在途改动 */
 const makeTargetRepo = (): string => {
@@ -45,6 +55,46 @@ const params = (targetRoot: string) => ({
 });
 
 describe("fileIssue", () => {
+  it.each([
+    ["/home/test.user/project /home/test.user", "~/project ~", 2],
+    [
+      "/home/test.userX /home/test.user-old",
+      "/home/test.userX /home/test.user-old",
+      0,
+    ],
+    ["/home/testXuser/project", "/home/testXuser/project", 0],
+    [
+      "/home/other/project 与 ~/existing",
+      "/home/other/project 与 ~/existing",
+      0,
+    ],
+    ["/home/test.user\n下一行", "/home/test.user\n下一行", 0],
+  ])("按字面与路径边界替换正文：%s", (body, expected, count) => {
+    const target = makeTargetRepo();
+    Object.assign(process.env, GIT_ENV);
+    const result = fileIssue({ ...params(target), body }, "/home/test.user");
+    expect(fs.readFileSync(result.file, "utf-8").split("---\n\n")[1]).toBe(
+      `${expected}\n`,
+    );
+    expect(result.homeReplacements).toBe(count);
+  });
+
+  it("标题同样替换，生成的清单也使用替换后的标题", () => {
+    const target = makeTargetRepo();
+    Object.assign(process.env, GIT_ENV);
+    const result = fileIssue(
+      { ...params(target), title: "/home/test/project 与 /home/test" },
+      "/home/test",
+    );
+    expect(fs.readFileSync(result.file, "utf-8")).toContain(
+      "title: ~/project 与 ~\n",
+    );
+    expect(
+      fs.readFileSync(path.join(target, "docs/governance/ISSUE.md"), "utf-8"),
+    ).toContain("~/project 与 ~");
+    expect(result.homeReplacements).toBe(2);
+  });
+
   it("写 issue 文件 + 重生 ISSUE.md，且只提交这两个文件", () => {
     const target = makeTargetRepo();
     Object.assign(process.env, GIT_ENV);
@@ -99,4 +149,35 @@ describe("fileIssue", () => {
     fs.rmSync(path.join(target, "docs/governance/issue"), { recursive: true });
     expect(() => fileIssue(params(target))).toThrow(/未启用 issue/);
   });
+});
+
+describe("issue handler", () => {
+  it.each([true, false])(
+    "源文件不变，仅有替换时提示（替换=%s）",
+    async (replace) => {
+      const target = makeTargetRepo();
+      Object.assign(process.env, GIT_ENV);
+      vi.mocked(safeCwd).mockReturnValue(target);
+      vi.spyOn(os, "homedir").mockReturnValue("/home/test");
+      const log = vi.spyOn(outputConsole, "info").mockImplementation(() => {});
+      const body = replace ? "记录 /home/test/project\n" : "记录 ~/project\n";
+      const bodyFile = path.join(target, "body.md");
+      fs.writeFileSync(bodyFile, body);
+      const result = await handler({
+        ...params(target),
+        target,
+        title: replace ? "查看 /home/test" : "查看项目",
+        bodyFile,
+      } as Parameters<typeof handler>[0]);
+      expect(fs.readFileSync(bodyFile, "utf-8")).toBe(body);
+      expect(fs.readFileSync(result.file, "utf-8")).toContain(
+        "记录 ~/project\n",
+      );
+      expect(
+        log.mock.calls
+          .flat()
+          .filter((line) => String(line).includes("处本机家目录路径")),
+      ).toEqual(replace ? ["已将 2 处本机家目录路径替换为 ~"] : []);
+    },
+  );
 });

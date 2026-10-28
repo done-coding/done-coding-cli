@@ -60,7 +60,7 @@ generate 重建前读取旧 profile 名，成功写入后输出移除/新增名�
 
 批 B 使用已安装发布版 `@done-coding/config-ui@0.1.0`（MIT），依据其 README、types 及 editor DESIGN 契约。因其 Schema 子集不支持引用、组合和 readOnly，从随包 Schema 选取服务商/账号/模型的可编辑字段组成表单视图；UUID、默认引用、任意 env 键与版本字段不声明，靠原值保留和 arrayOrigins 维持行身份。非空双凭据、唯一性与默认引用仍交原 v2 校验。
 
-config-ui 前端将缺失对象数组初始化为 []。UI 提交先把有单密钥的空 accounts 移除、把非空 accounts 下的空字符串 apiKey 移除，再 assignMissingUuids → 校验/编译 → 原子写 settings → 重建 profile。两份文件使用 fs/promises、600 临时文件和 rename，写前拒绝软链与越界；重建共享现有编译器和改名提示。第二份写入失败时报告 settings 已保存并提示 --meta-generate，不承诺双文件事务。
+config-ui 前端将缺失对象数组初始化为 []。UI 提交先把有单密钥的空 accounts 移除、把非空 accounts 下的空字符串 apiKey 移除，再 assignMissingUuids → 校验/编译 → 原子写 settings → 重建 profile。两份文件使用 fs/promises、600 临时文件和 rename；同步与异步包装共享纯路径判定，允许命名空间目录软链，root 的 realpath 须严格位于命名空间 realpath 内，目标父目录 realpath 须等于 root realpath；拒绝可疑根及目标文件软链、非普通文件与 realpath 越界；重建共享现有编译器和改名提示。第二份写入失败时报告 settings 已保存并提示 --meta-generate，不承诺双文件事务。
 
 --meta-ui 与其他 meta 动作和 provider/account 选择器互斥，help/version 仍优先。v1 启动拒绝并提示 --meta-migrate，不隐式迁移。每次打印 URL，非 TTY openBrowser:false；字段校验在页面可重试，语义/保存失败或默认 5 分钟超时由 CLI 非零退出，成功保存并重建后退出 0。沿用上游超时不能撤回已开始回调副作用的限制。
 

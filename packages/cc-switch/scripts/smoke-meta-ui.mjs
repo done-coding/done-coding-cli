@@ -97,7 +97,10 @@ async function runWithoutUI(args) {
   return session.done;
 }
 try {
-  await fs.mkdir(root, { recursive: true });
+  // 模拟 dotfiles 管理的命名空间软链，真实 cc-switch 目录位于其下。
+  const namespace = path.join(home, "dotfiles", ".done-coding");
+  await fs.mkdir(path.join(namespace, "cc-switch"), { recursive: true });
+  await fs.symlink(namespace, path.join(home, ".done-coding"));
   const original = fixture();
   await write(original);
   assert.equal((await runWithoutUI(["--meta-generate"])).code, 0);
@@ -214,7 +217,7 @@ try {
   assert.equal(legacy.code, 1);
   assert.match(legacy.stderr, /--meta-migrate/);
   process.stdout.write(
-    "meta-ui 冒烟通过：成功退出 0；语义校验与 v1 退出 1；UUID/默认引用/600/重建字节/改名提示全部通过。\n",
+    "meta-ui 冒烟通过（命名空间软链）：成功退出 0；语义校验与 v1 退出 1；UUID/默认引用/600/重建字节/改名提示全部通过。\n",
   );
 } finally {
   for (const child of children) {
