@@ -133,6 +133,88 @@ const unchangedOrigins = () =>
   ]);
 
 describe("meta-ui 真实 HTTP 会话（临时 HOME，禁开浏览器）", () => {
+  it.each([false, true])(
+    "命名空间软链允许迁移和 UI 保存，profile 缺失=%s",
+    async (missingProfile) => {
+      const namespace = path.join(h.home, ".done-coding");
+      const realNamespace = path.join(h.home, `dotfiles-${missingProfile}`);
+      await fs.rename(namespace, realNamespace);
+      await fs.symlink(realNamespace, namespace);
+      await write({
+        providers: {
+          p: {
+            name: "P",
+            url: "https://example.test",
+            apiKey: "test-key",
+            models: [{ id: "m", name: "M" }],
+          },
+        },
+      });
+      const { migrateSettingsFile } = await import("@/utils/migrate");
+      const { backupPath } = migrateSettingsFile();
+      const realRoot = path.join(realNamespace, "cc-switch");
+      expect(await fs.realpath(settingsPath)).toBe(
+        path.join(await fs.realpath(realRoot), "settings.json"),
+      );
+      expect((await fs.stat(settingsPath)).mode & 0o777).toBe(0o600);
+      expect((await fs.stat(backupPath!)).mode & 0o777).toBe(0o600);
+      if (missingProfile) await fs.unlink(profilePath);
+      const { form, submit, result } = await start();
+      form.value.providers[0].name = "Updated via UI";
+      expect(
+        (
+          await submit(form.value, {
+            "/providers": [0],
+            "/providers/0/models": [0],
+            "/providers/0/accounts": [],
+          })
+        ).status,
+      ).toBe(200);
+      expect(await result).toBeUndefined();
+      expect((await read()).providers[0].name).toBe("Updated via UI");
+      expect(Object.keys((await read(profilePath)).profiles)).toEqual(["p-m"]);
+      for (const name of ["settings.json", "profile.json"]) {
+        const realFile = path.join(await fs.realpath(realRoot), name);
+        expect(
+          await fs.realpath(path.join(path.dirname(settingsPath), name)),
+        ).toBe(realFile);
+        expect((await fs.stat(realFile)).mode & 0o777).toBe(0o600);
+      }
+    },
+  );
+  it("root 软链到命名空间外时迁移和 UI 启动都拒绝，外部不变", async () => {
+    await write({
+      providers: {
+        p: {
+          name: "P",
+          url: "u",
+          apiKey: "test-key",
+          models: [{ id: "m", name: "M" }],
+        },
+      },
+    });
+    const root = path.dirname(settingsPath);
+    const outside = path.join(h.home, "outside-root");
+    await fs.rename(root, outside);
+    await fs.symlink(outside, root);
+    const before = await Promise.all(
+      [settingsPath, profilePath].map((file) => fs.readFile(file)),
+    );
+    const { migrateSettingsFile } = await import("@/utils/migrate");
+    expect(() => migrateSettingsFile()).toThrow(/符号链接|越界/);
+    await expect(runMetaUI({ openBrowser: false })).rejects.toThrow(
+      /符号链接|越界/,
+    );
+    expect(
+      await Promise.all(
+        [settingsPath, profilePath].map((file) => fs.readFile(file)),
+      ),
+    ).toEqual(before);
+    expect((await fs.readdir(outside)).sort()).toEqual([
+      "profile.json",
+      "settings.json",
+    ]);
+  });
   it("删中间行 / 新增 / 改别名后 UUID 随行，未知值保留且默认引用解析为新 profile", async () => {
     const { form, submit, result } = await start();
     const providerSchema = form.schema.properties.providers.items;

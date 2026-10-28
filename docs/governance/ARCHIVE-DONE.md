@@ -3,7 +3,7 @@
 > 文档定位：快照型清单 · **[MUST] 由 `scripts/governance-lists.py` 重生成，[MUST NOT] 手工维护**
 > 归档目录 [MUST] 只留 `PROGRESS.md`（条目正文交付时删除）。
 
-共 **20** 个已交付批次。
+共 **22** 个已交付批次。
 
 | 批次 | 所涉领域 | 交付记录 |
 |---|---|---|
@@ -21,6 +21,8 @@
 | `oywqvv-cc-switch-settings-v2` | cc-switch · dex | [PROGRESS](archive/oywqvv-cc-switch-settings-v2/PROGRESS.md) |
 | `p04o9a-cli-harness-impl` |  | [PROGRESS](archive/p04o9a-cli-harness-impl/PROGRESS.md) |
 | `pqvn2w-instruction-gate` | cli-skills · harness | [PROGRESS](archive/pqvn2w-instruction-gate/PROGRESS.md) |
+| `q8m4vx-cc-switch-symlinked-home` | cc-switch | [PROGRESS](archive/q8m4vx-cc-switch-symlinked-home/PROGRESS.md) |
+| `r8m2qx-issue-home-tilde` | harness | [PROGRESS](archive/r8m2qx-issue-home-tilde/PROGRESS.md) |
 | `s12mli-development-rules-migrate` | harness | [PROGRESS](archive/s12mli-development-rules-migrate/PROGRESS.md) |
 | `v6jcsk-create-template-config` | create | [PROGRESS](archive/v6jcsk-create-template-config/PROGRESS.md) |
 | `wugnnx-cli-harness-skeleton` | harness | [PROGRESS](archive/wugnnx-cli-harness-skeleton/PROGRESS.md) |

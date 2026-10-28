@@ -14,31 +14,51 @@ const isInside = (root: string, target: string): boolean => {
   );
 };
 
-/** 一次性 CLI 写盘：受控配置目录下的普通文件，拒绝符号链接目标与目录逃逸。 */
-export const assertSettingsTarget = (root: string, target: string): void => {
+/** 路径策略由同步 CLI 与异步 UI 共用；I/O 留在各自包装中。 */
+const settingsRoot = (root: string, target: string, home: string): string => {
   const absRoot = path.resolve(root);
   if (
     absRoot === path.parse(absRoot).root ||
-    absRoot === os.homedir() ||
+    absRoot === home ||
     !isInside(absRoot, path.resolve(target))
-  ) {
+  )
     throw new Error("settings 写入目标越界或为可疑根");
-  }
-  const realRoot = fs.realpathSync(absRoot);
-  // root 的父目录（命名空间）也是控制边界，不能经 root 软链逃到外部。
-  const realParent = fs.realpathSync(path.dirname(absRoot));
+  return absRoot;
+};
+
+const assertSettingsDirectories = (
+  realRoot: string,
+  realParent: string,
+  realTargetParent: string,
+): void => {
+  // 命名空间允许软链；root 的真实路径仍须在命名空间真实路径之内。
   if (!isInside(realParent, realRoot))
     throw new Error("settings 目录符号链接越界");
-  const realTargetParent = fs.realpathSync(path.dirname(target));
   if (realTargetParent !== realRoot) throw new Error("settings 写入目录越界");
+};
+
+const assertSettingsFileType = (stat: fs.Stats): void => {
+  if (stat.isSymbolicLink() || !stat.isFile())
+    throw new Error("settings 目标符号链接或越界");
+};
+
+const assertSettingsFilePath = (realRoot: string, realTarget: string): void => {
+  if (!isInside(realRoot, realTarget))
+    throw new Error("settings 目标符号链接或越界");
+};
+
+/** 一次性 CLI 写盘：受控配置目录下的普通文件，拒绝符号链接目标与目录逃逸。 */
+export const assertSettingsTarget = (root: string, target: string): void => {
+  const absRoot = settingsRoot(root, target, os.homedir());
+  const realRoot = fs.realpathSync(absRoot);
+  assertSettingsDirectories(
+    realRoot,
+    fs.realpathSync(path.dirname(absRoot)),
+    fs.realpathSync(path.dirname(target)),
+  );
   try {
-    const stat = fs.lstatSync(target);
-    if (
-      stat.isSymbolicLink() ||
-      !stat.isFile() ||
-      !isInside(realRoot, fs.realpathSync(target))
-    )
-      throw new Error("settings 目标符号链接或越界");
+    assertSettingsFileType(fs.lstatSync(target));
+    assertSettingsFilePath(realRoot, fs.realpathSync(target));
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
   }
@@ -79,36 +99,16 @@ export const assertSettingsTargetAsync = async (
   root: string,
   target: string,
 ): Promise<void> => {
-  const absRoot = path.resolve(root);
-  if (
-    absRoot === path.parse(absRoot).root ||
-    absRoot === os.homedir() ||
-    !isInside(absRoot, path.resolve(target))
-  )
-    throw new Error("settings 写入目标越界或为可疑根");
-  const [realRoot, realParent, realTargetParent, rootStat, parentStat] =
-    await Promise.all([
-      asyncFs.realpath(absRoot),
-      asyncFs.realpath(path.dirname(absRoot)),
-      asyncFs.realpath(path.dirname(target)),
-      asyncFs.lstat(absRoot),
-      asyncFs.lstat(path.dirname(absRoot)),
-    ]);
-  if (
-    rootStat.isSymbolicLink() ||
-    parentStat.isSymbolicLink() ||
-    !isInside(realParent, realRoot)
-  )
-    throw new Error("settings 目录符号链接或越界");
-  if (realTargetParent !== realRoot) throw new Error("settings 写入目录越界");
+  const absRoot = settingsRoot(root, target, os.homedir());
+  const [realRoot, realParent, realTargetParent] = await Promise.all([
+    asyncFs.realpath(absRoot),
+    asyncFs.realpath(path.dirname(absRoot)),
+    asyncFs.realpath(path.dirname(target)),
+  ]);
+  assertSettingsDirectories(realRoot, realParent, realTargetParent);
   try {
-    const stat = await asyncFs.lstat(target);
-    if (
-      stat.isSymbolicLink() ||
-      !stat.isFile() ||
-      !isInside(realRoot, await asyncFs.realpath(target))
-    )
-      throw new Error("settings 目标符号链接或越界");
+    assertSettingsFileType(await asyncFs.lstat(target));
+    assertSettingsFilePath(realRoot, await asyncFs.realpath(target));
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
   }

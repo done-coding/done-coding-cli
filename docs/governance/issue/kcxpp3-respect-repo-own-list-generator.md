@@ -16,7 +16,7 @@ from: blueprint
 
 ## 复现
 
-1. 在 `/Users/supengfei/Documents/code/done-coding/done-coding-admin` 跑 `dc-harness check --dir docs/governance`：报「元闸：… 含未登记领域」，而 `node docs/governance/gen-lists.mjs --check` 全过。
+1. 在 `~/Documents/code/done-coding/done-coding-admin` 跑 `dc-harness check --dir docs/governance`：报「元闸：… 含未登记领域」，而 `node docs/governance/gen-lists.mjs --check` 全过。
 2. 跑 `dc-harness lists --dir docs/governance`：五份清单全部被改写成 dc-harness 格式。
 
 ## 建议（供分诊参考，由接收方定）

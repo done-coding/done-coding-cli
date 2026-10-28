@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { randomInt } from "node:crypto";
 import { execFileSync } from "node:child_process";
@@ -71,16 +72,36 @@ export interface FileIssueResult {
   file: string;
   /** 目标仓提交 sha（短） */
   sha: string;
+  /** 标题与正文中替换的本机家目录路径总数 */
+  homeReplacements: number;
 }
 
 /**
  * 向另一个仓的治理收件箱提 issue：生成 id → 写 issue 文件 → 按目标仓生成器重生 `ISSUE.md`
  * → 在目标仓**只提交这两个文件**（显式 pathspec，不卷入目标仓其它在途改动）。
  */
-export const fileIssue = (params: FileIssueParams): FileIssueResult => {
+export const fileIssue = (
+  params: FileIssueParams,
+  home = os.homedir(),
+): FileIssueResult => {
   const { targetRoot, from, slug } = params;
-  const title = params.title.trim();
-  const body = params.body.trim();
+  let homeReplacements = 0;
+  const replaceHome = (text: string): string => {
+    if (!home) return text;
+    return text
+      .split(home)
+      .map((part, index) => {
+        if (index === 0) return part;
+        if (part === "" || part.startsWith("/")) {
+          homeReplacements++;
+          return `~${part}`;
+        }
+        return home + part;
+      })
+      .join("");
+  };
+  const title = replaceHome(params.title).trim();
+  const body = replaceHome(params.body).trim();
   if (!title || /[\r\n]/.test(title)) throw new Error("title 须为非空单行");
   if (!SLUG_PATTERN.test(slug)) {
     throw new Error(`slug 须为小写字母数字、以 - 连接：${slug}`);
@@ -123,7 +144,12 @@ export const fileIssue = (params: FileIssueParams): FileIssueResult => {
     fileRel,
     listRel,
   ]);
-  return { id, file, sha: git(targetRoot, ["rev-parse", "--short", "HEAD"]) };
+  return {
+    id,
+    file,
+    sha: git(targetRoot, ["rev-parse", "--short", "HEAD"]),
+    homeReplacements,
+  };
 };
 
 /** 取某目录所属 git 仓的根目录名（作来源仓名） */
