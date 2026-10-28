@@ -55,6 +55,11 @@ export const handler = async (argv: CliHandlerArgv<IssueOptions>) => {
     slug: argv.slug,
     body: fs.readFileSync(path.resolve(cwd, argv.bodyFile), "utf-8"),
   });
+  if (result.homeReplacements > 0) {
+    outputConsole.info(
+      `已将 ${result.homeReplacements} 处本机家目录路径替换为 ~`,
+    );
+  }
   outputConsole.success(
     `已提 issue ${result.id} → ${result.file}（目标仓提交 ${result.sha}）`,
   );

@@ -11,10 +11,11 @@
 - `check` 并行闸豁免按 skill 批次串：`PROGRESS.md` 的 `after` 链（批次 id = 目录名前缀），同链前驱 / 后继相交不报；after 悬空（schedule ∪ archive 无）/ 分叉 / 成环即违规。
 - `check` 仓间唯一差异 = 领域表来源：`<项目根>/.done-coding/harness/governance/config.json` 的 `domains: { file, section? }`，缺省治理目录下 `MODULES.md` 全文；`governanceDir` 缺省 `docs/governance`，`--dir` 优先。
 - `issue` 经 `git` 子进程在目标仓只提交 issue 文件 + `ISSUE.md`；目标 `ISSUE.md` 有未提交改动即拒绝。目标可写仓名：已存在目录按路径用，否则查注册表，`issueInbox` 为 null 即拒绝。
+- `issue` 写入前把 title 与正文中的当前用户家目录（`os.homedir()`，后接 `/` 或字符串结束）替换为 `~`，不改源文件；仅有替换时在 stdout 提示合计处数。
 - `scope`：注册表 `~/.done-coding/harness/scope/<转义键>/repo.json`（`DC_HARNESS_SCOPE_DIR` 可覆盖）；`check` 校验字段 / path 存在 / 目录名与 path 键一致 / 收件箱存在 / name 唯一；`register` 登记当前 git 仓，收件箱按治理目录下有无 `issue/` 推出，撞键拒绝覆盖。
 - 本仓接入：根 `package.json` 的 `gov:lists` / `gov:check` 直跑 `packages/harness/es/`；全新 clone 先 `pnpm -F "@done-coding/cli-harness..." build`。injectInfo 在 vite.config 内经 `generateFile` 生成，不依赖 `dc-inject` bin。
 - `instructions [--json]`：Git 根 cwd-only；Git 跟踪文件的工作树内容，单文件预算 root 16384 B / nested 8192 B，链路 chain 32768 B；兼容入口须为普通文件且首个非空行导入 AGENTS.md。配置 `instructions.budget` / Git glob `exclude` / `gate`（默认 false，true 并入 check）；独立命令无需治理目录。
-- 测试：vitest 39 例（夹具全在临时目录，issue 用临时 git 仓，scope 用临时注册表）。
+- 测试：vitest 47 例（夹具全在临时目录，issue 用临时 git 仓与注入 / mock 的 home，scope 用临时注册表）。
 
 ## 业务快照
 
