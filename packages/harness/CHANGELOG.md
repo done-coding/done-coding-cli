@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.1-alpha.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-harness@0.2.0...@done-coding/cli-harness@0.2.1-alpha.0) (2026-10-28)
+
+### Features
+
+- **harness:** issue 内容家目录路径替换为 ~；修复 cc-switch meta-ui 拒绝软链家目录 ([#53](https://github.com/done-coding/done-coding-cli/issues/53)) ([fd12198](https://github.com/done-coding/done-coding-cli/commit/fd12198e18e7316fa2924c16bf9ed74fcd7cc71a))
+
 # [0.2.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-harness@0.1.0...@done-coding/cli-harness@0.2.0) (2026-10-26)
 
 ### Features

@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-dex",
-  "version": "0.2.1",
+  "version": "0.2.2-alpha.0",
   "description": "done-coding智能体",
   "private": false,
   "module": "es/index.mjs",
@@ -59,7 +59,7 @@
     "vitest": "^1.6.1"
   },
   "dependencies": {
-    "@done-coding/cli-cc-switch": "workspace:0.4.1",
+    "@done-coding/cli-cc-switch": "workspace:0.4.2-alpha.0",
     "@done-coding/cli-generator": "workspace:0.3.0",
     "@done-coding/cli-utils": "workspace:0.13.0",
     "@earendil-works/pi-coding-agent": "0.84.1",
