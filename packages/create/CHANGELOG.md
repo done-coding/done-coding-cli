@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.18.1-alpha.0](https://github.com/done-coding/done-coding-cli/compare/create-done-coding@0.18.0...create-done-coding@0.18.1-alpha.0) (2026-11-04)
+
+**Note:** Version bump only for package create-done-coding
+
 # [0.18.0](https://github.com/done-coding/done-coding-cli/compare/create-done-coding@0.17.0...create-done-coding@0.18.0) (2026-10-24)
 
 ### Features

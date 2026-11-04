@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.6.1-alpha.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.6.0...@done-coding/cli-skills@0.6.1-alpha.0) (2026-11-04)
+
+**Note:** Version bump only for package @done-coding/cli-skills
+
 # [0.6.0](https://gitee.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.5.0...@done-coding/cli-skills@0.6.0) (2026-10-26)
 
 ### Features
