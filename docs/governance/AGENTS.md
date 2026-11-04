@@ -41,5 +41,5 @@ parent: "" # 拆批 / 冻结期改需求时填父条目 id
 
 ## 调度领域 `release`
 
-- 唯一职责 = 发版串行点（lerna publish：PR 合入 `release` 分支后由 CI `release-publish.yml` 执行），发版需当轮单独授权；[MUST NOT] 兼管登记 / 划批 / 收口（谁开谁关）。
+- 唯一职责 = 发版串行点（lerna publish：PR 合入 `release` 分支后由 CI `oidc-release.yml` 执行），发版需当轮单独授权；[MUST NOT] 兼管登记 / 划批 / 收口（谁开谁关）。
 - 承接会话一次性，[MUST NOT] 常驻。

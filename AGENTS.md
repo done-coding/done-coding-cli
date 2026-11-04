@@ -86,4 +86,4 @@ WHEN 写 / 审 cli 仓涉文件系统的代码：
 
 ## 发布
 
-- 发版 = PR 合入 `release` 分支后由 CI（`.github/workflows/release-publish.yml`）执行 lerna publish；PR 合入 master 用 merge commit（[MUST NOT] squash，lerna 按逐条 conventional commit 定版本）。[MUST NOT] 在常规任务中发布；发布需另行单次明文授权（push 永不豁免）。
+- 发版 = PR 合入 `release` 分支后由 CI（`.github/workflows/oidc-release.yml`）执行 lerna version 与 publish from-package；PR 合入 master 用 merge commit（[MUST NOT] squash，lerna 按逐条 conventional commit 定版本）。[MUST NOT] 在常规任务中发布；发布需另行单次明文授权（push 永不豁免）。

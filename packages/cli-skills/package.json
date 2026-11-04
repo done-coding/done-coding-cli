@@ -33,7 +33,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@gitee.com:done-coding/done-coding-cli.git"
+    "url": "https://github.com/done-coding/done-coding-cli.git"
   },
   "publishConfig": {
     "access": "public",
