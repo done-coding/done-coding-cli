@@ -3,7 +3,7 @@
 > 文档定位：快照型清单 · **[MUST] 由 `scripts/governance-lists.py` 重生成，[MUST NOT] 手工维护**
 > 归档目录 [MUST] 只留 `PROGRESS.md`（条目正文交付时删除）。
 
-共 **22** 个已交付批次。
+共 **23** 个已交付批次。
 
 | 批次 | 所涉领域 | 交付记录 |
 |---|---|---|
@@ -12,6 +12,7 @@
 | `5p64zz-cc-switch-meta-ui` | cc-switch | [PROGRESS](archive/5p64zz-cc-switch-meta-ui/PROGRESS.md) |
 | `6mdb0n-unify-cli-entry` | cli-skills · create · generator · harness | [PROGRESS](archive/6mdb0n-unify-cli-entry/PROGRESS.md) |
 | `7b8nlh-lerna-ignore-skill-md` | cli-skills | [PROGRESS](archive/7b8nlh-lerna-ignore-skill-md/PROGRESS.md) |
+| `b0tdff-npm-oidc-publishing` | cli-skills · utils | [PROGRESS](archive/b0tdff-npm-oidc-publishing/PROGRESS.md) |
 | `c6xc3c-settle-live-specs` | cc-switch · create · generator | [PROGRESS](archive/c6xc3c-settle-live-specs/PROGRESS.md) |
 | `ek4duc-plugin-manifests-docs` | cli-skills · create · harness | [PROGRESS](archive/ek4duc-plugin-manifests-docs/PROGRESS.md) |
 | `fqrlh8-harness-after-chain` | harness | [PROGRESS](archive/fqrlh8-harness-after-chain/PROGRESS.md) |

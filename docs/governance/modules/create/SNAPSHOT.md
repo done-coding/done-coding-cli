@@ -4,7 +4,7 @@
 
 ## 技术快照
 
-- 版本 0.17.0（2026-10-23 发布）。两条执行路径：交互（`interactiveCreateHandler`）与 prepare / complete（非交互、MCP）。
+- 当前版本以 `packages/create/package.json` 与 `cbec4c9` 的 tag 为准。两条执行路径：交互（`interactiveCreateHandler`）与 prepare / complete（非交互、MCP）。
 - 命令入口：`done-coding create` ↔ `dc-create`，参数一致；保留 `create-done-coding` / `npm create done-coding`（两个 bin 指向同一 `es/cli.mjs`）。
 - 完成提示：`cd <项目名>` + 模板 `usageSteps`（缺省 `pnpm install` / `pnpm run dev`），在模板配置被编译删除前读取；complete 返回值带 `usageSteps`。
 - `template-config [path]`：模板清单指针（`~/.done-coding/create/index.json` 的 `configPath`）的查看 / 登记 / `--unset` 清除；登记前校验清单存在且 `templateList` 为数组，原子写、保留其它字段。指针是 create 内部约定，外部（模板仓根脚本等）经本命令登记。

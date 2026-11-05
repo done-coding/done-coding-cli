@@ -4,7 +4,7 @@
 
 ## 技术与业务快照
 
-- 包版本字段仍为 0.2.0，依赖 cc-switch `workspace:0.4.0`；本批适配未发布。
+- cc-switch v1 / v2 与多账号适配已发布；当前版本与精确 workspace 依赖以 `packages/dex/package.json` 为准，发布版本见 `cbec4c9` 的 tag。
 - 首次启动：已有模型 / 凭据配置即跳过；发现有效 cc-switch settings 后询问授权，再一次性写入 coding-agent models.json / auth.json 和默认模型。
 - 读取复用 cc-switch 的 parseSettings / normalizeSettings，支持 v1 / v2；单 key 保留 provider alias，多账号展开为 provider-account alias，每个账号各自凭据，展开冲突拒绝覆盖。
 - 保留 anthropic-only、模型名去尾部 `[1m]` 后去重、首个有 key 的服务商首模型作为默认的旧策略；不消费 cc-switch 默认 UUID 引用或额外 env。

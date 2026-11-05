@@ -1,7 +1,7 @@
 # 技术架构快照
 
-> 最后更新：2026-10-23
-> 关联任务：补齐 generator 挂载主命令与 bin 改名（marker NS 按包派生）、create 实例注册表、yargs shell 补全、cc-switch、Dex；接入 `docs/governance/` 治理视图；cli-harness 首发、cli-skills 随包带插件清单
+> 最后更新：2026-11-05
+> 关联任务：补齐 generator 挂载主命令与 bin 改名（marker NS 按包派生）、create 实例注册表、yargs shell 补全、cc-switch、Dex；接入 `docs/governance/` 治理视图；cli-harness 首发、cli-skills 随包带插件清单；b0tdff npm OIDC 发布收口
 
 ## 1. 系统上下文（C4 Level 1）
 
@@ -58,7 +58,7 @@
 | 运行时 | Node.js | >= 18.0.0（cli-dex >= 22.19.0） |
 | 模块系统 | ESM（`"type": "module"`） | — |
 | 包管理 | pnpm（workspaces） | — |
-| 版本管理 | Lerna（independent mode） | ^7.3.0 |
+| 版本管理 | Lerna（independent mode） | 以根 `package.json` 为准 |
 | CLI 框架 | yargs（通过 @done-coding/cli-utils 封装） | — |
 | 构建 | Vite + vite-plugin-dts | ^5.0.10 / ^3.7.0 |
 | 交互输入 | prompts（通过 xPrompts 封装） | — |
@@ -69,7 +69,7 @@
 | 代码风格 | ESLint + Prettier + ls-lint | ^8.49.0 / ^3.8.0 / ^2.2.3 |
 | 提交规范 | commitlint（conventional config） | ^16.3.0 |
 | Git hooks | husky + lint-staged | ^8.0.3 / ^12.5.0 |
-| 发布 | Lerna publish（+ 自定义 postpush 脚本） | ^7.3.0 |
+| 发布 | GitHub Actions OIDC：Lerna version + publish from-package | 以根 `package.json` 和 `.github/workflows/oidc-release.yml` 为准 |
 
 ## 3. 架构风格与模式
 
@@ -571,7 +571,7 @@ create Resources（隔离重构后）:
 | 债务 | 优先级 | 说明 |
 |---|---|---|
 | `dc-mcp` / `dc-cli-skills` 未并入主 `DC` 子命令树 | 低 | 用户需记独立 bin 名 |
-| 测试覆盖不均：10 包有 vitest 套件（根 `pnpm test` 聚合；generator 另有 `pnpm test:hub` 以 template-hub 配方为语料的跨仓漂移回归），cli/config/extract/git/inject/publish 6 包无测试；CI 两个 workflow 只构建 + dirty 闸，不跑测试 | 中 | 回归靠发版前本地手跑；老业务子包测试稀疏 |
+| 测试覆盖不均：10 包有 vitest 套件（根 `pnpm test` 聚合；generator 另有 `pnpm test:hub` 以 template-hub 配方为语料的跨仓漂移回归），cli/config/extract/git/inject/publish 6 包无测试；发布 CI `.github/workflows/oidc-release.yml` 只构建 + dirty 闸，不跑测试 | 中 | 回归靠发版前本地手跑；老业务子包测试稀疏 |
 | create-done-coding 远程模板列表依赖 Gitee | 低 | Gitee 不可用时模板选择不可用，应考虑 fallback 方案 |
 | vite 构建产物包含 `#!/usr/bin/env node` 在非 cli 入口文件中 | 低 | 仅 `cli.ts` 应包含 shebang，构建配置需过滤 |
 | 部分包 `.npmignore` 可能与 `files` 字段冲突 | 低 | 两个机制都在用，应以 `files` 为准 |
@@ -597,14 +597,9 @@ pnpm run build        # 所有子包构建
 
 ### 发布流程
 
-```bash
-# alpha 预发布
-npx lerna publish prerelease --dist-tag alpha --preid alpha
+PR 合入 `prerelease` / `release` 后，由 `.github/workflows/oidc-release.yml` 分别发布 alpha / latest。CI 使用 npm 可信发布（OIDC），先执行 `lerna version`，再执行 `lerna publish from-package`；正式发布后同步 master 与 prerelease。工具版本以工作流及根 `package.json` 为准。根 `pnpm run push` 仍是本地 `lerna publish` 入口，不属于本批迁移范围。
 
-# 正式发布
-pnpm run push  # = lerna publish
-  → postpush: node ./scripts/postpush.mjs
-```
+批次 `b0tdff` 已经 PR #56 合并并发布；发布提交与版本 tag 为 `cbec4c9`，master / prerelease / release 已同步。npm 发布、provenance 和安装版本回读结果见 `docs/governance/archive/b0tdff-npm-oidc-publishing/PROGRESS.md`；CI 日志未直接查看。
 
 ### 新增子包
 
@@ -636,7 +631,7 @@ pnpm run push  # = lerna publish
 
 ### 认证/安全
 
-- npm publish 认证：依赖用户本地 `~/.npmrc`（`npm login` 结果）
+- 本仓 CI npm 发布认证：npm 可信发布（OIDC），不注入 npm 长期 token；使用方项目的本地发布仍依赖其自身 npm 登录配置。
 - Git clone 认证：依赖用户本地 git credential / SSH key
 - AI API Key：持久化到 `~/.done-coding/config.json` 的 `AI_CONFIG` 字段（含 model、apiKey、baseUrl）
 - AES 加密：`@done-coding/cli-utils` 提供 `encryptAES`/`decryptAES`（用于配置中的敏感值）

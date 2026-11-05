@@ -57,7 +57,7 @@ WHEN 执行任何包的测试、单测、回归（尤其 cli-generator(gen/assem
   manifests/<recipeId>.json   # 生成清单（漂移闸基准，入版控）
 ```
 
-- 本轮（未发布、唯一消费方本地）一次性收敛到此布局，无兼容旧 `assemble/`、`.assemble/` 的双位 fallback。
+- 已发布的 assemble 配置统一使用此布局，无兼容旧 `assemble/`、`.assemble/` 的双位 fallback。
 - gen 批次层（component 等 `.done-coding/<type>/`）**本轮不动**（已发布，另议）。
 
 ## 运行时路径安全（[MUST]）
