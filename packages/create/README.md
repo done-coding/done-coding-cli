@@ -28,7 +28,7 @@ pnpm create done-coding my-project
 ```bash
 npm install -g done-coding
 # 然后使用
-DC create [projectName]
+DC create [项目名]
 ```
 
 ## 快速开始
@@ -39,9 +39,6 @@ npm create done-coding
 
 # 创建指定名称的项目
 npm create done-coding my-awesome-project
-
-# 仅从 done-coding 系列项目列表中克隆
-npm create done-coding my-project -- -c
 ```
 
 ## 功能特性
@@ -56,7 +53,7 @@ npm create done-coding my-project -- -c
 
 ### 基础命令
 
-#### `create-done-coding [projectName]`
+#### `create-done-coding [项目名]`
 
 创建新项目
 
@@ -64,20 +61,22 @@ npm create done-coding my-project -- -c
 # 交互式创建项目
 create-done-coding
 
-# 创建指定名称的项目
+# 创建指定名称的项目（位置参数与 -n 等价）
 create-done-coding my-project
-
-# 仅从 done-coding 系列项目列表中克隆远程仓库
-create-done-coding my-project -c
+create-done-coding -n my-project
 ```
 
 **参数说明**:
 
-- `projectName`: 项目名称（可选）
+- `项目名`: 项目名称（可选）。与 `-n, --projectName` 等价；两者同时给出且不一致时报错退出。
 
-**选项说明**:
+**常用选项**（完整列表以 `create-done-coding --help` 为准）:
 
-- `-c, --justCloneFromDoneCoding`: 是否仅仅从 done-coding 系列项目列表中克隆远程仓库，默认为 `false`
+- `-n, --projectName`: 项目名称
+- `-p, --templateUrl`: 模板地址（远程 git 地址或本地路径）
+- `-b, --templateGitBranch`: 模板仓库分支
+- `--env` / `--envFile`: 非交互供答模板预设问题
+- `--listQuestions`: 只打印模板预设问题清单，不创建项目
 
 #### `create-done-coding template-config [path]`
 
@@ -107,9 +106,6 @@ npm create done-coding
 
 # 2. 直接指定项目名称
 npm create done-coding my-awesome-app
-
-# 3. 从 done-coding 系列项目克隆
-npm create done-coding my-clone-project -- --justCloneFromDoneCoding
 ```
 
 ### 作为主 CLI 的一部分
@@ -118,33 +114,21 @@ npm create done-coding my-clone-project -- --justCloneFromDoneCoding
 # Windows 系统
 dc create
 dc create my-project
-dc create my-project --justCloneFromDoneCoding
 
 # macOS/Linux 系统
 DC create
 DC create my-project
-DC create my-project --justCloneFromDoneCoding
-```
-
-### 不同创建模式
-
-```bash
-# 标准项目创建（默认）
-npm create done-coding my-project
-
-# 仅克隆模式（从现有项目列表选择）
-npm create done-coding my-project -- -c
 ```
 
 ## 模板列表来源配置
 
 ### CLI 模式：三来源按优先级解析（**单一来源，不做自动合并**）
 
-1. **CLI 显式指定** `--templateConfig <本地配置文件路径>`（最高优先级）
-2. **home 指针文件** `~/.done-coding/create/index.json`（CLI 未传 `--templateConfig` 时）
-3. **内置远端配置**（前两者都没有时，回落默认远端模板仓库）
+ⓐ **CLI 显式指定** `--templateConfig <本地配置文件路径>`（最高优先级）
+ⓑ **home 指针文件** `~/.done-coding/create/index.json`（CLI 未传 `--templateConfig` 时）
+ⓒ **内置远端配置**（前两者都没有时，回落默认远端模板仓库）
 
-### MCP 模式：三原语 + 结构性隔离，[MUST NOT] 读全局/远程，不联网
+### MCP 模式：显式指定本地模板列表
 
 MCP server 暴露三类原语：
 
@@ -152,9 +136,7 @@ MCP server 暴露三类原语：
 - **Tools**：`done_coding_prepare_create_project` / `done_coding_complete_create_project`。`prepare` 的 `templateUrl` 为 **zod 必填**——从上面资源选出模板后取其 `url` 传入。
 - **Prompt（引导）**：`create-done-coding-project`，串起「读模板列表资源 → 选模板 prepare → 按 need_input 供 envData → complete」。
 
-**隔离机制（结构性）**：`prepare` 的 `templateUrl` zod 必填 ⇒ MCP 运行时永远带 `templateUrl` 进入 handler，结构性地触达不到全局/远程模板列表（不联网）。CLI handler 内**无 mcp/cli 模式分叉**。
-
-> 诚实边界：导出函数 `prepareCreateProject` 被编程式直接调用（绕过 MCP 工具 zod）时不再有 mode 隔离；MCP 运行时唯一入口是 zod-guarded 的 prepare 工具，故运行时隔离保证成立。
+MCP 的模板发现仅读本地配置；项目创建仍可能克隆指定的远端模板。`templateUrl` 必须显式传入，不会回落到全局指针或默认模板列表。
 
 ### 配置文件格式
 
@@ -270,19 +252,6 @@ create-done-coding -p <模板地址> --list-questions
 - `usageSteps` 须为非空字符串数组，否则创建以非 0 退出并指出该字段。
 - 非交互（MCP `complete`）的返回值带 `usageSteps`（含首步 `cd`），供 AI 直接读取。
 
-## 依赖的工具包
-
-本包集成了以下 done-coding CLI 工具：
-
-- **@done-coding/cli-git**: Git 操作功能
-- **@done-coding/cli-inject**: 信息注入功能
-- **@done-coding/cli-template**: 模板处理功能
-- **@done-coding/cli-utils**: 通用工具函数
-
-## 编程接口
-
-本包提供了编程接口，具体的导出内容请查看包的类型定义文件。
-
 ## 故障排除
 
 ### 常见问题
@@ -308,9 +277,6 @@ git --version
 
 # 检查网络连接
 ping gitee.com
-
-# 使用详细模式查看错误
-create-done-coding my-project --verbose
 ```
 
 **Q: 权限错误**
@@ -334,39 +300,6 @@ create-done-coding --version
 create-done-coding --help
 ```
 
-## 贡献指南
-
-我们欢迎贡献！请遵循以下步骤：
-
-1. Fork 本仓库
-2. 创建功能分支：`git checkout -b feature/amazing-feature`
-3. 提交更改：`git commit -m "feat: add amazing feature"`
-4. 推送分支：`git push origin feature/amazing-feature`
-5. 创建 Pull Request
-
-### 开发环境设置
-
-```bash
-# 克隆仓库
-git clone https://github.com/done-coding/done-coding-cli.git
-cd done-coding-cli/packages/create
-
-# 安装依赖
-pnpm install
-
-# 开发模式
-pnpm dev
-
-# 构建
-pnpm build
-
-# 本地开发测试
-node es/cli.mjs --help
-
-# 注意：本地使用 node + 入口文件，发布后使用 bin 命令名
-# 功能完全一致，只是调用方式不同
-```
-
 ## 许可证
 
 MIT © [done-coding](https://github.com/done-coding)
@@ -378,4 +311,3 @@ MIT © [done-coding](https://github.com/done-coding)
 - [模板处理工具](https://www.npmjs.com/package/@done-coding/cli-template) - 本包依赖的模板引擎
 - [信息注入工具](https://www.npmjs.com/package/@done-coding/cli-inject) - 本包依赖的信息注入功能
 - [Github 仓库](https://github.com/done-coding/done-coding-cli)
-- [更新日志](./CHANGELOG.md)

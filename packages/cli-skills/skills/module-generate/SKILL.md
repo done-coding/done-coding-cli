@@ -119,6 +119,8 @@ fi
 - `createTemplate` **仅项目级模板适用**——模块 Recipe 带它 tree build 会 fail-loud，[MUST NOT] 填。
 - `format: "prettier"`（可选，**推荐目标项目有 prettier 时始终开**）：落盘前用**目标项目自己的 prettier**（`<rootDir>/node_modules/.bin/prettier` + 仓内配置）格式化产物；build/check 同径，格式化产物即漂移闸基线（不开则生成物折行可能与仓内 prettier 口径不一致，人工格式化后 `tree_check` 会报格式漂移）。目标项目未装 prettier 而声明此字段 → fail-loud。
 
+**生成前校验**：`tree_build` / `tree_check` 写盘与比对前，按所引模板 `schema.json` 的 `params` 校验 `vars`，并在模板声明 `base: { package, range }` 时核对项目已装基座版本（从 `output` 所在目录向上就近找 `node_modules`）。不通过 → 报错列出全部违规（路径 + 期望 + 实际）或版本差异、零落盘：按报错补改 `vars`，或升级基座 / 换用对应版本模板，[MUST NOT] 改模板 schema 绕过。项目里找不到基座包时只告警。
+
 需要验证产物未被手改漂移：调 `done_coding_gen_tree_check`（同 tree_build 的 `{ rootDir, recipe }` 入参）——clean regenerate 与已提交产物比对，任意漂移 `exitCode=1` / `drifted=true`。
 
 ## 行为约定（据已实现机制）

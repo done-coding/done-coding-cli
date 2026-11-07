@@ -1,198 +1,32 @@
 # @done-coding/cli-component
 
-组件生成命令行工具 - 快速创建和管理项目组件
+使用项目的 component 配置生成和管理组件。它复用 [generator](../generator/README.md) 的实例生成能力，不内置组件业务模板。
 
-[![npm version](https://badge.fury.io/js/@done-coding%2Fcli-component.svg)](https://www.npmjs.com/package/@done-coding/cli-component)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-## 安装
-
-### 独立安装
+## 安装与使用
 
 ```bash
-npm install @done-coding/cli-component
-# 或
-pnpm add @done-coding/cli-component
-```
-
-### 作为 done-coding CLI 的一部分
-
-```bash
-npm install -g done-coding
-# 然后使用
-DC component [command]
-```
-
-## 快速开始
-
-```bash
-# 独立使用
-dc-component [command]
-
-# 作为主 CLI 的子命令
-DC component [command]
-
-# 查看帮助
+npm install -g @done-coding/cli-component
 dc-component --help
-```
-
-## 功能特性
-
-- ✅ **组件创建**: 使用 `add` 命令创建新组件
-- 🗂️ **组件管理**: 使用 `list` 命令查看已创建的组件
-- 🗑️ **组件删除**: 使用 `remove` 命令删除不需要的组件
-- 🔧 **智能命名**: 自动处理组件名称的格式转换
-
-## API 文档
-
-### 基础命令
-
-#### `dc-component add <name>`
-
-新增一个组件
-
-```bash
-# 创建一个名为 Button 的组件
+dc-component list
+dc-component add Button --list-questions
 dc-component add Button
-
-# 创建一个名为 UserCard 的组件
-dc-component add UserCard
-```
-
-**参数说明**:
-
-- `name`: 组件名称（必需）
-
-#### `dc-component remove [name]`
-
-删除一个组件
-
-```bash
-# 删除指定组件
+dc-component modify Button
 dc-component remove Button
-
-# 不指定名称时可能提供交互式选择
-dc-component remove
 ```
 
-**参数说明**:
+安装主包后，同样的参数可通过 `done-coding component` 使用。
 
-- `name`: 组件名称（可选）
+## 配置与非交互调用
 
-#### `dc-component list`
-
-展示组件列表
+先在项目中准备 `.done-coding/component/` 配置。配置按就近向上及全局位置发现；项目未提供配置时，命令不会凭空生成组件模板。
 
 ```bash
-# 显示所有已创建的组件
-dc-component list
+dc-component add Button --env-file ./answers.json
+dc-component modify Button --env '{"title":"按钮"}'
 ```
 
-## 使用示例
+供答字段需与配置中的问题名称一致。先使用 `--list-questions` 查询，再填写答案；不要直接套用示例字段。`remove` 需要明确指定组件名。`list --output` 可输出组件名列表，`--path` 指定输出路径。
 
-### 基础使用场景
+找不到组件时，确认执行目录、配置位置和实例名称。配置格式与模板组装能力见 [generator 文档](../generator/README.md)。
 
-```bash
-# 1. 查看当前组件列表
-dc-component list
-
-# 2. 创建新组件
-dc-component add MyButton
-
-# 3. 再次查看组件列表确认创建
-dc-component list
-
-# 4. 删除不需要的组件
-dc-component remove MyButton
-```
-
-### 作为主 CLI 的一部分
-
-```bash
-# 使用主 CLI 命令
-DC component add Button
-DC component list
-DC component remove Button
-
-# 使用替代命令
-dc-cli component add Button
-done-coding component list
-```
-
-## 故障排除
-
-### 常见问题
-
-**Q: 组件创建失败**
-
-```bash
-# 检查当前目录
-pwd
-
-# 查看详细错误信息
-dc-component add MyButton
-```
-
-**Q: 组件列表为空**
-
-```bash
-# 确认是否在正确的项目目录
-ls -la
-
-# 检查是否已创建过组件
-dc-component list
-```
-
-**Q: 删除组件失败**
-
-```bash
-# 确认组件名称正确
-dc-component list
-
-# 检查文件权限
-ls -la src/components/
-```
-
-## 贡献指南
-
-我们欢迎贡献！请遵循以下步骤：
-
-1. Fork 本仓库
-2. 创建功能分支：`git checkout -b feature/amazing-feature`
-3. 提交更改：`git commit -m "feat: add amazing feature"`
-4. 推送分支：`git push origin feature/amazing-feature`
-5. 创建 Pull Request
-
-### 开发环境设置
-
-```bash
-# 克隆仓库
-git clone https://github.com/done-coding/done-coding-cli.git
-cd done-coding-cli/packages/component
-
-# 安装依赖
-pnpm install
-
-# 开发模式
-pnpm dev
-
-# 构建
-pnpm build
-
-# 本地开发测试
-node es/cli.mjs --help
-
-# 注意：本地使用 node + 入口文件，发布后使用 bin 命令名
-# 功能完全一致，只是调用方式不同
-```
-
-## 许可证
-
-MIT © [done-coding](https://github.com/done-coding)
-
-## 相关链接
-
-- [主 CLI 工具](https://www.npmjs.com/package/done-coding)
-- [模板处理工具](https://www.npmjs.com/package/@done-coding/cli-template) - 本包依赖的模板引擎
-- [Github 仓库](https://github.com/done-coding/done-coding-cli)
-- [更新日志](./CHANGELOG.md)
+MIT 许可证。

@@ -30,3 +30,4 @@ export * from "./time";
 export * from "./process";
 export * from "./handler-context";
 export * from "./dir-resolver";
+export * from "./user-error";

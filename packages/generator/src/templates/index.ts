@@ -7,4 +7,13 @@
  * 消费方：T7 MCP（list_module_templates / list_params 描述动态生成）经包公共出口 import。
  */
 export { discoverTemplates, readTemplateSchema } from "./discover";
-export type { TemplateInfo, TemplateSchema } from "./types";
+export {
+  collectRecipeTemplates,
+  assertRecipesGuarded,
+  type RecipeTemplateRef,
+} from "./guard";
+export type {
+  TemplateBaseRequirement,
+  TemplateInfo,
+  TemplateSchema,
+} from "./types";

@@ -50,6 +50,11 @@ export default defineConfig(({ command, mode }) => {
           ...builtinModules.map((m) => `node:${m}`),
           ...Object.keys(pkg.dependencies || {}),
           ...Object.keys(pkg.peerDependencies || {}),
+          // 依赖的子路径（如 ajv/dist/2020.js）同样外置，不打进产物
+          ...Object.keys(pkg.dependencies || {}).map(
+            (dep) =>
+              new RegExp(`^${dep.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")}/`),
+          ),
         ],
         input: inputList,
         output: [

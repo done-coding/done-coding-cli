@@ -4,7 +4,8 @@
   "private": true,
   "description": "done-coding命令行工具",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "preinstall": "npx only-allow pnpm",
