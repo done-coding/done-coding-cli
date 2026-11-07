@@ -1,6 +1,7 @@
 ---
 id: kcxpp3
 title: dc-harness lists/issue 覆盖使用自有生成器的仓的清单格式
+modules: [harness]
 created: 2026-10-27
 from: blueprint
 ---

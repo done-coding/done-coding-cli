@@ -1,6 +1,7 @@
 ---
 id: a5di8q
 title: dc create 实例不记录模板来源与 commit——建议生成时写 .done-coding/template.lock.json
+modules: [create]
 created: 2026-10-03
 from: done-coding-template-hub
 ---
