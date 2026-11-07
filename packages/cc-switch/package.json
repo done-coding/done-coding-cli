@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-cc-switch",
-  "version": "0.5.1",
+  "version": "0.5.2-alpha.0",
   "description": "claude-code路由",
   "private": false,
   "module": "es/index.mjs",
@@ -43,7 +43,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:0.6.7",
+    "@done-coding/cli-inject": "workspace:0.6.8-alpha.0",
     "@types/node": "^18.0.0",
     "@types/yargs": "^17.0.28",
     "@vitest/coverage-v8": "^1.6.1",
@@ -54,7 +54,7 @@
     "vitest": "^1.6.1"
   },
   "dependencies": {
-    "@done-coding/cli-utils": "workspace:0.13.1",
+    "@done-coding/cli-utils": "workspace:0.13.2-alpha.0",
     "@done-coding/config-ui": "0.1.0"
   },
   "engines": {

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.13.2-alpha.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-utils@0.13.1...@done-coding/cli-utils@0.13.2-alpha.0) (2026-11-07)
+
+### Features
+
+- 组织站文档内容导出、验收问题修复与 tree 生成前校验 ([#57](https://github.com/done-coding/done-coding-cli/issues/57)) ([66018a1](https://github.com/done-coding/done-coding-cli/commit/66018a199cae22ddf1a7a9eb3e46b20fdbd47a1a))
+
 ## [0.13.1](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-utils@0.13.0...@done-coding/cli-utils@0.13.1) (2026-11-04)
 
 **Note:** Version bump only for package @done-coding/cli-utils

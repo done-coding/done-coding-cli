@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-generator",
-  "version": "0.3.1",
+  "version": "0.3.2-alpha.0",
   "description": "通用具名批次生成器（content-free 机制层）",
   "private": false,
   "module": "es/index.mjs",
@@ -42,7 +42,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:0.6.7",
+    "@done-coding/cli-inject": "workspace:0.6.8-alpha.0",
     "@types/lodash.camelcase": "^4.3.8",
     "@types/lodash.kebabcase": "^4.1.8",
     "@types/lodash.lowerfirst": "^4.3.8",

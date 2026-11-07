@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.6.3-alpha.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-mcp@0.6.2...@done-coding/cli-mcp@0.6.3-alpha.0) (2026-11-07)
+
+### Features
+
+- 组织站文档内容导出、验收问题修复与 tree 生成前校验 ([#57](https://github.com/done-coding/done-coding-cli/issues/57)) ([66018a1](https://github.com/done-coding/done-coding-cli/commit/66018a199cae22ddf1a7a9eb3e46b20fdbd47a1a))
+
 ## [0.6.2](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-mcp@0.6.1...@done-coding/cli-mcp@0.6.2) (2026-11-04)
 
 **Note:** Version bump only for package @done-coding/cli-mcp
