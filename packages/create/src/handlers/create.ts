@@ -23,6 +23,7 @@ import type {
   SubCliInfo,
 } from "@done-coding/cli-utils";
 import {
+  CliUserError,
   execSyncHijack,
   generateGetAnswerSwiftFn,
   getSafePath,
@@ -843,11 +844,45 @@ const listTemplateQuestions = async (
   }
 };
 
+/** 项目名位置参数的键：与 -n/--projectName 分开，才能发现两者冲突（同键时 yargs 会静默覆盖） */
+const PROJECT_NAME_POSITIONAL = "project";
+
+/**
+ * 合并项目名的两个入口：位置参数 `[project]` 与 `-n/--projectName` 等价。
+ * 同时给出且不一致直接报错，不替用户挑选；合并后移除位置参数键，避免混入模板预设答案。
+ */
+const normalizeProjectNameArgv = (
+  argv: CliHandlerArgv<CreateOptions>,
+): CliHandlerArgv<CreateOptions> => {
+  if (!(PROJECT_NAME_POSITIONAL in argv)) {
+    return argv;
+  }
+  const { [PROJECT_NAME_POSITIONAL]: positional, ...rest } = argv as Record<
+    string,
+    unknown
+  >;
+  const option = rest[FormNameEnum.PROJECT_NAME];
+  if (positional === undefined) {
+    return rest as CliHandlerArgv<CreateOptions>;
+  }
+  if (option !== undefined && String(option) !== String(positional)) {
+    throw new CliUserError(
+      `项目名称冲突：位置参数为 \`${positional}\`，-n 为 \`${option}\`，请只保留一个`,
+    );
+  }
+  const normalized: Record<string, unknown> = {
+    ...rest,
+    [FormNameEnum.PROJECT_NAME]: String(positional),
+  };
+  return normalized as CliHandlerArgv<CreateOptions>;
+};
+
 /** create 命令 handler：交互模式保持原 CLI 流程，非交互模式走 prepare/complete 协议 */
 export const handler = async (
-  argv: CliHandlerArgv<CreateOptions>,
+  argvInit: CliHandlerArgv<CreateOptions>,
   ctxInit?: HandlerContextInit,
 ) => {
+  const argv = normalizeProjectNameArgv(argvInit);
   const ctx = resolveHandlerContext(ctxInit);
   if (ctx.interactive) {
     return interactiveCreateHandler(argv);
@@ -894,8 +929,15 @@ export const handler = async (
 
 /** create 子命令配置 */
 export const commandCliInfo: SubCliInfo = {
-  command: `$0`,
+  // 位置参数与 -n 等价，对齐 `npm create done-coding <项目名>` 的惯用写法
+  command: `$0 [${PROJECT_NAME_POSITIONAL}]`,
   describe: injectInfo.description,
   options: getOptions(),
-  handler,
+  positionals: {
+    [PROJECT_NAME_POSITIONAL]: {
+      type: "string",
+      describe: "项目名称（与 -n 等价）",
+    },
+  },
+  handler: handler as SubCliInfo["handler"],
 };

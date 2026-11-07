@@ -31,7 +31,7 @@ cc-router [command] [options]      # 兼容
 | `--meta-silent`            | 压制启动前的 profile 名输出（MCP/AI 调用避免污染上下文）                                                 |
 | `--meta-generate`          | 从 settings.json 重建 profile.json，报告移除 / 新增的 profile 名                                         |
 | `--meta-migrate`           | 显式迁移 v1 → v2，先保存 600 权限备份，再原子写回                                                        |
-| `--meta-ui`                | 浏览器编辑 settings v2，保存后自动重建 profile 并提示改名影响                                           |
+| `--meta-ui`                | 浏览器编辑 settings v2，保存后自动重建 profile 并提示改名影响                                            |
 | `--meta-apiKey=<key>`      | 更新凭据（`--meta-provider` 选提供商，多账号再用 `--meta-account` 或交互选择，自动重建）                 |
 | `--meta-model-name=<name>` | 添加模型（交互选提供商或 `--meta-provider`，自动重建；v2 alias=去尾部 `[1m]`、name+`[1m]`、自动补 UUID） |
 | `--meta-provider=<alias>`  | 显式指定提供商（供 apiKey / model-name 跳过交互选择，非独立动作）                                        |
@@ -61,8 +61,6 @@ dc-cc-switch --meta-ui
 - 保存成功后以 600 权限原子写回 settings、自动重建 profile，输出移除 / 新增名称及外部按名引用提示，以退出码 0 结束。拒绝 settings/profile 目标软链。
 - 页面字段校验失败可原地修正重试，不写文件。v2 语义校验失败会结束会话、终端提示原因并退出 1；重新启动后再修改。默认 5 分钟超时退出 1，关闭页面本身不代表保存成功。
 - settings 和 profile 分别原子替换；若 settings 已保存而 profile 重建失败，终端明确提示运行 `--meta-generate` 修复，不会声称全部成功。超时不能撤回已开始的文件操作。
-
-可重复的本地集成冒烟（先 `pnpm build`）：在本包执行 `node scripts/smoke-meta-ui.mjs`。脚本用临时 HOME、禁开浏览器，通过真实 CLI 和 HTTP 验证删行 / 新增 / 改别名、UUID、默认引用、600 权限、重建字节与退出码，并清理夹具。需要允许监听 127.0.0.1；这不代替浏览器视觉验收。
 
 ## settings v2：稳定身份、可改别名、多账号
 
@@ -177,30 +175,3 @@ v1 profile 名 = `${provider}-${id}`；每个 profile 的 env 按 `{...通用, .
 - 默认选择解析序：`--meta-profile=<name>` > 交互 pick（`--meta-pick` / `disabledDefault=true`）> `defaultProfile` > 无默认也交互 pick（非 TTY 报错提示 `--meta-profile`）
 
 > 0.3.0 起废弃 provider.json / model.json 分层源，存量配置请迁移为 settings.json。
-
-<!-- repo-map:start -->
-
-## 目录导航（自动维护，勿手改段内 — 由项目初始化脚本重跑刷新）
-
-- `.done-coding/` — 注入配置
-- `src/` — 源码
-  - `__tests__/` — 单元测试
-    - `config.test.ts`
-    - `deepseek-template.test.ts`
-    - `env-guard.test.ts`
-    - `parse-argv.test.ts`
-    - `prompt-interactive.test.ts`
-    - `prompt.test.ts`
-    - `run-router.test.ts`
-    - `select-profile.test.ts`
-  - `handlers/` — 子命令处理器
-  - `types/` — 类型定义
-  - `utils/` — 工具函数
-  - `cli.ts` — CLI 入口
-  - `index.ts` — 库出口
-  - `main.ts` — 路由主流程
-
-> 用途：供协作者/AI 按图定位，免遍历目录树。结构变更后重跑初始化刷新。
-> （模块根的本段展开该模块**内部**结构；深层大目录 ≥8 项或继续分叉则嵌套列出，叶子小目录不展。）
-
-<!-- repo-map:end -->

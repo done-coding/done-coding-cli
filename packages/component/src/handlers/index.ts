@@ -229,4 +229,8 @@ export const commandCliInfo: Omit<CliInfo, "usage"> = {
   ].map(createSubcommand),
   demandCommandCount: 1,
   rootScriptName: getRootScriptName({ packageJson: injectInfo }),
+  epilog: [
+    `首次使用：命令读取项目的 .done-coding/${batchType}/ 配置（就近向上查找，再到 ~/.done-coding/${batchType}/）。`,
+    `尚无配置时在项目根运行 \`done-coding generator init ${batchType}\`（或 \`dc-generator init ${batchType}\`）生成骨架，再编辑其中的 config.json5 与 template/。`,
+  ].join("\n"),
 };

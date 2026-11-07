@@ -1,0 +1,15 @@
+{
+  "name": "@done-coding/showcase",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node export.mjs",
+    "publish:content": "node publish.mjs",
+    "test": "vitest run --maxWorkers=1 --minWorkers=1",
+    "lint": "eslint *.mjs"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.1"
+  }
+}

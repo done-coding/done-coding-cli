@@ -16,6 +16,7 @@ import type {
 } from "@/types";
 import { isInside, realpathOrResolve } from "@/core/path-safe";
 import {
+  CliUserError,
   json5,
   listDoneCodingDirs,
   resolveDoneCodingDir,
@@ -105,8 +106,11 @@ export const discoverBatch = (
 ): ResolvedBatch => {
   const hit = resolveDoneCodingDir(type, { cwd: opts?.cwd });
   if (!hit) {
-    throw new Error(
-      `未找到批次类型「${type}」：已逐级向上查找 .done-coding/${type}/ 至全局 ~/.done-coding/${type}/，均未命中（R2）`,
+    throw new CliUserError(
+      [
+        `未找到批次类型「${type}」：已逐级向上查找 .done-coding/${type}/ 至全局 ~/.done-coding/${type}/，均未命中（R2）`,
+        `初始化：在项目根运行 \`done-coding generator init ${type}\`（或 \`dc-generator init ${type}\`）生成批次骨架，再按需编辑其中的 config.json5 与 template/；加 --global 则初始化到 ~/.done-coding/${type}/`,
+      ].join("\n"),
     );
   }
 

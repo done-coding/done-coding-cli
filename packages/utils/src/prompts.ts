@@ -18,6 +18,7 @@ import {
 } from "@/_event";
 import type { HandlerContextInit } from "@/handler-context";
 import { resolveHandlerContext } from "@/handler-context";
+import { CliUserError } from "@/user-error";
 export type {
   Choice as PromptChoice,
   Options as PromptOptions,
@@ -41,7 +42,9 @@ export const xPrompts = async <T extends string = string>(
     const questionText = questionsInit
       .map((question) => `${question.name}: ${question.message}`)
       .join(", ");
-    throw new Error(`当前为非交互模式，不能等待终端输入: ${questionText}`);
+    throw new CliUserError(
+      `当前为非交互模式，不能等待终端输入: ${questionText}`,
+    );
   }
   const isHijackedProcess = processIsHijacked();
 
@@ -136,7 +139,9 @@ export const getAnswer = async <V = unknown, T extends string = string>({
   if (questionConfig !== undefined) {
     const ctx = resolveHandlerContext(ctxInit);
     if (!ctx.interactive) {
-      throw new Error(`缺少参数 ${key}，当前为非交互模式，不能等待终端输入`);
+      throw new CliUserError(
+        `缺少参数 ${key}，当前为非交互模式，不能等待终端输入`,
+      );
     }
     return (await xPrompts(questionConfig))[key];
   }

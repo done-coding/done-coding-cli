@@ -99,7 +99,7 @@ dc-harness issue template-hub -t "模板缺少 apps/ 工作区配置" -s monorep
 ```json
 {
   "name": "dotfiles",
-  "path": "/Users/me/.dotfiles",
+  "path": "<全局配置仓的绝对路径>",
   "positioning": "一句话定位",
   "accepts": "受理哪些反馈",
   "governance": {

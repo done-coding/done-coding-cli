@@ -133,22 +133,9 @@ dc-generator assemble check     # CI 漂移闸：与已提交 manifest diff，�
 
 **Q: `list` 找不到批次** —— 确认在项目根执行，且 `.done-coding/<type>/` 存在（批次就近向上 + 全局解析）。
 
-**Q: assemble 报漂移** —— `assemble diff` 看具体漂移项；产物应由 `assemble build` 生成并随 manifest 入版控，[MUST NOT] 手改物化产物。
+**Q: assemble 报漂移** —— `assemble diff` 看具体漂移项；产物应由 `assemble build` 生成并随 manifest 入版控，不要手改物化产物。
 
 **Q: 拒绝在某目录执行 destructive 操作** —— 命中可疑根守卫；确属预期才显式 `--allow-dangerous`。
-
-## 开发环境设置
-
-```bash
-git clone https://github.com/done-coding/done-coding-cli.git
-cd done-coding-cli/packages/generator
-
-pnpm install
-pnpm dev          # 开发模式
-pnpm build        # 构建
-pnpm test         # 单测（vitest）
-node es/cli.mjs --help   # 本地测试（发布后用 dc-generator）
-```
 
 ## 许可证
 
@@ -160,4 +147,3 @@ MIT © [done-coding](https://github.com/done-coding)
 - [组件命令行工具](https://www.npmjs.com/package/@done-coding/cli-component) - 本包的 component 预设薄包装
 - [模板处理工具](https://www.npmjs.com/package/@done-coding/cli-template) - 注入 / marker 引擎
 - [Github 仓库](https://github.com/done-coding/done-coding-cli)
-- [更新日志](./CHANGELOG.md)
