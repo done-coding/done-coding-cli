@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.7.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.6.1...@done-coding/cli-skills@0.7.0) (2026-11-07)
+
+### Features
+
+- 组织站文档内容导出、验收问题修复与 tree 生成前校验 ([#58](https://github.com/done-coding/done-coding-cli/issues/58)) ([0236a0d](https://github.com/done-coding/done-coding-cli/commit/0236a0dfc6049d47d46501104ce65886741b6bc0))
+
 ## [0.6.1](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.6.0...@done-coding/cli-skills@0.6.1) (2026-11-04)
 
 **Note:** Version bump only for package @done-coding/cli-skills
