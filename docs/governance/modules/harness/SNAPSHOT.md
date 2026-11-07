@@ -4,7 +4,7 @@
 
 ## 技术快照
 
-- 状态：**已实现** `lists` / `check` / `instructions` / `issue` / `scope`（`packages/harness`，bin `dc-harness`，主 CLI 挂载为 `DC harness`）；版本 0.1.0（2026-10-23 首发）。
+- 状态：**已实现** `lists` / `check` / `instructions` / `issue` / `scope`（`packages/harness`，bin `dc-harness`，主 CLI 挂载为 `DC harness`）；当前版本以 `packages/harness/package.json` 与 `cbec4c9` 的 tag 为准。
 - 结构：`src/core/`（`lists` 清单渲染 · `instructions` 指令预算与兼容入口 · `check` 治理闸 · `issue` 跨仓提单 · `scope` 仓库注册表 · `config` 配置解析 · `frontmatter` / `fs-entries` 原语）+ `src/handlers/`（各子命令 cli 边界，退出码落 `process.exitCode`；`scope` 为 `scope list|check|register` 三个动作）。
 - **治理清单 / 闸 / issue / scope 的唯一实现**（用户 2026-10-22 定）：harness-workspace skill 只描述规则语义；skill 内仍附带的 `governance-lists.py` 待 dotfiles 侧删除改调本命令，过渡期两者输出逐字节一致（本仓与 `~/.dotfiles/docs/governance` 实测）。frontmatter 用行级正则，刻意不用 YAML 解析器；清单头文案仍写「由 `scripts/governance-lists.py` 重生成」，py 删除时统一改。
 - 批次领域集合 = 条目 `modules` ∪ `PROGRESS.md` frontmatter `modules`（`readBatchModules`，清单「所涉领域」与并行闸共用）；`BACKLOG.md` 无「备注」列。

@@ -4,7 +4,7 @@
 
 ## 技术快照
 
-- 包版本为 0.4.1，settings v2 与 meta-ui 已发布；命名空间软链修复尚未发布。设计契约见本目录 `DESIGN.md`。
+- settings v2、meta-ui 与命名空间软链修复均已发布；当前版本以 `packages/cc-switch/package.json` 与发布提交 `cbec4c9` 的 tag 为准。设计契约见本目录 `DESIGN.md`。
 - `settings.json` 支持 v1 对象 / v2 数组。v2 以 UUID 保持身份，alias 拼 profile 名；一个 provider 可用单 key 或多个账号。读取严格校验 UUID、alias、同层唯一、全局 profile 拼名和默认引用，导出 parseSettings / normalizeSettings / assignMissingUuids。
 - `--meta-migrate` 显式升级：不合并 provider，保存原字节 600 备份、原子写入 v2 和带当前包版本的 `$schema`；v1 只读生成字节不变。两版本 settings 修改先构建验证，再原子写回。
 - `--meta-provider` 按 alias，`--meta-account` 或交互选账号更新 key；新增模型补 UUID。generate 对比旧快照输出移除/新增名称，有移除时提醒同步外部脚本引用。发布文件包含 draft-07 `settings.schema.json`（UUID readOnly、apiKey secret）。

@@ -6,10 +6,10 @@
 
 - 本仓 monorepo 成员包（`packages/cli-skills`），ESM only，Vite 构建到 `es/`，类型到 `types/`；Node ≥ 18。
 - bin：`dc-cli-skills`（`es/cli.mjs`）；库导出 `handler` / `createAsSubcommand` / 类型（未挂进主命令 `DC`）。
-- 构建注入：开发依赖 `@done-coding/cli-inject` 使用 `workspace:0.6.6`，在 `vite.config.ts` 直接调用 `generateFile` + `doneCodingCliConfig` 生成 `src/injectInfo.json`（moduleName = `cli-skills`），build / dev 不依赖 install 时可能尚未生成的 `dc-inject` bin；prebuild 只清理 types。注入仅在 Vite build 阶段执行（含 dev watch），Vitest 加载配置时不写 src。
+- 构建注入：开发依赖 `@done-coding/cli-inject` 使用精确 `workspace:` 版本（以本包 `package.json` 为准），在 `vite.config.ts` 直接调用 `generateFile` + `doneCodingCliConfig` 生成 `src/injectInfo.json`（moduleName = `cli-skills`），build / dev 不依赖 install 时可能尚未生成的 `dc-inject` bin；prebuild 只清理 types。注入仅在 Vite build 阶段执行（含 dev watch），Vitest 加载配置时不写 src。
 - 运行时依赖仅 `@done-coding/cli-utils`（命令构建、`safeCwd`、`safeRemoveDirSync`、交互、输出）。
 - 发布内容 `package.files` = `es` · `lib` · `types` · `skills` · `.claude-plugin` · `.codex-plugin`：skill 源目录原样随包发布，Vite 不处理它；两份插件清单构建时生成。
-- **插件清单**：`build` = `vite build && node scripts/plugin-manifests.mjs`，由 `package.json` 生成 `.claude-plugin/plugin.json`、`.codex-plugin/plugin.json`（插件名 `done-coding`、版本 / 作者 / 许可取自 package.json；Codex 另含 `skills: ./skills/` 与 `interface` 展示信息），生成物 gitignore。版本只有 package.json 一个来源：lerna publish 在改版本后打包、打包时 prepack 重新构建，发出的清单版本与包一致。
+- **插件清单**：`build` = `vite build && node scripts/plugin-manifests.mjs`，由 `package.json` 生成 `.claude-plugin/plugin.json`、`.codex-plugin/plugin.json`（插件名 `done-coding`、版本 / 作者 / 许可取自 package.json；Codex 另含 `skills: ./skills/` 与 `interface` 展示信息），生成物 gitignore。版本只有 package.json 一个来源：CI 先由 lerna version 改版本，再由 lerna publish from-package 打包发布；prepack 重新构建，发出的清单版本与包一致。repository 已指向 GitHub，与 OIDC provenance 来源一致。
 - 发版判定：根 `lerna.json` 的 `ignoreChanges` 只忽略 `README.md` 与 `docs/**`，`skills/**/SKILL.md` 改动计入 changed，只改 skill 正文也会触发本包发版。
 
 ## 2. 结构
