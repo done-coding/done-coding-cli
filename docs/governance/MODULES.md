@@ -31,6 +31,7 @@
 | `utils`      | `packages/utils`                               | 全包共享技术件（命令构建 / 安全路径 / 交互 / 输出） |
 | `mcp`        | `packages/mcp`（除各领域 handler 切片）        | MCP server 骨架（server-agnostic 注册与传输）       |
 | `cli-skills` | `packages/cli-skills`（除 `skills/<x>/` 切片） | Agent Skills 聚合与安装器骨架                       |
+| `showcase` | `apps/showcase` · 根与各包 README | 使用者文档与内容产物导出（本地验收，供站点接入） |
 
 ## 共享骨架（不属任何领域；批次触及 [MUST] 在 `PROGRESS.md` 声明独占）
 

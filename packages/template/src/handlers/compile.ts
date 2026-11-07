@@ -4,7 +4,9 @@ import type {
   SubCliInfo,
   YargsOptionsRecord,
 } from "@done-coding/cli-utils";
-import { outputConsole } from "@done-coding/cli-utils";
+import { CliUserError, outputConsole } from "@done-coding/cli-utils";
+import fs from "node:fs";
+import path from "node:path";
 import type { CompileOptions, CompilePublicConfig } from "@/types";
 import { OutputModeEnum } from "@/types";
 import {
@@ -84,10 +86,48 @@ export const handler = async (argv: CliHandlerArgv<CompileOptions>) => {
     dealMarkdown,
     rollback,
   } = publicConfig as CompilePublicConfig;
+  const configPath =
+    (publicConfig as { configPath?: string }).configPath ??
+    defaultOptions.configPath!.default;
 
   if (batch) {
     outputConsole.stage(`开始批量处理`);
     return batchHandler({ ...publicConfig, markerNs: DEFAULT_MARKER_NS });
+  }
+
+  // 未给任何单文件参数：有配置文件（如 `template init` 产物）就按它批量编译，否则说明两种用法
+  const hasSingleArgs = [env, envDataInit, input, inputData].some(
+    (value) => value !== undefined && value !== "",
+  );
+  if (!hasSingleArgs) {
+    const configRelative = path.normalize(configPath);
+    if (fs.existsSync(path.resolve(rootDir, configPath))) {
+      outputConsole.stage(
+        `未指定单文件编译参数，按配置文件 ${configRelative} 批量处理（等价 template batch）`,
+      );
+      return batchHandler({ ...publicConfig, markerNs: DEFAULT_MARKER_NS });
+    }
+    throw new CliUserError(
+      [
+        `未指定要编译的内容，且未找到配置文件 ${configRelative}。二选一：`,
+        `  - 批量编译：运行 \`done-coding template init\` 生成 ${configRelative}，在 list 中填写 input/output、在 collectEnvDataForm 中声明要采集的变量，再运行 \`done-coding template\`（或 \`done-coding template batch\`）`,
+        `  - 单文件编译：用 -i/--input <模板文件>（或 -I/--inputData <模板内容>）指定模板，并用 -e/--env <JSON 文件>（或 -E/--envData <JSON 字符串>）提供变量`,
+      ].join("\n"),
+    );
+  }
+
+  const missing = [
+    !env && !envDataInit
+      ? "环境数据：-e/--env <JSON 文件> 或 -E/--envData <JSON 字符串>"
+      : "",
+    !input && !inputData
+      ? "模板：-i/--input <模板文件> 或 -I/--inputData <模板内容>"
+      : "",
+  ].filter(Boolean);
+  if (missing.length) {
+    throw new CliUserError(
+      `单文件编译缺少参数：\n${missing.map((item) => `  - ${item}`).join("\n")}`,
+    );
   }
   outputConsole.stage(`开始单个处理`);
 
@@ -125,7 +165,8 @@ export const handler = async (argv: CliHandlerArgv<CompileOptions>) => {
 
 export const commandCliInfo: SubCliInfo = {
   command: `$0`,
-  describe: "编译模板",
+  describe:
+    "编译模板（未给 -e/-E/-i/-I 且存在 .done-coding/template.json 时按其批量编译）",
   options: getOptions(),
   handler: handler as SubCliInfo["handler"],
 };

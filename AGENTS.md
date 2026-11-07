@@ -86,4 +86,4 @@ WHEN 写 / 审 cli 仓涉文件系统的代码：
 
 ## 发布
 
-- 发版 = PR 合入 `release` 分支后由 CI（`.github/workflows/oidc-release.yml`）执行 lerna version 与 publish from-package；PR 合入 master 用 merge commit（[MUST NOT] squash，lerna 按逐条 conventional commit 定版本）。[MUST NOT] 在常规任务中发布；发布需另行单次明文授权（push 永不豁免）。
+- 发版 = PR 合入 `release` 分支后由 CI（`.github/workflows/oidc-release.yml`）执行 lerna version 与 publish from-package；待发布的改动以 `origin/master` 为基压缩为一次提交再合入（用户 2026-11-07 口径）；lerna 按这条提交的 conventional commit 类型给它触及的包定版本，故类型取本次改动中最高的一级（含不兼容改动写 `!` / `BREAKING CHANGE`），正文列出各包的变更要点。[MUST NOT] 在常规任务中发布；发布需另行单次明文授权（push 永不豁免）。

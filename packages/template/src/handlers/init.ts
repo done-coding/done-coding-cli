@@ -95,7 +95,11 @@ export const handler = async (argv: CliHandlerArgv<InitOptions>) => {
   await initHandlerCommon(content, argv, {
     edit: true,
     onFileGenerated(filePath) {
-      if (!useDefaultConfig) {
+      if (useDefaultConfig) {
+        outputConsole.success(
+          `配置文件已生成：${filePath}\n按需修改 list（input/output/mode）与 collectEnvDataForm 后，运行 \`done-coding template\`（或 \`done-coding template batch\`）按该配置编译`,
+        );
+      } else {
         outputConsole.success(`配置文件已生成：${filePath}
         请具体需要替换
         globalEnvData中的 GLOBAL_\${index}及其对应值

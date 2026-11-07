@@ -8,6 +8,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { logger } from "@/env-config";
 import type { PackageJson } from "./package-json";
+import { formatCliFailOutput } from "./user-error";
 
 export { ArgumentsCamelCase, CommandModule, YargsOptions, YargsArgv };
 
@@ -46,6 +47,8 @@ export interface CliInfo<
   handler?: CommandModule["handler"];
   /** 根命令 */
   rootScriptName?: string;
+  /** 帮助信息末尾的补充说明（如首次使用的初始化方式） */
+  epilog?: string;
 }
 
 /** 子cli信息 */
@@ -60,10 +63,7 @@ export type CliHandlerArgv<O> = ArgumentsCamelCase<O> | O;
 const failHandler = (msg: string, err: Error) => {
   const message = msg || err?.message || "未知错误";
   // 诊断信息走 stderr：stdout 留给数据 / 机读输出，便于管道与脚本区分正常输出和报错
-  process.stderr.write(`${message}\n`);
-  if (err?.stack) {
-    process.stderr.write(`${err.stack}\n`);
-  }
+  process.stderr.write(formatCliFailOutput(msg, err));
   // 同时落日志文件，便于事后排查
   logger.info({ level: "error", message, stack: err?.stack });
   process.exit(1);
@@ -197,6 +197,7 @@ const addYargsConfig = (
     positionals,
     subcommands,
     rootScriptName,
+    epilog,
   }: Omit<CliInfo, "handler">,
   isRootCommand: boolean,
 ) => {
@@ -221,6 +222,9 @@ const addYargsConfig = (
   }
   if (options) {
     argvFinal = argvFinal.options(options);
+  }
+  if (epilog) {
+    argvFinal = argvFinal.epilog(epilog);
   }
   if (positionals) {
     argvFinal = Object.entries(positionals).reduce((acc, [name, options]) => {

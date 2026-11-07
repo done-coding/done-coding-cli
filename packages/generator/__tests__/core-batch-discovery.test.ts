@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { isCliUserError } from "@done-coding/cli-utils";
 import {
   discoverBatch,
   listDiscoveredBatches,
@@ -58,6 +59,18 @@ describe("[T4] discoverBatch（R2）", () => {
   it("未命中 → fail-fast", () => {
     const cwd = mkTmp();
     expect(() => discoverBatch("nope-xyz", { cwd })).toThrow(/未找到批次类型/);
+  });
+
+  it("未命中 → 预期错误（CLI 不打印调用栈）且给出初始化命令", () => {
+    const cwd = mkTmp();
+    let caught: unknown;
+    try {
+      discoverBatch("nope-xyz", { cwd });
+    } catch (error) {
+      caught = error;
+    }
+    expect(isCliUserError(caught)).toBe(true);
+    expect((caught as Error).message).toContain("generator init nope-xyz");
   });
 
   it("缺 index.json → fail-fast（视为非法批次）", () => {

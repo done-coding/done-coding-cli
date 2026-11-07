@@ -1,202 +1,42 @@
-# done-coding-cli
+# done-coding CLI
 
-🚀 **done-coding 命令行工具集** - 提供完整开发工作流支持的 monorepo 项目
+done-coding 把项目创建、代码生成、工程配置、信息处理和发布工具放在同一个命令入口。可安装主包，也可只安装需要的子包。
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lerna.js.org/)
-
-## 项目概述
-
-done-coding-cli 是一个基于 Lerna 管理的 monorepo 项目，包含多个专业的命令行工具，旨在简化和标准化开发工作流程。每个工具都专注于特定的开发任务，可以独立使用或作为统一 CLI 的一部分。
-
-## 包结构
-
-### 主 CLI 工具
-
-- **[done-coding](./packages/cli)** - 主命令行工具，集成所有子工具
-
-### 核心工具包
-
-- **[create-done-coding](./packages/create)** - 项目创建工具
-- **[@done-coding/cli-component](./packages/component)** - 组件生成工具
-- **[@done-coding/cli-config](./packages/config)** - 工程化配置工具
-- **[@done-coding/cli-extract](./packages/extract)** - 信息提取工具
-- **[@done-coding/cli-cc-switch](./packages/cc-switch)** - claude-code 模型路由透传工具（`dc-cc-switch` / `cc-router`）
-- **[@done-coding/cli-generator](./packages/generator)** - 通用批次生成工具（dc-generator，含模板组装 assemble）
-- **[@done-coding/cli-git](./packages/git)** - Git 跨平台操作工具
-- **[@done-coding/cli-inject](./packages/inject)** - 信息注入工具
-- **[@done-coding/cli-publish](./packages/publish)** - 项目发布工具
-- **[@done-coding/cli-template](./packages/template)** - 模板处理工具
-
-### 基础工具包
-
-- **[@done-coding/cli-utils](./packages/utils)** - 通用工具库
-
-## 快速开始
-
-### 安装主 CLI 工具
+## 安装与开始使用
 
 ```bash
-# 全局安装
 npm install -g done-coding
-
-# 验证安装
-DC --version
+done-coding --help
+done-coding create my-project
 ```
 
-### 基本使用
+`done-coding`、`DC`、`dc-cli` 是同一个入口。未安装主包时，也可用 `npm create done-coding my-project` 创建项目。
 
-```bash
-# 创建新项目
-DC create my-project
+主包及多数工具要求 Node.js >= 18；Dex 要求 Node.js >= 22.19.0。使用 Dex 时请按较高版本准备环境。
 
-# 查看所有可用命令
-DC --help
-```
+## 选择工具
 
-## 开发环境设置
+| 文档                                            | 用途                                          |
+| ----------------------------------------------- | --------------------------------------------- |
+| [主 CLI](./packages/cli/README.md)              | 安装、命令入口、Shell 补全                    |
+| [create](./packages/create/README.md)           | 从模板创建项目，支持非交互供答                |
+| [generator](./packages/generator/README.md)     | 按配置生成实例、组装模板、检查产物漂移        |
+| [component](./packages/component/README.md)     | 使用 component 配置生成和管理组件             |
+| [config](./packages/config/README.md)           | 检查和添加工程化配置                          |
+| [extract](./packages/extract/README.md)         | 从文件提取信息并生成输出                      |
+| [inject](./packages/inject/README.md)           | 从 JSON 读取、转换和注入字段                  |
+| [template](./packages/template/README.md)       | 模板变量替换与批量编译                        |
+| [git](./packages/git/README.md)                 | 仓库克隆、Git 钩子回调、合并检测              |
+| [publish](./packages/publish/README.md)         | 使用者项目的 npm / web 发布                   |
+| [cc-switch](./packages/cc-switch/README.md)     | 管理 Claude Code 的服务商、账号和模型 profile |
+| [Dex](./packages/dex/README.md)                 | 终端编码智能体                                |
+| [harness](./packages/harness/README.md)         | 治理清单、规则检查与跨仓 issue                |
+| [MCP](./packages/mcp/README.md)                 | 在支持 MCP 的客户端使用创建与生成工具         |
+| [Agent Skills](./packages/cli-skills/README.md) | 安装 CLI 对应的 Agent Skills                  |
+| [utils](./packages/utils/README.md)             | 在程序里复用 CLI 公共能力                     |
 
-### 环境要求
+主包全局安装只提供自身入口。需要直接使用 `dc-generator` 等独立命令时，请安装对应子包；完整规则见[主 CLI 文档](./packages/cli/README.md)。
 
-- Node.js >= 18.0.0
-- pnpm (推荐) 或 npm
-- Git
+## 许可证与反馈
 
-### 克隆和安装
-
-```bash
-# 克隆仓库
-git clone https://github.com/done-coding/done-coding-cli.git
-cd done-coding-cli
-
-# 安装依赖
-pnpm install
-
-# 构建所有包
-pnpm run build
-```
-
-### 开发命令
-
-```bash
-# 开发模式（监听文件变化）
-pnpm run dev
-
-# 构建所有包
-pnpm run build
-
-# 运行测试
-pnpm run test
-
-# 代码检查
-pnpm run lint
-
-# 发布包
-pnpm run push
-```
-
-## 项目架构
-
-```
-done-coding-cli/
-├── packages/                 # 所有包的源码
-│   ├── cli/                 # 主 CLI 工具
-│   ├── create/              # 项目创建工具
-│   ├── component/           # 组件生成工具
-│   ├── config/              # 工程配置工具
-│   ├── extract/             # 信息提取工具
-│   ├── git/                 # Git 操作工具
-│   ├── inject/              # 信息注入工具
-│   ├── publish/             # 发布工具
-│   ├── template/            # 模板工具
-│   └── utils/               # 工具库
-├── scripts/                 # 构建和发布脚本
-├── lerna.json              # Lerna 配置
-├── package.json            # 根包配置
-└── pnpm-workspace.yaml     # pnpm 工作空间配置
-```
-
-## 包依赖关系
-
-```mermaid
-graph TD
-    A["done-coding"] --> B["create-done-coding"]
-    A --> D["@done-coding/cli-component"]
-    A --> E["@done-coding/cli-config"]
-    A --> F["@done-coding/cli-extract"]
-    A --> G["@done-coding/cli-git"]
-    A --> H["@done-coding/cli-inject"]
-    A --> J["@done-coding/cli-publish"]
-    A --> K["@done-coding/cli-template"]
-    A --> L["@done-coding/cli-utils"]
-
-    D -.-> F
-
-    style D fill:#e1f5fe
-    style F fill:#e8f5e8
-```
-
-### 包间协作关系
-
-- **@done-coding/cli-config** → **@done-coding/cli-git**:
-  - config 包的 `merge-lint` 模块调用 git 包的 `check reverse-merge` 命令
-  - 实现工程化配置中的 git 合并规范检测
-- **所有子包** → **@done-coding/cli-utils**:
-  - 提供通用的 CLI 工具函数和类型定义
-  - 统一的配置文件读取和命令行参数处理
-
-## 贡献指南
-
-我们欢迎社区贡献！请遵循以下步骤：
-
-### 贡献流程
-
-1. **Fork 仓库**
-2. **创建功能分支**: `git checkout -b feature/amazing-feature`
-3. **提交更改**: `git commit -m "feat: add amazing feature"`
-4. **推送分支**: `git push origin feature/amazing-feature`
-5. **创建 Pull Request**
-
-### 开发规范
-
-- 遵循 [约定式提交](https://www.conventionalcommits.org/zh-hans/v1.0.0/) 规范
-- 使用 ESLint 和 Prettier 保持代码风格一致
-- 为新功能添加测试
-- 更新相关文档
-
-### 文档贡献
-
-- 遵循项目现有的子包 README 模式
-- 参考各子包的 README.md 作为模板
-
-## 发布流程
-
-项目使用 Lerna 进行版本管理和发布：
-
-```bash
-# 发布新版本
-pnpm run push
-
-# 查看变更日志
-pnpm run log
-```
-
-## 许可证
-
-MIT © [done-coding](https://github.com/done-coding)
-
-## 相关链接
-
-- [主 CLI 工具文档](./packages/cli/README.md)
-- [项目仓库](https://github.com/done-coding/done-coding-cli)
-- [更新日志](./CHANGELOG.md)
-
-## 支持
-
-如果您在使用过程中遇到问题：
-
-1. 查看各包的 README 文档
-
----
-
-**感谢使用 done-coding CLI 工具集！** 🎉
+本项目使用 MIT 许可证。问题反馈请到 [GitHub Issues](https://github.com/done-coding/done-coding-cli/issues)。

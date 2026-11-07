@@ -323,6 +323,61 @@ describe("create-done-coding 非交互供答 e2e", () => {
     expect(indexTs).not.toContain("${");
   });
 
+  it("位置参数 <项目名>：等价于 -n，按该名创建项目（bjms6c）", () => {
+    const work = makeWork("positional");
+    const r = runCli(
+      [
+        "posapp",
+        "-p",
+        templateRepo,
+        "--env",
+        JSON.stringify({ organization: "acme", name: "posapp" }),
+        "--openGitDetailOptimize=false",
+      ],
+      work,
+    );
+    expect(r.signal).toBeNull();
+    expect(r.stderr).not.toContain("无法识别");
+    expect(r.status).toBe(0);
+    const pkg = readFileSync(
+      path.join(work, "posapp", "package.json"),
+      "utf-8",
+    );
+    expect(pkg).toContain('"name": "@acme/posapp"');
+  });
+
+  it("位置参数与 -n 同时给出且不一致：非 0 退出、指出冲突、不生成项目", () => {
+    const work = makeWork("positional-conflict");
+    const r = runCli(
+      [
+        "posa",
+        "-n",
+        "posb",
+        "-p",
+        templateRepo,
+        "--env",
+        JSON.stringify({ name: "x" }),
+        "--openGitDetailOptimize=false",
+      ],
+      work,
+    );
+    expect(r.signal).toBeNull();
+    expect(r.status).not.toBe(0);
+    expect(r.stderr).toContain("posa");
+    expect(r.stderr).toContain("posb");
+    expect(existsSync(path.join(work, "posa"))).toBe(false);
+    expect(existsSync(path.join(work, "posb"))).toBe(false);
+  });
+
+  it("--help：展示位置参数 projectName；隐藏的克隆模式不以 -c 暴露（yh51tb）", () => {
+    const work = makeWork("help");
+    const r = runCli(["--help"], work);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("[project]");
+    expect(r.stdout).not.toMatch(/(^|\s)-c[,\s]/m);
+    expect(r.stdout).not.toContain("justCloneFromDoneCoding");
+  });
+
   it("--env-file 供答：从 JSON 文件读取答案完成编译", () => {
     const work = makeWork("envfile");
     const answers = path.join(work, "answers.json");

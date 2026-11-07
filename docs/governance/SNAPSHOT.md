@@ -10,14 +10,18 @@
 
 | 领域                                                                           | 细节快照                                                                          |
 | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| component · config · extract · git · inject · publish · template · utils | 未建模块快照 → 现状见 `docs/TECH_SNAPSHOT.md` §4 / `docs/BUSINESS_SNAPSHOT.md` §4 |
+| config · extract · git · inject · publish | 未建模块快照 → 现状见 `docs/TECH_SNAPSHOT.md` §4 / `docs/BUSINESS_SNAPSHOT.md` §4 |
 | cli-skills                                                                     | 未建模块快照 → `packages/cli-skills/docs/{BUSINESS,TECH}_SNAPSHOT.md`             |
 | harness                                                                        | `modules/harness/SNAPSHOT.md`（含指令预算与兼容入口闸、issue 家目录路径替换）                                                     |
-| generator                                                                      | `modules/generator/SNAPSHOT.md`                                                   |
-| create                                                                         | `modules/create/SNAPSHOT.md`                                                      |
+| generator                                                                      | `modules/generator/SNAPSHOT.md`（tree 生成前参数 / 基座版本校验，未发布）                                                   |
+| create                                                                         | `modules/create/SNAPSHOT.md`（位置参数项目名，未发布）                                                      |
+| component | `modules/component/SNAPSHOT.md`（缺配置提示初始化命令，未发布） |
+| template | `modules/template/SNAPSHOT.md`（裸 `template` 按配置批量编译，未发布） |
+| utils | `modules/utils/SNAPSHOT.md`（`CliUserError` 不打调用栈、`epilog`，未发布） |
 | mcp                                                                            | `modules/mcp/SNAPSHOT.md`                                                         |
 | dex | `modules/dex/SNAPSHOT.md`（cc-switch v1/v2 与多账号导入） |
 | cc-switch                                                                      | `modules/cc-switch/SNAPSHOT.md`（0.4.1 settings v2 + meta-ui；命名空间软链修复未发布）                    |
+| showcase | `modules/showcase/SNAPSHOT.md`（本地内容导出 + 显式写入组织站；校验与原子替换） |
 | ai · mrm                                                                       | 已下线（2026-10-02 退役删除，见 `MODULES.md`）                                    |
 
 ## 跨领域依赖

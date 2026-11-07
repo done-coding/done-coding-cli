@@ -13,12 +13,15 @@ import type {
   HandlerContextInit,
 } from "@done-coding/cli-utils";
 import {
+  CliUserError,
   getConfigFileCommonOptions,
   outputConsole,
   readConfigFile,
   xPrompts,
   resolveHandlerContext,
 } from "@done-coding/cli-utils";
+import fs from "node:fs";
+import path from "node:path";
 import _assign from "lodash.assign";
 import _template from "lodash.template";
 
@@ -106,6 +109,13 @@ export const handler = async (
   if (paramsConfig) {
     config = paramsConfig;
   } else {
+    if (!fs.existsSync(path.resolve(rootDir, configPath!))) {
+      throw new CliUserError(
+        `批量编译配置文件不存在：${path.normalize(
+          configPath!,
+        )}（相对 ${rootDir}）。先运行 \`done-coding template init\` 生成，或用 -C 指定配置文件路径`,
+      );
+    }
     config = await readConfigFile({
       rootDir,
       configPath,
@@ -184,16 +194,23 @@ export const handler = async (
         message: `请输入${label}`,
         initial: resolveInitial(keyName, initial),
         format: (value) => value.trim(),
-        validate: (value) => value.length > 0 || `${label}不能为空`,
+        // 与非交互一致：声明了 initial 的项为可选（如默认配置的 repositoryUrl 初值为空串）
+        validate: (value) =>
+          value.length > 0 || initial !== undefined || `${label}不能为空`,
       })
     )[keyName];
   }
 
   if (!ctx.interactive && trulyMissing.length > 0) {
-    throw new Error(
+    const where = paramsConfig
+      ? "模板配置"
+      : `配置文件 ${path.normalize(configPath!)} `;
+    throw new CliUserError(
       `缺少模板预置参数，当前为非交互模式，不能等待终端输入：${trulyMissing
         .map(({ key, label }) => `${key}(${label})`)
-        .join("、")}`,
+        .join(
+          "、",
+        )}。可在${where}的 collectEnvDataForm 中为这些项设置 initial 默认值，或在交互终端中运行`,
     );
   }
 

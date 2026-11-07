@@ -48,10 +48,33 @@ export const readTemplateSchema = (templateDir: string): TemplateSchema => {
       `模板 schema.json 缺少 params（JSON Schema 对象，recipe.vars 契约）：${schemaPath}`,
     );
   }
+  const { base } = raw;
+  if (
+    base !== undefined &&
+    !(
+      isPlainObject(base) &&
+      typeof base.package === "string" &&
+      base.package &&
+      typeof base.range === "string" &&
+      base.range
+    )
+  ) {
+    throw new Error(
+      `模板 schema.json 的 base 须为 { package: string, range: string }：${schemaPath}`,
+    );
+  }
   return {
     whenToUse: typeof raw.whenToUse === "string" ? raw.whenToUse : undefined,
     params: raw.params,
     ...(isPlainObject(raw.defaults) ? { defaults: raw.defaults } : {}),
+    ...(base
+      ? {
+          base: {
+            package: base.package as string,
+            range: base.range as string,
+          },
+        }
+      : {}),
   };
 };
 

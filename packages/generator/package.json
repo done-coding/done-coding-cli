@@ -49,6 +49,7 @@
     "@types/lodash.template": "^4.5.2",
     "@types/lodash.upperfirst": "^4.3.8",
     "@types/node": "^18.0.0",
+    "@types/semver": "^7.5.3",
     "@types/yargs": "^17.0.28",
     "@vitest/coverage-v8": "1.6.1",
     "rimraf": "^5.0.1",
@@ -60,11 +61,13 @@
   "dependencies": {
     "@done-coding/cli-template": "workspace:*",
     "@done-coding/cli-utils": "workspace:*",
+    "ajv": "^8.20.0",
     "lodash.camelcase": "^4.3.0",
     "lodash.kebabcase": "^4.1.1",
     "lodash.lowerfirst": "^4.3.1",
     "lodash.template": "^4.5.0",
-    "lodash.upperfirst": "^4.3.1"
+    "lodash.upperfirst": "^4.3.1",
+    "semver": "^7.5.4"
   },
   "engines": {
     "node": ">=18.0.0"

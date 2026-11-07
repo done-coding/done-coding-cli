@@ -17,6 +17,16 @@ export interface TemplateSchema {
   params: Record<string, unknown>;
   /** 预制变量默认值 */
   defaults?: Record<string, unknown>;
+  /** 适配的基座（可选）：tree build/check 据此校验目标项目已装版本 */
+  base?: TemplateBaseRequirement;
+}
+
+/** 模板适配的基座声明（schema.json `base`） */
+export interface TemplateBaseRequirement {
+  /** npm 包名（如 @done-coding/admin-core） */
+  package: string;
+  /** semver 范围（如 ^0.33.0） */
+  range: string;
 }
 
 /** 单模板命中（资产即列表：name 唯一 + 获胜层）。 */

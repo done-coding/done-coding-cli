@@ -40,6 +40,7 @@ import {
   runDiff,
   type EngineCtx,
 } from "@/assemble/engine";
+import { assertRecipesGuarded } from "@/templates/guard";
 import {
   computeInjections,
   commitInjections,
@@ -198,6 +199,11 @@ export const treeHandler = async (
   if (argv.all || recipes.length > 1) {
     assertOutputsCompatible(ctx, recipes);
   }
+  // dyynp0：参数 schema + 基座版本闸，build / check 同口径，先于任何写盘与漂移比对
+  assertRecipesGuarded(recipes, {
+    gitRoot,
+    templatesRoot: templatesHit?.realDir,
+  });
   switch (action) {
     case "build":
       return handleBuild(recipes, ctx, argv);
