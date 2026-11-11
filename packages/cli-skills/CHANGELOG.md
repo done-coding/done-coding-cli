@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.8.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.7.0...@done-coding/cli-skills@0.8.0) (2026-11-11)
+
+### Features
+
+- generator 消费侧修复 + create 默认远端分支与 template.lock 出生记录 ([8344fba](https://github.com/done-coding/done-coding-cli/commit/8344fba8e89097e6217bbd98dc8b33cb7ed03a2a))
+
 # [0.7.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.6.1...@done-coding/cli-skills@0.7.0) (2026-11-07)
 
 ### Features
