@@ -182,3 +182,10 @@ done-coding create -n my-tool -p /abs/hub -b master \
 | `--env-file`          |      | 预设答案 JSON 文件路径                             |
 | `--list-questions`    |      | 仅打印模板预设问题清单(JSON)，不创建               |
 | `--gitCommitMessage`  | `-m` | git 初始化的提交信息                               |
+
+## 模板版本与出生记录
+
+- 默认使用远端默认分支，或模板清单中钉住的标签（`branch`）。本地模板仓先 best-effort `git fetch origin`，失败告警后使用已有跟踪分支；依次尝试 `origin/HEAD`、`origin/master`、`origin/main`，再回落本地 `master`、`main`。均不可用时明确报错，要求 `-b`。
+- 需要在途分支时显式传 `-b <分支>`；标签同样用 `-b <标签>`。本地仓当前检出分支不会自动成为模板来源。
+- 创建时打印来源 URL、实际 ref 和短 commit；项目生成 `.done-coding/template.lock.json`，记录模板、目录、实际 ref、完整 commit、创建时间和 CLI 版本。本地仓有 origin 时另记 `remoteUrl`。
+- lock 的 `answers` 只来自非交互 `--env` / `--env-file`（MCP 的 `envData` 同理），交互模式省略该字段。模板 `collectEnvDataForm` 标记 `secret: true` 的答案不落盘，只在 `secretKeys` 记录 key。

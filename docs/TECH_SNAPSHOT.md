@@ -62,7 +62,7 @@
 | CLI 框架 | yargs（通过 @done-coding/cli-utils 封装） | — |
 | 构建 | Vite + vite-plugin-dts | ^5.0.10 / ^3.7.0 |
 | 交互输入 | prompts（通过 xPrompts 封装） | — |
-| 模板引擎 | lodash.template | — |
+| 模板引擎 | lodash.template | 4.5.0（精确钉版，4.18.0 损坏） |
 | 配置格式 | JSON5 / JSON | — |
 | 测试 | Vitest | ^1.6.1 |
 | 智能体基座 | @earendil-works/pi-coding-agent（cli-dex） | 0.84.1（锁版本） |
@@ -194,7 +194,7 @@ packages/generator/src/
 │   ├── registry.ts       # op 注册表（type→OpHandler）；registerBuiltinOps
 │   ├── ops/              # 内建 6 op：add-fragment / text-patch / json-merge-op / delete-file / delete-field / write-file（内联字面）
 │   ├── inject/inject.ts  # 注入现有项目：textPatch 走 marker 锚点，内存 VFS 原子编排
-│   ├── format.ts         # recipe.format="prettier"：flush / manifest 前用目标仓 prettier 格式化（build 与 diff 同径）
+│   ├── format.ts         # recipe.format="prettier"：flush / manifest 前用 output 就近（至 cwd）的 prettier 格式化（build 与 diff 同径）
 │   ├── planner.ts        # plan：构 VFS → 通用判冲突（混族/conflictKey）+ 顺序模拟（不认死 kind，A-NFR-4）
 │   ├── engine.ts         # runPlan / runBuild / runDiff / assertOutputsCompatible + git 本地壳（execFileSync）
 │   ├── vfs.ts            # 内存 VFS + loadBaseDir + 原子 flush（sibling-temp→rename）+ manifest 孤儿删除 + 大小写折叠守卫

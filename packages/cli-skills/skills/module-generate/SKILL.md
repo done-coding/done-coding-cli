@@ -25,6 +25,8 @@ else
 fi
 ```
 
+> **版本提示**：cli-generator 0.4.0 及以前（done-coding 0.24.0 及以前）依赖 `lodash.template ^4.5.0`，部分客户端全新安装会解析到损坏的 4.18.0，`tree build/check` 报 `assignWith is not defined`。升级到钉 `4.5.0` 的修复版；暂不能升级时在安装方加 overrides（如 pnpm `overrides: { "lodash.template": "4.5.0" }`）。
+
 ## 何时用（走工具 vs 自由写码）
 
 **[MUST] 走工具（范式内）**：用户需求匹配某模块模板的 `whenToUse`（标准列表页 / 表单页等可复用范式）→ 填配置走 `tree_build`，**[MUST NOT] 自由写码**——避免范式漂移、防反模式堆积（这正是本工具的存在意义）。
@@ -43,6 +45,8 @@ fi
 
 - **`rootDir` = 用户项目根（[MUST] 必填）**——勿用 MCP server 进程 cwd（会落错目录）。tree 工具会对 rootDir 做 gitRoot 锚定（`git rev-parse --show-toplevel`，无 git 仓 fail-loud）。
 - **`base` = 前端基座命名空间**（如 `admin-core`）。探测前与用户确认基座，或按项目前端技术栈判断；模板按基座分命名空间（机制通用、内容按基座分资产）。
+- **模板从哪里发现**：从 `rootDir`（即项目 gitRoot）起逐级向上找 `.done-coding/templates/<base>/<模板名>/`，再加全局 `~/.done-coding/templates/<base>/`；同名模板取最近一层（返回的 `layer` = `project` gitRoot 本层 / `parent` 上层目录 / `global` 家目录）。全局层有哪些基座取决于本机装过什么（template-hub 以软链分发），[MUST NOT] 假设某基座（如 forge）一定在全局层；探测为空先看这几处目录。
+- **碎片只从最近的一个 templates 根读**：`tree_build` 的 `addFragment.source` 相对 gitRoot 起就近命中的**第一个** `.done-coding/templates/` 根解析，不像探测那样合并各层。项目里已有 `.done-coding/templates/` 时，全局层的模板碎片读不到——把所需基座软链或复制进项目层后再生成。
 
 ## 步骤 1 — 探测可用模块模板
 
@@ -117,7 +121,7 @@ fi
   - **`writeFile`**：文件级内联字面内容（原样落盘，不渲染不改 EOL），用于类型/定制内容。
   - **`textPatch`**：注入现有项目文件（路由/菜单/export）。`target` = gitRoot 相对路径（如 `src/router/index.ts`），`markerKey` = 锚点 key（幂等成对 marker 块），`source` = 注入片段。**仅当模板提供注入片段时可用**——当前 admin-core 各模板均不含路由/菜单片段，路由注册由用户按项目惯例自行处理。
 - `createTemplate` **仅项目级模板适用**——模块 Recipe 带它 tree build 会 fail-loud，[MUST NOT] 填。
-- `format: "prettier"`（可选，**推荐目标项目有 prettier 时始终开**）：落盘前用**目标项目自己的 prettier**（`<rootDir>/node_modules/.bin/prettier` + 仓内配置）格式化产物；build/check 同径，格式化产物即漂移闸基线（不开则生成物折行可能与仓内 prettier 口径不一致，人工格式化后 `tree_check` 会报格式漂移）。目标项目未装 prettier 而声明此字段 → fail-loud。
+- `format: "prettier"`（可选，**推荐目标项目有 prettier 时始终开**）：落盘前用**目标项目自己的 prettier**（从 `output` 目录逐级向上至 gitRoot，取最近的 `node_modules/.bin/prettier`，monorepo 成员自装即可；配置同样按产物路径就近解析）格式化产物；build/check 同径，格式化产物即漂移闸基线（不开则生成物折行可能与仓内 prettier 口径不一致，人工格式化后 `tree_check` 会报格式漂移）。output 到 gitRoot 之间都没装 prettier 而声明此字段 → fail-loud。
 
 **生成前校验**：`tree_build` / `tree_check` 写盘与比对前，按所引模板 `schema.json` 的 `params` 校验 `vars`，并在模板声明 `base: { package, range }` 时核对项目已装基座版本（从 `output` 所在目录向上就近找 `node_modules`）。不通过 → 报错列出全部违规（路径 + 期望 + 实际）或版本差异、零落盘：按报错补改 `vars`，或升级基座 / 换用对应版本模板，[MUST NOT] 改模板 schema 绕过。项目里找不到基座包时只告警。
 

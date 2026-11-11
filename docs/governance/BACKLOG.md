@@ -7,7 +7,7 @@
 
 | id | 标题 | 领域 | 登记 | 文件 |
 |---|---|---|---|---|
-| `a5di8q` | dc create 实例不记录模板来源与 commit——建议生成时写 .done-coding/template. | [create] | 2026-10-03 | [a5di8q-create-template-provenance.md](backlog/a5di8q-create-template-provenance.md) |
+| `7ro00l` | 模块模板探测合并多层，tree build 碎片根只取最近一层——项目层有 templates 时全局层模板列得出却 | [generator] | 2026-11-09 | [7ro00l-tree-fragment-root-layer-mismatch.md](backlog/7ro00l-tree-fragment-root-layer-mismatch.md) |
 | `bjpfyu` | npm deprecate @done-coding/cli-ai / cli-mrm（文案指向 dex / cc- | [cli-skills] | 2026-10-23 | [bjpfyu-npm-deprecate-cli-ai-mrm.md](backlog/bjpfyu-npm-deprecate-cli-ai-mrm.md) |
 | `dhokbr` | tree 基座版本闸支持非 npm 基座（如 Python fastapi） | [generator] | 2026-11-06 | [dhokbr-tree-non-npm-base-version.md](backlog/dhokbr-tree-non-npm-base-version.md) |
 | `ehzjoy` | generator tree 产物目录整级所有权，不能与手写文件混住（需 recipe preserve 共存声明） | [generator] | 2026-10-02 | [ehzjoy-tree-output-preserve-handwritten.md](backlog/ehzjoy-tree-output-preserve-handwritten.md) |

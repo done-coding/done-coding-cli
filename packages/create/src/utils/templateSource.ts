@@ -77,7 +77,11 @@ export interface TemplateInstanceInfo {
   /** 模板地址，远程 git 地址或本地绝对路径 */
   url: string;
   /** 模板仓库分支 */
-  branch?: string;
+  branch: string;
+  /** 实际检出的完整 commit */
+  commit: string;
+  /** 本地模板仓的 origin 地址 */
+  remoteUrl?: string;
   /** 仓库内模板目录 */
   directory?: string;
   /** 项目生成目标目录 */
@@ -168,6 +172,57 @@ const getGitRepoRoot = (currentDir: string) => {
   } catch (error) {
     return;
   }
+};
+
+/** 所有 ref 查询都通过既有命令入口，失败返回 undefined 供有序回落。 */
+const gitOutput = (repoRoot: string, args: string): string | undefined => {
+  try {
+    return (
+      execSyncHijack(`git ${args}`, { cwd: repoRoot, stdio: "pipe" })
+        ?.toString()
+        .trim() || undefined
+    );
+  } catch (error) {
+    return undefined;
+  }
+};
+
+const resolveLocalDefaultRef = (
+  repoRoot: string,
+  remoteUrl?: string,
+): string => {
+  if (remoteUrl) {
+    try {
+      execSyncHijack("git fetch origin", { cwd: repoRoot, stdio: "pipe" });
+    } catch (error) {
+      outputConsole.warn(
+        "模板仓 git fetch origin 失败，将使用已有远端跟踪分支",
+      );
+    }
+  }
+  const candidates = [
+    ...(remoteUrl
+      ? [
+          gitOutput(repoRoot, "symbolic-ref --quiet refs/remotes/origin/HEAD"),
+          "refs/remotes/origin/master",
+          "refs/remotes/origin/main",
+        ]
+      : []),
+    "refs/heads/master",
+    "refs/heads/main",
+  ];
+  for (const ref of candidates) {
+    if (
+      ref &&
+      gitOutput(
+        repoRoot,
+        `rev-parse --verify ${quoteShellArg(`${ref}^{commit}`)}`,
+      )
+    ) {
+      return ref;
+    }
+  }
+  throw new Error("模板仓没有可用的默认分支，请用 -b 显式指定分支或标签");
 };
 
 /** 清理本地模板生成时创建的临时 worktree 和临时分支 */
@@ -272,6 +327,12 @@ const materializeRemoteGitTemplate = ({
       }),
       targetPath,
     });
+    return {
+      branch:
+        templateSource.branch ??
+        gitOutput(tempRepoDir, "symbolic-ref --short HEAD")!,
+      commit: gitOutput(tempRepoDir, "rev-parse HEAD")!,
+    };
   } finally {
     try {
       safeRemoveDirSync({
@@ -318,7 +379,9 @@ const materializeLocalGitTemplate = ({
     randomUUID(),
   );
   const worktreeBranch = `done-coding-template-${randomUUID()}`;
-  const worktreeBaseRef = templateSource.branch ?? "HEAD";
+  const remoteUrl = gitOutput(repoRoot, "remote get-url origin");
+  const worktreeBaseRef =
+    templateSource.branch ?? resolveLocalDefaultRef(repoRoot, remoteUrl);
   mkdirSync(path.dirname(tempRepoDir), { recursive: true });
   execSyncHijack(
     `git worktree add -b ${quoteShellArg(worktreeBranch)} ${quoteShellArg(tempRepoDir)} ${quoteShellArg(worktreeBaseRef)}`,
@@ -336,6 +399,13 @@ const materializeLocalGitTemplate = ({
       }),
       targetPath,
     });
+    return {
+      branch:
+        templateSource.branch ??
+        worktreeBaseRef.replace(/^refs\/(remotes|heads)\//, ""),
+      commit: gitOutput(tempRepoDir, "rev-parse HEAD")!,
+      remoteUrl,
+    };
   } finally {
     cleanupLocalTemplateWorktree({
       repoRoot,
@@ -349,16 +419,21 @@ const materializeLocalGitTemplate = ({
 export const materializeTemplateToProject = (
   options: MaterializeTemplateOptions,
 ): TemplateInstanceInfo => {
-  if (options.templateSource.type === CreateTemplateSourceTypeEnum.LOCAL) {
-    materializeLocalGitTemplate(options);
-  } else {
-    materializeRemoteGitTemplate(options);
+  const actual =
+    options.templateSource.type === CreateTemplateSourceTypeEnum.LOCAL
+      ? materializeLocalGitTemplate(options)
+      : materializeRemoteGitTemplate(options);
+  if (!actual.commit || !actual.branch) {
+    throw new Error("无法读取模板实际 ref 或 commit");
   }
+  outputConsole.stage(
+    `模板来源：${options.templateSource.url} @ ${actual.branch} (${actual.commit.slice(0, 7)})`,
+  );
 
   return {
     type: options.templateSource.type,
     url: options.templateSource.url,
-    branch: options.templateSource.branch,
+    ...actual,
     directory: options.templateSource.directory,
     targetPath: options.targetPath,
   };

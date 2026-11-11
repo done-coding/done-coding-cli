@@ -35,6 +35,10 @@ export interface CreateInstanceRecord {
   templateUrl?: string;
   /** 模板分支 */
   templateBranch?: string;
+  /** 仓库内模板目录 */
+  templateDirectory?: string;
+  /** 模板实际 commit */
+  templateCommit?: string;
   /** 创建时间（ISO 8601） */
   createdAt: string;
 }
@@ -121,6 +125,12 @@ const buildRecord = (
   }
   if (input.templateBranch !== undefined) {
     record.templateBranch = input.templateBranch;
+  }
+  if (input.templateDirectory !== undefined) {
+    record.templateDirectory = input.templateDirectory;
+  }
+  if (input.templateCommit !== undefined) {
+    record.templateCommit = input.templateCommit;
   }
   return record;
 };
