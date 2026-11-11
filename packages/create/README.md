@@ -5,6 +5,12 @@
 [![npm version](https://badge.fury.io/js/create-done-coding.svg)](https://www.npmjs.com/package/create-done-coding)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/create)。
+
+<!-- /docs-site-link -->
+
 ## 安装
 
 ### 使用 npm create（推荐）

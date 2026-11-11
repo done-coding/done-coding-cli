@@ -21,7 +21,7 @@
 | mcp                                                                            | `modules/mcp/SNAPSHOT.md`                                                         |
 | dex | `modules/dex/SNAPSHOT.md`（cc-switch v1/v2 与多账号导入） |
 | cc-switch                                                                      | `modules/cc-switch/SNAPSHOT.md`（settings v2、meta-ui 与命名空间软链修复已发布）                    |
-| showcase | `modules/showcase/SNAPSHOT.md`（本地内容导出 + 显式写入组织站；校验与原子替换） |
+| showcase | `modules/showcase/SNAPSHOT.md`（本地内容导出 + 显式写入组织站；校验与原子替换；README 文档站引导段导出时剔除） |
 | ai · mrm                                                                       | 已下线（2026-10-02 退役删除，见 `MODULES.md`）                                    |
 
 ## 发布状态

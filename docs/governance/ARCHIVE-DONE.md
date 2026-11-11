@@ -3,12 +3,13 @@
 > 文档定位：快照型清单 · **[MUST] 由 `scripts/governance-lists.py` 重生成，[MUST NOT] 手工维护**
 > 归档目录 [MUST] 只留 `PROGRESS.md`（条目正文交付时删除）。
 
-共 **29** 个已交付批次。
+共 **31** 个已交付批次。
 
 | 批次 | 所涉领域 | 交付记录 |
 |---|---|---|
 | `0cja0o-generator-consumer-fixes` | generator | [PROGRESS](archive/0cja0o-generator-consumer-fixes/PROGRESS.md) |
 | `2fe6vf-test-home-isolation-skill-example` | generator · mcp | [PROGRESS](archive/2fe6vf-test-home-isolation-skill-example/PROGRESS.md) |
+| `2yiwn1-release-force-publish` | showcase | [PROGRESS](archive/2yiwn1-release-force-publish/PROGRESS.md) |
 | `3r4dvv-tree-build-guard` | generator | [PROGRESS](archive/3r4dvv-tree-build-guard/PROGRESS.md) |
 | `4kea0n-claude-md-import-stubs` | cc-switch · cli-skills | [PROGRESS](archive/4kea0n-claude-md-import-stubs/PROGRESS.md) |
 | `5p64zz-cc-switch-meta-ui` | cc-switch | [PROGRESS](archive/5p64zz-cc-switch-meta-ui/PROGRESS.md) |
@@ -16,6 +17,7 @@
 | `6u0t6n-cli-content-export` | showcase | [PROGRESS](archive/6u0t6n-cli-content-export/PROGRESS.md) |
 | `6zzib5-acceptance-fixes` | component · create · generator · template · utils | [PROGRESS](archive/6zzib5-acceptance-fixes/PROGRESS.md) |
 | `7b8nlh-lerna-ignore-skill-md` | cli-skills | [PROGRESS](archive/7b8nlh-lerna-ignore-skill-md/PROGRESS.md) |
+| `9tt22m-readme-docs-site-link` | showcase | [PROGRESS](archive/9tt22m-readme-docs-site-link/PROGRESS.md) |
 | `b0tdff-npm-oidc-publishing` | cli-skills · utils | [PROGRESS](archive/b0tdff-npm-oidc-publishing/PROGRESS.md) |
 | `c6xc3c-settle-live-specs` | cc-switch · create · generator | [PROGRESS](archive/c6xc3c-settle-live-specs/PROGRESS.md) |
 | `ek4duc-plugin-manifests-docs` | cli-skills · create · harness | [PROGRESS](archive/ek4duc-plugin-manifests-docs/PROGRESS.md) |

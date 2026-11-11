@@ -597,7 +597,7 @@ pnpm run build        # 所有子包构建
 
 ### 发布流程
 
-PR 合入 `prerelease` / `release` 后，由 `.github/workflows/oidc-release.yml` 分别发布 alpha / latest。CI 使用 npm 可信发布（OIDC），先执行 `lerna version`，再执行 `lerna publish from-package`；正式发布后同步 master 与 prerelease。工具版本以工作流及根 `package.json` 为准。根 `pnpm run push` 仍是本地 `lerna publish` 入口，不属于本批迁移范围。
+PR 合入 `prerelease` / `release` 后，由 `.github/workflows/oidc-release.yml` 分别发布 alpha / latest。CI 使用 npm 可信发布（OIDC），先执行 `lerna version`，再执行 `lerna publish from-package`；正式发布后同步 master 与 prerelease。工具版本以工作流及根 `package.json` 为准。根 `pnpm run push` 仍是本地 `lerna publish` 入口，不属于本批迁移范围。`lerna.json` 的 `command.version` 当前临时带 `forcePublish: true`（批次 2yiwn1，让 16 个包一起发版），下次发版准备时删除（池条目 thpfmb）。
 
 批次 `b0tdff` 已经 PR #56 合并并发布；发布提交与版本 tag 为 `cbec4c9`，master / prerelease / release 已同步。npm 发布、provenance 和安装版本回读结果见 `docs/governance/archive/b0tdff-npm-oidc-publishing/PROGRESS.md`；CI 日志未直接查看。
 

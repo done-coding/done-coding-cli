@@ -8,4 +8,5 @@
 - 导出和发布共用 README 白名单收集、扫描和原子安装；扫描拒绝源码文件、source map/引用及常见本机绝对路径。明确占位示例保留，规则扫描不替代人工脱敏。
 - 同版本整体替换，保留其他版本，current 最后原子替换；失败还原旧版并清理临时目录。需串行运行且两仓无并发写入者，版本目录与 current 不是一个原子事务。
 - 根 README 与全部包 README 是使用者文档；harness 的本机路径示例改为绝对路径占位说明，避免输出机器路径。
-- 本批 showcase 测试 50/50、lint 与本地导出通过；本地导出 17 篇。真实跨仓写入、组织站构建与线上发布未执行。批次仍在 `docs/governance/schedule/mxmvvs-publish-site-content/`，未暂存/提交/归档，交主协调收口。
+- README 文档站引导段：根与各包 README 在首个二级标题前有 `<!-- docs-site-link -->` … `<!-- /docs-site-link -->` 包住的一行链接（根指 `https://done-coding.github.io/cli/`，包指 `/cli/docs/packages/<包目录名>`）；导出按标记整段剔除（代码围栏内不处理），标记不成对即失败，站点页不自指。新增包 README 照此加段。
+- 验证现状：showcase 测试 55/55、lint 通过，本地导出 17 篇且与加段前逐字节一致；真实跨仓写入、组织站构建与线上发布不在本仓验证范围。

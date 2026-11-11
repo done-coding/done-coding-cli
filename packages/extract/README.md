@@ -2,6 +2,12 @@
 
 从 JSON 或文本提取字段，再用模板生成文件。支持 JSON 字段读取、正则转换和固定值。
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/extract)。
+
+<!-- /docs-site-link -->
+
 ## 安装与开始使用
 
 ```bash

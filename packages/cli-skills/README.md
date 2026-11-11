@@ -2,6 +2,12 @@
 
 安装 done-coding CLI 对应的 Agent Skills，让支持 Agent Skills 的编码工具发现并调用命令。此包提供说明和安装器，具体 CLI 需另外安装。
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/cli-skills)。
+
+<!-- /docs-site-link -->
+
 ## 安装与使用
 
 ```bash

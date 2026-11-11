@@ -2,6 +2,12 @@
 
 终端编码智能体，可交互处理编码任务，内置 done-coding 生成工具扩展。需要 Node.js >= 22.19.0。
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/dex)。
+
+<!-- /docs-site-link -->
+
 ## 使用
 
 ```bash

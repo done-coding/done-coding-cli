@@ -2,6 +2,12 @@
 
 为使用者项目提供 npm / web 发布命令，可指定版本类型、发布标签与 Git 推送行为。
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/publish)。
+
+<!-- /docs-site-link -->
+
 ## 安装与配置
 
 ```bash

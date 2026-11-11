@@ -3,7 +3,7 @@
 > 文档定位：快照型清单 · **[MUST] 由 `scripts/governance-lists.py` 重生成，[MUST NOT] 手工维护**
 > 正文在 `backlog/<id>-<slug>.md`；下发即 `git mv` 进 `schedule/<批次>/`。
 
-共 **6** 条。
+共 **7** 条。
 
 | id | 标题 | 领域 | 登记 | 文件 |
 |---|---|---|---|---|
@@ -13,3 +13,4 @@
 | `ehzjoy` | generator tree 产物目录整级所有权，不能与手写文件混住（需 recipe preserve 共存声明） | [generator] | 2026-10-02 | [ehzjoy-tree-output-preserve-handwritten.md](backlog/ehzjoy-tree-output-preserve-handwritten.md) |
 | `gl1ytl` | generator tree 的页面级碎片与模板级碎片共用 fragmentRoot，recipe 专属碎片无处安放 | [generator] | 2026-10-02 | [gl1ytl-fragment-root-page-template-layering.md](backlog/gl1ytl-fragment-root-page-template-layering.md) |
 | `kcxpp3` | dc-harness lists/issue 覆盖使用自有生成器的仓的清单格式 | [harness] | 2026-10-27 | [kcxpp3-respect-repo-own-list-generator.md](backlog/kcxpp3-respect-repo-own-list-generator.md) |
+| `thpfmb` | 下次发版准备时删除 lerna.json 的 forcePublish，恢复按变化发版 | [showcase] | 2026-11-11 | [thpfmb-remove-force-publish.md](backlog/thpfmb-remove-force-publish.md) |
