@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.14.1-alpha.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-utils@0.14.0...@done-coding/cli-utils@0.14.1-alpha.0) (2026-11-11)
+
+**Note:** Version bump only for package @done-coding/cli-utils
+
 # [0.14.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-utils@0.13.1...@done-coding/cli-utils@0.14.0) (2026-11-07)
 
 ### Features

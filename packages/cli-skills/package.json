@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-skills",
-  "version": "0.7.0",
+  "version": "0.7.1-alpha.0",
   "description": "done-coding CLI 各命令的 Agent Skills 聚合包与安装器",
   "private": false,
   "module": "es/index.mjs",
@@ -43,7 +43,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "@done-coding/cli-inject": "workspace:0.7.0",
+    "@done-coding/cli-inject": "workspace:0.7.1-alpha.0",
     "@types/node": "^18.0.0",
     "@types/prompts": "^2.4.6",
     "@types/yargs": "^17.0.28",
@@ -55,7 +55,7 @@
     "vitest": "^1.6.1"
   },
   "dependencies": {
-    "@done-coding/cli-utils": "workspace:0.14.0"
+    "@done-coding/cli-utils": "workspace:0.14.1-alpha.0"
   },
   "engines": {
     "node": ">=18.0.0"
