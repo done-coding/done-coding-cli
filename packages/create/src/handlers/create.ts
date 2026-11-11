@@ -1,4 +1,9 @@
 import {
+  cleanupCreateDraftParents,
+  readTemplateSecretKeys,
+  writeTemplateLock,
+} from "@/utils/create-artifacts";
+import {
   getRemoveDirForm,
   projectNameForm,
   getTemplateChoices,
@@ -77,8 +82,11 @@ interface CreateDraftState {
   draftProjectPath: string;
   templateSourceType: CreateTemplateSourceTypeEnum;
   templateUrl: string;
-  templateBranch?: string;
+  templateBranch: string;
   templateDirectory?: string;
+  templateCommit: string;
+  templateRemoteUrl?: string;
+  secretKeys: string[];
   /** 模板友好名（无则记 url），供创建实例留痕 */
   templateName?: string;
   parentGitDir?: string;
@@ -332,6 +340,7 @@ const moveDraftProjectToTarget = (state: CreateDraftState) => {
     parentDir: getDraftRootDir(state.rootDir),
     label: "创建项目草稿目录",
   });
+  cleanupCreateDraftParents(state.rootDir);
 };
 
 /** 准备创建项目：非交互模式下克隆模板、读取模板预置问题并返回草稿信息 */
@@ -386,74 +395,87 @@ export const prepareCreateProject = async (
   const openGitDetailOptimize = argv.openGitDetailOptimize ?? true;
 
   outputConsole.stage("正在初始化项目，请稍等...");
-  const templateInstance = materializeTemplateToProject({
-    templateSource,
-    rootDir,
-    targetPath: draftProjectPath,
-  });
-  outputConsole.stage(`模板已生成: ${projectName}`);
+  try {
+    const templateInstance = materializeTemplateToProject({
+      templateSource,
+      rootDir,
+      targetPath: draftProjectPath,
+    });
+    outputConsole.stage(`模板已生成: ${projectName}`);
 
-  const configPath = MODULE_DEFAULT_CONFIG_RELATIVE_PATH;
-  const state: CreateDraftState = {
-    draftId,
-    rootDir,
-    projectName,
-    targetProjectPath,
-    draftDir,
-    draftProjectPath,
-    templateSourceType: templateInstance.type,
-    templateUrl: templateInstance.url,
-    templateBranch: templateInstance.branch,
-    templateDirectory: templateInstance.directory,
-    // 名取自 templateSource（materialize 不变换名）；无名留 undefined，留痕时回落 url
-    templateName: templateSource.templateName,
-    parentGitDir,
-    configPath,
-    skipTemplateCompile,
-    openGitDetailOptimize,
-  };
-  writeDraftState(state);
+    const configPath = MODULE_DEFAULT_CONFIG_RELATIVE_PATH;
+    const state: CreateDraftState = {
+      draftId,
+      rootDir,
+      projectName,
+      targetProjectPath,
+      draftDir,
+      draftProjectPath,
+      templateSourceType: templateInstance.type,
+      templateUrl: templateInstance.url,
+      templateBranch: templateInstance.branch,
+      templateDirectory: templateInstance.directory,
+      templateCommit: templateInstance.commit,
+      templateRemoteUrl: templateInstance.remoteUrl,
+      secretKeys: await readTemplateSecretKeys(draftProjectPath, configPath),
+      // 名取自 templateSource（materialize 不变换名）；无名留 undefined，留痕时回落 url
+      templateName: templateSource.templateName,
+      parentGitDir,
+      configPath,
+      skipTemplateCompile,
+      openGitDetailOptimize,
+    };
+    writeDraftState(state);
 
-  const configPathFinal = getConfigPath({
-    rootDir: draftProjectPath,
-    configPath,
-  });
+    const configPathFinal = getConfigPath({
+      rootDir: draftProjectPath,
+      configPath,
+    });
 
-  if (!configPathFinal || skipTemplateCompile) {
+    if (!configPathFinal || skipTemplateCompile) {
+      return {
+        status: "ready",
+        draftId,
+        projectPath: targetProjectPath,
+        draftProjectPath,
+      };
+    }
+
+    const config = await readConfigFile<CompileTemplateConfig>({
+      rootDir: draftProjectPath,
+      configPath,
+    });
+    const questions: CollectEnvDataQuestion[] = normalizeCollectEnvDataForm(
+      config?.collectEnvDataForm,
+    );
+
+    if (questions.length === 0) {
+      return {
+        status: "ready",
+        draftId,
+        projectPath: targetProjectPath,
+        draftProjectPath,
+      };
+    }
+
+    outputConsole.stage(`当前模板项目配置了预设问题`);
+
     return {
-      status: "ready",
+      status: "need_input",
       draftId,
       projectPath: targetProjectPath,
       draftProjectPath,
+      questions,
     };
+  } catch (error) {
+    safeRemoveDirSync({
+      targetPath: draftDir,
+      parentDir: getDraftRootDir(rootDir),
+      label: "创建失败草稿目录",
+    });
+    cleanupCreateDraftParents(rootDir);
+    throw error;
   }
-
-  const config = await readConfigFile<CompileTemplateConfig>({
-    rootDir: draftProjectPath,
-    configPath,
-  });
-  const questions: CollectEnvDataQuestion[] = normalizeCollectEnvDataForm(
-    config?.collectEnvDataForm,
-  );
-
-  if (questions.length === 0) {
-    return {
-      status: "ready",
-      draftId,
-      projectPath: targetProjectPath,
-      draftProjectPath,
-    };
-  }
-
-  outputConsole.stage(`当前模板项目配置了预设问题`);
-
-  return {
-    status: "need_input",
-    draftId,
-    projectPath: targetProjectPath,
-    draftProjectPath,
-    questions,
-  };
 };
 
 const getCompleteAnswerSwift = (
@@ -574,6 +596,20 @@ export const completeCreateProject = async (
     ctxInit: ctx,
   });
 
+  writeTemplateLock({
+    projectPath: state.draftProjectPath,
+    source: {
+      url: state.templateUrl,
+      remoteUrl: state.templateRemoteUrl,
+      directory: state.templateDirectory,
+      branch: state.templateBranch,
+      commit: state.templateCommit,
+    },
+    template: state.templateName,
+    secretKeys: state.secretKeys,
+    answers: argv.envData,
+  });
+
   await applyGitDetailOptimize({
     state,
     argv,
@@ -588,6 +624,8 @@ export const completeCreateProject = async (
     template: state.templateName ?? state.templateUrl,
     templateUrl: state.templateUrl,
     templateBranch: state.templateBranch,
+    templateDirectory: state.templateDirectory,
+    templateCommit: state.templateCommit,
   });
 
   outputConsole.success(`项目${state.projectName}初始化完成`);
@@ -668,7 +706,7 @@ const interactiveCreateHandler = async (
   const templateSource = await resolveTemplateSourceInfo({ argv });
   const parentGitDir = lookForParentTarget(".git");
   outputConsole.stage("正在初始化项目，请稍等...");
-  materializeTemplateToProject({
+  const templateInstance = materializeTemplateToProject({
     templateSource,
     rootDir: safeCwd(),
     targetPath: projectNamePath,
@@ -681,6 +719,7 @@ const interactiveCreateHandler = async (
     rootDir: projectNamePath,
     configPath,
   });
+  const secretKeys = await readTemplateSecretKeys(projectNamePath, configPath);
   // 编译会删除模板配置，先读使用步骤
   const usageSteps = buildUsageSteps(
     projectName,
@@ -706,41 +745,49 @@ const interactiveCreateHandler = async (
     }
   }
 
-  if (!argv.openGitDetailOptimize) {
-    outputConsole.stage(`跳过git细节优化`);
-    return process.exit(0);
-  }
+  writeTemplateLock({
+    projectPath: projectNamePath,
+    source: templateInstance,
+    template: templateSource.templateName,
+    secretKeys,
+  });
 
-  outputConsole.stage("项目初始化完成");
+  if (argv.openGitDetailOptimize) {
+    outputConsole.stage("项目初始化完成");
 
-  await rmGitCtrlAsync(projectNamePath);
-  if (parentGitDir) {
-    outputConsole.stage(
-      `项目创建在父级git仓库${parentGitDir}中，已跳过${projectName}目录git初始化`,
+    await rmGitCtrlAsync(projectNamePath);
+    if (parentGitDir) {
+      outputConsole.stage(
+        `项目创建在父级git仓库${parentGitDir}中，已跳过${projectName}目录git初始化`,
+      );
+    } else {
+      execSyncHijack(`git init`, {
+        cwd: projectNamePath,
+        stdio: "inherit",
+      });
+    }
+
+    const gitCommitMessage = await getAnswerSwift<string>(
+      FormNameEnum.GIT_COMMIT_MESSAGE,
+      getGitCommitMessageForm(projectName),
     );
-  } else {
-    execSyncHijack(`git init`, {
+
+    execSyncHijack(`git add . && git commit -m '${gitCommitMessage}'`, {
       cwd: projectNamePath,
       stdio: "inherit",
     });
+  } else {
+    outputConsole.stage(`跳过git细节优化`);
   }
-
-  const gitCommitMessage = await getAnswerSwift<string>(
-    FormNameEnum.GIT_COMMIT_MESSAGE,
-    getGitCommitMessageForm(projectName),
-  );
-
-  execSyncHijack(`git add . && git commit -m '${gitCommitMessage}'`, {
-    cwd: projectNamePath,
-    stdio: "inherit",
-  });
 
   // 创建成功后向中央注册表留痕（best-effort 副作用，失败不影响主流程）
   recordCreateInstance({
     path: projectNamePath,
     template: templateSource.templateName ?? templateSource.url,
     templateUrl: templateSource.url,
-    templateBranch: templateSource.branch,
+    templateBranch: templateInstance.branch,
+    templateDirectory: templateInstance.directory,
+    templateCommit: templateInstance.commit,
   });
 
   outputConsole.success(`项目${projectName}初始化完成`);
@@ -827,6 +874,7 @@ const listTemplateQuestions = async (
         parentDir: getDraftRootDir(rootDir),
         label: "create --list-questions 草稿目录",
       });
+      cleanupCreateDraftParents(rootDir);
     } catch (cleanupError) {
       // 清理失败不阻塞清单输出
     }
@@ -920,6 +968,7 @@ export const handler = async (
         parentDir: getDraftRootDir(rootDir),
         label: "create 非交互失败草稿目录",
       });
+      cleanupCreateDraftParents(rootDir);
     } catch (cleanupError) {
       // 清理失败不阻塞错误传播
     }

@@ -7,8 +7,10 @@
  * 经同一变换，格式化产物即漂移闸基线。
  *
  * 决策：
- *  - 用**目标项目自己的 prettier**（`<cwd>/node_modules/.bin/prettier`）：版本与配置随
- *    目标仓（--stdin-filepath 按产物真实路径解析仓内配置），生成结果与仓内 CI 口径一致；
+ *  - 用**目标项目自己的 prettier**：从产物目录（output）逐级向上找到 cwd 为止，取最近的
+ *    `node_modules/.bin/prettier`（monorepo 成员自装、仓根未装也能命中；issue kuoimm）；
+ *    配置同理随产物真实路径就近解析（--stdin-filepath），生成结果与该成员 CI 口径一致；
+ *    不越出 cwd 向上找（不吃仓外/全局 prettier）；
  *    [MUST NOT] 由本包自带 prettier（版本漂移 = 跨机漂移闸假阳性）。
  *  - 逐文件 `--stdin-filepath` 同步 spawn（KISS：模块生成单配方文件数少；慢了再批量优化）。
  *  - 无 parser 的文件（二进制/未知扩展名）静默跳过；**其它格式化错误 fail-loud**——
@@ -19,6 +21,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { isInside } from "@/core/path-safe";
 import type { Recipe, Vfs } from "./types";
 
 /** 格式化写入的 provenance opId（非真实 op；仅标记该节点内容经过格式化变换）。 */
@@ -28,24 +31,35 @@ export const FORMAT_OP_ID = "__format__";
 const NO_PARSER_RE = /no parser could be inferred/i;
 
 /**
- * 解析目标项目的 prettier 可执行文件；找不到 fail-loud
+ * 解析目标项目的 prettier 可执行文件：自 fromDir（缺省 = cwd）逐级向上至 cwd，取最近的
+ * `node_modules/.bin/prettier`；fromDir 不在 cwd 内时只查 cwd。找不到 fail-loud
  * （配方声明了 format 但目标项目没有 prettier = 配置错误，[MUST NOT] 静默不格式化）。
  */
-export const resolvePrettierBin = (cwd: string): string => {
-  const bin = path.join(cwd, "node_modules", ".bin", "prettier");
-  if (!fs.existsSync(bin)) {
-    throw new Error(
-      `配方声明 format:"prettier"，但目标项目未安装 prettier（未找到 ${bin}）。` +
-        `请在目标项目安装 prettier，或去掉配方 format 字段。`,
-    );
+export const resolvePrettierBin = (
+  cwd: string,
+  fromDir: string = cwd,
+): string => {
+  const root = path.resolve(cwd);
+  let dir = path.resolve(fromDir);
+  if (!isInside(root, dir)) dir = root;
+  const tried: string[] = [];
+  for (;;) {
+    const bin = path.join(dir, "node_modules", ".bin", "prettier");
+    if (fs.existsSync(bin)) return bin;
+    tried.push(bin);
+    if (dir === root) break;
+    dir = path.dirname(dir);
   }
-  return bin;
+  throw new Error(
+    `配方声明 format:"prettier"，但目标项目未安装 prettier（已查找 ${tried.join("、")}）。` +
+      `请在产物所属项目（或其上层直至项目根）安装 prettier，或去掉配方 format 字段。`,
+  );
 };
 
 export interface FormatVfsOptions {
   /** 工作目录（prettier 解析基准 + output 绝对化基准） */
   cwd: string;
-  /** 格式化器可执行文件覆盖（测试注入 stub；缺省 = resolvePrettierBin(cwd)） */
+  /** 格式化器可执行文件覆盖（测试注入 stub；缺省 = 自 output 目录就近解析，见 resolvePrettierBin） */
   formatterBin?: string;
 }
 
@@ -59,8 +73,8 @@ export const formatVfs = (
   opts: FormatVfsOptions,
 ): void => {
   if (recipe.format === undefined) return;
-  const bin = opts.formatterBin ?? resolvePrettierBin(opts.cwd);
   const outputRoot = path.resolve(opts.cwd, recipe.output);
+  const bin = opts.formatterBin ?? resolvePrettierBin(opts.cwd, outputRoot);
   for (const rel of vfs.paths()) {
     const node = vfs.get(rel);
     if (!node || node.kind !== "file" || !node.content) continue;

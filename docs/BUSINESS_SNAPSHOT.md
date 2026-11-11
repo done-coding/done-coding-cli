@@ -122,7 +122,7 @@ done-coding-cli 是一个面向 **Node.js 前端/全栈开发者**的 CLI 工具
 
 | 子命令 | 包名 | 核心能力 | 状态 | 详情 |
 |---|---|---|---|---|
-| `DC create` | `create-done-coding` | 从 Git 模板创建项目，交互式问答，git clone + Lodash 模板编译 + git 细节优化；无 TTY（CI / AI / 管道）走非交互：`--env` / `--env-file` 单发供答、`--list-questions` 机读问题清单、缺必填快速失败并列出缺项；成功后留痕到本机实例注册表（`instances ls/prune`），完成提示按模板 `usageSteps`；`template-config` 登记本机默认模板清单（`~/.done-coding/create/index.json`），登记后无需每次传 `--templateConfig` | `活跃` | `packages/create/docs/BUSINESS.md`（待创建） |
+| `DC create` | `create-done-coding` | 从 Git 模板创建项目，交互式问答，git clone + Lodash 模板编译 + git 细节优化；无 TTY（CI / AI / 管道）走非交互：`--env` / `--env-file` 单发供答、`--list-questions` 机读问题清单、缺必填快速失败并列出缺项；本地模板仓默认取远端默认分支（在途分支须 `-b`），项目内写 `.done-coding/template.lock.json` 记录模板来源与 commit；成功后留痕到本机实例注册表（`instances ls/prune`），完成提示按模板 `usageSteps`；`template-config` 登记本机默认模板清单（`~/.done-coding/create/index.json`），登记后无需每次传 `--templateConfig` | `活跃` | `packages/create/docs/BUSINESS.md`（待创建） |
 | `DC component` | `@done-coding/cli-component` | 组件增删改查（add/modify/remove/list），命名自动转换。**底层已切换为 cli-generator 的 component 预设薄包装**，本包零业务 JS（业务全在 `.done-coding/component/config.json5`） | `活跃` | `packages/component/docs/BUSINESS.md`（待创建） |
 | `DC generator` | `@done-coding/cli-generator` | 通用具名批次生成器（content-free 机制层）：add/modify/remove/list/init + assemble 模板组装 + tree 模块生成；inject 锚点插入 + marker 健壮回退；批次发现（项目→父链→全局） | `活跃` | `packages/generator/docs/BUSINESS.md`（待创建） |
 | `dc-mcp` | `@done-coding/cli-mcp` | done-coding MCP server：把 create / generator 暴露为 Tools/Resources/Prompts 供 AI agent 非交互调用（rootDir 必填、本地不联网、隔离重构后由 zod schema 强制边界） | `活跃` | `packages/mcp/docs/BUSINESS.md`（待创建） |

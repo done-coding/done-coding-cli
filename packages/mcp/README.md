@@ -2,6 +2,12 @@
 
 通过 MCP stdio 协议向 AI 客户端提供项目创建、具名实例生成和模块模板工具。不包含模型服务，也不需要由 server 发起模型调用。
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/mcp)。
+
+<!-- /docs-site-link -->
+
 ## 安装与接入
 
 ```bash

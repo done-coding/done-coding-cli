@@ -47,7 +47,7 @@ export interface EngineCtx {
   allowDangerous?: boolean;
   /** 注入家目录（缺省 os.homedir()），仅供可疑根守卫单测，[MUST NOT] 走 CLI 透传 */
   homeDir?: string;
-  /** 格式化器可执行文件覆盖（缺省 = 目标项目 node_modules/.bin/prettier），供单测注入 stub */
+  /** 格式化器可执行文件覆盖（缺省 = 自 output 目录就近解析的 prettier），供单测注入 stub */
   formatterBin?: string;
 }
 

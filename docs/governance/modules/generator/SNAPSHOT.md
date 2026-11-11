@@ -9,7 +9,9 @@
 - 计划期：addFragment 目录铺开按文件声明效果，delete 类 op 可作用于铺出的文件（0.3.0 已发布，hub 配方的单铺规避可删，已向 hub 提 issue）。
 - 批次未找到抛 utils `CliUserError`（CLI 不打调用栈），提示 `done-coding generator init <type>` 初始化（6zzib5，0.24.0 已发布）。
 - tree 生成前校验（3r4dvv，generator 0.4.0 已发布）：build / check 写盘与比对前，按所引模板 `schema.json` 的 `params` 校验 `recipe.vars`（ajv，按 `$schema` 选 draft），并按 `base: { package, range }` 从 output 所在目录向上就近读 `node_modules` 已装版本做 semver 判定；违规列全量（路径 + 期望 + 实际）、零落盘。配方→模板据 addFragment `source` 的 `<base>/<template>/fragments/` 推导；找不到基座包只告警（非 npm 基座待 backlog）。
-- 测试：vitest 403 例（`forks` 池 + globalSetup 隔离宿主 HOME，本机有全局 `~/.done-coding/templates` 亦不受影响）；跨仓回归 `pnpm test:hub`（本地构建对 template-hub 22 配方跑漂移闸）。
+- 消费侧修复（0cja0o，未发布）：`lodash.template` 钉 `4.5.0`（≤0.4.0 的 `^4.5.0` 全新安装可解析到损坏的 4.18.0，tree 全挂）；`format: "prettier"` 自 output 目录向上至 cwd 就近解析 prettier（monorepo 成员自装可用）；`--help` 用法总览列 tree；module-generate skill 补发现层与版本提示。
+- 已知不一致：模块模板**探测**合并 project / parent / global 各层，`tree build` **碎片根**只取就近第一个 `.done-coding/templates/` 根——项目层有 templates 时全局层模板列得出却读不到碎片（skill 已写明，机制未改）。
+- 测试：vitest 409 例（`forks` 池 + globalSetup 隔离宿主 HOME，本机有全局 `~/.done-coding/templates` 亦不受影响）；跨仓回归 `pnpm test:hub`（本地构建对 template-hub 22 配方跑漂移闸）。
 - 遗留：`ehzjoy` 产物目录与手写文件混住；`gl1ytl` 页面级 / 模板级碎片 fragmentRoot 分层；非 npm 基座版本校验（池中，parent dyynp0）。
 
 ## 业务快照

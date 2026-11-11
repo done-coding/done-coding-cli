@@ -5,6 +5,12 @@ done-coding 工作区治理（harness-workspace）工具：治理清单生成、
 [![npm version](https://badge.fury.io/js/@done-coding%2Fcli-harness.svg)](https://www.npmjs.com/package/@done-coding/cli-harness)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/harness)。
+
+<!-- /docs-site-link -->
+
 ## 安装
 
 ```bash

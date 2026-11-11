@@ -2,6 +2,12 @@
 
 替换模板变量并写入文件，支持单文件编译、批量处理与部分模式的回滚。
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/template)。
+
+<!-- /docs-site-link -->
+
 ## 安装与快速开始
 
 ```bash

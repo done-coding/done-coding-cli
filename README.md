@@ -2,6 +2,12 @@
 
 done-coding 把项目创建、代码生成、工程配置、信息处理和发布工具放在同一个命令入口。可安装主包，也可只安装需要的子包。
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/)。
+
+<!-- /docs-site-link -->
+
 ## 安装与开始使用
 
 ```bash

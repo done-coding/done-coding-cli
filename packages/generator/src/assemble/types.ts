@@ -51,7 +51,7 @@ export interface Recipe {
   createTemplate?: CreateTemplateSync;
   /**
    * post-render 格式化钩子（opt-in）。"prettier" = 用目标项目自己的 prettier
-   * （cwd/node_modules/.bin/prettier）在 VFS 层、flush/manifest 前逐文件格式化——
+   * （自 output 目录向上至 cwd 最近的 node_modules/.bin/prettier）在 VFS 层、flush/manifest 前逐文件格式化——
    * build/diff/check 三径同一变换，格式化产物即漂移闸基线。
    * 仅作用于配方产物（output）；tree 注入（textPatch 既有项目文件）不经此。
    */

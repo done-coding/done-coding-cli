@@ -2,6 +2,12 @@
 
 项目创建、代码生成、配置和发布工具的统一命令入口。
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/cli)。
+
+<!-- /docs-site-link -->
+
 ## 安装
 
 ```bash
