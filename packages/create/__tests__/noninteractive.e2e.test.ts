@@ -10,7 +10,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 /**
@@ -486,6 +486,7 @@ describe("create-done-coding 非交互供答 e2e", () => {
     const r = runCli(["-p", templateRepo, "--list-questions"], work);
     expect(r.signal).toBeNull();
     expect(r.status).toBe(0);
+    expect(existsSync(path.join(work, ".done-coding"))).toBe(false);
 
     const parsed = JSON.parse(r.stdout); // stdout 必须是可解析的纯 JSON
     expect(parsed).toEqual([
@@ -662,6 +663,59 @@ describe("create-done-coding 非交互供答 e2e", () => {
       after.instances.some((i) => i.path === path.join(failWork, "failapp")),
     ).toBe(false);
   });
+
+  it.each([false, true])(
+    "出生记录在首次 git commit 内（interactive=%s）",
+    (interactive) => {
+      const work = makeWork(`first-commit-${interactive}`);
+      const indexUrl = pathToFileURL(path.join(PKG_DIR, "es/index.mjs")).href;
+      const options = {
+        projectName: "birthapp",
+        templateUrl: usageStepsRepo,
+        openGitDetailOptimize: true,
+        gitCommitMessage: "feat: fixture",
+      };
+      const script = `import { createHandler } from ${JSON.stringify(indexUrl)};
+      await createHandler(JSON.parse(process.argv[1]), { interactive: ${interactive} });`;
+      const result = spawnSync(
+        "node",
+        ["--input-type=module", "-e", script, JSON.stringify(options)],
+        {
+          cwd: work,
+          encoding: "utf-8",
+          timeout: 20000,
+          env: {
+            ...process.env,
+            DC_CREATE_INSTANCES_BASE_DIR: workspaceRoot,
+            GIT_AUTHOR_NAME: "test",
+            GIT_AUTHOR_EMAIL: "test@example.invalid",
+            GIT_COMMITTER_NAME: "test",
+            GIT_COMMITTER_EMAIL: "test@example.invalid",
+          },
+        },
+      );
+      expect(result.status, result.stdout + result.stderr).toBe(0);
+      const project = path.join(work, "birthapp");
+      const tracked = spawnSync(
+        "git",
+        ["show", "HEAD:.done-coding/template.lock.json"],
+        { cwd: project, encoding: "utf-8" },
+      );
+      expect(tracked.status).toBe(0);
+      const lock = JSON.parse(tracked.stdout);
+      expect(lock).toMatchObject({
+        version: 1,
+        url: usageStepsRepo,
+        branch: expect.stringMatching(/^(master|main)$/),
+        commit: expect.stringMatching(/^[a-f0-9]{40}$/),
+      });
+      expect(lock).not.toHaveProperty("answers");
+      expect(existsSync(path.join(project, ".done-coding/template.json"))).toBe(
+        false,
+      );
+      expect(existsSync(path.join(work, ".done-coding"))).toBe(false);
+    },
+  );
 
   it("完成提示：模板未声明 usageSteps → 默认 pnpm install / pnpm run dev", () => {
     const work = makeWork("usage-default");

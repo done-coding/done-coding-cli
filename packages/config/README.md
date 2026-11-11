@@ -2,6 +2,12 @@
 
 检查项目的工程化配置，并按交互选择添加配置模块，例如代码检查与提交规范。
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/config)。
+
+<!-- /docs-site-link -->
+
 ## 安装与使用
 
 ```bash

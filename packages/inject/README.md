@@ -2,6 +2,12 @@
 
 读取 JSON 中的字段，按配置转换后写入另一个 JSON 文件，适合生成包信息等静态数据。
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/inject)。
+
+<!-- /docs-site-link -->
+
 ## 安装与开始使用
 
 ```bash

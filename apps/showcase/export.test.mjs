@@ -160,3 +160,48 @@ test("更新 current 失败会还原该版本的旧文档", async () => {
     "current.json",
   ]);
 });
+
+const siteLink =
+  "<!-- docs-site-link -->\n\n完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/cli)。\n\n<!-- /docs-site-link -->\n";
+
+test("按标记剔除文档站引导段，不留连续空行", async () => {
+  await write(
+    "packages/cli/README.md",
+    `# done-coding\n\n简介\n\n${siteLink}\n## 安装\n`,
+  );
+  await exportContent({ repoRoot: root, source });
+  expect(await read(`${content}/0.23.3/docs/packages/cli.md`)).toBe(
+    "# done-coding\n\n简介\n\n## 安装\n",
+  );
+});
+
+test("只认标记不认文本：无标记的同文链接照常保留，代码围栏内的标记原样保留", async () => {
+  const fenced = `\`\`\`md\n${siteLink}\`\`\`\n`;
+  await write(
+    "packages/cli/README.md",
+    `# done-coding\n\n完整文档：[使用文档](https://done-coding.github.io/cli/)。\n\n${fenced}`,
+  );
+  await exportContent({ repoRoot: root, source });
+  const doc = await read(`${content}/0.23.3/docs/packages/cli.md`);
+  expect(doc).toContain(
+    "完整文档：[使用文档](https://done-coding.github.io/cli/)。",
+  );
+  expect(doc).toContain(fenced);
+});
+
+test.each([
+  ["未闭合", "<!-- docs-site-link -->\n链接\n", /未闭合/],
+  ["缺少开始", "链接\n<!-- /docs-site-link -->\n", /缺少开始/],
+  [
+    "嵌套",
+    "<!-- docs-site-link -->\n<!-- docs-site-link -->\n<!-- /docs-site-link -->\n",
+    /嵌套/,
+  ],
+])("文档站引导标记%s即失败且不改现有产物", async (_, body, error) => {
+  await exportContent({ repoRoot: root, source });
+  await write("packages/cli/README.md", `# done-coding\n\n${body}`);
+  await expect(
+    exportContent({ repoRoot: root, source: "new" }),
+  ).rejects.toThrow(error);
+  expect(JSON.parse(await read(`${content}/current.json`)).source).toBe(source);
+});

@@ -4,6 +4,12 @@
 模型路由
 ```
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/cc-switch)。
+
+<!-- /docs-site-link -->
+
 ## 使用
 
 ```bash

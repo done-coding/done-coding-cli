@@ -2,6 +2,12 @@
 
 提供仓库克隆、Git 配置初始化、钩子回调和反向合并检测。
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/git)。
+
+<!-- /docs-site-link -->
+
 ## 安装与使用
 
 ```bash

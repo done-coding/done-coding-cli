@@ -5,6 +5,12 @@
 [![npm version](https://badge.fury.io/js/@done-coding%2Fcli-generator.svg)](https://www.npmjs.com/package/@done-coding/cli-generator)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/generator)。
+
+<!-- /docs-site-link -->
+
 ## 安装
 
 ### 独立安装

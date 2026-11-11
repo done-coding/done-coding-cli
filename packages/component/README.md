@@ -2,6 +2,12 @@
 
 使用项目的 component 配置生成和管理组件。它复用 [generator](../generator/README.md) 的实例生成能力，不内置组件业务模板。
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/component)。
+
+<!-- /docs-site-link -->
+
 ## 安装与使用
 
 ```bash

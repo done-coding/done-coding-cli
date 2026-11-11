@@ -62,7 +62,7 @@
 | CLI 框架 | yargs（通过 @done-coding/cli-utils 封装） | — |
 | 构建 | Vite + vite-plugin-dts | ^5.0.10 / ^3.7.0 |
 | 交互输入 | prompts（通过 xPrompts 封装） | — |
-| 模板引擎 | lodash.template | — |
+| 模板引擎 | lodash.template | 4.5.0（精确钉版，4.18.0 损坏） |
 | 配置格式 | JSON5 / JSON | — |
 | 测试 | Vitest | ^1.6.1 |
 | 智能体基座 | @earendil-works/pi-coding-agent（cli-dex） | 0.84.1（锁版本） |
@@ -194,7 +194,7 @@ packages/generator/src/
 │   ├── registry.ts       # op 注册表（type→OpHandler）；registerBuiltinOps
 │   ├── ops/              # 内建 6 op：add-fragment / text-patch / json-merge-op / delete-file / delete-field / write-file（内联字面）
 │   ├── inject/inject.ts  # 注入现有项目：textPatch 走 marker 锚点，内存 VFS 原子编排
-│   ├── format.ts         # recipe.format="prettier"：flush / manifest 前用目标仓 prettier 格式化（build 与 diff 同径）
+│   ├── format.ts         # recipe.format="prettier"：flush / manifest 前用 output 就近（至 cwd）的 prettier 格式化（build 与 diff 同径）
 │   ├── planner.ts        # plan：构 VFS → 通用判冲突（混族/conflictKey）+ 顺序模拟（不认死 kind，A-NFR-4）
 │   ├── engine.ts         # runPlan / runBuild / runDiff / assertOutputsCompatible + git 本地壳（execFileSync）
 │   ├── vfs.ts            # 内存 VFS + loadBaseDir + 原子 flush（sibling-temp→rename）+ manifest 孤儿删除 + 大小写折叠守卫
@@ -597,7 +597,7 @@ pnpm run build        # 所有子包构建
 
 ### 发布流程
 
-PR 合入 `prerelease` / `release` 后，由 `.github/workflows/oidc-release.yml` 分别发布 alpha / latest。CI 使用 npm 可信发布（OIDC），先执行 `lerna version`，再执行 `lerna publish from-package`；正式发布后同步 master 与 prerelease。工具版本以工作流及根 `package.json` 为准。根 `pnpm run push` 仍是本地 `lerna publish` 入口，不属于本批迁移范围。
+PR 合入 `prerelease` / `release` 后，由 `.github/workflows/oidc-release.yml` 分别发布 alpha / latest。CI 使用 npm 可信发布（OIDC），先执行 `lerna version`，再执行 `lerna publish from-package`；正式发布后同步 master 与 prerelease。工具版本以工作流及根 `package.json` 为准。根 `pnpm run push` 仍是本地 `lerna publish` 入口，不属于本批迁移范围。`lerna.json` 的 `command.version` 当前临时带 `forcePublish: true`（批次 2yiwn1，让 16 个包一起发版），下次发版准备时删除（池条目 thpfmb）。
 
 批次 `b0tdff` 已经 PR #56 合并并发布；发布提交与版本 tag 为 `cbec4c9`，master / prerelease / release 已同步。npm 发布、provenance 和安装版本回读结果见 `docs/governance/archive/b0tdff-npm-oidc-publishing/PROGRESS.md`；CI 日志未直接查看。
 

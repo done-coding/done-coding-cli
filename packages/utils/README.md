@@ -2,6 +2,12 @@
 
 供程序复用的 CLI 公共工具库，包含命令构建、配置读取、终端交互、输出与路径处理，不提供独立命令。
 
+<!-- docs-site-link -->
+
+完整文档：[使用文档](https://done-coding.github.io/cli/docs/packages/utils)。
+
+<!-- /docs-site-link -->
+
 ## 安装
 
 ```bash

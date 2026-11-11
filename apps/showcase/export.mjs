@@ -49,6 +49,48 @@ async function readSafe(root, file) {
   return fs.readFile(file, "utf8");
 }
 
+const DOCS_SITE_LINK_START = "<!-- docs-site-link -->";
+const DOCS_SITE_LINK_END = "<!-- /docs-site-link -->";
+
+// README 中指向站点自身的引导段只服务 npm / GitHub 读者，导出时按标记整段剔除；标记不成对即失败。
+export function stripDocsSiteLink(markdown, label) {
+  const lines = markdown.split("\n");
+  const kept = [];
+  let fence;
+  let start = -1;
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+    const trimmed = line.trim();
+    if (!fence && trimmed === DOCS_SITE_LINK_START) {
+      if (start >= 0)
+        throw new Error(`文档站引导标记嵌套（${label} 第 ${index + 1} 行）`);
+      start = index;
+      continue;
+    }
+    if (!fence && trimmed === DOCS_SITE_LINK_END) {
+      if (start < 0)
+        throw new Error(
+          `文档站引导结束标记缺少开始（${label} 第 ${index + 1} 行）`,
+        );
+      start = -1;
+      // 段前后各有空行时连带去掉段后空行，不留连续空行。
+      if (kept.at(-1) === "" && lines[index + 1] === "") index++;
+      continue;
+    }
+    if (start >= 0) continue;
+    const marker = line.match(/^\s*(`{3,}|~{3,})/);
+    if (marker) {
+      if (!fence) fence = marker[1];
+      else if (marker[1][0] === fence[0] && marker[1].length >= fence.length)
+        fence = undefined;
+    }
+    kept.push(line);
+  }
+  if (start >= 0)
+    throw new Error(`文档站引导标记未闭合（${label} 第 ${start + 1} 行）`);
+  return kept.join("\n");
+}
+
 function rewriteMarkdown(markdown, entry, documents) {
   function rewrite(url) {
     if (/^(?:https?:|mailto:|#)/i.test(url)) return url;
@@ -149,7 +191,11 @@ export async function collectContent({ repoRoot = projectRoot, source }) {
     const markdown = await readSafe(root, entry.input);
     docs.push({
       ...entry,
-      markdown: rewriteMarkdown(markdown, entry, entries),
+      markdown: rewriteMarkdown(
+        stripDocsSiteLink(markdown, entry.label),
+        entry,
+        entries,
+      ),
     });
   }
   const files = docs.map((doc) => ({ name: doc.output, body: doc.markdown }));

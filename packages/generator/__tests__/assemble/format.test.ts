@@ -111,6 +111,64 @@ describe("formatVfs（单元）", () => {
   it("声明 format 但目标项目无 prettier → fail-loud", () => {
     expect(() => resolvePrettierBin(root)).toThrow(/未安装 prettier/);
   });
+
+  describe("resolvePrettierBin 就近解析（issue kuoimm）", () => {
+    const fakeBin = (dir: string): string => {
+      const bin = path.join(dir, "node_modules", ".bin", "prettier");
+      fs.mkdirSync(path.dirname(bin), { recursive: true });
+      fs.writeFileSync(bin, "");
+      return bin;
+    };
+
+    it("仓根未装、monorepo 成员已装 → 命中成员的 prettier（output 目录尚未生成也可）", () => {
+      const member = path.join(root, "frontend", "apps", "admin");
+      const bin = fakeBin(member);
+      expect(resolvePrettierBin(root, path.join(member, "src", "pages"))).toBe(
+        bin,
+      );
+    });
+
+    it("成员与仓根都装 → 取离 output 最近的", () => {
+      fakeBin(root);
+      const member = path.join(root, "apps", "web");
+      const bin = fakeBin(member);
+      expect(resolvePrettierBin(root, path.join(member, "src"))).toBe(bin);
+    });
+
+    it("成员未装 → 回落仓根", () => {
+      const bin = fakeBin(root);
+      expect(resolvePrettierBin(root, path.join(root, "apps", "web"))).toBe(
+        bin,
+      );
+    });
+
+    it("formatVfs 缺省解析：用 output 所属成员的 prettier 格式化", () => {
+      const member = path.join(root, "frontend", "apps", "admin");
+      const binDir = path.join(member, "node_modules", ".bin");
+      fs.mkdirSync(binDir, { recursive: true });
+      fs.copyFileSync(bin, path.join(binDir, "prettier"));
+      const vfs = createVfs();
+      vfs.setFile("a.ts", Buffer.from("const a = 1;\n"), "a");
+      formatVfs(
+        recipeOf({ format: "prettier", output: "frontend/apps/admin/src" }),
+        vfs,
+        { cwd: root },
+      );
+      expect(vfs.get("a.ts")?.content?.toString()).toBe(
+        "const a = 1; // fmt\n",
+      );
+    });
+
+    it("不越出 cwd 向上找；fromDir 在 cwd 外时只查 cwd", () => {
+      const inner = path.join(root, "repo");
+      fakeBin(root); // cwd 之外（上层）的 prettier 不得命中
+      fs.mkdirSync(inner, { recursive: true });
+      expect(() => resolvePrettierBin(inner, path.join(inner, "a"))).toThrow(
+        /未安装 prettier/,
+      );
+      expect(() => resolvePrettierBin(inner, root)).toThrow(/未安装 prettier/);
+    });
+  });
 });
 
 describe("engine 集成（build/diff 同径）", () => {

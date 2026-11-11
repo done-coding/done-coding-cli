@@ -24,7 +24,8 @@ const dispatchCommandAndUsage = (asSubcommand = false) => {
   ${prefix} remove <type> <name>         移除实例
   ${prefix} list [type]                  列出批次（无 type）/ 批次实例（带 type）
   ${prefix} init <type>                  初始化批次骨架
-  ${prefix} assemble plan|build|diff|check  模板组装（配方→物化产物 + 漂移闸）`;
+  ${prefix} assemble plan|build|diff|check  模板组装（配方→物化产物 + 漂移闸）
+  ${prefix} tree build|check             模块生成（模块模板配方→项目内产物 + 漂移闸）`;
   return { command, usage };
 };
 
