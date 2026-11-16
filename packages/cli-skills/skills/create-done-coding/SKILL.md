@@ -53,7 +53,9 @@ fi
 模板来源是 git 地址或本地 git 仓库**根路径**（`/` 开头）。两种拿法：
 
 ⓐ **用户已指明模板**（给了 git 地址 / 本地路径）→ 直接作为 `-p` 的值。
-ⓑ **从本地模板列表挑**：模板列表的**入口是全局指针文件** `~/.done-coding/create/index.json`，解析分两跳：
+ⓑ **从本地模板列表挑**：先跑 `done-coding create templates --json`——与交互选单同源（`--templateConfig` > 本机指针 > 内置远端），输出 `{ source, templateList: [{ name, description, url, directory, branch }] }`。问 Q1 时把每项的 **name + description** 一起列给用户（description 写了形态与适用场景，如「admin 后台布局+自带登录 / blank 空白壳」），别只给名字。`source` 是「内置远端模板列表」= 本机没配指针，按 ⓒ 处理（远端列表只作参考，来源仍须向用户确认）。
+
+CLI 版本较旧、没有 `templates` 子命令时，按指针链手工解析——模板列表的**入口是全局指针文件** `~/.done-coding/create/index.json`，解析分两跳：
 
 1. **第一跳（指针）** 读 `~/.done-coding/create/index.json`，内容形如 `{ "configPath": "<注册表绝对路径>" }`，取出 `configPath`。也可直接跑 `done-coding create template-config`（无参）查看当前指向及其是否可用（文件存在、模板数）。
 2. **第二跳（注册表）** 读 `configPath` 指向的 JSON，取 `templateList`：

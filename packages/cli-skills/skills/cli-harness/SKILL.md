@@ -1,6 +1,6 @@
 ---
 name: cli-harness
-description: Use when maintaining a harness-workspace governance directory (docs/governance) — regenerating BACKLOG / SCHEDULE / ARCHIVE-DONE / DROPPED / ISSUE lists, running the governance / instruction gates before dispatch or delivery (AGENTS.md / CLAUDE.md), or filing an issue into another repo's inbox（重生成治理清单、跑治理闸；给 <仓名> 提 issue / 反馈给 <仓名> / 向兄弟仓提 issue；查哪些仓收 issue、登记本仓到仓库注册表）. Drives the dc-harness CLI via an installed CLI or npx — no resident MCP needed.
+description: Use when maintaining a harness-workspace governance directory (docs/governance) — regenerating BACKLOG / SCHEDULE / ARCHIVE-DONE / DROPPED / ISSUE lists, running the governance / instruction / code-ownership / cross-domain-import / seam gap-table gates before dispatch or delivery (AGENTS.md / CLAUDE.md; 领域归属、无主文件、跨领域引用、缺口表), or filing an issue into another repo's inbox（重生成治理清单、跑治理闸；给 <仓名> 提 issue / 反馈给 <仓名> / 向兄弟仓提 issue；查哪些仓收 issue、登记本仓到仓库注册表）. Drives the dc-harness CLI via an installed CLI or npx — no resident MCP needed.
 ---
 
 # 治理目录工具（cli-harness / dc-harness）
@@ -31,6 +31,7 @@ fi
 | ---------------------------------------------------------------------------- | ---------------------------------------------------- |
 | 改了 `backlog/` `schedule/` `archive/` `dropped/` `issue/` 下任何条目 / 批次 | `done-coding harness lists`                          |
 | 下发批次前、交付收口前、提交治理改动前                                       | `done-coding harness check`                          |
+| 对齐领域归属：查无主文件 / 某文件归谁                                        | `done-coding harness owners [--unowned] [文件…]`     |
 | 要向**另一个仓**（本治理目录管辖之外）反馈问题                               | `done-coding harness issue <仓名或仓根>`             |
 | 查哪些仓收 issue / 某仓是做什么的                                            | `done-coding harness scope list --inbox`             |
 | 把本仓登记进仓库注册表 / 校验注册表                                          | `done-coding harness scope register` / `scope check` |
@@ -48,6 +49,8 @@ done-coding harness lists --check    # 只比对不写盘，有差异退出码 1
 
 ```bash
 done-coding harness check            # 任一违规退出码 1，逐条输出 ❌
+done-coding harness check --strict   # 归属 / 引用 / 缺口表闸缺数据也判失败（验收用）
+done-coding harness owners --unowned # 列出全部无主代码文件（对齐领域归属用）
 ```
 
 检查项：
@@ -57,6 +60,17 @@ done-coding harness check            # 任一违规退出码 1，逐条输出 �
 - **批次串**：`after` 指向的批次在 `schedule/` 与 `archive/` 都不存在（悬空）、两个在途批次 `after` 同一批（分叉）、after 链成环，均违规。
 - **收口形态**：在途批次有 `PROGRESS.md`；`archive/<批次>/` 只剩 `PROGRESS.md`；`dropped/` 条目有 `dropped:` 或 `merged_into:`；`issue/` 条目有 `from:`。
 - **清单零 diff**。
+- **归属闸 / 引用闸 / 缺口表闸**（代码类，须在 git 项目根执行，只认跟踪文件）：见下节。
+
+## 代码类三闸
+
+每项先判数据在不在。配置 `gates.<ownership|imports|seams>`：`auto`（缺省，缺数据输出 `⚠️ …未启用：<缺什么>`、不失败）/ `on`（缺数据即失败）/ `off`（关闭，照样列出）；`check --strict` 三项都按 `on`。**看到「未启用」不等于通过**，要么补数据，要么在汇报里如实写未启用。
+
+- **归属闸**（数据：`MODULES.md` 领域表的 `paths` 列 + 首列表头为 `共享骨架` 的表）：每份跟踪的代码文件（含测试）恰属一个领域，或不属领域时恰属一个骨架件；领域优先，骨架可按容器整块登记。报无主、重叠、status 非法（须以 active / not_implemented / retired 开头）、未实现领域下有实现文件、active 领域无代码、public 失效。生成物等写进 `ownership.exclude`。
+- **引用闸**（数据：领域表 `public` 列）：领域之间、壳到领域、测试到领域的引用只许落在被引领域的 `public` 内；骨架表有 `public` 列时，领域到壳也只许落在该行 `public`。识别 TS / JS / Vue / Svelte（相对路径 + tsconfig paths）与 Python（相对导入 + src 布局）；动态拼接、`import.meta.glob`、只在 vite 里的别名不识别。分段启用用 `imports.include`。
+- **缺口表闸**（blueprint 0041）：治理 `SNAPSHOT.md` 的 `## done-coding 缺口表` 下第一张表，列 `缺口` / `接缝件` / `issue` / `状态`；接缝件只写反引号仓根相对路径或「无」；状态 等待 / 已可替换 / 已替换；接缝件文件写标注词 `@done-coding-seam`。表与标注双向核对。
+
+路径模式：无通配 = 文件或目录；`**` 跨目录，`*` / `?` 不跨 `/`，`{a,b}` 展开；命中目录即覆盖其下全部（`*` 等于全部，根目录文件写 `*.cjs` 这类）。修违规前先用 `owners` 看清归属，不要为了过闸把文件塞进骨架。
 
 ## instructions — 指令预算与兼容入口
 
@@ -114,10 +128,14 @@ done-coding harness scope register -p "一句话定位" [-a "受理范围"] [-n 
     "budget": { "root": 16384, "nested": 8192, "chain": 32768 },
     "exclude": [".done-coding/generator/assemble/fragments/**", ".claude/skills/**"],
     "gate": false
-  }
+  },
+  "gates": { "ownership": "on", "imports": "auto", "seams": "auto" },
+  "ownership": { "exclude": ["backend/services/studio/sdk/src/generated/"] },
+  "imports": { "include": ["frontend/"] }
 }
 ```
 
 - `governanceDir`：治理目录，默认 `docs/governance`；命令行 `--dir` 优先。
 - `domains`：领域表来源，默认治理目录下 `MODULES.md` 全文；首列为反引号领域名的表格行才算领域。`section` 只取该标题到下一个 `## ` 之间。
+- `gates`：代码类三闸的启用方式，缺省全 `auto`。`ownership.exclude` / `ownership.extensions`：不算业务代码的模式 / 代码扩展名清单（整体替换缺省）。`imports.include`：引用闸只查这些引用方。
 - `instructions`：预算可逐项覆盖，按 UTF-8 字节计；`exclude` 为相对仓根的 Git glob pathspec（`*` 不跨目录、`**` 跨目录，支持 `?` / 字符组），排除内容不计链路；`gate` 默认 false，true 才并入 `check`。独立 `instructions` 始终检查。

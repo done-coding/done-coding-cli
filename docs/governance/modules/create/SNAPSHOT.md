@@ -12,7 +12,8 @@
 - 模板来源（zsz54k，未发布）：本地模板仓未给 `-b` 时取远端默认分支（fetch origin best-effort → `origin/HEAD` → `origin/master` → `origin/main` → 本地 `master` / `main`，都没有报错要求 `-b`），不读当前检出；在途分支 / 标签用 `-b`。远程源 `clone --depth=1` 取远端默认分支。打印「url @ ref (短 sha)」。
 - 出生记录（zsz54k，未发布）：编译后、git 初始化前写 `<项目>/.done-coding/template.lock.json`（模板、url、remoteUrl、directory、实际 ref、commit、非交互答案、createdAt、cli）；`secret: true` 问题只记 key；交互模式无 answers。`instances.json` 条目补 `templateDirectory` / `templateCommit`。按 lock 做模板升级未做。
 - 草稿 `<rootDir>/.done-coding/default/tmp/create/<uuid>` 在成功 / 失败 / `--list-questions` 后删除，并逐级清理空父目录至 `.done-coding`（含）；prepare 失败也清草稿。
-- 测试：vitest 49 例（含非交互 e2e 与 `template-provenance`，夹具为临时本地 git 模板仓 + 本地 bare origin；指针读写注入临时基目录）。
+- `templates [--templateConfig] [--json]`（ggjh2p，未发布）：列可选项目模板（名称、描述、来源、目录、分支），与交互选单同源；create-done-coding skill 改为先跑它、向用户展示 name + description。`templates` 与 `instances` / `template-config` 一样是子命令名，不能再直接当项目名。
+- 测试：vitest 50 例（含非交互 e2e 与 `template-provenance`，夹具为临时本地 git 模板仓 + 本地 bare origin；指针读写注入临时基目录）。
 - 交互路径 `--openGitDetailOptimize=false` 不再提前退出，照常写 lock、留痕实例、输出完成提示；包内 `tsc --noEmit` 退 0。
 
 ## 业务快照

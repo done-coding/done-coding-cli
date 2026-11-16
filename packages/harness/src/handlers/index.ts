@@ -15,6 +15,14 @@ import {
   commandCliInfo as issueCommandCliInfo,
 } from "./issue";
 import {
+  handler as catalogHandler,
+  commandCliInfo as catalogCommandCliInfo,
+} from "./catalog";
+import {
+  handler as ownersHandler,
+  commandCliInfo as ownersCommandCliInfo,
+} from "./owners";
+import {
   handler as scopeHandler,
   commandCliInfos as scopeCommandCliInfos,
 } from "./scope";
@@ -33,6 +41,8 @@ export {
   issueHandler,
   scopeHandler,
   instructionsHandler,
+  ownersHandler,
+  catalogHandler,
 };
 
 /** 导出供外部 export 使用，cli 内部不会通过该方法调用各子命令方法 */
@@ -56,6 +66,12 @@ export const handler = async (
     case SubcommandEnum.SCOPE: {
       return scopeHandler(argv);
     }
+    case SubcommandEnum.OWNERS: {
+      return ownersHandler(argv);
+    }
+    case SubcommandEnum.CATALOG: {
+      return catalogHandler(argv);
+    }
     default: {
       throw new Error(`不支持的命令 ${command}`);
     }
@@ -70,6 +86,8 @@ export const commandCliInfo: Omit<CliInfo, "usage"> = {
   subcommands: [
     listsCommandCliInfo,
     checkCommandCliInfo,
+    ownersCommandCliInfo,
+    catalogCommandCliInfo,
     instructionsCommandCliInfo,
     issueCommandCliInfo,
     ...scopeCommandCliInfos,
