@@ -102,6 +102,18 @@ create-done-coding template-config --unset
 - 只有一个指向（不做多清单合并），重复登记以最后一次为准。
 - 模板仓可在根目录加脚本一键登记，如 `"register:create": "create-done-coding template-config ./templates.manifest.json"`；请经本命令登记，不要直接改写本机配置文件。
 
+#### `create-done-coding templates`
+
+列出可选项目模板：名称、描述、来源、仓库内目录、分支。来源与交互式选单相同（`--templateConfig` > 本机指针 > 内置远端），首行写明用的是哪一份。
+
+```bash
+create-done-coding templates                      # 人读：每个模板一行描述 + 来源 / 目录 / 分支
+create-done-coding templates --json               # 机读：{ source, templateList }
+create-done-coding templates --templateConfig ./templates.manifest.json
+```
+
+注意：`templates`、`instances`、`template-config` 是子命令名，不能再当项目名直接写在 `create-done-coding` 后面（要用这些名字建项目请写 `-n templates`）。
+
 ## 使用示例
 
 ### 基础使用场景

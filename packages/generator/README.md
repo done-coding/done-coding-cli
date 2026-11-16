@@ -62,6 +62,8 @@ dc-generator --help
 | `dc-generator list [type]`                       | 列出批次（无 `type`）/ 某批次的实例（带 `type`） |
 | `dc-generator init <type>`                       | 初始化一个批次骨架                               |
 | `dc-generator assemble plan\|build\|diff\|check` | 模板组装：计划 / 物化 / 比对 / 漂移闸            |
+| `dc-generator tree build\|check` | 模块生成：模块模板配方物化进项目 / 项目内漂移闸 |
+| `dc-generator tree templates [base] [--json]` | 列模块模板：各基座（含 `base.json`）适配的包与版本、模板与 `whenToUse`（与 MCP `list_module_templates` 同源） |
 
 > 用法为 **verb-first**（动词在前、`<type>` 在后），子命令形式同理：`done-coding generator add <type> <name>`。
 

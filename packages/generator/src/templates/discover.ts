@@ -142,3 +142,59 @@ export const discoverTemplates = (
   }
   return out.sort((a, b) => a.name.localeCompare(b.name));
 };
+
+/** 模块模板基座（`templates/<base>/base.json` 声明其适配的包与版本） */
+export interface TemplateBaseInfo {
+  /** 基座名 */
+  name: string;
+  /** base.json 原文（如 { package, version }） */
+  meta: Record<string, unknown>;
+  /** 获胜层（就近优先） */
+  layer: DoneCodingDirHit["layer"];
+}
+
+/**
+ * 发现模块模板基座：各 templates 根下**含 base.json** 的立即子目录，按名就近优先。
+ * 不含 base.json 的目录（如共用规则 `rules/`）不是模块模板基座，不列。
+ */
+export const discoverBases = (
+  cwd: string,
+  opts?: { home?: string },
+): TemplateBaseInfo[] => {
+  const roots = listDoneCodingDirs("templates", {
+    cwd,
+    ...(opts?.home ? { home: opts.home } : {}),
+  }).filter((hit) => hit.segment !== "*" && !hit.errors?.length);
+  const seen = new Set<string>();
+  const out: TemplateBaseInfo[] = [];
+  for (const root of roots) {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(root.realDir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const ent of entries) {
+      const baseJson = path.join(root.realDir, ent.name, "base.json");
+      if (ent.name.startsWith(".") || seen.has(ent.name)) continue;
+      if (!fs.existsSync(baseJson)) continue;
+      seen.add(ent.name);
+      let meta: unknown;
+      try {
+        meta = json5.parse(fs.readFileSync(baseJson, "utf-8"));
+      } catch (error) {
+        throw new Error(
+          `基座 base.json 解析失败：${baseJson}（${
+            error instanceof Error ? error.message : String(error)
+          }）`,
+        );
+      }
+      out.push({
+        name: ent.name,
+        meta: isPlainObject(meta) ? meta : {},
+        layer: root.layer,
+      });
+    }
+  }
+  return out.sort((a, b) => a.name.localeCompare(b.name));
+};

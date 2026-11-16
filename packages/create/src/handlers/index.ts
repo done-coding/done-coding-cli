@@ -6,6 +6,7 @@ import {
 } from "./create";
 import { instancesCommandCliInfo } from "./instances";
 import { templateConfigCommandCliInfo } from "./template-config";
+import { templatesCommandCliInfo } from "./templates";
 import injectInfo from "@/injectInfo.json";
 import { SubcommandEnum } from "@/types";
 import {
@@ -45,6 +46,7 @@ export const commandCliInfo: Omit<CliInfo, "usage"> = {
     createCommandCliInfo,
     instancesCommandCliInfo,
     templateConfigCommandCliInfo,
+    templatesCommandCliInfo,
   ].map(createSubcommand),
   demandCommandCount: 1,
   // 两个 bin 共用原有帮助名称，避免别名导致帮助文本与折行变化。

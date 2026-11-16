@@ -10,6 +10,10 @@ export enum SubcommandEnum {
   ISSUE = "issue",
   /** 仓库注册表 */
   SCOPE = "scope",
+  /** 代码归属查询 */
+  OWNERS = "owners",
+  /** 能力目录 */
+  CATALOG = "catalog",
 }
 
 /** scope 子动作 */
@@ -35,7 +39,10 @@ export interface ListsOptions extends GovernanceDirOptions {
 }
 
 /** check 选项 */
-export type CheckOptions = GovernanceDirOptions;
+export interface CheckOptions extends GovernanceDirOptions {
+  /** 代码类闸一律必须启用 */
+  strict?: boolean;
+}
 
 /** issue 选项 */
 export interface IssueOptions {
@@ -68,6 +75,28 @@ export interface ScopeOptions {
   tier?: string;
   /** register：治理目录（相对仓根），缺省读配置或 docs/governance */
   dir?: string;
+}
+
+/** owners 选项 */
+export interface OwnersOptions extends GovernanceDirOptions {
+  /** 要查归属的文件（仓根相对） */
+  files?: string[];
+  /** 只列无主代码文件 */
+  unowned?: boolean;
+  json?: boolean;
+}
+
+/** catalog 选项 */
+export interface CatalogOptions {
+  json?: boolean;
+  /** 只看当前项目装了哪些 */
+  installed?: boolean;
+  /** 目录过期 / 缺数据即失败 */
+  check?: boolean;
+  /** 不访问 npm */
+  offline?: boolean;
+  /** npm 源 */
+  registry?: string;
 }
 
 /** instructions 选项 */

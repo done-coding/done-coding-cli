@@ -118,7 +118,7 @@ export const registerModuleTemplateTools = (server: McpServer) => {
     {
       title: "List discoverable module templates",
       description:
-        "扫项目就近 `.done-coding/templates/<base>/` 的模块模板（资产即列表，按名去重、就近优先）。权威 when-to-use 与参数类型来自各模板 schema.json——先调本工具 / list_params 读取当前 schema，勿假设固定模板。`rootDir`（项目 git 根）与 `base`（基座名，如 admin-core）必填。",
+        "扫项目就近 `.done-coding/templates/<base>/` 的模块模板（资产即列表，按名去重、就近优先）。权威 when-to-use 与参数类型来自各模板 schema.json——先调本工具 / list_params 读取当前 schema，勿假设固定模板。`rootDir`（项目 git 根）与 `base`（基座名，如 forge）必填；有哪些基座可用 CLI `dc-generator tree templates` 查。",
       inputSchema: listModuleTemplatesInputSchema,
     },
     async (input) => {

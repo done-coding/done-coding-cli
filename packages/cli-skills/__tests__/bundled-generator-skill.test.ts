@@ -30,11 +30,37 @@ describe("[P3] 内置 cli-generator skill", () => {
     );
     expect(md).toContain("done-coding harness lists --check");
     expect(md).toContain("done-coding harness check");
+    expect(md).toContain("done-coding harness check --strict");
+    expect(md).toContain("done-coding harness owners --unowned");
+    // 标注词拆开拼接，免得本测试文件被缺口表闸当成接缝件
+    expect(md).toContain(["@done-coding", "seam"].join("-"));
     expect(md).toContain("done-coding harness issue <仓名|仓根路径>");
     expect(md).toContain("done-coding harness scope list [--inbox] [--json]");
     expect(md).toContain("done-coding harness scope check");
     expect(md).toContain("done-coding harness scope register");
     expect(md).toContain(".done-coding/harness/governance/config.json");
+  });
+
+  it("done-coding-catalog skill：命令面与真实 CLI 一致，且不内嵌包清单", () => {
+    const skills = listSkills(SKILLS_SRC);
+    expect(
+      skills.find((s) => s.name === "done-coding-catalog")?.description,
+    ).toBeTruthy();
+    const md = readFileSync(
+      path.join(SKILLS_SRC, "done-coding-catalog", "SKILL.md"),
+      "utf-8",
+    );
+    expect(md).toContain("done-coding harness catalog");
+    expect(md).toContain("done-coding harness catalog --installed");
+    expect(md).toContain("done-coding harness catalog --check");
+    expect(md).toContain("done-coding create templates");
+    expect(md).toContain("done-coding generator tree templates");
+    // 目录现取：技能里出现的包名只能是驱动查询的 CLI 包，不能是一份系列 / 成员清单
+    const named = new Set(md.match(/@done-(?:coding|creating)\/[a-z][\w-]*/g));
+    expect([...named].sort()).toEqual([
+      "@done-coding/cli-generator",
+      "@done-coding/cli-harness",
+    ]);
   });
 
   it("create-done-coding 既有 skill 仍在（未误删/改）", () => {

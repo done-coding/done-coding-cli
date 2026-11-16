@@ -25,7 +25,7 @@
   │  │   └── tree build/check           │────▶ .done-coding/templates/<base>/（模块模板：项目→父链→全局）
                   │  ├── DC cc-switch                   │────▶ spawn `claude`（Claude Code CLI，注入 profile env）
                   │  ├── DC dex                         │────▶ pi-coding-agent REPL（~/.done-coding/dex）
-                  │  └── DC harness lists/check/instructions/issue/scope │──▶ docs/governance/（治理清单 / 闸；issue 写兄弟仓并在其仓提交）+ ~/.done-coding/harness/scope/（仓库注册表）
+                  │  └── DC harness lists/check/owners/catalog/instructions/issue/scope │──▶ docs/governance/（治理清单 / 闸；issue 写兄弟仓并在其仓提交）+ ~/.done-coding/harness/scope/（仓库注册表）
                   │                                      │
                   │  独立 bin（未并入 DC 子命令树）:     │
                   │  ├── dc-mcp（stdio MCP server）     │◀───▶ AI agent / MCP client（Tools/Resources/Prompts）
@@ -289,7 +289,7 @@ cli-generator 模块模板（就近向上 + 全局解析）:
   .done-coding/templates/<base>/<template>/   # schema.json + fragments；全局 ~/.done-coding/templates/<base> 通常 symlink 到 template-hub module-templates/
 
 cli-harness（cwd-only，可选）:
-  .done-coding/harness/governance/config.json   # governanceDir（默认 docs/governance）+ domains 领域表来源（默认 MODULES.md）+ instructions（budget / Git glob exclude / gate，默认不并入 check）
+  .done-coding/harness/governance/config.json   # governanceDir（默认 docs/governance）+ domains 领域表来源（默认 MODULES.md）+ instructions（budget / Git glob exclude / gate，默认不并入 check）+ gates（归属 / 引用 / 缺口表闸 auto|on|off）+ ownership.exclude|extensions + imports.include
 
 cli-harness 仓库注册表（全局，DC_HARNESS_SCOPE_DIR 可覆盖）:
   ~/.done-coding/harness/scope/<转义键>/repo.json   # 一仓一目录：name / path / positioning / accepts / governance{dir, tier, issueInbox}；寻址只读 path

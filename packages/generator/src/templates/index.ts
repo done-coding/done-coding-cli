@@ -6,7 +6,12 @@
  *  - `readTemplateSchema(templateDir)`：单模板 schema.json 读取（缺失/非法 fail-loud）。
  * 消费方：T7 MCP（list_module_templates / list_params 描述动态生成）经包公共出口 import。
  */
-export { discoverTemplates, readTemplateSchema } from "./discover";
+export {
+  discoverBases,
+  discoverTemplates,
+  readTemplateSchema,
+  type TemplateBaseInfo,
+} from "./discover";
 export {
   collectRecipeTemplates,
   assertRecipesGuarded,
