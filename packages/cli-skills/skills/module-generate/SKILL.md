@@ -44,7 +44,7 @@ fi
 ## 前置：确定 base + rootDir
 
 - **`rootDir` = 用户项目根（[MUST] 必填）**——勿用 MCP server 进程 cwd（会落错目录）。tree 工具会对 rootDir 做 gitRoot 锚定（`git rev-parse --show-toplevel`，无 git 仓 fail-loud）。
-- **`base` = 前端基座命名空间**（如 `admin-core`）。探测前与用户确认基座，或按项目前端技术栈判断；模板按基座分命名空间（机制通用、内容按基座分资产）。
+- **`base` = 基座命名空间**（如前端 `forge`、后端 `py-fastapi`）。探测前与用户确认基座，或按项目技术栈判断；模板按基座分命名空间（机制通用、内容按基座分资产）。`admin-core` 基座的模块模板已冻结（template-hub `module-templates/FORGE-MIGRATION.md`），新代码用 `forge`。本机有哪些基座、各适配哪个包与版本：`done-coding generator tree templates`（不带参数列全部基座，带基座名只列该基座；`--json` 给机器读）。
 - **模板从哪里发现**：从 `rootDir`（即项目 gitRoot）起逐级向上找 `.done-coding/templates/<base>/<模板名>/`，再加全局 `~/.done-coding/templates/<base>/`；同名模板取最近一层（返回的 `layer` = `project` gitRoot 本层 / `parent` 上层目录 / `global` 家目录）。全局层有哪些基座取决于本机装过什么（template-hub 以软链分发），[MUST NOT] 假设某基座（如 forge）一定在全局层；探测为空先看这几处目录。
 - **碎片只从最近的一个 templates 根读**：`tree_build` 的 `addFragment.source` 相对 gitRoot 起就近命中的**第一个** `.done-coding/templates/` 根解析，不像探测那样合并各层。项目里已有 `.done-coding/templates/` 时，全局层的模板碎片读不到——把所需基座软链或复制进项目层后再生成。
 
@@ -53,20 +53,20 @@ fi
 调 `done_coding_gen_list_module_templates`：
 
 ```json
-{ "rootDir": "<项目根>", "base": "admin-core" }
+{ "rootDir": "<项目根>", "base": "forge" }
 ```
 
-返回各模板 `[{ name, base, layer, dir, whenToUse }]`（`layer` = 命中层 `project` / `parent` / `global`）。按 `whenToUse` 匹配用户需求选型。**[MUST NOT] 假设固定模板存在**——模板集由 `.done-coding/templates/<base>/` 文件系统发现派生（资产即列表），先探测再选。
+MCP 不可用时等价 CLI：`done-coding generator tree templates forge`（同源，均读各模板 `schema.json`）。返回各模板 `[{ name, base, layer, dir, whenToUse }]`（`layer` = 命中层 `project` / `parent` / `global`）。按 `whenToUse` 匹配用户需求选型。**[MUST NOT] 假设固定模板存在**——模板集由 `.done-coding/templates/<base>/` 文件系统发现派生（资产即列表），先探测再选。
 
 ## 步骤 2 — 读参数契约（单一事实源）
 
 调 `done_coding_gen_list_params`：
 
 ```json
-{ "rootDir": "<项目根>", "base": "admin-core", "template": "list-page" }
+{ "rootDir": "<项目根>", "base": "forge", "template": "list-page" }
 ```
 
-返回 `{ name, base, layer, whenToUse, params, defaults }`。`params` 即该模板的 `recipe.vars` 契约（JSON Schema，对象/数组为主；各模板字段不同，如 admin-core `list-page` 为 `name` / `title` / `rowType` / `api` / `columns` / `searchItems` / `operate` / `formModal` …）；`defaults` 为预制变量默认值。
+返回 `{ name, base, layer, whenToUse, params, defaults }`。`params` 即该模板的 `recipe.vars` 契约（JSON Schema，对象/数组为主；各模板字段不同，如 forge `list-page` 为 `name` / `title` / `rowType` / `api` / `columns` / `searchItems` / `operate` / `formModal` …）；`defaults` 为预制变量默认值。
 
 **[MUST NOT] 照本文示例臆造字段或碎片名**——vars 以 `list_params` 返回的 schema 为准，碎片名以模板目录 `<base>/<template>/fragments/` 实有文件为准（`list_module_templates` 返回的 `dir` 下）。
 
@@ -95,14 +95,14 @@ fi
       {
         "type": "addFragment",
         "id": "list",
-        "source": "admin-core/list-page/fragments/List.vue.vm",
+        "source": "forge/list-page/fragments/List.vue.vm",
         "target": "List.vue",
         "render": true
       },
       {
         "type": "addFragment",
         "id": "config",
-        "source": "admin-core/list-page/fragments/List.config.tsx.vm",
+        "source": "forge/list-page/fragments/List.config.tsx.vm",
         "target": "List.config.tsx",
         "render": true
       }
@@ -117,9 +117,9 @@ fi
 - `base`：`{kind:"empty"}`（拼装）或 `{kind:"dir", from, exclude?}`（裁剪）。
 - `output`：产物落地目录，**相对 gitRoot**。
 - `ops` 三类：
-  - **`addFragment`**：引模板片段。`source` = `<base>/<template>/fragments/<file>`（如 `admin-core/list-page/fragments/List.vue.vm`），`render: true` 时变量点位用 `vars` 渲染。模板的哪些片段要引、各自依赖哪些 vars，以该模板 schema 描述为准（如 list-page 的 `FormModalItem.vue.vm` / `form.config.tsx.vm` 仅在填 `formModal` 时引入）。
+  - **`addFragment`**：引模板片段。`source` = `<base>/<template>/fragments/<file>`（如 `forge/list-page/fragments/List.vue.vm`），`render: true` 时变量点位用 `vars` 渲染。模板的哪些片段要引、各自依赖哪些 vars，以该模板 schema 描述为准（如 list-page 的 `FormModalItem.vue.vm` / `form.config.tsx.vm` 仅在填 `formModal` 时引入）。
   - **`writeFile`**：文件级内联字面内容（原样落盘，不渲染不改 EOL），用于类型/定制内容。
-  - **`textPatch`**：注入现有项目文件（路由/菜单/export）。`target` = gitRoot 相对路径（如 `src/router/index.ts`），`markerKey` = 锚点 key（幂等成对 marker 块），`source` = 注入片段。**仅当模板提供注入片段时可用**——当前 admin-core 各模板均不含路由/菜单片段，路由注册由用户按项目惯例自行处理。
+  - **`textPatch`**：注入现有项目文件（路由/菜单/export）。`target` = gitRoot 相对路径（如 `src/router/index.ts`），`markerKey` = 锚点 key（幂等成对 marker 块），`source` = 注入片段。**仅当模板提供注入片段时可用**——以所用模板 `fragments/` 实有文件为准；没有注入片段时，路由 / 菜单按项目惯例处理（forge 基座另有 `page-route` 模板生成页面入口登记）。
 - `createTemplate` **仅项目级模板适用**——模块 Recipe 带它 tree build 会 fail-loud，[MUST NOT] 填。
 - `format: "prettier"`（可选，**推荐目标项目有 prettier 时始终开**）：落盘前用**目标项目自己的 prettier**（从 `output` 目录逐级向上至 gitRoot，取最近的 `node_modules/.bin/prettier`，monorepo 成员自装即可；配置同样按产物路径就近解析）格式化产物；build/check 同径，格式化产物即漂移闸基线（不开则生成物折行可能与仓内 prettier 口径不一致，人工格式化后 `tree_check` 会报格式漂移）。output 到 gitRoot 之间都没装 prettier 而声明此字段 → fail-loud。
 
@@ -136,20 +136,20 @@ fi
 
 ## 完整示例（生成用户管理列表页）
 
-> 示例 vars / 碎片名取自 admin-core `list-page` 实际 schema（基座 `@done-coding/admin-core ^0.33.0`）；模板升级后以 `list_params` 实时返回为准。可跑通的真实配方见 template-hub `scripts/module-templates-check/recipes/`。
+> 示例 vars / 碎片名取自 forge `list-page` 实际 schema（基座 `@done-coding/forge`，template-hub 2026-11 版本；该组 vars 已按此 schema 校验通过）；模板升级后以 `list_params` 实时返回为准。可跑通的真实配方见 template-hub `scripts/module-templates-check/recipes/`。
 
 1. **探测**：
 
 ```json
-{ "rootDir": "/path/to/project", "base": "admin-core" }
+{ "rootDir": "/path/to/project", "base": "forge" }
 ```
 
-→ `[{ "name": "form-page", … }, { "name": "list-detail-page", … }, { "name": "list-page", "layer": "global", "whenToUse": "标准列表页（ListLayout 空间）：搜索表单 + 表格 + 分页 + …" }, { "name": "tabs-page", … }]`
+→ `[{ "name": "form-page", … }, { "name": "list-detail-page", … }, { "name": "list-modal-page", … }, { "name": "list-page", "layer": "global", "whenToUse": "标准列表页（ListLayout 空间）：搜索表单 + 表格 + 分页 + …" }, { "name": "page-route", … }, { "name": "tabs-list-page", … }, { "name": "tabs-page", … }]`
 
 2. **选型 + 读参**：用户要「用户管理：列姓名/邮箱/状态/创建时间；按关键词、状态搜索；行内删除」→ 匹配 `list-page`：
 
 ```json
-{ "rootDir": "/path/to/project", "base": "admin-core", "template": "list-page" }
+{ "rootDir": "/path/to/project", "base": "forge", "template": "list-page" }
 ```
 
 → `params.required` 为 `name` / `title` / `rowType` / `api` / `columns`；`properties` 另含 `searchItems` / `toolbar` / `operate` / `modals` / `handlerImpls` / `formModal` 等可选项。
@@ -237,14 +237,14 @@ fi
       {
         "type": "addFragment",
         "id": "list",
-        "source": "admin-core/list-page/fragments/List.vue.vm",
+        "source": "forge/list-page/fragments/List.vue.vm",
         "target": "List.vue",
         "render": true
       },
       {
         "type": "addFragment",
         "id": "config",
-        "source": "admin-core/list-page/fragments/List.config.tsx.vm",
+        "source": "forge/list-page/fragments/List.config.tsx.vm",
         "target": "List.config.tsx",
         "render": true
       }

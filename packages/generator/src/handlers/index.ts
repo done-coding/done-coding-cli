@@ -17,6 +17,7 @@ import { handler as initHandler } from "./init";
 import { buildBatchQuestions, type BatchQuestion } from "./shared";
 import { assembleHandler, type AssembleHandlerResult } from "./assemble";
 import { treeHandler } from "./tree";
+import { treeTemplatesHandler, type TreeTemplatesArgv } from "./tree-templates";
 import injectInfo from "@/injectInfo.json";
 import type { GeneratorHandlerArgv } from "@/types";
 import type { AssembleAction, AssembleHandlerArgv } from "@/assemble/types";
@@ -321,6 +322,16 @@ const treeSubcommands: SubCliInfo[] = [
     "check",
     "模块生成项目内漂移闸（clean regenerate → 与已提交产物 diff，drift→exit 1）",
   ),
+  {
+    command: "tree templates [base]",
+    describe:
+      "列模块模板：各基座（含 base.json）及其模板与 whenToUse（与 MCP list_module_templates 同源）",
+    options: {
+      json: { type: "boolean", describe: "输出 JSON", default: false },
+    },
+    handler: ((argv: CliHandlerArgv<TreeTemplatesArgv>) =>
+      treeTemplatesHandler(argv)) as SubCliInfo["handler"],
+  },
 ];
 
 export const commandCliInfo: Omit<CliInfo, "usage"> = {

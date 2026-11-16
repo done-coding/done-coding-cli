@@ -2,7 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import injectInfo from "@/injectInfo.json";
 import { DEFAULT_DOMAINS_SOURCE, type DomainsSource } from "./check";
+import { validateGates, type GatesConfig } from "./gates";
+import type { ImportsConfig } from "./imports";
 import type { InstructionsConfig } from "./instructions";
+import type { OwnershipConfig } from "./ownership";
 
 /** 治理目录默认位置（相对项目根） */
 export const DEFAULT_GOVERNANCE_DIR = "docs/governance";
@@ -14,6 +17,12 @@ export interface HarnessConfig {
   /** 领域表来源，默认治理目录下 `MODULES.md` 全文 */
   domains?: DomainsSource;
   instructions?: InstructionsConfig;
+  /** 代码类闸的启用方式（ownership / imports / seams → auto | on | off），缺省全 auto */
+  gates?: GatesConfig;
+  /** 归属闸：排除清单与代码扩展名 */
+  ownership?: OwnershipConfig;
+  /** 引用闸：分段启用范围 */
+  imports?: ImportsConfig;
 }
 
 /** 配置特性目录名 */
@@ -44,6 +53,9 @@ export interface GovernanceContext {
   /** 领域表来源 */
   domains: DomainsSource;
   instructions?: InstructionsConfig;
+  gates: GatesConfig;
+  ownership?: OwnershipConfig;
+  imports?: ImportsConfig;
 }
 
 /**
@@ -62,9 +74,26 @@ export const resolveGovernance = (
   if (!fs.existsSync(root) || !fs.statSync(root).isDirectory()) {
     throw new Error(`治理目录不存在：${root}`);
   }
+  const { ownership, imports } = config;
+  const lists: [string, unknown][] = [
+    ["ownership.exclude", ownership?.exclude],
+    ["ownership.extensions", ownership?.extensions],
+    ["imports.include", imports?.include],
+  ];
+  for (const [key, value] of lists) {
+    if (
+      value !== undefined &&
+      (!Array.isArray(value) || value.some((v) => typeof v !== "string" || !v))
+    ) {
+      throw new Error(`${key} 须为非空字符串数组`);
+    }
+  }
   return {
     root,
     domains: config.domains ?? DEFAULT_DOMAINS_SOURCE,
     instructions: config.instructions,
+    gates: validateGates(config.gates),
+    ownership,
+    imports,
   };
 };

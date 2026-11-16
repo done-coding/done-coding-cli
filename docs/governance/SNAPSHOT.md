@@ -12,12 +12,12 @@
 | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
 | config · extract · git · inject · publish | 未建模块快照 → 现状见 `docs/TECH_SNAPSHOT.md` §4 / `docs/BUSINESS_SNAPSHOT.md` §4 |
 | cli-skills                                                                     | 未建模块快照 → `packages/cli-skills/docs/{BUSINESS,TECH}_SNAPSHOT.md`             |
-| harness                                                                        | `modules/harness/SNAPSHOT.md`（含指令预算与兼容入口闸、issue 家目录路径替换）                                                     |
-| generator                                                                      | `modules/generator/SNAPSHOT.md`（lodash.template 钉版 + prettier 就近解析，未发布）                                                   |
-| create                                                                         | `modules/create/SNAPSHOT.md`（默认远端分支 + template.lock，未发布）                                                      |
+| harness                                                                        | `modules/harness/SNAPSHOT.md`（含指令预算与兼容入口闸、issue 家目录路径替换、归属 / 引用 / 缺口表三闸、能力目录 catalog）                                                     |
+| generator                                                                      | `modules/generator/SNAPSHOT.md`（lodash.template 钉版 + prettier 就近解析已发布；tree templates 未发布）                                                   |
+| create                                                                         | `modules/create/SNAPSHOT.md`（默认远端分支 + template.lock 已发布；templates 子命令未发布）                                                      |
 | component | `modules/component/SNAPSHOT.md`（缺配置提示初始化命令） |
 | template | `modules/template/SNAPSHOT.md`（裸 `template` 按配置批量编译） |
-| utils | `modules/utils/SNAPSHOT.md`（`CliUserError` 不打调用栈、`epilog`） |
+| utils | `modules/utils/SNAPSHOT.md`（`CliUserError` 不打调用栈、`epilog`、拼音改 pinyin@4 无原生构建） |
 | mcp                                                                            | `modules/mcp/SNAPSHOT.md`                                                         |
 | dex | `modules/dex/SNAPSHOT.md`（cc-switch v1/v2 与多账号导入） |
 | cc-switch                                                                      | `modules/cc-switch/SNAPSHOT.md`（settings v2、meta-ui 与命名空间软链修复已发布）                    |

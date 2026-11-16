@@ -7,7 +7,8 @@
 - 当前版本以 `packages/utils/package.json` 为准。命令失败统一经 `failHandler` 输出到 stderr 并写日志。
 - `CliUserError`：面向使用者的预期错误（缺配置、参数冲突、非交互缺输入），失败时只输出 message；按 `isCliUserError` 字段识别，兼容各包各带一份 utils 副本。其余 Error 仍附调用栈（6zzib5，0.24.0 已发布）。
 - `CliInfo.epilog`：在 `--help` 末尾追加说明，独立 bin 与主命令子命令都生效。
-- 测试：vitest 15 例。
+- `getGitLastCommitInfo` 的 `lastCommitterPinYin` / `userNamePinYin` 用 pinyin@4（不分词、无原生构建依赖，具名导入 `{ pinyin }`）；输出与 2.11.2 实测一致，由 `commit-resolve.test.ts` 锁定（an1hhe，未发布）。
+- 测试：vitest 31 例。
 
 ## 业务快照
 

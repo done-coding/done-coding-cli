@@ -4,7 +4,7 @@ import { getGitProjectDir } from "./base-info-resolve";
 import { HooksNameEnum } from "@/husky";
 import type { GitRemoteInfo } from "./remote-operate";
 import { outputConsole } from "@/env-config";
-import pinyin from "pinyin";
+import { pinyin } from "pinyin";
 import { execSyncHijack } from "@/process";
 
 /** 支持通过提交钩子获取提交信息的 */
