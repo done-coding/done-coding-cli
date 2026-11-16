@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.20.1-alpha.0](https://github.com/done-coding/done-coding-cli/compare/create-done-coding@0.20.0...create-done-coding@0.20.1-alpha.0) (2026-11-16)
+
+### Features
+
+- harness 归属 / 引用 / 缺口表三闸与能力目录，create / generator 列模板，utils 拼音去原生依赖 ([#61](https://github.com/done-coding/done-coding-cli/issues/61)) ([17ff7dd](https://github.com/done-coding/done-coding-cli/commit/17ff7dd4a6b66cc77b6524b9dfc4b5114f65b5e7))
+
 # [0.20.0](https://github.com/done-coding/done-coding-cli/compare/create-done-coding@0.19.0...create-done-coding@0.20.0) (2026-11-11)
 
 ### Features
