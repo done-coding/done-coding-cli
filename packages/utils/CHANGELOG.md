@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.15.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-utils@0.14.1...@done-coding/cli-utils@0.15.0) (2026-11-17)
+
+### Features
+
+- harness 归属 / 引用 / 缺口表三闸与能力目录，create / generator 列模板，utils 拼音去原生依赖 ([#62](https://github.com/done-coding/done-coding-cli/issues/62)) ([46dd1c0](https://github.com/done-coding/done-coding-cli/commit/46dd1c0dcf75000e9953b4608a29e122bca17003))
+
 ## [0.14.1](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-utils@0.14.0...@done-coding/cli-utils@0.14.1) (2026-11-11)
 
 **Note:** Version bump only for package @done-coding/cli-utils
