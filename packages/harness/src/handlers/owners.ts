@@ -7,7 +7,7 @@ import {
 } from "@done-coding/cli-utils";
 import { resolveGovernance } from "@/core/config";
 import { compareCodePoint } from "@/core/fs-entries";
-import { assertGitRoot, listTracked } from "@/core/git-files";
+import { assertGitRoot, listWorkingFiles } from "@/core/git-files";
 import {
   computeOwnership,
   readOwnershipModel,
@@ -43,7 +43,11 @@ export const handler = async (argv: CliHandlerArgv<OwnersOptions>) => {
     return 1;
   }
   assertGitRoot(cwd);
-  const result = computeOwnership(model, listTracked(cwd), ctx.ownership);
+  const result = computeOwnership(
+    model,
+    listWorkingFiles(cwd).files,
+    ctx.ownership,
+  );
   const files = (argv.files ?? []).map(String);
   if (files.length) {
     const rows = files.map((file) => ({

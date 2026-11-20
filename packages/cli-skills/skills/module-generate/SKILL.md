@@ -122,6 +122,7 @@ MCP 不可用时等价 CLI：`done-coding generator tree templates forge`（同�
   - **`textPatch`**：注入现有项目文件（路由/菜单/export）。`target` = gitRoot 相对路径（如 `src/router/index.ts`），`markerKey` = 锚点 key（幂等成对 marker 块），`source` = 注入片段。**仅当模板提供注入片段时可用**——以所用模板 `fragments/` 实有文件为准；没有注入片段时，路由 / 菜单按项目惯例处理（forge 基座另有 `page-route` 模板生成页面入口登记）。
 - `createTemplate` **仅项目级模板适用**——模块 Recipe 带它 tree build 会 fail-loud，[MUST NOT] 填。
 - `format: "prettier"`（可选，**推荐目标项目有 prettier 时始终开**）：落盘前用**目标项目自己的 prettier**（从 `output` 目录逐级向上至 gitRoot，取最近的 `node_modules/.bin/prettier`，monorepo 成员自装即可；配置同样按产物路径就近解析）格式化产物；build/check 同径，格式化产物即漂移闸基线（不开则生成物折行可能与仓内 prettier 口径不一致，人工格式化后 `tree_check` 会报格式漂移）。output 到 gitRoot 之间都没装 prettier 而声明此字段 → fail-loud。
+- `format: "ruff"`（可选，Python 产物用）：只格式化产物里的 `*.py` / `*.pyi`，用**目标项目虚拟环境里的 ruff**（从 `output` 目录逐级向上至 gitRoot，取最近的 `.venv` / `venv` 里的 `ruff`，在该项目目录下运行，配置按产物路径就近取 `pyproject.toml`）；build/check 同径。找不到 ruff → fail-loud（先在该 Python 项目里装好开发依赖，如 `uv sync`），不用全局 ruff。
 
 **生成前校验**：`tree_build` / `tree_check` 写盘与比对前，按所引模板 `schema.json` 的 `params` 校验 `vars`，并在模板声明 `base: { package, range }` 时核对项目已装基座版本（从 `output` 所在目录向上就近找 `node_modules`）。不通过 → 报错列出全部违规（路径 + 期望 + 实际）或版本差异、零落盘：按报错补改 `vars`，或升级基座 / 换用对应版本模板，[MUST NOT] 改模板 schema 绕过。项目里找不到基座包时只告警。
 

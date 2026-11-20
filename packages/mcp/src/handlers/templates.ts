@@ -48,8 +48,8 @@ const recipeSchema = z.object({
   output: z.string(),
   vars: z.record(z.string(), z.unknown()).optional(),
   render: z.boolean().optional(),
-  // post-render 格式化钩子（opt-in）：用目标项目自己的 prettier 在落盘前格式化产物
-  format: z.enum(["prettier"]).optional(),
+  // post-render 格式化钩子（opt-in）：用目标项目自己的 prettier / ruff（只管 *.py）在落盘前格式化产物
+  format: z.enum(["prettier", "ruff"]).optional(),
   ops: z.array(recipeOpSchema),
   createTemplate: z
     .object({

@@ -14,8 +14,7 @@
         "**/*.spec.ts",
         "**/README.md",
         "**/docs/**"
-      ],
-      "forcePublish": true
+      ]
     }
   }
 }

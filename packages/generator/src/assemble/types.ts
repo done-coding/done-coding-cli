@@ -34,6 +34,9 @@ export interface CreateTemplateSync {
 }
 
 /** 配方（JSON5 文件 → 此对象，D-L1） */
+/** 配方产物的格式化器 */
+export type RecipeFormat = "prettier" | "ruff";
+
 export interface Recipe {
   /** 产物稳定 id（provenance 根 / manifest 键，配方内唯一） */
   id: string;
@@ -53,9 +56,10 @@ export interface Recipe {
    * post-render 格式化钩子（opt-in）。"prettier" = 用目标项目自己的 prettier
    * （自 output 目录向上至 cwd 最近的 node_modules/.bin/prettier）在 VFS 层、flush/manifest 前逐文件格式化——
    * build/diff/check 三径同一变换，格式化产物即漂移闸基线。
+   * "ruff" = 只格式化 `*.py` / `*.pyi`，用目标项目 venv 里的 ruff（自 output 向上至 cwd 最近的 .venv / venv）。
    * 仅作用于配方产物（output）；tree 注入（textPatch 既有项目文件）不经此。
    */
-  format?: "prettier";
+  format?: RecipeFormat;
 }
 
 // ───────────────────────── op 模型（§4.1 / D-H3 / D-M5） ─────────────────────────

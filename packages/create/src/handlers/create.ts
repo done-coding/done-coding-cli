@@ -1,5 +1,6 @@
 import {
   cleanupCreateDraftParents,
+  readTemplateConfig,
   readTemplateSecretKeys,
   writeTemplateLock,
 } from "@/utils/create-artifacts";
@@ -34,7 +35,6 @@ import {
   getSafePath,
   lookForParentTarget,
   outputConsole,
-  readConfigFile,
   resolveHandlerContext,
   rmGitCtrlAsync,
   safeCwd,
@@ -441,7 +441,7 @@ export const prepareCreateProject = async (
       };
     }
 
-    const config = await readConfigFile<CompileTemplateConfig>({
+    const config = await readTemplateConfig<CompileTemplateConfig>({
       rootDir: draftProjectPath,
       configPath,
     });
@@ -520,6 +520,8 @@ const applyTemplateCompile = async ({
         $projectName: state.projectName,
       },
       collectEnvData: argv.envData,
+      // 模板内容来自模板仓、不可信：编译读写不得经链接或路径越出项目目录
+      confineToRootDir: true,
     },
     undefined,
     ctxInit,
@@ -739,6 +741,7 @@ const interactiveCreateHandler = async (
         extraEnvData: {
           $projectName: projectName,
         },
+        confineToRootDir: true,
       });
       rmSync(configPathFinal, { force: true });
       outputConsole.stage("模板项目配置编译成功, 编译配置文件已删除");

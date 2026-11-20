@@ -268,7 +268,7 @@ DC dex
 
 - [MUST] destructive 入口（assemble `build` 整目录替换 + 孤儿删除 / gen `remove` 的 rmdir）拒在**可疑根**（家目录本体 / 文件系统根）运行；逃逸须显式 `--allow-dangerous`
 - [MUST] 删除 / 整体写盘前 `isInside(受控根, 目标)` 边界校验；涉 symlink 先 `fs.realpathSync` 双解再比较
-- assemble `build` 全量清空 output（含 untracked）须工作树 git clean 或显式 `--allow-untracked-delete`
+- assemble `build` 全量清空 output（含 untracked）须工作树 git clean 或显式 `--allowUntrackedDelete`
 - 大小写折叠 VFS 冲突（macOS/Windows 大小写不敏感路径塌缩）在 flush 前确定性 fail-loud
 
 ### 环境

@@ -79,6 +79,7 @@ export const resolveGovernance = (
     ["ownership.exclude", ownership?.exclude],
     ["ownership.extensions", ownership?.extensions],
     ["imports.include", imports?.include],
+    ["imports.tests", imports?.tests],
   ];
   for (const [key, value] of lists) {
     if (
@@ -87,6 +88,12 @@ export const resolveGovernance = (
     ) {
       throw new Error(`${key} 须为非空字符串数组`);
     }
+  }
+  if (
+    imports?.exportedNames !== undefined &&
+    typeof imports.exportedNames !== "boolean"
+  ) {
+    throw new Error("imports.exportedNames 须为布尔值");
   }
   return {
     root,

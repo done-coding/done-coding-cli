@@ -3,6 +3,7 @@
  * manifest 孤儿删除 + untracked 保护（D-H1/D-H2/D-H7/D-M3/D-L2/D-L4）。
  * 沙盒：fixtures 落 os.tmpdir()，afterEach 清理（项目 CLAUDE.md 铁律）。
  */
+import { formatCliFailOutput, isCliUserError } from "@done-coding/cli-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import fs from "node:fs";
 import os from "node:os";
@@ -279,7 +280,7 @@ describe("[B1] flush 原子 swap + 元数据落地", () => {
     expect(fs.existsSync(path.join(out, "b.txt"))).toBe(false);
   });
 
-  it("untracked 文件受保护 → 默认 fail（无 --force-clean）", () => {
+  it("untracked 文件受保护 → 默认 fail（无 --forceClean）；预期拒写不打调用栈、参数写法同 --help", () => {
     const out = path.join(root, "out");
     const v1 = createVfs();
     v1.setFile("a.txt", Buffer.from("A"), "op1");
@@ -289,11 +290,20 @@ describe("[B1] flush 原子 swap + 元数据落地", () => {
 
     const v2 = createVfs();
     v2.setFile("a.txt", Buffer.from("A2"), "op1");
-    expect(() =>
+    let error: unknown;
+    try {
       flush(v2, out, {
         prevManifest: { recipeId: "r", output: "out", files: r1.files },
-      }),
-    ).toThrow(/untracked|未记录/);
+      });
+    } catch (err) {
+      error = err;
+    }
+    expect(isCliUserError(error)).toBe(true);
+    const printed = formatCliFailOutput("", error as Error);
+    expect(printed).toContain("manual.txt");
+    expect(printed).toContain("--forceClean");
+    expect(printed).toContain("--allowUntrackedDelete");
+    expect(printed).not.toMatch(/--force-clean|\n\s+at /);
   });
 
   it("forceClean 需 gitClean 或 allowUntrackedDelete", () => {
@@ -304,7 +314,9 @@ describe("[B1] flush 原子 swap + 元数据落地", () => {
     fs.writeFileSync(path.join(out, "manual.txt"), "M");
     const v2 = createVfs();
     v2.setFile("a.txt", Buffer.from("A2"), "op1");
-    expect(() => flush(v2, out, { forceClean: true })).toThrow(/git/);
+    expect(() => flush(v2, out, { forceClean: true })).toThrow(
+      /git.*--allowUntrackedDelete/,
+    );
     // allowUntrackedDelete 放行
     expect(() =>
       flush(v2, out, { forceClean: true, allowUntrackedDelete: true }),

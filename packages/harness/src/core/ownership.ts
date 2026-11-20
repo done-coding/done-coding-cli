@@ -19,6 +19,76 @@ export const STATUS_COLUMN = ["status"];
 /** 共享骨架表：首列表头固定为此 */
 export const SKELETON_HEADER = "共享骨架";
 
+/** public 条目的使用方：只对哪类引用方开放（不写 = 对所有跨归属引用方开放） */
+export enum PublicAudienceEnum {
+  /** 只对共享骨架（装配、服务根测试等）开放 */
+  SKELETON = "skeleton",
+  /** 只对测试文件开放 */
+  TEST = "test",
+}
+
+export const PUBLIC_AUDIENCE_LABEL: Record<PublicAudienceEnum, string> = {
+  [PublicAudienceEnum.SKELETON]: "共享骨架",
+  [PublicAudienceEnum.TEST]: "测试",
+};
+
+/** public 条目前缀 → 使用方（写在反引号内，如 `` `骨架:src/app/x/assembly.py` ``） */
+const AUDIENCE_PREFIX: Record<string, PublicAudienceEnum> = {
+  骨架: PublicAudienceEnum.SKELETON,
+  skeleton: PublicAudienceEnum.SKELETON,
+  测试: PublicAudienceEnum.TEST,
+  test: PublicAudienceEnum.TEST,
+};
+
+/** 一条 public：路径模式 + 可选使用方 */
+export interface PublicEntry {
+  pattern: string;
+  audience?: PublicAudienceEnum;
+}
+
+/** 拆出 public 条目的使用方前缀；不是已知前缀的整串当路径模式（旧写法不变） */
+export const parsePublicEntry = (spec: string): PublicEntry => {
+  const m = spec.match(/^([^:/]+):(.+)$/);
+  const audience = m ? AUDIENCE_PREFIX[m[1].trim()] : undefined;
+  return audience ? { pattern: m![2].trim(), audience } : { pattern: spec };
+};
+
+/** 引用方：归属种类 + 是否测试文件 */
+export interface Referrer {
+  kind: Owner["kind"];
+  isTest: boolean;
+}
+
+/**
+ * 目标是否在 public 内、对这个引用方是否开放：
+ * yes = 开放；no = 不在 public；其余 = 在 public 但只对该使用方开放。
+ */
+export type PublicCheck = (
+  file: string,
+  referrer: Referrer,
+) => "yes" | "no" | PublicAudienceEnum;
+
+const opensTo = (audience: PublicAudienceEnum, referrer: Referrer): boolean =>
+  audience === PublicAudienceEnum.SKELETON
+    ? referrer.kind === "skeleton"
+    : referrer.isTest;
+
+/** public 条目 → 判定函数（非法模式由调用方先滤掉） */
+export const createPublicCheck = (entries: PublicEntry[]): PublicCheck => {
+  const rules = entries.map((entry) => ({
+    ...entry,
+    match: createMatcher([entry.pattern]),
+  }));
+  return (file, referrer) => {
+    const hits = rules.filter((rule) => rule.match(file));
+    if (!hits.length) return "no";
+    const open = hits.find(
+      (rule) => !rule.audience || opensTo(rule.audience, referrer),
+    );
+    return open ? "yes" : hits[0].audience!;
+  };
+};
+
 /** 领域表里带 paths 的一行 */
 export interface DomainRow {
   name: string;
@@ -182,10 +252,10 @@ export interface OwnershipResult {
   /** 无主的代码文件 */
   unowned: string[];
   errors: string[];
-  /** 领域名 → 是否落在该领域 public 内 */
-  domainPublic: Map<string, (file: string) => boolean>;
-  /** 骨架行序 → 是否落在该行 public 内；该表无 public 列为 undefined（不设限） */
-  skeletonPublic: (((file: string) => boolean) | undefined)[];
+  /** 领域名 → 目标是否在该领域 public 内、对引用方是否开放 */
+  domainPublic: Map<string, PublicCheck>;
+  /** 骨架行序 → 同上；该表无 public 列为 undefined（不设限） */
+  skeletonPublic: (PublicCheck | undefined)[];
 }
 
 /** 列表过长时截断，完整清单交给 `dc-harness owners --unowned` */
@@ -206,6 +276,16 @@ const statusOf = (row: DomainRow): string | undefined => {
     : undefined;
 };
 
+/** public 条目校验：拆前缀后校验模式，非法的报错并剔除 */
+const publicFilter =
+  (errors: string[]) =>
+  (specs: string[], label: string): PublicEntry[] =>
+    specs.map(parsePublicEntry).filter(({ pattern }) => {
+      const reason = invalidPattern(pattern);
+      if (reason) errors.push(`归属：${label} 的模式 \`${pattern}\` ${reason}`);
+      return !reason;
+    });
+
 /** 模式校验：非法的报错并剔除 */
 const patternFilter =
   (errors: string[]) =>
@@ -220,6 +300,7 @@ const patternFilter =
 const prepareRules = (model: OwnershipModel, errors: string[]) => {
   const where = (line: number) => `${model.file}:${line}`;
   const valid = patternFilter(errors);
+  const validPublic = publicFilter(errors);
   const domainRows = new Set(model.domains.map((row) => row.name));
   for (const name of [...model.known].sort(compareCodePoint)) {
     if (!domainRows.has(name)) {
@@ -240,8 +321,8 @@ const prepareRules = (model: OwnershipModel, errors: string[]) => {
       row,
       status,
       match: createMatcher(valid(row.paths, `领域 \`${row.name}\``)),
-      isPublic: createMatcher(
-        valid(row.public ?? [], `领域 \`${row.name}\` public`),
+      isPublic: createPublicCheck(
+        validPublic(row.public ?? [], `领域 \`${row.name}\` public`),
       ),
     };
   });
@@ -255,6 +336,11 @@ const prepareRules = (model: OwnershipModel, errors: string[]) => {
       row,
       index,
       match: createMatcher(valid(row.paths, `共享骨架「${row.label}」`)),
+      isPublic:
+        row.public === undefined
+          ? undefined
+          : // 骨架行 public 一向不校验模式（存量配置不因此新出报错）
+            createPublicCheck(row.public.map(parsePublicEntry)),
     };
   });
   return { domains, skeletonRows };
@@ -323,7 +409,7 @@ const checkDomainFiles = (
       );
     }
     if (d.status === DomainStatusEnum.NOT_IMPLEMENTED) continue;
-    for (const pattern of d.row.public ?? []) {
+    for (const { pattern } of (d.row.public ?? []).map(parsePublicEntry)) {
       const hit = createMatcher([pattern]);
       if (!files.some(hit)) {
         errors.push(
@@ -380,8 +466,6 @@ export const computeOwnership = (
     unowned,
     errors,
     domainPublic: new Map(rules.domains.map((d) => [d.row.name, d.isPublic])),
-    skeletonPublic: rules.skeletonRows.map(({ row }) =>
-      row.public === undefined ? undefined : createMatcher(row.public),
-    ),
+    skeletonPublic: rules.skeletonRows.map(({ isPublic }) => isPublic),
   };
 };

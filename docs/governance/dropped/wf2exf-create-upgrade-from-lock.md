@@ -1,7 +1,11 @@
 ---
+dropped: 按原则关：模板实例化后不回灌、不加版本追踪机制（用户 2026-11-17 定，总协调转达）
+dropped_at: 2026-11-17
 id: wf2exf
 title: create 没有按 template.lock.json 升级已生成应用的命令
 created: 2026-11-16
+modules: [create]
+parent: ""
 from: done-creating-asset
 ---
 

@@ -3,11 +3,12 @@
 > 文档定位：快照型清单 · **[MUST] 由 `scripts/governance-lists.py` 重生成，[MUST NOT] 手工维护**
 > 归档目录 [MUST] 只留 `PROGRESS.md`（条目正文交付时删除）。
 
-共 **34** 个已交付批次。
+共 **39** 个已交付批次。
 
 | 批次 | 所涉领域 | 交付记录 |
 |---|---|---|
 | `0cja0o-generator-consumer-fixes` | generator | [PROGRESS](archive/0cja0o-generator-consumer-fixes/PROGRESS.md) |
+| `0kmyf7-harness-gate-feedback` | harness | [PROGRESS](archive/0kmyf7-harness-gate-feedback/PROGRESS.md) |
 | `2fe6vf-test-home-isolation-skill-example` | generator · mcp | [PROGRESS](archive/2fe6vf-test-home-isolation-skill-example/PROGRESS.md) |
 | `2skbbw-harness-code-gates` | harness | [PROGRESS](archive/2skbbw-harness-code-gates/PROGRESS.md) |
 | `2yiwn1-release-force-publish` | showcase | [PROGRESS](archive/2yiwn1-release-force-publish/PROGRESS.md) |
@@ -20,10 +21,12 @@
 | `7b8nlh-lerna-ignore-skill-md` | cli-skills | [PROGRESS](archive/7b8nlh-lerna-ignore-skill-md/PROGRESS.md) |
 | `9tt22m-readme-docs-site-link` | showcase | [PROGRESS](archive/9tt22m-readme-docs-site-link/PROGRESS.md) |
 | `an1hhe-utils-pure-js-pinyin` | utils | [PROGRESS](archive/an1hhe-utils-pure-js-pinyin/PROGRESS.md) |
+| `avrgue-generator-inbox-fixes` | generator | [PROGRESS](archive/avrgue-generator-inbox-fixes/PROGRESS.md) |
 | `b0tdff-npm-oidc-publishing` | cli-skills · utils | [PROGRESS](archive/b0tdff-npm-oidc-publishing/PROGRESS.md) |
 | `c6xc3c-settle-live-specs` | cc-switch · create · generator | [PROGRESS](archive/c6xc3c-settle-live-specs/PROGRESS.md) |
 | `ek4duc-plugin-manifests-docs` | cli-skills · create · harness | [PROGRESS](archive/ek4duc-plugin-manifests-docs/PROGRESS.md) |
 | `fqrlh8-harness-after-chain` | harness | [PROGRESS](archive/fqrlh8-harness-after-chain/PROGRESS.md) |
+| `g4p7sa-create-stale-origin-head` | create | [PROGRESS](archive/g4p7sa-create-stale-origin-head/PROGRESS.md) |
 | `ggjh2p-capability-catalog` | create · generator · harness | [PROGRESS](archive/ggjh2p-capability-catalog/PROGRESS.md) |
 | `iq085o-package-instructions-to-agents` | cc-switch · cli-skills · dex · harness | [PROGRESS](archive/iq085o-package-instructions-to-agents/PROGRESS.md) |
 | `mhzjan-scope-registry-retire-ai-mrm` | ai · create · harness · mrm | [PROGRESS](archive/mhzjan-scope-registry-retire-ai-mrm/PROGRESS.md) |
@@ -33,11 +36,13 @@
 | `p04o9a-cli-harness-impl` |  | [PROGRESS](archive/p04o9a-cli-harness-impl/PROGRESS.md) |
 | `pqvn2w-instruction-gate` | cli-skills · harness | [PROGRESS](archive/pqvn2w-instruction-gate/PROGRESS.md) |
 | `q8m4vx-cc-switch-symlinked-home` | cc-switch | [PROGRESS](archive/q8m4vx-cc-switch-symlinked-home/PROGRESS.md) |
+| `r58lj4-release-prep-2026-11-20` | showcase | [PROGRESS](archive/r58lj4-release-prep-2026-11-20/PROGRESS.md) |
 | `r8m2qx-issue-home-tilde` | harness | [PROGRESS](archive/r8m2qx-issue-home-tilde/PROGRESS.md) |
 | `s12mli-development-rules-migrate` | harness | [PROGRESS](archive/s12mli-development-rules-migrate/PROGRESS.md) |
 | `v6jcsk-create-template-config` | create | [PROGRESS](archive/v6jcsk-create-template-config/PROGRESS.md) |
 | `wugnnx-cli-harness-skeleton` | harness | [PROGRESS](archive/wugnnx-cli-harness-skeleton/PROGRESS.md) |
 | `x775xw-root-instructions-to-agents` | harness | [PROGRESS](archive/x775xw-root-instructions-to-agents/PROGRESS.md) |
+| `ynfow5-create-template-dir-unverified-head` | create | [PROGRESS](archive/ynfow5-create-template-dir-unverified-head/PROGRESS.md) |
 | `yrbttc-harness-single-source-skills-codex` | cli-skills · create · generator · harness | [PROGRESS](archive/yrbttc-harness-single-source-skills-codex/PROGRESS.md) |
 | `zsz54k-create-template-source` | create | [PROGRESS](archive/zsz54k-create-template-source/PROGRESS.md) |
 | `zt5vpi-codegen-merge-regression-fixes` | create · generator · mcp | [PROGRESS](archive/zt5vpi-codegen-merge-regression-fixes/PROGRESS.md) |
