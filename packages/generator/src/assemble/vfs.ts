@@ -10,13 +10,15 @@
  *  - loadBaseDir：整树读入（file 内容+mode / symlink linkTarget / 空目录保留）。
  *  - flush：写 sibling temp dir → 校验 → rename 顶替（跨设备 rename 失败回退到逐文件复制）。
  *  - 孤儿删除：仅删 prevManifest 列出且本次 VFS 不再产出者；output 存在 manifest 未记录文件
- *    → 默认 throw fail-loud（提示 --force-clean）；forceClean 全清且要求 gitClean 或 allowUntrackedDelete。
+ *    → 默认 throw fail-loud（提示 --forceClean）；forceClean 全清且要求 gitClean 或 allowUntrackedDelete。
  *  - readManifest/writeManifest：<cwd>/.done-coding/generator/assemble/manifests/<recipeId>.json（output 外）。
  */
 import fs from "node:fs";
 import path from "node:path";
 import type { AssembleManifest, Vfs, VfsNode, WriteProvenance } from "./types";
+import { CliUserError } from "@done-coding/cli-utils";
 import { isInside } from "@/core/path-safe";
+import { assertInsideRootDir } from "@done-coding/cli-template";
 
 /** 默认排除（D-M7）：.git / node_modules / 常见临时目录 */
 const DEFAULT_BASE_EXCLUDE = [".git", "node_modules", ".DS_Store", "tmp"];
@@ -239,8 +241,10 @@ const listExisting = (outputAbs: string): string[] => {
 
 /**
  * D-H1 untracked 守卫：output 现存但 manifest 未记录的文件 = 人为 untracked。
- *  - 非 forceClean 且存在 untracked → throw（提示 --force-clean）。
+ *  - 非 forceClean 且存在 untracked → throw（提示 --forceClean）。
  *  - forceClean 但 !gitClean && !allowUntrackedDelete → throw（要 git clean 或显式放行）。
+ * 两者都是预期拒写（保护人为文件），抛 CliUserError：命令行只打原因，不打调用栈。
+ * 提示里的参数写法与 `--help` 一致（camelCase；yargs 同时接受 kebab-case）。
  */
 const assertOutputOwnership = (outputAbs: string, opts: FlushOptions): void => {
   const existing = listExisting(outputAbs);
@@ -251,17 +255,17 @@ const assertOutputOwnership = (outputAbs: string, opts: FlushOptions): void => {
   );
   if (opts.forceClean) {
     if (!opts.gitClean && !opts.allowUntrackedDelete) {
-      throw new Error(
-        `--force-clean 需 output 路径 git 工作树 clean，或追加 --allow-untracked-delete 显式放行：${outputAbs}`,
+      throw new CliUserError(
+        `--forceClean 需 output 路径 git 工作树 clean，或追加 --allowUntrackedDelete 显式放行：${outputAbs}`,
       );
     }
     return;
   }
   if (untracked.length > 0) {
-    throw new Error(
+    throw new CliUserError(
       `output 存在 manifest 未记录的文件（人为 untracked，受保护）：\n` +
         untracked.map((f) => `  - ${f}`).join("\n") +
-        `\n如确需全量重写，使用 --force-clean（要求 git clean 或 --allow-untracked-delete）。`,
+        `\n如确需全量重写，使用 --forceClean（要求 git clean 或 --allowUntrackedDelete）。`,
     );
   }
 };
@@ -346,6 +350,13 @@ const materialize = (vfs: Vfs, destAbs: string): string[] => {
     if (!isInside(destAbs, abs)) {
       throw new Error(`VFS 路径越界 output：${rel}`);
     }
+    // 先于建目录 / 写入：已落地的软链节点不能让其下的路径写到落地目录之外（碎片目录可带软链）
+    assertInsideRootDir({
+      rootDir: destAbs,
+      target: abs,
+      label: "VFS 路径",
+      rootLabel: " 落地目录",
+    });
     if (node.kind === "dir") {
       fs.mkdirSync(abs, { recursive: true });
       files.push(rel);

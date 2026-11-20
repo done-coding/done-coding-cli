@@ -1,7 +1,11 @@
 ---
+dropped: 按原则关：模板实例化后不回灌、不加版本追踪机制（用户 2026-11-17 定，总协调转达）
+dropped_at: 2026-11-17
 id: h3mdcb
 title: generator tree check 比对的模块模板没有版本锁定，分不清手改与模板更新
 created: 2026-11-16
+modules: [generator]
+parent: ""
 from: done-creating-analysis
 ---
 

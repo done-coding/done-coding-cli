@@ -11,7 +11,12 @@ import os from "node:os";
 import path from "node:path";
 import type { Recipe } from "@/assemble/types";
 import { runBuild, runDiff, type EngineCtx } from "@/assemble/engine";
-import { formatVfs, resolvePrettierBin } from "@/assemble/format";
+import {
+  formatVfs,
+  resolvePrettierBin,
+  resolveRuffCommand,
+} from "@/assemble/format";
+import { validateRecipe } from "@/assemble/recipe";
 import { createVfs } from "@/assemble/vfs";
 import { unregisterAll } from "@/assemble/registry";
 
@@ -209,5 +214,115 @@ describe("engine 集成（build/diff 同径）", () => {
     expect(fs.readFileSync(path.join(cwd, "out", "a.ts"), "utf-8")).toBe(
       "const a = 1;\n",
     );
+  });
+});
+
+/**
+ * stub ruff：`ruff format --stdin-filename <path> -`，stdin → stdout。
+ *  - 每行末尾追加 `  # ruff@<运行目录名>`（可观察变换 + 证明在 venv 所在目录运行）；
+ *  - 文件名以 bad.py 结尾：stderr 报解析失败 + exit 2（模拟生成物损坏）。
+ */
+const makeStubRuff = (bin: string): string => {
+  fs.mkdirSync(path.dirname(bin), { recursive: true });
+  fs.writeFileSync(
+    bin,
+    [
+      "#!/usr/bin/env node",
+      "const path = require('node:path');",
+      "const args = process.argv.slice(2);",
+      "if (args[0] !== 'format' || args.at(-1) !== '-') process.exit(9);",
+      "const file = args[args.indexOf('--stdin-filename') + 1];",
+      "const chunks = [];",
+      "process.stdin.on('data', (c) => chunks.push(c));",
+      "process.stdin.on('end', () => {",
+      "  if (file.endsWith('bad.py')) {",
+      "    process.stderr.write('error: Failed to parse ' + file);",
+      "    process.exit(2);",
+      "  }",
+      "  const tag = '  # ruff@' + path.basename(process.cwd());",
+      "  process.stdout.write(Buffer.concat(chunks).toString('utf-8').replace(/\\n/g, tag + '\\n'));",
+      "});",
+    ].join("\n"),
+  );
+  fs.chmodSync(bin, 0o755);
+  return bin;
+};
+
+describe('format:"ruff"（cjunp5，Python 产物）', () => {
+  let root: string;
+  beforeEach(() => {
+    root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "fmt-ruff-")));
+  });
+  afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
+
+  const pyVfs = () => {
+    const vfs = createVfs();
+    vfs.setFile("dto.py", Buffer.from("x = 1\n"), "a");
+    vfs.setFile("README.md", Buffer.from("# doc\n"), "a");
+    return vfs;
+  };
+
+  it("配方校验：接受 ruff，其它值报错并列出可选值", () => {
+    const base = { id: "r", base: { kind: "empty" }, output: "out", ops: [] };
+    expect(validateRecipe({ ...base, format: "ruff" }, "r").format).toBe(
+      "ruff",
+    );
+    expect(() => validateRecipe({ ...base, format: "black" }, "r")).toThrow(
+      'format 仅支持 "prettier" / "ruff"',
+    );
+  });
+
+  it("就近用 output 所属项目 venv 里的 ruff，在该目录运行；只格式化 .py", () => {
+    const member = path.join(root, "backend", "svc");
+    makeStubRuff(path.join(member, ".venv", "bin", "ruff"));
+    makeStubRuff(path.join(root, ".venv", "bin", "ruff"));
+    const vfs = pyVfs();
+    formatVfs(
+      recipeOf({ format: "ruff", output: "backend/svc/src/app" }),
+      vfs,
+      {
+        cwd: root,
+      },
+    );
+    expect(vfs.get("dto.py")?.content?.toString()).toBe("x = 1  # ruff@svc\n");
+    expect(vfs.get("README.md")?.content?.toString()).toBe("# doc\n");
+  });
+
+  it("找不到 ruff 即报错，不静默跳过；不越出 cwd 向上找", () => {
+    makeStubRuff(path.join(path.dirname(root), ".venv-outside", "bin", "ruff"));
+    expect(() =>
+      formatVfs(recipeOf({ format: "ruff", output: "svc" }), pyVfs(), {
+        cwd: root,
+      }),
+    ).toThrow(/没有 ruff/);
+    expect(() => resolveRuffCommand(root, path.dirname(root))).toThrow(
+      /没有 ruff/,
+    );
+  });
+
+  it("ruff 解析失败 fail-loud（生成物疑似语法损坏）", () => {
+    const bin = makeStubRuff(path.join(root, ".venv", "bin", "ruff"));
+    const vfs = createVfs();
+    vfs.setFile("bad.py", Buffer.from("def (\n"), "a");
+    expect(() =>
+      formatVfs(recipeOf({ format: "ruff" }), vfs, {
+        cwd: root,
+        formatterBin: bin,
+      }),
+    ).toThrow(/格式化失败（ruff/);
+  });
+
+  it("runBuild 落盘的是格式化后内容；runDiff 对其零漂移", () => {
+    makeStubRuff(path.join(root, ".venv", "bin", "ruff"));
+    const recipe = recipeOf({
+      format: "ruff",
+      ops: [{ type: "writeFile", id: "a", target: "a.py", content: "y = 2\n" }],
+    });
+    const ctx: EngineCtx = { cwd: root };
+    runBuild(recipe, ctx);
+    expect(fs.readFileSync(path.join(root, "out", "a.py"), "utf-8")).toBe(
+      `y = 2  # ruff@${path.basename(root)}\n`,
+    );
+    expect(runDiff(recipe, ctx).drifted).toBe(false);
   });
 });

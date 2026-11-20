@@ -224,12 +224,12 @@ const assembleOptions: YargsOptionsRecord<
   forceClean: {
     type: "boolean",
     describe:
-      "build 全量清空 output（含 untracked，需 git clean / --allow-untracked-delete）",
+      "build 全量清空 output（含 untracked，需 git clean / --allowUntrackedDelete）",
     default: false,
   },
   allowUntrackedDelete: {
     type: "boolean",
-    describe: "配合 --force-clean 显式放行删除 untracked",
+    describe: "配合 --forceClean 显式放行删除 untracked",
     default: false,
   },
   allowDangerous: {

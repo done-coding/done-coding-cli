@@ -8,7 +8,7 @@ import {
 import { homedir } from "node:os";
 import path from "node:path";
 import { pathIsInsideParentDir, readConfigFile } from "@done-coding/cli-utils";
-import { getConfigPath } from "@done-coding/cli-template";
+import { assertInsideRootDir, getConfigPath } from "@done-coding/cli-template";
 import type { TemplateInstanceInfo } from "./templateSource";
 import injectInfo from "@/injectInfo.json";
 
@@ -43,13 +43,29 @@ export const cleanupCreateDraftParents = (rootDir: string) => {
   }
 };
 
+/**
+ * 读模板配置（预设问题 / 使用步骤 / secret key）。
+ * 模板内容不可信：读前确认配置文件解开符号链接后仍在项目目录内，不让链接把本机文件读进来。
+ */
+export const readTemplateConfig = <T>(options: {
+  rootDir: string;
+  configPath: string;
+}): Promise<T> => {
+  assertInsideRootDir({
+    rootDir: options.rootDir,
+    target: options.configPath,
+    label: "模板配置",
+  });
+  return readConfigFile<T>(options);
+};
+
 /** normalizeCollectEnvDataForm 会舍弃 secret 标记，直接读原始配置。 */
 export const readTemplateSecretKeys = async (
   rootDir: string,
   configPath: string,
 ): Promise<string[]> => {
   if (!getConfigPath({ rootDir, configPath })) return [];
-  const config = await readConfigFile<{
+  const config = await readTemplateConfig<{
     collectEnvDataForm?: (string | { key: string; secret?: boolean })[];
   }>({ rootDir, configPath });
   return (config?.collectEnvDataForm ?? []).flatMap((item) =>

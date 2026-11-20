@@ -370,3 +370,93 @@ describe("[T4] operate 越界 fail-loud（M8）", () => {
     ).rejects.toThrow(/模板输入路径越界/);
   });
 });
+
+describe("operate 越界判定解开符号链接", () => {
+  /** 落地根、项目外目录、项目外的模板目录（模拟全局 / 父目录批次） */
+  const mkScene = () => {
+    const root = mkTmp();
+    const execDir = path.join(root, "project");
+    const outside = path.join(root, "outside");
+    const templateDir = path.join(root, "global-batch/template");
+    fs.mkdirSync(path.join(execDir, "src"), { recursive: true });
+    fs.mkdirSync(outside);
+    fs.mkdirSync(templateDir, { recursive: true });
+    fs.writeFileSync(path.join(outside, "secret.txt"), "secret");
+    fs.writeFileSync(
+      path.join(templateDir, "comp.md"),
+      "export const ${name} = 1;",
+    );
+    return { execDir, outside, templateDir };
+  };
+  const run = (
+    files: BatchConfig["files"],
+    scene: ReturnType<typeof mkScene>,
+  ) =>
+    operate({
+      action: "add",
+      batch: mkBatch(
+        { instanceDir: "${execDir}/src/${nameKebab}", files },
+        scene.templateDir,
+      ),
+      env: mkEnv(scene.execDir, scene.templateDir),
+    });
+
+  it("经项目内指向外部的目录链接写出去 → 拒绝，项目外不落文件", async () => {
+    const scene = mkScene();
+    fs.symlinkSync(scene.outside, path.join(scene.execDir, "src/linked"));
+    await expect(
+      run(
+        [{ strategy: "create", inputData: "x", output: "src/linked/x.ts" }],
+        scene,
+      ),
+    ).rejects.toThrow(/输出路径 .*越出 execDir/);
+    expect(fs.readdirSync(scene.outside)).toEqual(["secret.txt"]);
+  });
+
+  it("output 是指向外部的悬空链接 → 拒绝，不在链接目标处建文件", async () => {
+    const scene = mkScene();
+    fs.symlinkSync(
+      path.join(scene.outside, "created.ts"),
+      path.join(scene.execDir, "src/dangling.ts"),
+    );
+    await expect(
+      run(
+        [{ strategy: "create", inputData: "x", output: "src/dangling.ts" }],
+        scene,
+      ),
+    ).rejects.toThrow(/越出 execDir/);
+    expect(fs.readdirSync(scene.outside)).toEqual(["secret.txt"]);
+  });
+
+  it("模板文件经链接指向 templateDir 之外 → 拒绝，不把外部文件读进实例", async () => {
+    const scene = mkScene();
+    fs.symlinkSync(
+      path.join(scene.outside, "secret.txt"),
+      path.join(scene.templateDir, "evil.md"),
+    );
+    await expect(
+      run(
+        [{ strategy: "create", input: "evil.md", output: "src/x.ts" }],
+        scene,
+      ),
+    ).rejects.toThrow(/模板输入 .*越出 templateDir/);
+    expect(fs.existsSync(path.join(scene.execDir, "src/x.ts"))).toBe(false);
+  });
+
+  it("模板目录在项目之外（全局 / 父目录批次）照常生成，模板目录内的链接照常可读", async () => {
+    const scene = mkScene();
+    fs.symlinkSync("comp.md", path.join(scene.templateDir, "alias.md"));
+    await run(
+      [
+        { strategy: "create", input: "comp.md", output: "src/a.ts" },
+        { strategy: "create", input: "alias.md", output: "src/b.ts" },
+      ],
+      scene,
+    );
+    for (const name of ["a.ts", "b.ts"]) {
+      expect(
+        fs.readFileSync(path.join(scene.execDir, "src", name), "utf-8"),
+      ).toBe("export const MyWidget = 1;");
+    }
+  });
+});

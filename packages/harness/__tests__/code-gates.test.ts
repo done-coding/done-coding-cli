@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { DEFAULT_DOMAINS_SOURCE } from "@/core/check";
@@ -9,6 +10,7 @@ import {
 } from "@/core/gates";
 import type { OwnershipConfig } from "@/core/ownership";
 import { SEAM_MARKER } from "@/core/seams";
+import { summarizeGates } from "@/handlers/check";
 import { cleanup, makeRepo, updateRepo } from "./helpers";
 
 const GOV = "docs/governance";
@@ -331,6 +333,151 @@ describe("缺口表闸：故意破坏", () => {
     });
     expect(errorsOf(CodeGateEnum.SEAMS)).toEqual([
       `缺口表：web/src/seams/Notice.ts（SNAPSHOT.md:7）未带标注 ${SEAM_MARKER}`,
+    ]);
+  });
+});
+
+describe("试用反馈（0kmyf7）", () => {
+  const importsOf = (imports: Parameters<typeof runCodeGates>[0]["imports"]) =>
+    runCodeGates({
+      projectRoot: root,
+      governanceRoot: path.join(root, GOV),
+      domains: DEFAULT_DOMAINS_SOURCE,
+      imports,
+    })[1];
+
+  it("sab3rz：未 git add 的新文件同样检查，附注写明数量；被忽略的不查", () => {
+    root = makeRepo({ ...BASE, ".gitignore": "ignored/\n" });
+    for (const [rel, content] of Object.entries({
+      "scripts/probe.py": "x = 1\n",
+      "web/src/probe.ts": 'import { alpha } from "@/domains/alpha/inner";\n',
+      "ignored/skip.py": "x = 1\n",
+    })) {
+      fs.mkdirSync(path.join(root, path.dirname(rel)), { recursive: true });
+      fs.writeFileSync(path.join(root, rel), content);
+    }
+    const [ownership, imports] = run();
+    expect(ownership.errors).toEqual([
+      "归属：无主 scripts/probe.py（不在任何领域 paths 或共享骨架表中）",
+    ]);
+    expect(ownership.note).toBe(
+      "含 2 个未跟踪的新文件（未 git add，同样检查）",
+    );
+    expect(imports.errors).toEqual([
+      "引用：web/src/probe.ts:1 → web/src/domains/alpha/inner.ts（共享骨架「web 壳」 引 领域 `alpha` 的内部文件，只许经其 public）",
+    ]);
+  });
+
+  it("7m924q：Vue 的 <script> 与 import 同行也识别；模板里像 import 的文字不算", () => {
+    root = makeRepo({
+      ...BASE,
+      "web/src/Home.vue":
+        '<template><p>import x from "./domains/alpha/inner"</p></template>\n<script lang="ts">import "./domains/alpha/inner";</script>\n',
+    });
+    expect(errorsOf(CodeGateEnum.IMPORTS)).toEqual([
+      "引用：web/src/Home.vue:2 → web/src/domains/alpha/inner.ts（共享骨架「web 壳」 引 领域 `alpha` 的内部文件，只许经其 public）",
+    ]);
+  });
+
+  it("cjf54l：Python 字符串与注释里的 import 不算；pytest 同级测试模块按基准目录解析", () => {
+    root = makeRepo({
+      ...BASE,
+      "svc/src/app/alpha/service.py":
+        'from app.core.db import x\nscript = """\nfrom app import main\n"""\n# from app import main\nrouter = x\n',
+      "svc/tests/alpha/test_helpers.py": "def helper():\n    return 1\n",
+      "svc/tests/test_root.py": "from test_helpers import helper\n",
+    });
+    expect(errorsOf(CodeGateEnum.IMPORTS)).toEqual([
+      "引用：svc/tests/test_root.py:1 → svc/tests/alpha/test_helpers.py（共享骨架「后端壳」 引 领域 `alpha` 的内部文件，只许经其 public）",
+    ]);
+  });
+
+  it("i5t6hl：有闸失败时也列出通过的闸与各闸违规条数", () => {
+    expect(
+      summarizeGates([
+        { label: "元闸", errors: [] },
+        { label: "归属闸", errors: [] },
+        { label: "引用闸", errors: ["a", "b"] },
+        { label: "清单", errors: ["c"] },
+      ]),
+    ).toEqual({
+      passed: "✅ 通过：元闸 / 归属闸",
+      failed: "❌ 未通过：引用闸（2） / 清单（1）",
+    });
+    expect(summarizeGates([{ label: "元闸", errors: ["x"] }])).toEqual({
+      passed: undefined,
+      failed: "❌ 未通过：元闸（1）",
+    });
+  });
+
+  it("w6d0yv：已替换行可写「已删」；一个文件承载先后两个接缝；标注按标识对行", () => {
+    const snapshot = SNAPSHOT.replace(
+      "| G3 | 默认落点 | `web/src/main.ts` | template-hub def456 | 已替换 |",
+      "| G3 | 默认落点 | `web/src/main.ts` | template-hub def456 | 已替换 |\n| G4 | 旧重定向 | 已删 | template-hub aa11bb | 已替换 |\n| G5 | 新落点 | `web/src/main.ts` | template-hub e80nx1 | 等待 |",
+    );
+    const main = (id: string) =>
+      `// ${SEAM_MARKER} ${id}\n${BASE["web/src/main.ts"]}`;
+    root = makeRepo({
+      ...BASE,
+      [`${GOV}/SNAPSHOT.md`]: snapshot,
+      "web/src/main.ts": main("e80nx1"),
+    });
+    expect(errorsOf(CodeGateEnum.SEAMS)).toEqual([]);
+    updateRepo(root, {
+      "web/src/main.ts": main("def456"),
+      [`${GOV}/SNAPSHOT.md`]: snapshot.replace(
+        "| 已删 | template-hub aa11bb | 已替换 |",
+        "| 已删 | template-hub aa11bb | 等待 |",
+      ),
+    });
+    expect(errorsOf(CodeGateEnum.SEAMS)).toEqual([
+      "缺口表：SNAPSHOT.md:10 接缝件写「已删」只用于已替换行",
+      "缺口表：web/src/main.ts 的标注 def456 对应的行（SNAPSHOT.md:9）已替换，这处标注应去掉",
+    ]);
+  });
+
+  it("skdlm9：imports.exportedNames 打开时，跨归属取的名字须在 __all__ 内；缺省不判", () => {
+    root = makeRepo({
+      ...BASE,
+      "svc/src/app/alpha/__init__.py":
+        'from .service import router, Secret\n__all__ = ["router"]\n',
+      "svc/src/app/alpha/service.py":
+        "from app.core.db import x\nrouter = x\nSecret = 1\n",
+      "svc/src/app/main.py":
+        "from app.alpha import router, Secret\nfrom app.core import db\n",
+    });
+    expect(importsOf(undefined).errors).toEqual([]);
+    const report = importsOf({ exportedNames: true });
+    expect(report.errors).toEqual([
+      "引用：svc/src/app/main.py:1 → svc/src/app/alpha/__init__.py（共享骨架「后端壳」 引 领域 `alpha`：Secret 不在 __all__ 内，只许取导出的名字）",
+    ]);
+    expect(report.note).toContain("imports.exportedNames");
+  });
+
+  it("rhfv9v + 5pmb5g ⓓ：public 条目标使用方（骨架: / 测试:），不标的照旧", () => {
+    root = makeRepo({
+      ...BASE,
+      [`${GOV}/MODULES.md`]: MODULES.replace(
+        "| `web/src/domains/alpha/index.ts`、",
+        "| `web/src/domains/alpha/index.ts`、`骨架:web/src/domains/alpha/assembly.ts`、",
+      ).replace(
+        "| 后端壳 | `svc/**` | `svc/src/app/core/**` |",
+        "| 后端壳 | `svc/**` | `svc/src/app/core/**`、`测试:svc/src/app/runtime.py` |",
+      ),
+      "web/src/domains/alpha/assembly.ts": "export const assembly = 1;\n",
+      "web/src/main.ts": `${BASE["web/src/main.ts"]}import { assembly } from "@/domains/alpha/assembly";\n`,
+      "web/src/domains/beta/index.ts":
+        'import { assembly } from "../alpha/assembly";\nexport const beta = 2;\n',
+      "svc/src/app/runtime.py": "Runtime = 1\n",
+      "svc/tests/alpha/test_service.py":
+        "from app.alpha.service import router\nfrom app.runtime import Runtime\n",
+      "svc/src/app/alpha/service.py":
+        "from app.core.db import x\nfrom app.runtime import Runtime\nrouter = x\n",
+    });
+    expect(errorsOf(CodeGateEnum.OWNERSHIP)).toEqual([]);
+    expect(errorsOf(CodeGateEnum.IMPORTS)).toEqual([
+      "引用：svc/src/app/alpha/service.py:2 → svc/src/app/runtime.py（领域 `alpha` 引 共享骨架「后端壳」 的入口，该入口只对测试开放）",
+      "引用：web/src/domains/beta/index.ts:1 → web/src/domains/alpha/assembly.ts（领域 `beta` 引 领域 `alpha` 的入口，该入口只对共享骨架开放）",
     ]);
   });
 });

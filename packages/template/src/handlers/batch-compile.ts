@@ -5,7 +5,11 @@ import {
   type CompileBatchOptions,
   type CompileTemplateConfig,
 } from "@/types";
-import { compileTemplate, MODULE_DEFAULT_CONFIG_RELATIVE_PATH } from "@/utils";
+import {
+  assertInsideRootDir,
+  compileTemplate,
+  MODULE_DEFAULT_CONFIG_RELATIVE_PATH,
+} from "@/utils";
 import type {
   CliHandlerArgv,
   SubCliInfo,
@@ -100,6 +104,7 @@ export const handler = async (
     rootDir = defaultOptions.rootDir.default,
     configPath = defaultOptions.configPath?.default,
     rollback,
+    confineToRootDir,
   } = args;
 
   let config: CompileTemplateConfig | undefined;
@@ -109,6 +114,13 @@ export const handler = async (
   if (paramsConfig) {
     config = paramsConfig;
   } else {
+    if (confineToRootDir) {
+      assertInsideRootDir({
+        rootDir,
+        target: configPath!,
+        label: "模板编译的 配置文件",
+      });
+    }
     if (!fs.existsSync(path.resolve(rootDir, configPath!))) {
       throw new CliUserError(
         `批量编译配置文件不存在：${path.normalize(
@@ -245,6 +257,7 @@ export const handler = async (
       {
         rootDir,
         rollback,
+        confineToRootDir,
       },
       ctx,
     );

@@ -4,7 +4,7 @@
  *  - 遍历 files[]（按声明顺序串行处理，content-free——[MUST NOT] 写死 entry/index）。
  *  - 逐项**先预渲染** input/output（`_template(x)(envData)`，交引擎前完成，K2）；
  *    引擎 OVERWRITE/APPEND 分支不渲染文件名，仅 REPLACE 渲染 input。
- *  - 越界校验在预渲染**之后**（M8）：output→execDir 内、input→real templateDir 内。
+ *  - 越界校验在预渲染**之后**（M8）：output→execDir 内、input→real templateDir 内；字面判定后再解开符号链接判定。
  *  - 按 strategy 派引擎 OutputMode（strategyRegistry）；dealMarkdown 透传（K3，FileEntry 级覆盖 BatchConfig 级）。
  *  - **单点采集**：构造好的 compile items 交 batchCompileHandler（extraEnvData=已含答案+派生的 env，
  *    collectEnvDataForm=batch.collectEnvDataForm）。因 env 已含答案，trulyMissing 天然为空 →
@@ -29,6 +29,7 @@ import type {
   OperateOptions,
 } from "@/types";
 import {
+  assertInsideRootDir,
   batchCompileHandler,
   getData,
   OutputModeEnum,
@@ -185,6 +186,13 @@ const prepareItem = (
         `输出路径越界（须落在 execDir 内）：${output} → ${outputAbs}（execDir=${env.execDir}）`,
       );
     }
+    // 字面在内还须解开链接后在内：项目里指向外部的目录链接 / 悬空链接不能把写入带出 execDir
+    assertInsideRootDir({
+      rootDir: env.execDir,
+      target: outputAbs,
+      label: "输出路径",
+      rootLabel: " execDir",
+    });
   }
 
   // ── M7/M8：input 以 real templateDir 为基准解析为绝对路径，须仍在 templateDir 内 ──
@@ -197,6 +205,13 @@ const prepareItem = (
         `模板输入路径越界（须落在 templateDir 内）：${renderedInput} → ${inputAbs}（templateDir=${realTemplateDir}）`,
       );
     }
+    // 模板文件经链接指向 templateDir 之外同样拒绝（模板内容不可信，不把本机文件读进实例）
+    assertInsideRootDir({
+      rootDir: realTemplateDir,
+      target: inputAbs,
+      label: "模板输入",
+      rootLabel: " templateDir",
+    });
     // 交引擎前转绝对路径（引擎以 execDir resolve，绝对路径下与 templateDir 基准一致）
     input = inputAbs;
   }
