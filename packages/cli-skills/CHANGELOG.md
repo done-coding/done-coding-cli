@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.9.1-alpha.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.9.0...@done-coding/cli-skills@0.9.1-alpha.0) (2026-11-20)
+
+### Features
+
+- harness 三闸试用反馈修正，generator 支持 ruff 并按真实路径判越界，create 不信过期 origin/HEAD、模板链接不越出项目 ([#63](https://github.com/done-coding/done-coding-cli/issues/63)) ([3144216](https://github.com/done-coding/done-coding-cli/commit/314421649bb9d87186725285145311b9e9be3c01))
+
 # [0.9.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.8.0...@done-coding/cli-skills@0.9.0) (2026-11-17)
 
 ### Features
