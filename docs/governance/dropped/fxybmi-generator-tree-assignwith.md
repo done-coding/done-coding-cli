@@ -1,7 +1,11 @@
 ---
+dropped: 已修复：cli-generator 0.5.0 起钉 lodash.template 4.5.0；2026-11-17 核实全局 done-coding 0.24.2 自带 generator 0.6.0、只装 lodash.template 4.5.0，在 done-creating-ledger 用全局 done-coding 跑两份含渲染碎片的配方 tree check 均无漂移
+dropped_at: 2026-11-17
 id: fxybmi
 title: 全局 done-coding 0.23.3 的 generator tree 渲染碎片时报 assignWith is not defined
 created: 2026-11-13
+modules: [generator]
+parent: ""
 from: done-coding-template-hub
 ---
 

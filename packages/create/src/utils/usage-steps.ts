@@ -6,11 +6,12 @@
  * 首步 `cd <项目名>` 由 create 固定补上。
  * [MUST] 在模板配置被编译删除之前读取。
  */
-import { outputConsole, readConfigFile } from "@done-coding/cli-utils";
+import { outputConsole } from "@done-coding/cli-utils";
 import {
   getConfigPath,
   type CompileTemplateConfig,
 } from "@done-coding/cli-template";
+import { readTemplateConfig } from "./create-artifacts";
 
 /** 模板未声明 usageSteps 时的默认步骤 */
 export const DEFAULT_USAGE_STEPS = ["pnpm install", "pnpm run dev"];
@@ -28,7 +29,7 @@ export const readTemplateUsageSteps = async ({
   configPath: string;
 }): Promise<string[]> => {
   if (!getConfigPath({ rootDir, configPath })) return DEFAULT_USAGE_STEPS;
-  const config = await readConfigFile<UsageStepsTemplateConfig>({
+  const config = await readTemplateConfig<UsageStepsTemplateConfig>({
     rootDir,
     configPath,
   });

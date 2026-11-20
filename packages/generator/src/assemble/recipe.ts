@@ -10,7 +10,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { json5 } from "@done-coding/cli-utils";
-import type { AssembleOp, Recipe, RecipeBase } from "./types";
+import type { AssembleOp, Recipe, RecipeBase, RecipeFormat } from "./types";
+
+/** 配方 format 可选值 */
+const RECIPE_FORMATS: RecipeFormat[] = ["prettier", "ruff"];
 
 /** 约定：配方根目录 `<cwd>/.done-coding/generator/assemble/recipes`（§3.3）。 */
 export const recipeDir = (cwd: string): string =>
@@ -170,9 +173,12 @@ export const validateRecipe = (parsed: unknown, label: string): Recipe => {
     ? (parsed.vars as Record<string, unknown>)
     : undefined;
   const createTemplate = validateCreateTemplate(parsed.createTemplate, label);
-  if (parsed.format !== undefined && parsed.format !== "prettier") {
+  if (
+    parsed.format !== undefined &&
+    !RECIPE_FORMATS.includes(parsed.format as RecipeFormat)
+  ) {
     throw new Error(
-      `${label}：format 仅支持 "prettier"（收到 ${JSON.stringify(parsed.format)}）`,
+      `${label}：format 仅支持 ${RECIPE_FORMATS.map((f) => `"${f}"`).join(" / ")}（收到 ${JSON.stringify(parsed.format)}）`,
     );
   }
   return {
@@ -184,7 +190,9 @@ export const validateRecipe = (parsed: unknown, label: string): Recipe => {
     ...(typeof parsed.render === "boolean" ? { render: parsed.render } : {}),
     ...(vars ? { vars } : {}),
     ...(createTemplate ? { createTemplate } : {}),
-    ...(parsed.format === "prettier" ? { format: "prettier" as const } : {}),
+    ...(parsed.format !== undefined
+      ? { format: parsed.format as RecipeFormat }
+      : {}),
   };
 };
 

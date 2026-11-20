@@ -24,6 +24,7 @@ import {
   resolveMarkerComment,
   validateMarkerKey,
 } from "./marker";
+import { assertInsideRootDir } from "./confine";
 import path from "node:path";
 import fs from "node:fs";
 
@@ -34,10 +35,16 @@ export const compileTemplate = async (
       | CompileTemplateConfigListItem["envData"]
       | (() => CompileTemplateConfigListItem["envData"]);
   },
-  { rootDir, rollback }: CompilePublicConfig,
+  { rootDir, rollback, confineToRootDir }: CompilePublicConfig,
   ctxInit?: HandlerContextInit,
 ) => {
   const ctx = resolveHandlerContext(ctxInit);
+  /** 受限编译时，读写 / 建目录前确认目标在 rootDir 内 */
+  const confine = (target: string, label: string) => {
+    if (confineToRootDir) {
+      assertInsideRootDir({ rootDir, target, label: `模板编译的 ${label}` });
+    }
+  };
   const {
     env,
     input,
@@ -67,6 +74,7 @@ export const compileTemplate = async (
       case OutputModeEnum.INSERT: {
         ensureOutputNotNull(mode, output);
         const outputPath = path.resolve(rootDir, output!);
+        confine(outputPath, "output");
         if (!fs.existsSync(outputPath)) {
           outputConsole.warn(`${mode}模式下${outputPath}不存在，无需回滚`);
           return;
@@ -102,6 +110,7 @@ mode: ${mode}
 rollback: ${rollback}
 `);
 
+  if (input) confine(input, "input");
   /** 模板内容 */
   const templateContent = getData({
     rootDir,
@@ -124,6 +133,7 @@ rollback: ${rollback}
       ensureOutputNotEqualsInput(output, input);
       // 上面两个确保后，output一定不为空
       const outputPath = path.resolve(rootDir, output!);
+      confine(outputPath, "output");
       fs.mkdirSync(path.dirname(outputPath), { recursive: true });
       if (fs.existsSync(outputPath)) {
         if (rollback) {
@@ -169,6 +179,7 @@ rollback: ${rollback}
       ensureOutputNotEqualsInput(output, input);
       // 上面两个确保后，output一定不为空
       const outputPath = path.resolve(rootDir, output!);
+      confine(outputPath, "output");
       fs.mkdirSync(path.dirname(outputPath), { recursive: true });
       if (fs.existsSync(outputPath)) {
         const oldContent = fs.readFileSync(outputPath, "utf-8");
@@ -222,6 +233,7 @@ rollback: ${rollback}
       // 输入文件路径编译
       const inputCompileFilePath = _template(inputPathInit)(envData);
       if (inputCompileFilePath !== inputPathInit) {
+        confine(inputCompileFilePath, "input 编译后的文件名");
         outputConsole.success(`检测输入文件名也需要替换
             ${inputPathInit} => ${inputCompileFilePath}`);
         fs.rmSync(inputPathInit);
@@ -241,6 +253,7 @@ rollback: ${rollback}
       ensureOutputNotNull(mode, output);
       ensureOutputNotEqualsInput(output, input);
       const outputPath = path.resolve(rootDir, output!);
+      confine(outputPath, "output");
       if (!fs.existsSync(outputPath)) {
         // E3：inject 需既有锚点文件，[MUST NOT] 创建
         outputConsole.error(

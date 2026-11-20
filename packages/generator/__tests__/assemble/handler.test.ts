@@ -210,7 +210,7 @@ describe("[C3] assembleHandler", () => {
     expect(Array.isArray(res.payload)).toBe(true);
   });
 
-  it("build：--force-clean --allow-untracked-delete 透传到 engine（spread 真分支）", async () => {
+  it("build：--forceClean --allowUntrackedDelete 透传到 engine（spread 真分支）", async () => {
     execFileSync("git", ["init", "-q"], { cwd: root });
     execFileSync("git", ["config", "user.email", "t@t.t"], { cwd: root });
     execFileSync("git", ["config", "user.name", "t"], { cwd: root });

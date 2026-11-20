@@ -33,6 +33,41 @@ export const listTracked = (projectRoot: string): string[] =>
     .filter(Boolean)
     .sort(compareCodePoint);
 
+/** 未跟踪且未被忽略的文件：新建还没 `git add` 的（仓根相对、`/` 分隔、码点序） */
+export const listUntracked = (projectRoot: string): string[] =>
+  execFileSync("git", ["ls-files", "--others", "--exclude-standard", "-z"], {
+    cwd: projectRoot,
+    encoding: "utf-8",
+    maxBuffer: 256 * 1024 * 1024,
+  })
+    .split("\0")
+    .filter(Boolean)
+    .sort(compareCodePoint);
+
+/** 代码类闸的文件面 */
+export interface WorkingFiles {
+  /** 跟踪文件 + 未跟踪未忽略的新文件（码点序） */
+  files: string[];
+  /** 其中未跟踪的新文件 */
+  untracked: string[];
+}
+
+/**
+ * 代码类闸查的文件：跟踪文件加上未跟踪的新文件。
+ * ---
+ * 改代码时最常见的是「新文件还没 add」，只取跟踪文件会让三闸在新文件上恒绿；
+ * 被 .gitignore 忽略的不算。
+ */
+export const listWorkingFiles = (projectRoot: string): WorkingFiles => {
+  const untracked = listUntracked(projectRoot);
+  return {
+    files: [...new Set([...listTracked(projectRoot), ...untracked])].sort(
+      compareCodePoint,
+    ),
+    untracked,
+  };
+};
+
 /** 读跟踪文件的工作树内容；不存在 / 非普通文件 / 含 NUL（二进制）返回 undefined */
 export const readTrackedText = (
   projectRoot: string,

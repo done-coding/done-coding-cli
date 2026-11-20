@@ -1,7 +1,17 @@
 import type { DomainsSource } from "./check";
-import { assertGitRoot, listTracked } from "./git-files";
+import {
+  assertGitRoot,
+  listWorkingFiles,
+  readTrackedText,
+  type WorkingFiles,
+} from "./git-files";
 import { createMatcher } from "./glob";
-import { checkImports, createResolver, type ImportsConfig } from "./imports";
+import {
+  checkImports,
+  createResolver,
+  readPythonAll,
+  type ImportsConfig,
+} from "./imports";
 import {
   computeOwnership,
   readOwnershipModel,
@@ -9,7 +19,13 @@ import {
   type OwnershipConfig,
   type OwnershipResult,
 } from "./ownership";
-import { checkSeams, findAnnotated, readGapTable, SEAM_MARKER } from "./seams";
+import {
+  checkSeams,
+  findAnnotated,
+  readGapTable,
+  readSeamIds,
+  SEAM_MARKER,
+} from "./seams";
 
 /** 数据驱动闸的启用方式 */
 export enum GateModeEnum {
@@ -92,14 +108,19 @@ export const runCodeGates = (input: CodeGatesInput): GateReport[] => {
     input.strict ? GateModeEnum.ON : (input.gates?.[gate] ?? GateModeEnum.AUTO);
   const reports: GateReport[] = [];
   const model = readOwnershipModel(input.governanceRoot, input.domains);
-  let tracked: string[] | undefined;
+  let working: WorkingFiles | undefined;
   const getTracked = (): string[] => {
-    if (!tracked) {
+    if (!working) {
       assertGitRoot(input.projectRoot);
-      tracked = listTracked(input.projectRoot);
+      working = listWorkingFiles(input.projectRoot);
     }
-    return tracked;
+    return working.files;
   };
+  /** 未跟踪的新文件也查，数量写进附注，免得读者以为只查了已 add 的 */
+  const untrackedNote = (): string | undefined =>
+    working?.untracked.length
+      ? `含 ${working.untracked.length} 个未跟踪的新文件（未 git add，同样检查）`
+      : undefined;
 
   /** 按模式落一份报告；缺数据 → 未启用或失败 */
   const settle = (
@@ -133,7 +154,7 @@ export const runCodeGates = (input: CodeGatesInput): GateReport[] => {
   reports.push(
     settle(CodeGateEnum.OWNERSHIP, ownershipMissing, () => {
       ownership = computeOwnership(model, getTracked(), input.ownership);
-      return { errors: ownership.errors };
+      return { errors: ownership.errors, note: untrackedNote() };
     }),
   );
 
@@ -155,11 +176,24 @@ export const runCodeGates = (input: CodeGatesInput): GateReport[] => {
       const notes = [
         include &&
           `只查引用方落在 imports.include（${include.join("、")}）内的引用`,
+        input.imports?.exportedNames &&
+          "imports.exportedNames：跨归属 from 导入的名字须在目标 __all__ 内（没写 __all__ 的不判）",
         !model.skeleton?.hasPublic &&
           "共享骨架表无 public 列，领域 → 壳方向不设限",
       ].filter(Boolean);
+      const exportedNames = input.imports?.exportedNames
+        ? (file: string) => {
+            const text = /\.pyi?$/.test(file)
+              ? readTrackedText(input.projectRoot, file)
+              : undefined;
+            return text === undefined ? undefined : readPythonAll(text);
+          }
+        : undefined;
       return {
-        errors: checkImports(edges, result),
+        errors: checkImports(edges, result, {
+          tests: input.imports?.tests,
+          exportedNames,
+        }),
         note: notes.length ? notes.join("；") : undefined,
       };
     }),
@@ -187,7 +221,13 @@ export const runCodeGates = (input: CodeGatesInput): GateReport[] => {
           ),
         };
       }
-      return { errors: checkSeams(gap, files, marks) };
+      return {
+        errors: checkSeams(gap, {
+          tracked: files,
+          annotated: marks,
+          idsOf: (file) => readSeamIds(input.projectRoot, file),
+        }),
+      };
     }),
   );
   return reports;

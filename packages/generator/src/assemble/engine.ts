@@ -35,6 +35,7 @@ import { createRender, readFragment, readFragmentBuffer } from "./render";
 import { fragmentRoot as defaultFragmentRoot } from "./recipe";
 import { assertCwdNotSuspiciousRoot } from "@/core/safe-root";
 import { isInside } from "@/core/path-safe";
+import { assertInsideRootDir } from "@done-coding/cli-template";
 import { formatVfs } from "./format";
 
 /** 引擎上下文（cwd 锚定约定目录 + 渲染变量来自 recipe.vars）。 */
@@ -71,6 +72,13 @@ const outputAbs = (ctx: EngineCtx, recipe: Recipe): string => {
       `recipe.output 越界 cwd：${recipe.output} → ${abs}，[MUST] 落 cwd 内（H2）`,
     );
   }
+  // 字面在内还须解开链接后在内：经项目内指向外部的目录链接，flush 会把产物落到 cwd 之外
+  assertInsideRootDir({
+    rootDir: root,
+    target: abs,
+    label: "recipe.output",
+    rootLabel: " cwd",
+  });
   return abs;
 };
 
@@ -88,6 +96,15 @@ const buildBaseVfs = (ctx: EngineCtx, recipe: Recipe): Vfs => {
       throw new Error(
         `base.from 越界 cwd：${recipe.base.from} → ${from}（D-M7）`,
       );
+    }
+    if (from !== path.resolve(ctx.cwd)) {
+      // 来源目录本身是指向外部的链接时，整树读入会把 cwd 之外的文件带进产物
+      assertInsideRootDir({
+        rootDir: ctx.cwd,
+        target: from,
+        label: "base.from",
+        rootLabel: " cwd",
+      });
     }
     loadBaseDir(vfs, from, { exclude: recipe.base.exclude });
   }

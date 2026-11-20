@@ -1,6 +1,7 @@
 import {
   execSyncHijack,
   outputConsole,
+  pathIsInsideParentDir,
   safeRemoveDirSync,
 } from "@done-coding/cli-utils";
 import { randomUUID } from "node:crypto";
@@ -112,6 +113,8 @@ interface TemplateSourceRootOptions {
 interface CopyTemplateSourceRootOptions {
   /** 模板复制源目录 */
   sourceRoot: string;
+  /** 临时检出目录（clone / worktree），模板目录经符号链接解开后不得越出它 */
+  checkoutDir: string;
   /** 项目生成目标目录 */
   targetPath: string;
 }
@@ -187,42 +190,156 @@ const gitOutput = (repoRoot: string, args: string): string | undefined => {
   }
 };
 
+/** fetch 远端；失败只告警，返回是否成功 */
+const fetchOrigin = (repoRoot: string): boolean => {
+  try {
+    execSyncHijack("git fetch origin", { cwd: repoRoot, stdio: "pipe" });
+    return true;
+  } catch (error) {
+    outputConsole.warn("模板仓 git fetch origin 失败，将使用已有远端跟踪分支");
+    return false;
+  }
+};
+
+/**
+ * 远端默认分支对应的跟踪 ref 候选（按优先级）。
+ * ---
+ * 本地 `refs/remotes/origin/HEAD` 只在 clone / `remote set-head` 时写入，`git fetch` 不更新，
+ * 远端改过默认分支后它会一直指着旧分支；故联网时先问远端实际 HEAD（`ls-remote --symref`，只读），
+ * 本地 origin/HEAD 只作离线回落，两者不一致时提示更新。
+ */
+const resolveOriginHeadCandidates = (
+  repoRoot: string,
+): { refs: string[]; verified?: string } => {
+  const fetched = fetchOrigin(repoRoot);
+  const localHead = gitOutput(
+    repoRoot,
+    "symbolic-ref --quiet refs/remotes/origin/HEAD",
+  );
+  const remoteBranch = fetched
+    ? gitOutput(repoRoot, "ls-remote --symref origin HEAD")?.match(
+        /^ref: refs\/heads\/(\S+)\s+HEAD$/m,
+      )?.[1]
+    : undefined;
+  const remoteHead = remoteBranch && `refs/remotes/origin/${remoteBranch}`;
+  if (remoteHead && localHead && remoteHead !== localHead) {
+    outputConsole.warn(
+      `模板仓本地 origin/HEAD 指向 ${localHead}，与远端默认分支 ${remoteHead} 不一致，已按远端取；可在模板仓执行 git remote set-head origin -a 更新`,
+    );
+  }
+  return {
+    refs: [
+      remoteHead,
+      localHead,
+      "refs/remotes/origin/master",
+      "refs/remotes/origin/main",
+    ].filter((ref): ref is string => Boolean(ref)),
+    verified: remoteHead,
+  };
+};
+
+const shortRef = (ref: string) => ref.replace(/^refs\/(remotes|heads)\//, "");
+
+/** 模板目录在仓内的路径（git tree 路径）；未给、指仓根或越出仓外时返回 undefined（不做按目录挑选） */
+const toRepoTreePath = (directory?: string): string | undefined => {
+  if (!directory) return undefined;
+  const treePath = path.posix
+    .normalize(directory.replace(/\\/g, "/"))
+    .replace(/\/+$/, "");
+  if (!treePath || treePath === ".") return undefined;
+  if (treePath === ".." || treePath.startsWith("../")) return undefined;
+  return path.posix.isAbsolute(treePath) ? undefined : treePath;
+};
+
+const isCommitRef = (repoRoot: string, ref: string) =>
+  Boolean(
+    gitOutput(
+      repoRoot,
+      `rev-parse --verify ${quoteShellArg(`${ref}^{commit}`)}`,
+    ),
+  );
+
+/** ref 里有该路径（目录 / 符号链接等任意对象；大小写按 git 精确匹配，只作挑选与提示依据） */
+const hasTemplatePath = (repoRoot: string, ref: string, treePath: string) =>
+  Boolean(
+    gitOutput(repoRoot, `cat-file -t ${quoteShellArg(`${ref}:${treePath}`)}`),
+  );
+
+/**
+ * 未传 -b 时的默认 ref。
+ * ---
+ * 远端实际 HEAD 经 `ls-remote` 核实时以它为准；拿不到（离线 / 无凭据）时首选只是本地猜测，
+ * 本地 `origin/HEAD` 可能过期指着没有模板的旧分支（studio 走查实测），故按模板目录挑第一个含它的候选并提示。
+ */
 const resolveLocalDefaultRef = (
   repoRoot: string,
   remoteUrl?: string,
+  directory?: string,
 ): string => {
-  if (remoteUrl) {
-    try {
-      execSyncHijack("git fetch origin", { cwd: repoRoot, stdio: "pipe" });
-    } catch (error) {
-      outputConsole.warn(
-        "模板仓 git fetch origin 失败，将使用已有远端跟踪分支",
-      );
-    }
-  }
+  const origin = remoteUrl
+    ? resolveOriginHeadCandidates(repoRoot)
+    : { refs: [], verified: undefined };
   const candidates = [
-    ...(remoteUrl
-      ? [
-          gitOutput(repoRoot, "symbolic-ref --quiet refs/remotes/origin/HEAD"),
-          "refs/remotes/origin/master",
-          "refs/remotes/origin/main",
-        ]
-      : []),
+    ...origin.refs,
     "refs/heads/master",
     "refs/heads/main",
-  ];
-  for (const ref of candidates) {
-    if (
-      ref &&
-      gitOutput(
-        repoRoot,
-        `rev-parse --verify ${quoteShellArg(`${ref}^{commit}`)}`,
-      )
-    ) {
-      return ref;
-    }
+  ].filter((ref) => isCommitRef(repoRoot, ref));
+  const [first] = candidates;
+  if (!first) {
+    throw new Error("模板仓没有可用的默认分支，请用 -b 显式指定分支或标签");
   }
-  throw new Error("模板仓没有可用的默认分支，请用 -b 显式指定分支或标签");
+  const treePath = toRepoTreePath(directory);
+  if (!treePath || first === origin.verified) return first;
+  const found = candidates.find((ref) =>
+    hasTemplatePath(repoRoot, ref, treePath),
+  );
+  if (!found || found === first) return first;
+  outputConsole.warn(
+    `模板仓 ${shortRef(first)} 里没有模板目录 ${treePath}（远端默认分支未能核实），已改取 ${shortRef(found)}；联网后可在模板仓执行 git remote set-head origin -a 更新，或用 -b 指定分支`,
+  );
+  return found;
+};
+
+/** 默认取的是远端跟踪分支、而本地同名分支有未推送提交时提示：这些改动不会用到 */
+const warnLocalAhead = (repoRoot: string, ref: string) => {
+  const branch = ref.match(/^refs\/remotes\/origin\/(.+)$/)?.[1];
+  if (!branch || branch === "HEAD") return;
+  const ahead = Number(
+    gitOutput(
+      repoRoot,
+      `rev-list --count ${quoteShellArg(`${ref}..refs/heads/${branch}`)}`,
+    ) ?? 0,
+  );
+  if (ahead > 0) {
+    outputConsole.warn(
+      `模板仓本地 ${branch} 领先 origin/${branch} ${ahead} 个提交（未推送），默认按远端取，这些改动不会用到；要用本地内容请加 -b ${branch}`,
+    );
+  }
+};
+
+/**
+ * 检出后模板目录不存在时的报错：点名所取 ref 并给出处理办法（原先只报临时目录路径）。
+ * 判定仍是检出目录上的 existsSync（与改动前同一条件），这里只换说明。
+ */
+const missingTemplateError = (
+  repoRoot: string,
+  source: { ref: string; explicit: boolean; directory?: string },
+) => {
+  const treePath = toRepoTreePath(source.directory);
+  const local =
+    treePath &&
+    ["master", "main"].find((branch) =>
+      hasTemplatePath(repoRoot, `refs/heads/${branch}`, treePath),
+    );
+  return new Error(
+    `模板目录 ${treePath ?? source.directory} 在模板仓的 ${shortRef(source.ref)} 里不存在。` +
+      (local
+        ? `本地 ${local} 分支有该目录，可加 -b ${local}`
+        : "请核对模板 directory，或用 -b 指定含该目录的分支") +
+      (source.explicit
+        ? ""
+        : "；未传 -b 时默认取远端默认分支，本地 origin/HEAD 过期可在模板仓执行 git remote set-head origin -a"),
+  );
 };
 
 /** 清理本地模板生成时创建的临时 worktree 和临时分支 */
@@ -280,19 +397,48 @@ const getTemplateSourceRoot = ({
   return path.resolve(tempRepoDir, sourceRelativePath ?? "", directory ?? "");
 };
 
-/** 将模板复制源目录复制到项目目标目录 */
+/**
+ * 模板目录的真实路径：解开顶层（及途经）符号链接；解开后越出检出目录即拒绝——模板仓内容不可信，
+ * 不能借符号链接把本机任意目录拷进项目。
+ */
+const resolveTemplateRealRoot = (sourceRoot: string, checkoutDir: string) => {
+  const realRoot = realpathSync(sourceRoot);
+  const checkoutReal = realpathSync(checkoutDir);
+  if (
+    realRoot !== checkoutReal &&
+    !pathIsInsideParentDir({ targetPath: realRoot, parentDir: checkoutReal })
+  ) {
+    throw new Error(
+      `模板目录经符号链接指向模板仓之外，已拒绝: ${sourceRoot} -> ${realRoot}`,
+    );
+  }
+  return realRoot;
+};
+
+/**
+ * 将模板复制源目录复制到项目目标目录。
+ * ---
+ * 检出目录随后即被清理，复制结果不能引用它：
+ * - 顶层是符号链接时按其指向的目录复制真实文件（否则目标是指向临时目录的悬空链接）；
+ * - 子树内的符号链接原样保留链接文本（`verbatimSymlinks`）。cpSync 缺省会把相对链接改写成
+ *   指向临时目录的绝对路径，清理后同样悬空；保留相对文本则模板内互指的链接在项目里照样成立，
+ *   也不把链接目标的内容复制一份或读到模板之外。
+ */
 const copyTemplateSourceRoot = ({
   sourceRoot,
+  checkoutDir,
   targetPath,
 }: CopyTemplateSourceRootOptions) => {
   if (!existsSync(sourceRoot)) {
     throw new Error(`模板目录不存在: ${sourceRoot}`);
   }
-  if (!statSync(sourceRoot).isDirectory()) {
+  const realRoot = resolveTemplateRealRoot(sourceRoot, checkoutDir);
+  if (!statSync(realRoot).isDirectory()) {
     throw new Error(`模板路径不是目录: ${sourceRoot}`);
   }
-  cpSync(sourceRoot, targetPath, {
+  cpSync(realRoot, targetPath, {
     recursive: true,
+    verbatimSymlinks: true,
     filter(source) {
       return !isTemplateCopyIgnored(source);
     },
@@ -325,6 +471,7 @@ const materializeRemoteGitTemplate = ({
         tempRepoDir,
         directory: templateSource.directory,
       }),
+      checkoutDir: tempRepoDir,
       targetPath,
     });
     return {
@@ -381,7 +528,9 @@ const materializeLocalGitTemplate = ({
   const worktreeBranch = `done-coding-template-${randomUUID()}`;
   const remoteUrl = gitOutput(repoRoot, "remote get-url origin");
   const worktreeBaseRef =
-    templateSource.branch ?? resolveLocalDefaultRef(repoRoot, remoteUrl);
+    templateSource.branch ??
+    resolveLocalDefaultRef(repoRoot, remoteUrl, templateSource.directory);
+  if (!templateSource.branch) warnLocalAhead(repoRoot, worktreeBaseRef);
   mkdirSync(path.dirname(tempRepoDir), { recursive: true });
   execSyncHijack(
     `git worktree add -b ${quoteShellArg(worktreeBranch)} ${quoteShellArg(tempRepoDir)} ${quoteShellArg(worktreeBaseRef)}`,
@@ -392,11 +541,20 @@ const materializeLocalGitTemplate = ({
   );
 
   try {
-    copyTemplateSourceRoot({
-      sourceRoot: getTemplateSourceRoot({
-        tempRepoDir,
+    const sourceRoot = getTemplateSourceRoot({
+      tempRepoDir,
+      directory: templateSource.directory,
+    });
+    if (!existsSync(sourceRoot)) {
+      throw missingTemplateError(repoRoot, {
+        ref: worktreeBaseRef,
+        explicit: Boolean(templateSource.branch),
         directory: templateSource.directory,
-      }),
+      });
+    }
+    copyTemplateSourceRoot({
+      sourceRoot,
+      checkoutDir: tempRepoDir,
       targetPath,
     });
     return {

@@ -14,6 +14,7 @@ import path from "node:path";
 import _template from "lodash.template";
 import { createEnvHelpers } from "@/core/env-context";
 import { isInside } from "@/core/path-safe";
+import { assertInsideRootDir } from "@done-coding/cli-template";
 // D-M2：复用 cli-utils package-json IO 壳（非 packages/config），不复用其合并语义
 import { getPackageJson } from "@done-coding/cli-utils";
 
@@ -42,6 +43,16 @@ const resolveFragmentAbs = (fragmentRoot: string, rel: string): string => {
       `碎片路径越界 fragmentRoot：${JSON.stringify(rel)} 解析为 ${resolved}，不在 ${root} 内`,
     );
   }
+  // 解开链接后须仍在所属模板目录内：边界取 fragmentRoot 下第一段的真实路径——全局层
+  // `~/.done-coding/templates/<模板>` 常是指向模板仓的软链（分发方式），整体跟随；
+  // 模板内再链到模板之外的文件不读（模板内容不可信，不把本机文件读进产物）。
+  const [first, ...rest] = path.relative(root, resolved).split(path.sep);
+  assertInsideRootDir({
+    rootDir: rest.length ? path.join(root, first) : root,
+    target: resolved,
+    label: "碎片",
+    rootLabel: " 模板目录",
+  });
   return resolved;
 };
 

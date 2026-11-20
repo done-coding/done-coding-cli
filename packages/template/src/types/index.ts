@@ -110,6 +110,12 @@ export interface CompilePublicConfig {
   markerNs?: string;
   /** 是否回滚 */
   rollback?: boolean;
+  /**
+   * 受限编译：读写目标解开符号链接后须在 rootDir 内，越出即拒绝（缺省不开，行为不变）。
+   * ---
+   * 只认调用方经 compileTemplate 第二参 / batch handler 参数传入；模板配置项里写了不生效。
+   */
+  confineToRootDir?: boolean;
 }
 
 /** 批量模板编译配置项 */
