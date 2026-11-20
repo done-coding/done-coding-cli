@@ -1,6 +1,6 @@
 {
   "name": "@done-coding/cli-template",
-  "version": "0.13.2",
+  "version": "0.14.0",
   "description": "预编译命令行工具",
   "private": false,
   "module": "es/index.mjs",

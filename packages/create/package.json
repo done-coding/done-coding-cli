@@ -1,6 +1,6 @@
 {
   "name": "create-done-coding",
-  "version": "0.21.0",
+  "version": "0.22.0",
   "description": "项目创建命令行工具",
   "module": "es/index.mjs",
   "type": "module",
@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@done-coding/cli-git": "workspace:0.8.2",
-    "@done-coding/cli-template": "workspace:0.13.2",
+    "@done-coding/cli-template": "workspace:0.14.0",
     "@done-coding/cli-utils": "workspace:0.15.0"
   },
   "engines": {
