@@ -47,3 +47,8 @@ aw9v0m 与 a5di8q 一并做：模板源默认取远端 master 或钉住的标签
 - 附带行为变化（复核接受）：prepare 失败（如无默认分支）也删草稿；交互模式关闭 git 细节优化时不再 `process.exit(0)` 提前退出，照常写 lock、留痕注册表、打印完成——原先此路径漏记注册表。
 - 验证：create `eslint .` 退 0、build 退 0、vitest 6 文件 49 例全过（新增 `template-provenance.test.ts`：开发分支检出带未合入改动时默认取 origin/HEAD、`-b` 取在途分支与标签、fetch 更新跟踪分支、fetch 失败用已有跟踪分支、无默认分支报错且清草稿、lock / 注册表字段与 commit、secret 只记 key、空父目录清理与保留既有 `.done-coding`、拒绝 symlink 逃逸；e2e 断言 lock 入首个提交、rootDir 不残留 `.done-coding`）；cli-skills vitest 15 例全过。未覆盖：真实网络远端、人工 TTY 问答。
 - 收口：快照刷新 `modules/create/SNAPSHOT.md`、上层 `SNAPSHOT.md` create 行、`docs/BUSINESS_SNAPSHOT.md` create 行；create `tsc --noEmit` 退 0。
+
+### 更正（2026-11-27，ap4hc0）
+
+- 「本地源默认取远端默认分支、永不回落当前检出」是总协调 11-09 派单时的建议，不是用户定的口径；用户「按建议，cli 选 ⓐ」只选了承接的机器。后续 ynfow5 记成「用户定」有误，已在该归档更正。
+- 用户 2026-11-27 定：本机模板取模板仓当前所在分支，不推断远端分支；`template.lock.json` 移除。本批的默认分支逻辑与出生记录已由 ap4hc0 撤销，`instances.json` 的 `templateDirectory` / `templateCommit` 与草稿空父目录清理保留。

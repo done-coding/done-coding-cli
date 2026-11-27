@@ -1,16 +1,8 @@
-import {
-  existsSync,
-  mkdirSync,
-  realpathSync,
-  rmdirSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, realpathSync, rmdirSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 import { pathIsInsideParentDir, readConfigFile } from "@done-coding/cli-utils";
-import { assertInsideRootDir, getConfigPath } from "@done-coding/cli-template";
-import type { TemplateInstanceInfo } from "./templateSource";
-import injectInfo from "@/injectInfo.json";
+import { assertInsideRootDir } from "@done-coding/cli-template";
 
 /** 严格位于 parent 内（不含 parent 本身）；调用方先 realpath 双解，拒绝 symlink 逃逸。 */
 const isStrictlyInside = (parentDir: string, targetPath: string) =>
@@ -44,7 +36,7 @@ export const cleanupCreateDraftParents = (rootDir: string) => {
 };
 
 /**
- * 读模板配置（预设问题 / 使用步骤 / secret key）。
+ * 读模板配置（预设问题 / 使用步骤）。
  * 模板内容不可信：读前确认配置文件解开符号链接后仍在项目目录内，不让链接把本机文件读进来。
  */
 export const readTemplateConfig = <T>(options: {
@@ -57,66 +49,4 @@ export const readTemplateConfig = <T>(options: {
     label: "模板配置",
   });
   return readConfigFile<T>(options);
-};
-
-/** normalizeCollectEnvDataForm 会舍弃 secret 标记，直接读原始配置。 */
-export const readTemplateSecretKeys = async (
-  rootDir: string,
-  configPath: string,
-): Promise<string[]> => {
-  if (!getConfigPath({ rootDir, configPath })) return [];
-  const config = await readTemplateConfig<{
-    collectEnvDataForm?: (string | { key: string; secret?: boolean })[];
-  }>({ rootDir, configPath });
-  return (config?.collectEnvDataForm ?? []).flatMap((item) =>
-    typeof item !== "string" && item.secret === true ? [item.key] : [],
-  );
-};
-
-export const writeTemplateLock = ({
-  projectPath,
-  source,
-  template,
-  secretKeys,
-  answers,
-}: {
-  projectPath: string;
-  source: Pick<
-    TemplateInstanceInfo,
-    "url" | "remoteUrl" | "directory" | "branch" | "commit"
-  >;
-  template?: string;
-  secretKeys: string[];
-  answers?: Record<string, unknown>;
-}) => {
-  const root = realpathSync(projectPath);
-  const dir = path.resolve(projectPath, ".done-coding");
-  mkdirSync(dir, { recursive: true });
-  const realDir = realpathSync(dir);
-  if (!isStrictlyInside(root, realDir)) throw new Error("出生记录目录越界");
-  const target = path.join(dir, "template.lock.json");
-  if (existsSync(target) && !isStrictlyInside(root, realpathSync(target)))
-    throw new Error("出生记录文件越界");
-  const lock = {
-    version: 1,
-    template: template ?? source.url,
-    url: source.url,
-    remoteUrl: source.remoteUrl,
-    directory: source.directory,
-    branch: source.branch,
-    commit: source.commit,
-    ...(answers === undefined
-      ? {}
-      : {
-          answers: Object.fromEntries(
-            Object.entries(answers).filter(
-              ([key]) => !secretKeys.includes(key),
-            ),
-          ),
-        }),
-    secretKeys,
-    createdAt: new Date().toISOString(),
-    cli: { name: injectInfo.name, version: injectInfo.version },
-  };
-  writeFileSync(target, `${JSON.stringify(lock, null, 2)}\n`);
 };

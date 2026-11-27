@@ -11,10 +11,10 @@
 - tree 生成前校验（3r4dvv，generator 0.4.0 已发布）：build / check 写盘与比对前，按所引模板 `schema.json` 的 `params` 校验 `recipe.vars`（ajv，按 `$schema` 选 draft），并按 `base: { package, range }` 从 output 所在目录向上就近读 `node_modules` 已装版本做 semver 判定；违规列全量（路径 + 期望 + 实际）、零落盘。配方→模板据 addFragment `source` 的 `<base>/<template>/fragments/` 推导；找不到基座包只告警（非 npm 基座待 backlog）。
 - 消费侧修复（0cja0o，随 0.5.0 于 2026-11-11 发布）：`lodash.template` 钉 `4.5.0`（≤0.4.0 的 `^4.5.0` 全新安装可解析到损坏的 4.18.0，tree 全挂）；`format: "prettier"` 自 output 目录向上至 cwd 就近解析 prettier（monorepo 成员自装可用）；`--help` 用法总览列 tree；module-generate skill 补发现层与版本提示。
 - `tree templates [base] [--json]`（ggjh2p，0.6.0 已发布）：列模块模板基座（各 templates 根下含 `base.json` 的目录，就近优先）与模板 whenToUse，与 MCP `list_module_templates` 同源（`discoverBases` + `discoverTemplates`）；`rules/` 等无 base.json 的目录不列。
-- 收件箱修正（avrgue，未发布）：`format: "ruff"` 只格式化产物里的 `*.py` / `*.pyi`，用目标项目 venv 里的 ruff（自 output 向上至 cwd 最近的 `.venv` / `venv`，在该目录运行，配置就近取 `pyproject.toml`），找不到即报错；build / diff / check 同一变换。assemble / tree build 的预期拒写（output 有 manifest 未记录的文件、forceClean 缺 git clean）抛 `CliUserError` 不打调用栈，提示参数写法与 `--help` 一致（`--forceClean` / `--allowUntrackedDelete`）。
+- 收件箱修正（avrgue，0.7.0 已发布）：`format: "ruff"` 只格式化产物里的 `*.py` / `*.pyi`，用目标项目 venv 里的 ruff（自 output 向上至 cwd 最近的 `.venv` / `venv`，在该目录运行，配置就近取 `pyproject.toml`），找不到即报错；build / diff / check 同一变换。assemble / tree build 的预期拒写（output 有 manifest 未记录的文件、forceClean 缺 git clean）抛 `CliUserError` 不打调用栈，提示参数写法与 `--help` 一致（`--forceClean` / `--allowUntrackedDelete`）。
 - 已知不一致：模块模板**探测**合并 project / parent / global 各层，`tree build` **碎片根**只取就近第一个 `.done-coding/templates/` 根——项目层有 templates 时全局层模板列得出却读不到碎片（skill 已写明，机制未改）。
-- 批次越界判定解开符号链接（ynfow5，未发布）：output 字面落在 execDir 内后，再经 cli-template `assertInsideRootDir` 解开链接（含悬空链接、经目录链接）判定仍在 execDir 内；input 同样须在 templateDir 内。全局 / 父目录批次模板照常可用。
-- tree / assemble 越界判定解开符号链接（ynfow5，未发布）：`recipe.output`、`base.from` 须解开链接后仍在 cwd 内；落地时每个节点须在落地目录内（软链节点下不写出去）；碎片读取须在所属模板目录（fragmentRoot 下第一段的真实路径）内，全局层模板目录本身是软链时照常可用，`deref` 链出模板目录拒绝。
+- 批次越界判定解开符号链接（ynfow5，0.7.0 已发布）：output 字面落在 execDir 内后，再经 cli-template `assertInsideRootDir` 解开链接（含悬空链接、经目录链接）判定仍在 execDir 内；input 同样须在 templateDir 内。全局 / 父目录批次模板照常可用。
+- tree / assemble 越界判定解开符号链接（ynfow5，0.7.0 已发布）：`recipe.output`、`base.from` 须解开链接后仍在 cwd 内；落地时每个节点须在落地目录内（软链节点下不写出去）；碎片读取须在所属模板目录（fragmentRoot 下第一段的真实路径）内，全局层模板目录本身是软链时照常可用，`deref` 链出模板目录拒绝。
 - 测试：vitest 419 例（`forks` 池 + globalSetup 隔离宿主 HOME，本机有全局 `~/.done-coding/templates` 亦不受影响）；跨仓回归 `pnpm test:hub`（本地构建对 template-hub 22 配方跑漂移闸）。
 - 遗留：`ehzjoy` 产物目录与手写文件混住；`gl1ytl` 页面级 / 模板级碎片 fragmentRoot 分层；非 npm 基座版本校验（池中，parent dyynp0）。
 

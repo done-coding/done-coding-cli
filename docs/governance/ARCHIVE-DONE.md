@@ -3,7 +3,7 @@
 > 文档定位：快照型清单 · **[MUST] 由 `scripts/governance-lists.py` 重生成，[MUST NOT] 手工维护**
 > 归档目录 [MUST] 只留 `PROGRESS.md`（条目正文交付时删除）。
 
-共 **39** 个已交付批次。
+共 **40** 个已交付批次。
 
 | 批次 | 所涉领域 | 交付记录 |
 |---|---|---|
@@ -21,6 +21,7 @@
 | `7b8nlh-lerna-ignore-skill-md` | cli-skills | [PROGRESS](archive/7b8nlh-lerna-ignore-skill-md/PROGRESS.md) |
 | `9tt22m-readme-docs-site-link` | showcase | [PROGRESS](archive/9tt22m-readme-docs-site-link/PROGRESS.md) |
 | `an1hhe-utils-pure-js-pinyin` | utils | [PROGRESS](archive/an1hhe-utils-pure-js-pinyin/PROGRESS.md) |
+| `ap4hc0-create-simple-template-source` | create | [PROGRESS](archive/ap4hc0-create-simple-template-source/PROGRESS.md) |
 | `avrgue-generator-inbox-fixes` | generator | [PROGRESS](archive/avrgue-generator-inbox-fixes/PROGRESS.md) |
 | `b0tdff-npm-oidc-publishing` | cli-skills · utils | [PROGRESS](archive/b0tdff-npm-oidc-publishing/PROGRESS.md) |
 | `c6xc3c-settle-live-specs` | cc-switch · create · generator | [PROGRESS](archive/c6xc3c-settle-live-specs/PROGRESS.md) |
