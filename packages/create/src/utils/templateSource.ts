@@ -77,12 +77,10 @@ export interface TemplateInstanceInfo {
   type: CreateTemplateSourceTypeEnum;
   /** 模板地址，远程 git 地址或本地绝对路径 */
   url: string;
-  /** 模板仓库分支 */
-  branch: string;
+  /** 模板仓库分支；本机模板仅在显式指定时有值（未指定即取模板仓当前所在分支，不记录） */
+  branch?: string;
   /** 实际检出的完整 commit */
   commit: string;
-  /** 本地模板仓的 origin 地址 */
-  remoteUrl?: string;
   /** 仓库内模板目录 */
   directory?: string;
   /** 项目生成目标目录 */
@@ -95,8 +93,6 @@ interface CleanupLocalTemplateWorktreeOptions {
   repoRoot: string;
   /** 临时 worktree 目录 */
   worktreeDir: string;
-  /** 临时 worktree 分支名 */
-  worktreeBranch: string;
 }
 
 /** 模板复制源目录解析参数 */
@@ -177,7 +173,7 @@ const getGitRepoRoot = (currentDir: string) => {
   }
 };
 
-/** 所有 ref 查询都通过既有命令入口，失败返回 undefined 供有序回落。 */
+/** 读 git 命令输出，失败返回 undefined */
 const gitOutput = (repoRoot: string, args: string): string | undefined => {
   try {
     return (
@@ -190,176 +186,35 @@ const gitOutput = (repoRoot: string, args: string): string | undefined => {
   }
 };
 
-/** fetch 远端；失败只告警，返回是否成功 */
-const fetchOrigin = (repoRoot: string): boolean => {
-  try {
-    execSyncHijack("git fetch origin", { cwd: repoRoot, stdio: "pipe" });
-    return true;
-  } catch (error) {
-    outputConsole.warn("模板仓 git fetch origin 失败，将使用已有远端跟踪分支");
-    return false;
-  }
-};
+/** 检出里没有模板目录时的报错：点名模板仓、所取分支与目录，不报临时目录路径 */
+const missingTemplateError = ({ url, branch, directory }: TemplateSourceInfo) =>
+  new Error(
+    `模板仓 ${url}（${branch ? `分支 ${branch}` : "当前分支"}，只含已提交内容）里没有模板目录 ${directory}`,
+  );
 
 /**
- * 远端默认分支对应的跟踪 ref 候选（按优先级）。
+ * 清理本地模板生成时创建的临时 worktree。
  * ---
- * 本地 `refs/remotes/origin/HEAD` 只在 clone / `remote set-head` 时写入，`git fetch` 不更新，
- * 远端改过默认分支后它会一直指着旧分支；故联网时先问远端实际 HEAD（`ls-remote --symref`，只读），
- * 本地 origin/HEAD 只作离线回落，两者不一致时提示更新。
+ * worktree 以 detached 方式检出、不建分支，模板仓里只有 `.git/worktrees/<名>` 一条记录要清；
+ * remove 失败（被锁 / 目录已被外部删除 / add 中途失败）时兜底删目录 + prune。
  */
-const resolveOriginHeadCandidates = (
-  repoRoot: string,
-): { refs: string[]; verified?: string } => {
-  const fetched = fetchOrigin(repoRoot);
-  const localHead = gitOutput(
-    repoRoot,
-    "symbolic-ref --quiet refs/remotes/origin/HEAD",
-  );
-  const remoteBranch = fetched
-    ? gitOutput(repoRoot, "ls-remote --symref origin HEAD")?.match(
-        /^ref: refs\/heads\/(\S+)\s+HEAD$/m,
-      )?.[1]
-    : undefined;
-  const remoteHead = remoteBranch && `refs/remotes/origin/${remoteBranch}`;
-  if (remoteHead && localHead && remoteHead !== localHead) {
-    outputConsole.warn(
-      `模板仓本地 origin/HEAD 指向 ${localHead}，与远端默认分支 ${remoteHead} 不一致，已按远端取；可在模板仓执行 git remote set-head origin -a 更新`,
-    );
-  }
-  return {
-    refs: [
-      remoteHead,
-      localHead,
-      "refs/remotes/origin/master",
-      "refs/remotes/origin/main",
-    ].filter((ref): ref is string => Boolean(ref)),
-    verified: remoteHead,
-  };
-};
-
-const shortRef = (ref: string) => ref.replace(/^refs\/(remotes|heads)\//, "");
-
-/** 模板目录在仓内的路径（git tree 路径）；未给、指仓根或越出仓外时返回 undefined（不做按目录挑选） */
-const toRepoTreePath = (directory?: string): string | undefined => {
-  if (!directory) return undefined;
-  const treePath = path.posix
-    .normalize(directory.replace(/\\/g, "/"))
-    .replace(/\/+$/, "");
-  if (!treePath || treePath === ".") return undefined;
-  if (treePath === ".." || treePath.startsWith("../")) return undefined;
-  return path.posix.isAbsolute(treePath) ? undefined : treePath;
-};
-
-const isCommitRef = (repoRoot: string, ref: string) =>
-  Boolean(
-    gitOutput(
-      repoRoot,
-      `rev-parse --verify ${quoteShellArg(`${ref}^{commit}`)}`,
-    ),
-  );
-
-/** ref 里有该路径（目录 / 符号链接等任意对象；大小写按 git 精确匹配，只作挑选与提示依据） */
-const hasTemplatePath = (repoRoot: string, ref: string, treePath: string) =>
-  Boolean(
-    gitOutput(repoRoot, `cat-file -t ${quoteShellArg(`${ref}:${treePath}`)}`),
-  );
-
-/**
- * 未传 -b 时的默认 ref。
- * ---
- * 远端实际 HEAD 经 `ls-remote` 核实时以它为准；拿不到（离线 / 无凭据）时首选只是本地猜测，
- * 本地 `origin/HEAD` 可能过期指着没有模板的旧分支（studio 走查实测），故按模板目录挑第一个含它的候选并提示。
- */
-const resolveLocalDefaultRef = (
-  repoRoot: string,
-  remoteUrl?: string,
-  directory?: string,
-): string => {
-  const origin = remoteUrl
-    ? resolveOriginHeadCandidates(repoRoot)
-    : { refs: [], verified: undefined };
-  const candidates = [
-    ...origin.refs,
-    "refs/heads/master",
-    "refs/heads/main",
-  ].filter((ref) => isCommitRef(repoRoot, ref));
-  const [first] = candidates;
-  if (!first) {
-    throw new Error("模板仓没有可用的默认分支，请用 -b 显式指定分支或标签");
-  }
-  const treePath = toRepoTreePath(directory);
-  if (!treePath || first === origin.verified) return first;
-  const found = candidates.find((ref) =>
-    hasTemplatePath(repoRoot, ref, treePath),
-  );
-  if (!found || found === first) return first;
-  outputConsole.warn(
-    `模板仓 ${shortRef(first)} 里没有模板目录 ${treePath}（远端默认分支未能核实），已改取 ${shortRef(found)}；联网后可在模板仓执行 git remote set-head origin -a 更新，或用 -b 指定分支`,
-  );
-  return found;
-};
-
-/** 默认取的是远端跟踪分支、而本地同名分支有未推送提交时提示：这些改动不会用到 */
-const warnLocalAhead = (repoRoot: string, ref: string) => {
-  const branch = ref.match(/^refs\/remotes\/origin\/(.+)$/)?.[1];
-  if (!branch || branch === "HEAD") return;
-  const ahead = Number(
-    gitOutput(
-      repoRoot,
-      `rev-list --count ${quoteShellArg(`${ref}..refs/heads/${branch}`)}`,
-    ) ?? 0,
-  );
-  if (ahead > 0) {
-    outputConsole.warn(
-      `模板仓本地 ${branch} 领先 origin/${branch} ${ahead} 个提交（未推送），默认按远端取，这些改动不会用到；要用本地内容请加 -b ${branch}`,
-    );
-  }
-};
-
-/**
- * 检出后模板目录不存在时的报错：点名所取 ref 并给出处理办法（原先只报临时目录路径）。
- * 判定仍是检出目录上的 existsSync（与改动前同一条件），这里只换说明。
- */
-const missingTemplateError = (
-  repoRoot: string,
-  source: { ref: string; explicit: boolean; directory?: string },
-) => {
-  const treePath = toRepoTreePath(source.directory);
-  const local =
-    treePath &&
-    ["master", "main"].find((branch) =>
-      hasTemplatePath(repoRoot, `refs/heads/${branch}`, treePath),
-    );
-  return new Error(
-    `模板目录 ${treePath ?? source.directory} 在模板仓的 ${shortRef(source.ref)} 里不存在。` +
-      (local
-        ? `本地 ${local} 分支有该目录，可加 -b ${local}`
-        : "请核对模板 directory，或用 -b 指定含该目录的分支") +
-      (source.explicit
-        ? ""
-        : "；未传 -b 时默认取远端默认分支，本地 origin/HEAD 过期可在模板仓执行 git remote set-head origin -a"),
-  );
-};
-
-/** 清理本地模板生成时创建的临时 worktree 和临时分支 */
 const cleanupLocalTemplateWorktree = ({
   repoRoot,
   worktreeDir,
-  worktreeBranch,
 }: CleanupLocalTemplateWorktreeOptions) => {
-  try {
-    execSyncHijack(
-      `git worktree remove --force ${quoteShellArg(worktreeDir)}`,
-      {
-        cwd: repoRoot,
-        stdio: "ignore",
-      },
-    );
-  } catch (error) {
-    // remove 失败（worktree 被锁 / 目录已被外部删除 / 上轮崩在 add 与 remove 之间）：
-    // 兜底删目录 + prune 清 stale 元数据，避免在用户模板仓累积 .git/worktrees 残骸
-    outputConsole.warn(`临时worktree清理失败，尝试兜底: ${worktreeDir}`);
+  if (existsSync(worktreeDir)) {
+    try {
+      execSyncHijack(
+        `git worktree remove --force ${quoteShellArg(worktreeDir)}`,
+        {
+          cwd: repoRoot,
+          stdio: "ignore",
+        },
+      );
+      return;
+    } catch (error) {
+      outputConsole.warn(`临时worktree清理失败，尝试兜底: ${worktreeDir}`);
+    }
     try {
       safeRemoveDirSync({
         targetPath: worktreeDir,
@@ -369,22 +224,14 @@ const cleanupLocalTemplateWorktree = ({
     } catch (rmError) {
       outputConsole.warn(`临时worktree目录删除失败: ${worktreeDir}`);
     }
-    try {
-      execSyncHijack(`git worktree prune`, {
-        cwd: repoRoot,
-        stdio: "ignore",
-      });
-    } catch (pruneError) {
-      outputConsole.warn(`git worktree prune 失败: ${repoRoot}`);
-    }
   }
   try {
-    execSyncHijack(`git branch -D ${quoteShellArg(worktreeBranch)}`, {
+    execSyncHijack(`git worktree prune`, {
       cwd: repoRoot,
       stdio: "ignore",
     });
-  } catch (error) {
-    outputConsole.warn(`临时worktree分支清理失败: ${worktreeBranch}`);
+  } catch (pruneError) {
+    outputConsole.warn(`git worktree prune 失败: ${repoRoot}`);
   }
 };
 
@@ -525,32 +372,25 @@ const materializeLocalGitTemplate = ({
     TEMPLATE_SOURCE_WORK_DIR,
     randomUUID(),
   );
-  const worktreeBranch = `done-coding-template-${randomUUID()}`;
-  const remoteUrl = gitOutput(repoRoot, "remote get-url origin");
-  const worktreeBaseRef =
-    templateSource.branch ??
-    resolveLocalDefaultRef(repoRoot, remoteUrl, templateSource.directory);
-  if (!templateSource.branch) warnLocalAhead(repoRoot, worktreeBaseRef);
+  // 本机路径就是模板仓本身：取它当前所在的分支（HEAD），显式指定了分支才用该分支；不联网、不推断远端分支
+  const worktreeBaseRef = templateSource.branch ?? "HEAD";
   mkdirSync(path.dirname(tempRepoDir), { recursive: true });
-  execSyncHijack(
-    `git worktree add -b ${quoteShellArg(worktreeBranch)} ${quoteShellArg(tempRepoDir)} ${quoteShellArg(worktreeBaseRef)}`,
-    {
-      cwd: repoRoot,
-      stdio: "ignore",
-    },
-  );
 
   try {
+    // detached 检出：不在模板仓建临时分支；add 放进 try，中途失败也走清理
+    execSyncHijack(
+      `git worktree add --detach ${quoteShellArg(tempRepoDir)} ${quoteShellArg(worktreeBaseRef)}`,
+      {
+        cwd: repoRoot,
+        stdio: "ignore",
+      },
+    );
     const sourceRoot = getTemplateSourceRoot({
       tempRepoDir,
       directory: templateSource.directory,
     });
     if (!existsSync(sourceRoot)) {
-      throw missingTemplateError(repoRoot, {
-        ref: worktreeBaseRef,
-        explicit: Boolean(templateSource.branch),
-        directory: templateSource.directory,
-      });
+      throw missingTemplateError(templateSource);
     }
     copyTemplateSourceRoot({
       sourceRoot,
@@ -558,17 +398,13 @@ const materializeLocalGitTemplate = ({
       targetPath,
     });
     return {
-      branch:
-        templateSource.branch ??
-        worktreeBaseRef.replace(/^refs\/(remotes|heads)\//, ""),
+      branch: templateSource.branch,
       commit: gitOutput(tempRepoDir, "rev-parse HEAD")!,
-      remoteUrl,
     };
   } finally {
     cleanupLocalTemplateWorktree({
       repoRoot,
       worktreeDir: tempRepoDir,
-      worktreeBranch,
     });
   }
 };
@@ -581,11 +417,11 @@ export const materializeTemplateToProject = (
     options.templateSource.type === CreateTemplateSourceTypeEnum.LOCAL
       ? materializeLocalGitTemplate(options)
       : materializeRemoteGitTemplate(options);
-  if (!actual.commit || !actual.branch) {
-    throw new Error("无法读取模板实际 ref 或 commit");
+  if (!actual.commit) {
+    throw new Error("无法读取模板实际 commit");
   }
   outputConsole.stage(
-    `模板来源：${options.templateSource.url} @ ${actual.branch} (${actual.commit.slice(0, 7)})`,
+    `模板来源：${options.templateSource.url}${actual.branch ? ` @ ${actual.branch}` : ""} (${actual.commit.slice(0, 7)})`,
   );
 
   return {

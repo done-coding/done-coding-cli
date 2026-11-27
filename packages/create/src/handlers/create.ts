@@ -1,8 +1,6 @@
 import {
   cleanupCreateDraftParents,
   readTemplateConfig,
-  readTemplateSecretKeys,
-  writeTemplateLock,
 } from "@/utils/create-artifacts";
 import {
   getRemoveDirForm,
@@ -82,11 +80,9 @@ interface CreateDraftState {
   draftProjectPath: string;
   templateSourceType: CreateTemplateSourceTypeEnum;
   templateUrl: string;
-  templateBranch: string;
+  templateBranch?: string;
   templateDirectory?: string;
   templateCommit: string;
-  templateRemoteUrl?: string;
-  secretKeys: string[];
   /** 模板友好名（无则记 url），供创建实例留痕 */
   templateName?: string;
   parentGitDir?: string;
@@ -416,8 +412,6 @@ export const prepareCreateProject = async (
       templateBranch: templateInstance.branch,
       templateDirectory: templateInstance.directory,
       templateCommit: templateInstance.commit,
-      templateRemoteUrl: templateInstance.remoteUrl,
-      secretKeys: await readTemplateSecretKeys(draftProjectPath, configPath),
       // 名取自 templateSource（materialize 不变换名）；无名留 undefined，留痕时回落 url
       templateName: templateSource.templateName,
       parentGitDir,
@@ -598,20 +592,6 @@ export const completeCreateProject = async (
     ctxInit: ctx,
   });
 
-  writeTemplateLock({
-    projectPath: state.draftProjectPath,
-    source: {
-      url: state.templateUrl,
-      remoteUrl: state.templateRemoteUrl,
-      directory: state.templateDirectory,
-      branch: state.templateBranch,
-      commit: state.templateCommit,
-    },
-    template: state.templateName,
-    secretKeys: state.secretKeys,
-    answers: argv.envData,
-  });
-
   await applyGitDetailOptimize({
     state,
     argv,
@@ -721,7 +701,6 @@ const interactiveCreateHandler = async (
     rootDir: projectNamePath,
     configPath,
   });
-  const secretKeys = await readTemplateSecretKeys(projectNamePath, configPath);
   // 编译会删除模板配置，先读使用步骤
   const usageSteps = buildUsageSteps(
     projectName,
@@ -747,13 +726,6 @@ const interactiveCreateHandler = async (
       outputConsole.stage("模板项目配置编译成功, 编译配置文件已删除");
     }
   }
-
-  writeTemplateLock({
-    projectPath: projectNamePath,
-    source: templateInstance,
-    template: templateSource.templateName,
-    secretKeys,
-  });
 
   if (argv.openGitDetailOptimize) {
     outputConsole.stage("项目初始化完成");
