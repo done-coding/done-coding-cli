@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.10.1-alpha.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.10.0...@done-coding/cli-skills@0.10.1-alpha.0) (2026-11-27)
+
+### Bug Fixes
+
+- **create:** 本机模板取模板仓当前分支、不联网，去掉 template.lock，临时 worktree 不再留分支 ([#65](https://github.com/done-coding/done-coding-cli/issues/65)) ([8a085cd](https://github.com/done-coding/done-coding-cli/commit/8a085cd7ae2744fc93023a9001b1b749d62e3f07))
+
 # [0.10.0](https://github.com/done-coding/done-coding-cli/compare/@done-coding/cli-skills@0.9.0...@done-coding/cli-skills@0.10.0) (2026-11-20)
 
 ### Features
