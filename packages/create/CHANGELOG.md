@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.22.1](https://github.com/done-coding/done-coding-cli/compare/create-done-coding@0.22.0...create-done-coding@0.22.1) (2026-11-27)
+
+### Bug Fixes
+
+- **create:** 本机模板取模板仓当前分支、不联网，去掉 template.lock，临时 worktree 不再留分支 ([#66](https://github.com/done-coding/done-coding-cli/issues/66)) ([ebd9519](https://github.com/done-coding/done-coding-cli/commit/ebd9519b6e612d256736f09b4249c7c98487a31f))
+
 # [0.22.0](https://github.com/done-coding/done-coding-cli/compare/create-done-coding@0.21.0...create-done-coding@0.22.0) (2026-11-20)
 
 ### Features
