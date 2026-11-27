@@ -330,9 +330,10 @@ MIT © [done-coding](https://github.com/done-coding)
 - [信息注入工具](https://www.npmjs.com/package/@done-coding/cli-inject) - 本包依赖的信息注入功能
 - [Github 仓库](https://github.com/done-coding/done-coding-cli)
 
-## 模板版本与出生记录
+## 模板来源
 
-- 默认使用远端默认分支，或模板清单中钉住的标签（`branch`）。本地模板仓先 best-effort `git fetch origin`，失败告警后使用已有跟踪分支；依次尝试 `origin/HEAD`、`origin/master`、`origin/main`，再回落本地 `master`、`main`。均不可用时明确报错，要求 `-b`。
-- 需要在途分支时显式传 `-b <分支>`；标签同样用 `-b <标签>`。本地仓当前检出分支不会自动成为模板来源。
-- 创建时打印来源 URL、实际 ref 和短 commit；项目生成 `.done-coding/template.lock.json`，记录模板、目录、实际 ref、完整 commit、创建时间和 CLI 版本。本地仓有 origin 时另记 `remoteUrl`。
-- lock 的 `answers` 只来自非交互 `--env` / `--env-file`（MCP 的 `envData` 同理），交互模式省略该字段。模板 `collectEnvDataForm` 标记 `secret: true` 的答案不落盘，只在 `secretKeys` 记录 key。
+- 模板 url 是本机路径：在该模板仓上以 `git worktree add --detach` 检出到系统临时目录，取模板仓**当前所在分支的已提交内容**（未提交改动不带），不联网、不推断远端分支；用完删除临时检出，模板仓里不留临时分支或 worktree 记录。
+- 模板 url 是远程地址：`git clone --depth=1` 到系统临时目录，取远端默认分支。
+- 模板清单项钉了 `branch`、或命令行传了 `-b <分支 / 标签>` 时用该分支或标签。
+- 之后两者相同：只复制模板 `directory` 到目标目录（不含 `.git`），再做模板问答与编译。
+- 创建时打印来源 URL、显式分支（如有）和短 commit；项目内不写来源记录文件。

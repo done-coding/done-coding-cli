@@ -665,7 +665,7 @@ describe("create-done-coding 非交互供答 e2e", () => {
   });
 
   it.each([false, true])(
-    "出生记录在首次 git commit 内（interactive=%s）",
+    "首次 git commit 不含 template.lock（interactive=%s）",
     (interactive) => {
       const work = makeWork(`first-commit-${interactive}`);
       const indexUrl = pathToFileURL(path.join(PKG_DIR, "es/index.mjs")).href;
@@ -698,18 +698,14 @@ describe("create-done-coding 非交互供答 e2e", () => {
       const project = path.join(work, "birthapp");
       const tracked = spawnSync(
         "git",
-        ["show", "HEAD:.done-coding/template.lock.json"],
-        { cwd: project, encoding: "utf-8" },
+        ["ls-tree", "-r", "--name-only", "HEAD"],
+        {
+          cwd: project,
+          encoding: "utf-8",
+        },
       );
       expect(tracked.status).toBe(0);
-      const lock = JSON.parse(tracked.stdout);
-      expect(lock).toMatchObject({
-        version: 1,
-        url: usageStepsRepo,
-        branch: expect.stringMatching(/^(master|main)$/),
-        commit: expect.stringMatching(/^[a-f0-9]{40}$/),
-      });
-      expect(lock).not.toHaveProperty("answers");
+      expect(tracked.stdout).not.toContain("template.lock.json");
       expect(existsSync(path.join(project, ".done-coding/template.json"))).toBe(
         false,
       );

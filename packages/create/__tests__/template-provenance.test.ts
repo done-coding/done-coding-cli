@@ -24,11 +24,7 @@ import {
   handler,
   prepareCreateProject,
 } from "@/handlers/create";
-import {
-  cleanupCreateDraftParents,
-  readTemplateSecretKeys,
-  writeTemplateLock,
-} from "@/utils/create-artifacts";
+import { cleanupCreateDraftParents } from "@/utils/create-artifacts";
 import { readTemplateUsageSteps } from "@/utils/usage-steps";
 import { getRegistryPath } from "@/utils/instances-registry";
 import { CreateTemplateSourceTypeEnum } from "@/types";
@@ -123,170 +119,62 @@ afterEach(() => {
   rmSync(scratch, { recursive: true, force: true });
 });
 
-const originFixture = (defaultBranch = "stable") => {
-  git(repo, "branch", defaultBranch);
-  const origin = path.join(scratch, "origin.git");
-  git(scratch, "init", "--bare", "-q", origin);
-  git(repo, "remote", "add", "origin", origin);
-  git(repo, "push", "-q", "origin", "master", defaultBranch);
-  git(origin, "symbolic-ref", "HEAD", `refs/heads/${defaultBranch}`);
-  git(repo, "remote", "set-head", "origin", "-a");
-  git(repo, "checkout", "-qb", "development");
-  writeFileSync(path.join(repo, "template/content.txt"), "development");
-  commit();
-  writeFileSync(path.join(repo, "template/content.txt"), "uncommitted");
-  return origin;
+/** 模板仓 origin 指向不存在的地址：任何联网动作都会失败 */
+const unreachableOrigin = () =>
+  git(repo, "remote", "add", "origin", path.join(scratch, "missing.git"));
+/** 模板仓里没有 create 留下的临时 worktree 记录和临时分支 */
+const expectNoResidue = () => {
+  expect(git(repo, "worktree", "list").split("\n")).toHaveLength(1);
+  expect(git(repo, "branch", "--list", "done-coding-template-*")).toBe("");
 };
 
-describe("模板实际来源与出生记录", () => {
-  it("开发分支检出且有未合入内容：默认读取 origin/HEAD，显式 -b 读取在途分支和标签", () => {
-    originFixture();
+describe("模板来源与创建产物", () => {
+  it("本机模板取模板仓当前所在分支的已提交内容，不联网；显式分支 / 标签照用", () => {
+    unreachableOrigin();
+    git(repo, "branch", "stable");
+    git(repo, "checkout", "-qb", "development");
+    writeFileSync(path.join(repo, "template/content.txt"), "development");
+    const head = commit();
+    writeFileSync(path.join(repo, "template/content.txt"), "uncommitted");
+    const warn = vi.spyOn(outputConsole, "warn").mockImplementation(() => {});
+
     const result = materialize();
-    expect(result.branch).toBe("origin/stable");
-    expect(result.commit).toBe(git(repo, "rev-parse", "origin/stable"));
+    expect(result.branch).toBeUndefined();
+    expect(result.commit).toBe(head);
     expect(
       readFileSync(path.join(result.targetPath, "content.txt"), "utf-8"),
-    ).toBe("stable");
-    const explicit = materialize("development");
+    ).toBe("development");
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+
+    const explicit = materialize("stable");
+    expect(explicit.branch).toBe("stable");
     expect(
       readFileSync(path.join(explicit.targetPath, "content.txt"), "utf-8"),
-    ).toBe("development");
-    git(repo, "tag", "v1", "master");
-    expect(materialize("v1").commit).toBe(git(repo, "rev-parse", "master"));
-  });
-
-  it("fetch 更新跟踪分支；本地与远端都取不到 HEAD 时优先 origin/master", () => {
-    const origin = originFixture();
-    git(repo, "symbolic-ref", "--delete", "refs/remotes/origin/HEAD");
-    git(origin, "symbolic-ref", "HEAD", "refs/heads/missing");
-    git(repo, "config", "remote.origin.followRemoteHEAD", "never");
-    const publisher = path.join(scratch, "publisher");
-    git(scratch, "clone", "-q", origin, publisher);
-    git(publisher, "checkout", "master");
-    writeFileSync(path.join(publisher, "template/content.txt"), "new remote");
-    git(publisher, "add", ".");
-    git(
-      publisher,
-      "-c",
-      "user.name=test",
-      "-c",
-      "user.email=test@example.invalid",
-      "commit",
-      "-qm",
-      "update",
-    );
-    git(publisher, "push", "-q", "origin", "master");
-    const result = materialize();
-    expect(result.branch).toBe("origin/master");
-    expect(
-      readFileSync(path.join(result.targetPath, "content.txt"), "utf-8"),
-    ).toBe("new remote");
-  });
-
-  it("本地 origin/HEAD 过期指向旧分支：按远端实际 HEAD 取默认分支", () => {
-    const origin = originFixture();
-    const publisher = path.join(scratch, "publisher");
-    git(scratch, "clone", "-q", origin, publisher);
-    git(publisher, "checkout", "-q", "--orphan", "legacy");
-    git(publisher, "rm", "-rqf", ".");
-    writeFileSync(path.join(publisher, "legacy.txt"), "legacy");
-    git(publisher, "add", ".");
-    git(
-      publisher,
-      "-c",
-      "user.name=test",
-      "-c",
-      "user.email=test@example.invalid",
-      "commit",
-      "-qm",
-      "legacy",
-    );
-    git(publisher, "push", "-q", "origin", "legacy");
-    git(repo, "fetch", "-q", "origin");
-    git(
-      repo,
-      "symbolic-ref",
-      "refs/remotes/origin/HEAD",
-      "refs/remotes/origin/legacy",
-    );
-    const warn = vi.spyOn(outputConsole, "warn").mockImplementation(() => {});
-    const result = materialize();
-    expect(result.branch).toBe("origin/stable");
-    expect(
-      readFileSync(path.join(result.targetPath, "content.txt"), "utf-8"),
     ).toBe("stable");
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining("git remote set-head origin -a"),
-    );
-    warn.mockRestore();
+    git(repo, "tag", "v1", "stable");
+    expect(materialize("v1").commit).toBe(git(repo, "rev-parse", "stable"));
+    expectNoResidue();
   });
 
-  it("离线且本地 origin/HEAD 过期指向没有模板目录的旧分支：改取含该目录的候选并提示", () => {
-    const origin = originFixture();
-    const publisher = path.join(scratch, "publisher");
-    git(scratch, "clone", "-q", origin, publisher);
-    git(publisher, "checkout", "-q", "--orphan", "legacy");
-    git(publisher, "rm", "-rqf", ".");
-    writeFileSync(path.join(publisher, "legacy.txt"), "legacy");
-    git(publisher, "add", ".");
-    git(
-      publisher,
-      "-c",
-      "user.name=test",
-      "-c",
-      "user.email=test@example.invalid",
-      "commit",
-      "-qm",
-      "legacy",
-    );
-    git(publisher, "push", "-q", "origin", "legacy");
-    git(repo, "fetch", "-q", "origin");
-    git(
-      repo,
-      "symbolic-ref",
-      "refs/remotes/origin/HEAD",
-      "refs/remotes/origin/legacy",
-    );
-    git(repo, "remote", "set-url", "origin", path.join(scratch, "missing.git"));
-    const warn = vi.spyOn(outputConsole, "warn").mockImplementation(() => {});
-    const result = materialize();
-    expect(result.branch).toBe("origin/master");
-    expect(
-      readFileSync(path.join(result.targetPath, "content.txt"), "utf-8"),
-    ).toBe("stable");
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining("origin/legacy 里没有模板目录 template"),
-    );
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining("已改取 origin/master"),
-    );
-    warn.mockRestore();
-  });
-
-  it("默认分支里没有模板目录：报错点名所取分支，本地分支有该目录时提示 -b", () => {
-    originFixture();
-    git(repo, "checkout", "-qf", "master");
-    mkdirSync(path.join(repo, "extra"));
-    writeFileSync(path.join(repo, "extra/content.txt"), "local only");
-    commit();
+  it("模板目录不存在：报错点名模板仓与目录，模板仓不留临时 worktree / 分支", () => {
     const run = (branch?: string) =>
       materializeTemplateToProject({
         templateSource: resolveTemplateSourceFromUrl({
           templateUrl: repo,
           templateBranch: branch,
-          directory: "extra/",
+          directory: "missing",
         }),
         rootDir: work,
-        targetPath: path.join(work, `extra-${branch ?? "default"}`),
+        targetPath: path.join(work, `missing-${branch ?? "default"}`),
       });
     expect(() => run()).toThrow(
-      /模板目录 extra 在模板仓的 origin\/stable 里不存在。本地 master 分支有该目录，可加 -b master；未传 -b/,
+      `模板仓 ${repo}（当前分支，只含已提交内容）里没有模板目录 missing`,
     );
-    expect(() => run("stable")).toThrow(
-      /stable 里不存在。本地 master 分支有该目录，可加 -b master$/,
-    );
-    expect(run("master").branch).toBe("master");
-    expect(existsSync(path.join(work, "extra-default"))).toBe(false);
+    expect(() => run("master")).toThrow(/（分支 master，只含已提交内容）/);
+    expect(() => run("no-such-branch")).toThrow();
+    expect(existsSync(path.join(work, "missing-default"))).toBe(false);
+    expectNoResidue();
   });
 
   describe("符号链接：生成结果不引用随后清理的临时检出目录", () => {
@@ -379,7 +267,7 @@ describe("模板实际来源与出生记录", () => {
     expect(existsSync(path.join(work, "app"))).toBe(false);
   });
 
-  it("模板配置是指向项目外的链接：预设问题 / 使用步骤 / secret key 都不读，直接拒绝", async () => {
+  it("模板配置是指向项目外的链接：预设问题 / 使用步骤都不读，直接拒绝", async () => {
     const outside = path.join(scratch, "outside");
     mkdirSync(outside);
     writeFileSync(
@@ -408,9 +296,6 @@ describe("模板实际来源与出生记录", () => {
       path.join(outside, "config.json"),
       path.join(project, configRel),
     );
-    await expect(readTemplateSecretKeys(project, configRel)).rejects.toThrow(
-      /越出项目目录/,
-    );
     await expect(
       readTemplateUsageSteps({ rootDir: project, configPath: configRel }),
     ).rejects.toThrow(/越出项目目录/);
@@ -433,97 +318,29 @@ describe("模板实际来源与出生记录", () => {
     },
   );
 
-  it("本地默认分支有未推送提交：仍按远端取，并提示加 -b 用本地内容", () => {
-    originFixture();
-    git(repo, "checkout", "-qf", "stable");
-    writeFileSync(path.join(repo, "template/content.txt"), "unpushed");
-    commit();
-    const warn = vi.spyOn(outputConsole, "warn").mockImplementation(() => {});
-    const result = materialize();
-    expect(result.branch).toBe("origin/stable");
-    expect(
-      readFileSync(path.join(result.targetPath, "content.txt"), "utf-8"),
-    ).toBe("stable");
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining("本地 stable 领先 origin/stable 1 个提交"),
-    );
-    warn.mockRestore();
-  });
-
-  it("fetch 失败使用已有跟踪分支", () => {
-    originFixture();
-    git(repo, "remote", "set-url", "origin", path.join(scratch, "missing.git"));
-    expect(materialize().branch).toBe("origin/stable");
-  });
-
-  it.each(["master", "main"])(
-    "无 origin 回落本地 %s，不取开发分支",
-    (branch) => {
-      git(repo, "branch", "-m", branch);
-      git(repo, "checkout", "-qb", "development");
-      expect(materialize().branch).toBe(branch);
-    },
-  );
-
-  it("无默认分支时要求 -b，并清理 prepare 失败草稿", async () => {
-    git(repo, "branch", "-m", "development");
-    await expect(prepareCreateProject(argv(), ctx())).rejects.toThrow(/-b/);
-    expect(existsSync(path.join(work, ".done-coding"))).toBe(false);
-  });
-
-  it("complete 写 lock 和注册表：commit 与 origin 一致，secret 仅存 key", async () => {
-    const origin = originFixture();
+  it("complete 不写 template.lock；注册表记目录与 commit，未指定分支不记分支", async () => {
     const prepared = await prepareCreateProject(argv(), ctx());
-    const draft = JSON.parse(
-      readFileSync(
-        path.join(
-          work,
-          ".done-coding/default/tmp/create",
-          prepared.draftId,
-          "draft.json",
-        ),
-        "utf-8",
-      ),
-    );
-    expect(draft.secretKeys).toEqual(["token"]);
-    expect(JSON.stringify(draft)).not.toContain("private-value");
     await completeCreateProject(
       {
         rootDir: work,
         draftId: prepared.draftId,
-        envData: { name: "app", token: "private-value", extra: "kept" },
+        envData: { name: "app", token: "private-value" },
       },
       ctx(),
     );
-    const raw = readFileSync(
-      path.join(work, "app/.done-coding/template.lock.json"),
-      "utf-8",
-    );
-    const lock = JSON.parse(raw);
-    expect(lock).toMatchObject({
-      version: 1,
-      template: repo,
-      url: repo,
-      remoteUrl: origin,
-      directory: "template",
-      branch: "origin/stable",
-      commit: git(origin, "rev-parse", "stable"),
-      answers: { name: "app", extra: "kept" },
-      secretKeys: ["token"],
-      cli: { name: "create-done-coding", version: expect.any(String) },
-      createdAt: expect.any(String),
-    });
-    expect(raw).not.toContain("private-value");
-    expect(raw).toBe(`${JSON.stringify(lock, null, 2)}\n`);
+    expect(existsSync(path.join(work, "app/content.txt"))).toBe(true);
+    expect(
+      existsSync(path.join(work, "app/.done-coding/template.lock.json")),
+    ).toBe(false);
     expect(existsSync(path.join(work, "app/.done-coding/template.json"))).toBe(
       false,
     );
     const registry = JSON.parse(readFileSync(getRegistryPath(), "utf-8"));
     expect(registry.instances[0]).toMatchObject({
       templateDirectory: "template",
-      templateBranch: "origin/stable",
-      templateCommit: lock.commit,
+      templateCommit: git(repo, "rev-parse", "HEAD"),
     });
+    expect(registry.instances[0]).not.toHaveProperty("templateBranch");
     expect(existsSync(path.join(work, ".done-coding"))).toBe(false);
   });
 
@@ -543,20 +360,8 @@ describe("模板实际来源与出生记录", () => {
     expect(existsSync(path.join(work, ".done-coding/default"))).toBe(false);
   });
 
-  it("不写交互答案；清理拒绝 symlink 逃逸", () => {
-    writeTemplateLock({
-      projectPath: work,
-      source: {
-        url: repo,
-        branch: "master",
-        commit: git(repo, "rev-parse", "HEAD"),
-      },
-      secretKeys: ["token"],
-    });
-    const lock = JSON.parse(
-      readFileSync(path.join(work, ".done-coding/template.lock.json"), "utf-8"),
-    );
-    expect(lock).not.toHaveProperty("answers");
+  it("清理空父目录拒绝 symlink 逃逸", () => {
+    mkdirSync(path.join(work, ".done-coding"));
     const outside = path.join(scratch, "outside");
     mkdirSync(path.join(outside, "tmp/create"), { recursive: true });
     symlinkSync(outside, path.join(work, ".done-coding/default"));
